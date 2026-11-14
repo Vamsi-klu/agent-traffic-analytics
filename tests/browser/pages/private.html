@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Private fields · cake.js browser test</title>
+<style>
+body { font: 16px/1.5 system-ui, sans-serif; max-width: 760px; margin: 0 auto; padding: 0 16px 64px; }
+label { display: block; margin-top: 12px; }
+#note { min-height: 3em; border: 1px solid; padding: 4px; }
+iframe { width: 100%; height: 160px; border: 0; }
+</style>
+<script src="/cake.js" data-site="{{SITE_KEY}}" defer></script>
+</head>
+<body>
+<h1>Fields cake.js must not record</h1>
+<p>Test page for plan step S1.4: what is typed here must never reach cake. Only made-up text is typed.</p>
+<label for="name">Name (an ordinary input: masked, its length kept)</label><input id="name" type="text">
+<label for="secret">Marked data-cake-private (not recorded at all)</label><input id="secret" type="text" data-cake-private>
+<label for="pw">Password (not recorded at all)</label><input id="pw" type="password">
+<label for="cc">Card number, autocomplete cc-number (not recorded at all)</label><input id="cc" type="text" autocomplete="cc-number">
+<label for="notes">Notes (a textarea: masked)</label><textarea id="notes"></textarea>
+<p>Editable text (contenteditable: masked like an input)</p><div id="note" contenteditable="true"></div>
+<p>A payment form inside a frame</p>
+<iframe id="pay" src="/pages/pay-frame.html" title="Payment"></iframe>
+<p><button id="press" type="button">Press me</button> <a id="shop" href="/demo">Go to the shop</a></p>
+</body>
+</html>

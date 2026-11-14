@@ -1,0 +1,4 @@
+{
+  "about": "The sentence for a coding agent, also offered in Chinese (D21: the interface itself is English only; /api/setup gives both).",
+  "site_sentence": "在这个网站的代码目录里运行 `{launcher} setup --print --site`，按它打印的步骤把 {name} 接到这个网站上，最后运行 `{launcher} doctor`，告诉我结果和还剩什么要我做。"
+}

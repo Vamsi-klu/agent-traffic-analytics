@@ -1,0 +1,12 @@
+{"chunk":1,"start_ms":10616,"end_ms":10618,"events":[
+{"type":3,"data":{"source":1,"positions":[{"x":932,"y":321,"id":76,"timeOffset":0}]},"timestamp":1794557000567},
+{"type":3,"data":{"source":2,"type":1,"id":76,"x":932.8099975585938,"y":321.8900146484375},"timestamp":1794557000568},
+{"type":3,"data":{"source":2,"type":5,"id":76},"timestamp":1794557000568},
+{"type":3,"data":{"source":2,"type":0,"id":76,"x":932.8099975585938,"y":321.8900146484375},"timestamp":1794557000568},
+{"type":3,"data":{"source":2,"type":2,"id":76,"x":932,"y":321,"pointerType":0},"timestamp":1794557000568},
+{"type":3,"data":{"source":5,"text":"Blue","isChecked":true,"id":76},"timestamp":1794557000569},
+{"type":3,"data":{"source":5,"text":"White","isChecked":false,"id":68},"timestamp":1794557000569},
+{"type":3,"data":{"source":5,"text":"Black","isChecked":false,"id":72},"timestamp":1794557000569},
+{"type":3,"data":{"source":5,"text":"Red","isChecked":false,"id":80},"timestamp":1794557000569},
+{"type":3,"data":{"source":0,"texts":[],"attributes":[],"removes":[{"parentId":51,"id":52}],"adds":[{"parentId":51,"nextId":null,"node":{"type":2,"tagName":"svg","attributes":{"class":"swatch","viewBox":"0 0 160 120","aria-hidden":"true"},"childNodes":[],"isSVG":true,"id":244}},{"parentId":244,"nextId":null,"node":{"type":2,"tagName":"path","attributes":{"d":"M55 22 L70 16 Q80 26 90 16 L105 22 L122 40 L110 50 L104 44 L104 104 L56 104 L56 44 L50 50 L38 40 Z","fill":"#2f6fd6"},"childNodes":[],"isSVG":true,"id":245}},{"parentId":244,"nextId":245,"node":{"type":2,"tagName":"rect","attributes":{"width":"160","height":"120"},"childNodes":[],"isSVG":true,"id":246}}]},"timestamp":1794557000569}
+]}

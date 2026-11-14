@@ -1,0 +1,5 @@
+# The image is built from the release wheel alone (the Dockerfile installs it from dist/). Nothing else in this folder
+# is sent to Docker: no data folder, no plan, no web sources, no tests. An allow-list, as in PostHog 1.0.0's
+# .dockerignore (github.com/PostHog/posthog, tag 1.0.0, MIT).
+*
+!dist/agentcake-*.whl

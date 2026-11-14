@@ -1,0 +1,114 @@
+# Third-party code and data in AgentCake
+
+Every piece of someone else's code or data that AgentCake ships, copies from, or bundles is listed here: what it is,
+the exact version or commit, its licence, and where it lives in this repository. Files that copy code also say so in
+their header. Code whose licence we could not check is not used.
+
+Each section belongs to one part of AgentCake; add a row to the section you are working in.
+
+## Browser script (`agentcake/static/`)
+
+| Name | Version / commit | Licence | Where | How it is used |
+|---|---|---|---|---|
+| rrweb (record) | 2.0.0-alpha.18 (local source checked at `3339038d`) | MIT | `agentcake/static/rrweb-record.min.js`, bundled unchanged into `agentcake/static/cake.js` with its licence (`agentcake/static/src/rrweb.LICENSE.txt`) | Session replay recording, shipped as built by rrweb |
+| botscent, page half | 1.2.0: npm `botscent@1.2.0` `dist/botscent.js` (sha256 `ed094ea3…`), github.com/nalinbhardwaj/botscent `7f948003` | MIT | `agentcake/static/src/botscent.js`, unchanged, bundled into `cake.js` with its licence | Names agent products from what they leave in the page (Muse, Grok Bot, Codex, the ChatGPT badge, …); cake.js keeps its verdicts as they are |
+| BotD | 2.0.0: npm `@fingerprintjs/botd` `dist/botd.esm.js` (sha256 `f438ed25…`), the same sources as github.com/fingerprintjs/BotD `193c471a` | MIT | `agentcake/static/src/botd.js` (its telemetry request and its export statement removed, see the file's header), bundled into `cake.js` with its licence; its table of distinctive properties copied into `agentcake/data/cakejs.json` (`env.distinctive_globals`) | Automation checks in the page; cake.js keeps its results as they are |
+| BotD (an idea) | 2.0.0, repository commit `193c471a` | MIT | `agentcake/static/src/env.js` | The error-stack read follows BotD's errorTrace detector; the table of distinctive globals `env.js` reads is the copy in `agentcake/data/cakejs.json` (row above); no code copied |
+| rebrowser-bot-detector | commit `55fa59b` | MIT declared in its `package.json`, but the repository has no LICENSE file: no code of it is used | Ideas only, in our own code: `agentcake/static/src/automation.js`, the CDP-binding scans in `env.js`, the worker and native-function checks in `probes.js` | The CDP Runtime.enable leak, IPC flooding protection, document interception, CDP binding globals, main-world call stacks, worker consistency and native tampering checks |
+| agent-detector (DOM markers) | 0.4.1, github.com/doubleagent-so/agent-detector commit `a523214c` | MIT | `agentcake/data/agent_markers.json` (`page.markers`; credited in its `source_refs`), read by `agentcake/static/src/markers.js` | The selectors of its catalogue's DOM markers (`src/catalog/fingerprinted.ts`: Claude in Chrome's older ids and style sheet, Comet, Fellou, Browser Use, Stagehand, Skyvern), copied; cake.js's watch on them is our own code |
+| botscent (page markers) | 1.2.0, commit `7f948003` | MIT | `agentcake/data/agent_markers.json` (`chatgpt-chrome.badge`, `claude-chrome.page-dom`) | The ChatGPT for Chrome badge selector and Claude in Chrome's older ids, from `src/page/observe.ts` (`markers`), copied |
+
+## Replay player and local pages (`agentcake/static/`, `web/`)
+
+| Name | Version / commit | Licence | Where | How it is used |
+|---|---|---|---|---|
+| rrweb-player | 2.0.0-alpha.18 | MIT | `agentcake/static/rrweb-player.umd.cjs`, `agentcake/static/rrweb-player.css` | Replay player, shipped as built |
+| shadcn/ui, Radix, React, Tailwind, recharts, lucide and the other npm packages of `web/` | exact versions in `web/package-lock.json` | MIT, ISC, Apache-2.0, BSD-3-Clause, 0BSD: each package's own | `web/` (compiled into `web/dist`, which a release puts into the package as `agentcake/web/`) | The local pages. Their notices are `THIRD_PARTY_NOTICES.txt`, which `npm run build` writes next to them (`web/scripts/notices.mjs`, settings in `web/notices.json`), so every wheel carries it: each package whose code or styles reach the build (Tailwind's, tw-animate-css's and shadcn's styles included), with its version, its declared licence and its licence and notice files, unchanged; a release checks it is there (`tools/releasing/notices.py`). The dependencies chosen are in `DESIGN.md` §14 |
+| react-remove-scroll-bar `LICENSE` | 2.3.8; the text from github.com/theKashey/react-remove-scroll-bar commit `7301c160` | MIT | `web/notices.json` ("texts") | Its npm package, bundled through Radix, ships no licence file, so its repository's MIT text (added after 2.3.8) is copied unchanged into `THIRD_PARTY_NOTICES.txt` |
+| Fredoka, Nunito | variable fonts from the Google Fonts repository: Fredoka 2.001, Nunito 3.602 (each file's own version string) | SIL OFL 1.1 | `web/src/assets/fonts/`, with their OFL.txt | The interface fonts, bundled in the app (no font is loaded from the internet); each file keeps its copyright and licence notice in its metadata, and their OFL texts go into `THIRD_PARTY_NOTICES.txt` |
+| PostHog 1.0.0 `frontend/src/Api.js` | 1.0.0 (commit `ab887730`) | MIT | `web/src/data/api.ts` | The idea only: one small fetch wrapper that turns the server's error body into an error; no code copied |
+
+## Command line, local server and storage (`agentcake/`)
+
+| Name | Version / commit | Licence | Where | How it is used |
+|---|---|---|---|---|
+| PostHog 1.0.0 | 1.0.0 (commit `ab887730`) | MIT | the module layout of `agentcake/`: `defaults.json` and `config.py` (as `posthog/settings.py`), `routes.py` (as `posthog/urls.py`), one module per resource (as `posthog/api/`), `collect.py` (as `posthog/api/capture.py`) | The layout only, named in each module's docstring; no code copied |
+
+## Detection (`agentcake/detect/`, `agentcake/data/lists/`)
+
+| Name | Version / commit | Licence | Where | How it is used |
+|---|---|---|---|---|
+| botscent | 1.2.0, commit `7f948003` | MIT | `agentcake/detect/sfv.py`, `agentcake/detect/webbotauth.py` | Structure only (the layout of the field parser, the order of the signature checks); the code is written anew |
+| cloudflare/web-bot-auth test vectors | commit `01c0d10a` (v0.8.0) | Apache-2.0 (text in the same folder) | `tests/vectors/web-bot-auth/web_bot_auth_*.json` | Web Bot Auth test vectors, copied unchanged; tests only, not shipped |
+| agent-detector (rules and thresholds) | commit `a523214c3b67` (github.com/doubleagent-so/agent-detector) | MIT | `agentcake/detect/model.py`, `features.py`; `agentcake/data/behavior_model.json` (`metronome_typing`, `session.corroboration`) | Ideas only, no code copied (job borrow-rules): a missing signal is no evidence (the move rate of a pointer that hardly moved), typed text without keys only for `insertText` outside touch sessions, the inputs that explain a scroll, even typing over 8 key gaps at a spread under 0.15; and (S3.7, job behavior-best) without hard evidence an agent verdict needs two independent kinds of behaviour evidence |
+| bot-signal (rules and thresholds) | commit `25a4e7b0159f` (github.com/okasi/bot-signal) | MIT | `agentcake/detect/model.py`, `features.py`, `timeline.py`; `agentcake/data/behavior_model.json` (`metronome_typing_short`), `features.json` (`screen_eq_min_positions`) | Ideas only, no code copied (job borrow-rules): only a mouse's clicks have an approach (isPointerClick), even typing over fewer keys at a spread under 0.08 (linear typing), screen coordinates equal to page coordinates count at two places or more (cdp-input-coordinate-leak) |
+| isHumanCadence (typing cadence) | 1.5.1, commit `21b39ea37880` (github.com/RoloBits/isHumanCadence) | MIT, Copyright (c) 2025 ApoloDev (its notice is in the module's docstring) | `agentcake/detect/cadence.py`; `agentcake/data/behavior_model.json` (`cadence`) | Ported to Python (job behavior-best, a lead of the open-source bench): its observer, analyzer, anti-spoof check and classification (`src/observer.ts`, `analyzer.ts`, `anti-spoof.ts`, `utils.ts`, `index.ts`), weights and thresholds unchanged, read over cake.js's key classes; the model's session-level check `typing_cadence` |
+| agentlens (rule gates) | commit `959dddce6acc` (github.com/jasonm4130/agentlens) | MIT | `agentcake/data/behavior_model.json` (`metronome_typing`) | Idea only, no code copied (job borrow-rules): even typing is read from 8 key gaps on (rule R4); its gating of pointer rules by input type backs B1 and B3 |
+| motion-attestation human captures (`test/fixtures/humans/`, 27 files) | commit `bea077b307e5` (2026-09-10) | MIT, Copyright (c) 2026 libcaptcha (text in the same folder: `LICENSE.motion-attestation`) | `tests/fixtures/motion_attestation/humans.json` (built by `tests/motion_attestation.py`) | Real human pointer, touch, key-timing and scroll captures, copied unchanged and converted to cake's raw-event format; regression data for the behaviour layer (`tests/test_motion_attestation.py`); tests only, not shipped |
+| draft-ietf-webbotauth-httpsig-protocol-01, Appendix E.2 | 2026-10-29 | IETF Trust, Revised BSD for code components | `tests/vectors/web-bot-auth/draft-ietf-webbotauth-httpsig-protocol-01.json` | Test vectors, transcribed; tests only |
+| RFC 9421, Appendix B.1.4, B.2 and B.2.6 | February 2024 | IETF Trust, Revised BSD for code components | `tests/vectors/web-bot-auth/rfc9421.json` | Test vectors, transcribed; tests only |
+| RFC 8032, section 7.1 | January 2017 | IETF Trust (IRTF stream) | `tests/test_ed25519.py` | Ed25519 test vectors; the section 6 code is not used: `agentcake/detect/ed25519.py` is written from section 5.1 |
+| botscent registry: `tokens.json`, `names.json`, `page.json`, `signers.json`, `keys.json` | 1.2.0, `7f9480037c60` (fetched 2026-11-14) | MIT | `agentcake/data/lists/names.json`, `signers.json`, `keys.json` (generated by `tools/build_lists.py`) | User-Agent tokens with their names and kinds, what a page's navigator declares, Web Bot Auth signers; its bundled keys seed the rolling-expiry check |
+| botscent code: token matching (contract section 6, `src/server/tokens.ts`) and key watch (`scripts/keys.ts`) | `7f9480037c60` | MIT | `agentcake/detect/lists.py`, `agentcake/detect/lists_keys.py` | Rewritten in Python: how a token matches a User-Agent; a key whose expiry only rolls forward is bundled without that expiry |
+| PostHog `products/web_analytics/backend/hogql_queries/bot_definitions.py` | `master` at `c95860b956f5` (2026-11-14) | MIT (everything outside `ee/`) | `agentcake/data/lists/names.json` (generated) | 476 User-Agent patterns with names and categories, read with `ast` (never run) and mapped to cake's kinds; 7 patterns that only spot a malformed User-Agent kept as hints; 2 left out (reasons in `sources.json`) |
+| PostHog `products/web_analytics/scripts/refresh_bot_ip_ranges.py` | `241e18ee1e27` | MIT (everything outside `ee/`) | `agentcake/detect/lists_ranges.py`, `tools/build_lists.py` | The approach only: operators' published crawler ranges are refreshed when a release is made and ship with it; its /16 and /32 floors |
+| ai.robots.txt `robots.json` | `6c8d7d59a768` (2026-11-12) | MIT | `agentcake/data/lists/names.json` (generated) | Names of AI crawlers and agents with their function: 84 added, 97 joined to names the other lists have, 27 skipped (reasons in `names.json`) |
+| Operators' published address lists: OpenAI (ChatGPT-User, OAI-SearchBot, GPTBot), Perplexity (Perplexity-User, PerplexityBot), Anthropic (Claude-Agent SAIL file), Google (user-triggered agents, common and special-case crawlers, user-triggered fetchers, Google Cloud), Bing, Apple (Applebot, iCloud Private Relay egress), DuckDuckGo, Ahrefs, Cloudflare, AWS, Oracle Cloud, DigitalOcean | fetched 2026-11-14; URLs in `sources.json` and `ip_ranges.json` | No licence stated: each operator publishes its ranges so that others can verify its traffic | `agentcake/data/lists/ip_ranges.json` (generated) | Which published range an address is in; the address is looked up, then dropped |
+| Web Bot Auth key directories of chatgpt.com, cursorusercontent.com, api.manus.im, Cloudflare Browser Run, agent.bot.goog and muse.ai (Meta's Muse) | fetched 2026-11-14 | No licence stated: public keys published for verification | `agentcake/data/lists/keys.json` (generated) | Public keys and the signed directory responses, for the verification layer (S3.2) |
+| botscent (page-half rules) | 1.2.0, commit `7f948003` | MIT | `agentcake/data/env_rules.json` (`env.product.*`, `env.auto.webdriver`, `env.ext.hidden-*`, `env.cloud.linux-swiftshader`) | Rule definitions and collision notes from `registry/reasons.json`, `registry/page.json` and `src/page/rules.ts`: the Cursor and Cloudflare Browser Run user-agent and platform patterns are copied; the product rules read botscent's own page verdict (cake.js runs botscent's page half) |
+| BotD (detectors) | 2.0.0 (npm build), repository commit `193c471a` | MIT | `agentcake/data/env_rules.json` (rules reading `botd.detections`) | Each detector's result is read by a rule, and the Mesa OffScreen, Sequentum, PhantomJS and SlimerJS strings follow its detectors; no BotD code is copied here (cake.js runs BotD) |
+| rebrowser-bot-detector (test descriptions) | commit `55fa59b` | `package.json` says MIT; the repository has no LICENSE file | `agentcake/data/env_rules.json` (sources `rebrowser:*`) | Only its published detection ideas and collision notes are cited; none of its code is copied |
+| botscent (verdict) | 1.2.0, commit `7f948003` | MIT | `agentcake/detect/verdict.py`, `agentcake/detect/verdict_identity.py` | Ideas only (`src/core/verdict.ts`, `registry/reasons.json`): declared names count only when they agree, a tool anyone runs names no one, a verified signer names the infrastructure and not who acts; the code is written anew |
+| IANA time zone database, `zone.tab` | tzdata 2026f | Public domain | `agentcake/data/timezones.json` (generated by `tools/build_timezones.py`) | Which countries use each time zone, for the weak signal "time zone and the address's country do not match" (S3.8) |
+
+## Evaluation (`agentcake/evaluation/`, `agentcake eval`)
+
+| Name | Version / commit | Licence | Where | How it is used |
+|---|---|---|---|---|
+| @superline-ai/agent-detection | 0.0.8 (npm, 2025-05-09; weights in `dist/esm/model-parameters.js`, read by our research script `cake-data/compare_models.py` on 2026-11-11) | MIT (Copyright (c) 2025 Superline UG) | `agentcake/data/eval.json` ("baselines.superline"), `agentcake/evaluation/baselines.py` | Its 8 weights, bias and normalisation, and how it skips a feature it could not read: one of the models `agentcake eval` prints beside AgentCake's own; never used to judge |
+
+## Server logs (`agentcake/log_formats.py`, `agentcake/data/logs.json`)
+
+| Name | Version / commit | Licence | Where | How it is used |
+|---|---|---|---|---|
+| GoAccess | the idea only (github.com/allinurl/goaccess) | MIT | `agentcake/log_formats.py`, `agentcake/data/logs.json` | Describing an access log by the web server's own format string (nginx `log_format`, Apache `LogFormat`) and compiling it into a parser; no GoAccess code is used |
+
+## Site middleware (`edge/`)
+
+| Name | Version / commit | Licence | Where | How it is used |
+|---|---|---|---|---|
+| botscent | 1.2.0, commit `7f948003` | MIT | `edge/node/lib/timing.js`, `edge/node/express.js` | Adapted: splitting a `Server-Timing` value into entries (`src/server/timing.ts`), writing an entry when the response head is written (`src/adapters/express.ts`), copying a response whose headers cannot change (`src/adapters/next.ts`, `hono.ts`) |
+| @knownagents/sdk | 3.1.0 | Apache-2.0 | `edge/node/defaults.json` (`skip_extensions`) | The list of static-file extensions that never get a token, from `src/paths.ts`; the rule only, no code |
+| botscent | 1.2.0, commit `7f948003` | MIT | `edge/python/cake_edge.py`, `edge/php/cake_edge.php` (and its copy in `edge/wordpress/agentcake/`) | Splitting a `Server-Timing` value into entries (`src/server/timing.ts`), as `edge/node/lib/timing.js` has it, written again in Python and PHP |
+| @knownagents/sdk | 3.1.0 | Apache-2.0 | `edge/python/cake_edge.json`, `edge/php/cake_edge.json` (`skip_extensions`) | The same static-file extension list as the Node middleware's; the rule only, no code |
+| WordPress Plugin Handbook and API reference | the APIs of WordPress 5.7 and newer | not applicable: followed, nothing copied | `edge/wordpress/agentcake/` | How a plugin is laid out (header, Settings API, `send_headers`, `wp_head`, `wp_print_script_tag`, `uninstall.php`); the plugin uses the documented APIs, no code copied |
+
+## Server install (`Dockerfile`, `.dockerignore`, `deploy/`)
+
+| Name | Version / commit | Licence | Where | How it is used |
+|---|---|---|---|---|
+| PostHog | 1.0.0 (commit ab887730) | MIT | `Dockerfile`, `.dockerignore` | The model for the image (a python -slim base, one process, one exposed port) and for the allow-listed build context; no code copied verbatim |
+| python:3.14-slim (Docker Official Image) | the tag when the image is built (Python 3.14 on Debian 13) | Python: PSF-2.0; Debian's packages: their own licences | `Dockerfile` (`FROM`) | The image's base, pulled by `docker build`; not in this repository |
+
+## Build and test tools (not shipped)
+
+| Name | Version / commit | Licence | Where | How it is used |
+|---|---|---|---|---|
+| Playwright (playwright-core) | 1.64.1 | Apache-2.0 | `web/` dev dependency | Screenshots and the pixel comparison of the local pages; drives Chromium in cake.js's browser tests (`tests/browser/`) |
+| Vite's `build.license` option (`src/node/plugins/license.ts`) | vite 8.3.5 | MIT | `web/scripts/notices.mjs` | The approach only: the bundled packages read from the chunks' modules by their nearest package.json, each one's licence file read from its folder; written anew, since the option leaves out the stylesheets' packages, NOTICE files, packages without a licence file and the fonts |
+| Playwright (playwright-core) | 1.64.1, loaded from `web/node_modules` | Apache-2.0 | `edge/node/scripts/browser-check.mjs` | The real-browser check of the site middleware's token (not a dependency of `edge/node`) |
+| WordPress Playground (`@wp-playground/cli`, `@php-wasm/cli`) | 3.1.64 | GPL-2.0-or-later (package.json) | installed in a scratch folder, not in the repository | Runs WordPress 7.1.4 and PHP 7.4 / 8.3 (WebAssembly) to try the WordPress plugin and the PHP middleware (S4.3); not shipped |
+| Cache Enabler (WordPress plugin) | 1.8.17 | GPL-2.0-or-later (its readme) | installed into WordPress Playground only | The page cache plugin the WordPress plugin was tried with (S4.3); not shipped |
+| Flask, Werkzeug, FastAPI, Starlette, Uvicorn | 3.1.3, 3.1.9, 0.162.5, 1.10.0, 0.54.0 | BSD-3-Clause; FastAPI MIT | a throwaway venv, never the repository | The Flask and FastAPI test sites the middleware was checked on (S4.3); not a dependency of `edge/python` |
+| flit_core | 3.12.0 (`pyproject.toml` allows >=3.12,<4: the licence as an SPDX expression) | BSD-3-Clause (checked in its sdist: LICENSE, PKG-INFO `License-Expression`); vendors tomli 1.2.3, MIT | `pyproject.toml` `[build-system]` | Builds the `agentcake` wheel from a checkout (`pip wheel .`); a release writes the same wheel itself (`tools/releasing/wheel.py`); not in the wheel, not needed to run |
+| esbuild, with its platform binary (`@esbuild/<platform>`) | 0.28.2, exact in `tools/releasing/package-lock.json` | MIT (each package's `package.json`) | `tools/releasing/package.json`, installed with `npm ci` when a release is built | Minifies `agentcake/static/cake.js` for a release (`tools/releasing/cakejs.py`); at its target, es2020, it rewrites no syntax, so no esbuild code ends up in the script (`tests/test_release_cakejs.py`) |
+| adblock (python-adblock: Python bindings of Brave's adblock-rust) | 0.6.0, its wheels pinned by sha256 in `tools/blockers/blockers.json` | MIT OR Apache-2.0 (its PyPI metadata) | a throwaway venv that `tools/blockers/check.py` makes, never the repository | Matches the addresses visitors' browsers ask AgentCake for against content blockers' filter lists before a release; not shipped |
+| uBlock Origin Lite (github.com/uBlockOrigin/uBOL-home) | the latest release when checked (its file name and sha256 are printed) | GPL-3.0 | downloaded into a temporary folder by `tools/blockers/live.py` | The content blocker Chromium runs in the live check; not shipped |
+| Content blockers' default filter lists: uBlock Origin's (uAssets), EasyList, EasyPrivacy, Peter Lowe's, URLhaus, Brave's, AdGuard's | as fetched when checked (each address and sha256 is printed) | each list's own: uAssets and AdGuard's GPL-3.0, Brave's MPL-2.0, EasyList's and EasyPrivacy's as easylist.to/pages/licence.html says | downloaded into a temporary folder by `tools/blockers/check.py` | Read to tell whether they block AgentCake's requests; never copied into the repository or a release |
+| actions/checkout, actions/setup-python, actions/setup-node | v7.0.1 (`3d3c42e5`), v7.1.0 (`6d4fd22b`), v7.1.0 (`949feb24`) | MIT | `.github/workflows/release.yml`, pinned by commit | Check out the tag and install the release's Python and Node on the GitHub runner; nothing of them is in a release |
+
+## Repository documents (not shipped)
+
+| Name | Version / commit | Licence | Where | How it is used |
+|---|---|---|---|---|
+| Contributor Covenant | 2.1, github.com/EthicalSource/contributor_covenant `content/version/2/1/code_of_conduct.md` at `b279b64a` (2025-06-17) | CC BY 4.0 (that repository's `LICENSE.md` at the same commit) | `CODE_OF_CONDUCT.md` | The code of conduct, unchanged but for the contact address; its own Attribution section credits it |

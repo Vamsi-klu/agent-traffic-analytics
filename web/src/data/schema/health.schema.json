@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "health.schema.json",
+  "title": "Health",
+  "description": "GET /api/health : read by `agentcake doctor` and the install check (the same fields as Agent Cake 0.3.4); the pages don't use it.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["ok", "version", "home", "site_key", "sessions", "real_sessions", "selfcheck_visits", "space"],
+  "properties": {
+    "ok": { "type": "boolean" },
+    "version": { "$ref": "common.schema.json#/$defs/Text" },
+    "home": { "$ref": "common.schema.json#/$defs/Text" },
+    "site_key": { "type": ["string", "null"] },
+    "sessions": { "$ref": "common.schema.json#/$defs/Count" },
+    "real_sessions": { "$ref": "common.schema.json#/$defs/Count" },
+    "selfcheck_visits": { "$ref": "common.schema.json#/$defs/Count" },
+    "space": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["used", "budget", "pct", "days_left", "warn", "full", "freed", "auto_free", "disk", "replays_stopped"],
+      "properties": {
+        "used": { "$ref": "common.schema.json#/$defs/Count" },
+        "budget": { "$ref": "common.schema.json#/$defs/Count" },
+        "pct": { "type": "number", "minimum": 0 },
+        "days_left": { "type": ["number", "null"], "minimum": 0 },
+        "warn": { "type": "boolean" },
+        "full": { "type": "boolean" },
+        "freed": { "$ref": "common.schema.json#/$defs/Count" },
+        "auto_free": { "type": "boolean" },
+        "disk": { "$ref": "common.schema.json#/$defs/Disk" },
+        "replays_stopped": { "$ref": "common.schema.json#/$defs/ReplaysStopped" }
+      }
+    }
+  }
+}

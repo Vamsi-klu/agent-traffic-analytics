@@ -1,0 +1,14 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Report a security vulnerability
+    url: https://github.com/tartini-ai/agent-behavior-analysis/blob/main/SECURITY.md
+    about: Report it privately, as SECURITY.md says, not in an issue.
+  - name: Questions
+    url: https://github.com/tartini-ai/agent-behavior-analysis/blob/main/docs/FAQ.md
+    about: How AgentCake tells humans from AI agents, what it records and where it runs.
+  - name: Install
+    url: https://github.com/tartini-ai/agent-behavior-analysis/blob/main/INSTALL.md
+    about: Installing AgentCake with a coding agent, one command per step.
+  - name: Run it on a server
+    url: https://github.com/tartini-ai/agent-behavior-analysis/blob/main/SERVER.md
+    about: For the visitors of a public website, with Docker or systemd.

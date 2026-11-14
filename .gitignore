@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+# tools/release.py writes the release here; tools/releasing/node_modules/ is its pinned esbuild (npm ci)
+/dist/
+node_modules/

@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Agent marks · cake.js browser test</title>
+<style>
+body { font: 16px/1.5 system-ui, sans-serif; max-width: 760px; margin: 0 auto; padding: 0 16px 64px; }
+</style>
+<script src="/cake.js" data-site="{{SITE_KEY}}" defer></script>
+</head>
+<body>
+<h1 id="title">A page an agent product draws on</h1>
+<p>tests/browser/markers.mjs draws on this page the way agent products do, at moments it notes: elements with the ids
+and attributes of agent_markers.json in the page's own DOM, and Claude in Chrome 1.0.107's way, an attribute-less
+host under &lt;body&gt; whose closed shadow root holds the marks. cake.js must note when each mark appeared and went
+away.</p>
+<p><button id="press" type="button">Press me</button></p>
+<script>
+  // What the driver calls (page.evaluate). Each function returns the moment of its change on the clock cake.js stamps
+  // its records with (epoch ms: performance.timeOrigin + performance.now()).
+  ;(function () {
+    var now = function () {
+      return performance.timeOrigin + performance.now()
+    }
+    var host = null
+    var root = null
+    // Drawn as agent-visual-indicator.js of Claude in Chrome 1.0.107 draws it: the host loses every attribute, its
+    // shadow root is closed and says display: contents; the "working" tag (47 px high) sits at the top or bottom
+    // edge inside a fixed, click-through layer; the "needs your input" tag (44 px) 20 px from the edge; the Stop
+    // button 16 px from the bottom.
+    var STYLE = ':host{all:initial!important;display:contents!important}' +
+      '.layer{position:fixed;inset:0;pointer-events:none;z-index:2147483646}' +
+      '.tag{position:absolute;left:0;right:0;margin:0 auto;width:320px;pointer-events:auto;background:#c6613f}' +
+      '.working{top:0;height:47px}.working[data-at=bottom]{top:auto;bottom:0}' +
+      '.waiting{top:20px;height:44px}' +
+      '.stop{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);height:42px;width:160px;' +
+      'pointer-events:auto;background:#faf9f5}'
+    function shadow() {
+      if (!root) {
+        host = document.createElement('div')
+        root = host.attachShadow({ mode: 'closed' })
+        var style = document.createElement('style')
+        style.textContent = STYLE
+        root.appendChild(style)
+        document.body.appendChild(host)
+      }
+      return root
+    }
+    function mark(name) {
+      var r = shadow()
+      var el = r.getElementById(name)
+      if (el) return el
+      el = document.createElement('div')
+      el.id = name
+      if (name === 'stop') {
+        el.className = 'stop'
+        r.appendChild(el)
+        return el
+      }
+      var layer = document.createElement('div')
+      layer.className = 'layer'
+      el.className = 'tag ' + name
+      layer.appendChild(el)
+      r.appendChild(layer)
+      return el
+    }
+    window.agentMarks = {
+      /** Shows a shadow-root mark: "working" (at "top" or "bottom"), "waiting" or "stop". */
+      show: function (name, at) {
+        var el = mark(name)
+        if (at) el.dataset.at = at
+        el.style.display = ''
+        return now()
+      },
+      hide: function (name) {
+        mark(name).style.display = 'none'
+        return now()
+      },
+      /** Adds an element of the page's own DOM: add('button', {id: '…'}) or add('style', {id: '…'}, 'head'). */
+      add: function (tag, attrs, where) {
+        var el = document.createElement(tag)
+        Object.keys(attrs).forEach(function (name) {
+          el.setAttribute(name, attrs[name])
+        })
+        ;(where === 'head' ? document.head : document.body).appendChild(el)
+        return now()
+      },
+      remove: function (selector) {
+        document.querySelector(selector).remove()
+        return now()
+      },
+      /** count plain elements, for the cost of a look on a big page. */
+      fill: function (count) {
+        var box = document.createElement('section')
+        for (var i = 0; i < count; i++) {
+          var item = document.createElement(i % 3 ? 'span' : 'div')
+          item.className = 'item'
+          item.textContent = String(i)
+          box.appendChild(item)
+        }
+        document.body.appendChild(box)
+        return document.getElementsByTagName('*').length
+      },
+      /** Adds and removes an element every `ms`, as a page that keeps changing (the selectors are then matched at
+       * every look). */
+      churn: function (ms) {
+        var item = null
+        setInterval(function () {
+          if (item) {
+            item.remove()
+            item = null
+          } else {
+            item = document.body.appendChild(document.createElement('span'))
+          }
+        }, ms)
+      }
+    }
+  })()
+</script>
+</body>
+</html>

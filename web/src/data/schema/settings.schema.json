@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "settings.schema.json",
+  "title": "Settings",
+  "description": "GET /api/settings, and the answer to POST /api/settings : everything the settings page shows (S5.1, S5.5).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["site_domain", "site_key", "script_tag", "sources", "last_seen", "route", "server_half", "refresh_ms", "lists", "retention_days", "retention_choices", "budget_mb", "budget_choices_mb", "auto_free", "storage", "hook_dom", "hide_selectors", "layers", "database"],
+  "properties": {
+    "site_domain": { "type": "string" },
+    "site_key": { "type": ["string", "null"], "minLength": 1 },
+    "script_tag": { "$ref": "common.schema.json#/$defs/Text" },
+    "sources": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["site", "server_half"],
+      "properties": {
+        "site": { "$ref": "#/$defs/Connection" },
+        "server_half": { "$ref": "#/$defs/Connection" }
+      }
+    },
+    "last_seen": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["site", "server_half"],
+      "properties": {
+        "site": { "type": ["string", "null"], "minLength": 1 },
+        "server_half": { "type": ["string", "null"], "minLength": 1 }
+      }
+    },
+    "route": { "enum": ["this_computer", "server"] },
+    "server_half": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["missing", "logs"],
+      "properties": {
+        "missing": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/Text" } },
+        "logs": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "required": ["last", "format", "missing", "empty"],
+          "properties": {
+            "last": { "$ref": "common.schema.json#/$defs/Text" },
+            "format": { "$ref": "common.schema.json#/$defs/Text" },
+            "missing": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/Text" } },
+            "empty": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/Text" } }
+          }
+        }
+      }
+    },
+    "refresh_ms": { "type": "integer", "minimum": 1 },
+    "lists": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["built", "age_days", "max_age_days", "stale", "update_command"],
+      "properties": {
+        "built": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
+        "age_days": { "type": "integer" },
+        "max_age_days": { "$ref": "common.schema.json#/$defs/Count" },
+        "stale": { "type": "boolean" },
+        "update_command": { "$ref": "common.schema.json#/$defs/Text" }
+      }
+    },
+    "retention_days": { "$ref": "common.schema.json#/$defs/Count" },
+    "retention_choices": { "type": "array", "minItems": 1, "items": { "$ref": "common.schema.json#/$defs/Count" } },
+    "budget_mb": { "type": "integer", "minimum": 1 },
+    "budget_choices_mb": { "type": "array", "minItems": 1, "items": { "type": "integer", "minimum": 1 } },
+    "auto_free": { "type": "boolean" },
+    "storage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["used_bytes", "warn_at_pct", "days_left", "disk", "replays_stopped", "free_to_pct"],
+      "properties": {
+        "used_bytes": { "$ref": "common.schema.json#/$defs/Count" },
+        "warn_at_pct": { "$ref": "common.schema.json#/$defs/Percent" },
+        "days_left": { "type": ["number", "null"], "minimum": 0 },
+        "disk": { "$ref": "common.schema.json#/$defs/Disk" },
+        "replays_stopped": { "$ref": "common.schema.json#/$defs/ReplaysStopped" },
+        "free_to_pct": { "$ref": "common.schema.json#/$defs/Percent" }
+      }
+    },
+    "hook_dom": { "type": "boolean" },
+    "hide_selectors": { "type": "string" },
+    "layers": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "verify", "environment", "behavior"],
+      "properties": {
+        "name": { "type": "boolean" },
+        "verify": { "type": "boolean" },
+        "environment": { "type": "boolean" },
+        "behavior": { "type": "boolean" }
+      }
+    },
+    "database": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sessions"],
+      "properties": {
+        "path": { "$ref": "common.schema.json#/$defs/Text" },
+        "sessions": { "$ref": "common.schema.json#/$defs/Count" }
+      }
+    }
+  },
+  "$defs": {
+    "Connection": { "enum": ["receiving", "waiting", "not_connected"] }
+  }
+}

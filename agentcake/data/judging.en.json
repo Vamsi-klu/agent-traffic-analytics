@@ -1,0 +1,74 @@
+{
+  "$comment": "How Agent Cake sorts and judges sessions, in one place (D39; S3.4). 'verdicts' is the first level, one per session (the API's verdict and the session list's filters); 'unsure' names a stretch the behavior model could not tell (bars, timelines, layers: never a verdict); 'evidence' marks a Human session AgentCake could not tell (the user, 11/13: no Unknown; such a session counts as human, marked); 'turns' splits an Agent session into Agent only and Human + agent (cake's classes agent and mixed); 'names' says which agent: how sure a product's or an automation tool's name is, or Unnamed when no name fits, shown beside the name (the kind of agent, the verdict's Agent row, and where it runs are reasons, never a category: agentcake/detect/attribute.py; the user on 11/13 dropped the two kinds). The dashboard's categories block lists the verdicts and the split (the user: only those). The local pages read these labels and sentences when they are built (web/vite.config.ts), the API's words (titles, the coverage note) when it answers. 'classes' says how each class of agentcake/detect/verdict.py is decided, as the coverage note's 'how it's decided' column shows it (S5.3), and 'named' how an agent's name is found; 'when_model_runs' is the rule of agentcake/detect/schedule.py, its {quiet} and {interval} filled from the settings judge_quiet_s and judge_interval_ms (public_judge_interval_ms on a server). Interface text: English only (D21); visitors are Human or Agent, never person, people or user (D26).",
+  "title": "Session categories",
+  "lead": "Each session gets one of these verdicts.",
+  "verdicts": {
+    "human": {"label": "Human", "about": "Only a human acted. Sessions that can't be classified also count as Human and get the Thin evidence tag."},
+    "agent": {"label": "Agent", "about": "An AI agent or automation acted, from start to finish or taking turns with a human."},
+    "bot": {"label": "Bot", "about": "The visitor is a program on the bot list, such as a search engine or a monitor, not an agent. Bots are only counted."}
+  },
+  "unsure": {"label": "Unknown", "about": "The behavior model couldn't classify this part of the session. Unknown isn't a session verdict: the verdict uses only the parts the model could classify."},
+  "evidence": {
+    "thin": {"label": "Thin evidence", "about": "The session counts as Human because it has too few actions, comes from a phone or tablet, or has evidence that's too weak or points both ways. Its reasons say which applies."}
+  },
+  "turns": {
+    "agent_only": {"label": "Agent only", "about": "An agent acted from start to finish in this Agent session."},
+    "human_agent": {"label": "Human + agent", "about": "A human and an agent took turns in this Agent session. The timeline marks each hand-off."}
+  },
+  "names": {
+    "verified": {"label": "Verified", "about": "A signature or a published address range confirms the name."},
+    "likely": {"label": "Likely", "about": "The visitor reports the name, or the product leaves its own traces in the page."},
+    "possible": {"label": "Possible", "about": "Only its behavior points to the product."},
+    "unnamed": {"label": "Unnamed", "about": "No product or tool name matches the evidence. The reasons say what was seen."}
+  },
+  "classes": {
+    "human": {
+      "how": "There are no automation traces and no agent name, and the behavior model judges the actions to be human."
+    },
+    "agent_ai": {
+      "how": "There are agent traces in the page or the browser, and the behavior model judges the actions to be an agent's. Traces include an extension acting on the page or a cloud computer's fixed setup. The name comes from a verified signature, the product's own traces, or the User-Agent."
+    },
+    "agent_automated": {
+      "how": "The browser shows automation markers, such as webdriver, a headless browser, or requests without a language header. The behavior model splits the session into stretches. Crawler-like patterns only go into the reasons."
+    },
+    "bot": {
+      "how": "The User-Agent or a signature matches the list of programs that aren't agents. It's marked “Verified” when a published address range or a signature confirms it. The behavior model doesn't run."
+    },
+    "mixed": {
+      "how": "The behavior model finds both a human and an agent in the same session and marks the hand-off where the actions change."
+    },
+    "too_little_data": {
+      "how": "There are fewer actions than the behavior model needs, or the visit comes from a phone or tablet, so no guess is made. A setting controls how many actions the model needs."
+    },
+    "not_sure": {
+      "how": "The evidence is too weak or points both ways. Examples include a trace that open DevTools also leave and keyboard navigation like an assistive tool's."
+    },
+    "excluded": {
+      "how": "A page the browser loaded in advance but never showed (a prefetch or prerender)"
+    }
+  },
+  "named": {
+    "how": "The User-Agent contains a name, or a verified signature names the visitor. The behavior model still splits the session into stretches."
+  },
+  "verification": {
+    "verified": "Verified",
+    "self_reported": "Self-reported only",
+    "unverifiable": "Couldn't verify",
+    "impersonation": "Impersonation"
+  },
+  "layers": {
+    "exclusion": "Not a visit",
+    "name": "Name",
+    "verify": "Verification",
+    "environment": "Environment",
+    "behavior": "Behavior",
+    "weak": "Weak signals"
+  },
+  "when_model_runs": [
+    "The behavior model runs on this computer when new data arrives, at most every {interval} while a session keeps sending.",
+    "When a session has been quiet for {quiet}, the model judges it once more and its verdict becomes final. New data opens it again.",
+    "Opening a replay or the dashboard triggers another judgment of sessions with new data.",
+    "Bots known by name and sessions with too few actions don't go through the model.",
+    "Nothing is sent to any AI service or over the network."
+  ]
+}

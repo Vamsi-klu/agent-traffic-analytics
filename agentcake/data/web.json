@@ -1,0 +1,22 @@
+{
+  "$comment": "How cake serves the compiled local pages (S5.1, assets.py): web/dist from `npm run build` (paths.web_folder). / is index.html (the pages route by the URL's #); any other file is served by its suffix's type, and a suffix not listed here is not served. Vite names the files under assets/ by their content, so a browser may keep them; the pages themselves are asked for again each time.",
+  "folders": {
+    "$comment": "Where the compiled pages are (paths.web_folder): $CAKE_WEB_DIR when set; else 'release' inside the package, which a release (wheel, .pyz or unpacked folder: S6.4's release.json names the same folder) carries; else 'checkout' next to the package, where `npm run build` puts them in a checkout.",
+    "release": "web",
+    "checkout": ["web", "dist"]
+  },
+  "index": "index.html",
+  "hashed_dir": "assets",
+  "types": {
+    ".html": "text/html; charset=utf-8",
+    ".js": "text/javascript; charset=utf-8",
+    ".css": "text/css; charset=utf-8",
+    ".json": "application/json",
+    ".svg": "image/svg+xml",
+    ".png": "image/png",
+    ".ico": "image/x-icon",
+    ".ttf": "font/ttf",
+    ".woff2": "font/woff2"
+  },
+  "cache": {"page": "no-cache", "hashed": "public, max-age=31536000, immutable"}
+}

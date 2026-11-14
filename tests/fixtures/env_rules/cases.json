@@ -1,0 +1,324 @@
+{
+  "$comment": "Hit and miss cases for every environment rule (tests/test_env_rules.py). The CDP rule's last cases are cake.js's own probe (S1.3: under Playwright 1 formatting and 2 name reads in its one round; an ordinary Chrome reads the name once per round). `page` and `session` are an ordinary person's Chrome (made-up values, no real visitor) that no rule matches. Each case is merged into one of them: into `page` for page and landing rules (then wrapped as the session's only page), into `session` for session rules. Merging is recursive for objects; lists and other values replace; \"$delete\" removes a key (an input that was not recorded).",
+  "page": {
+    "path": "/",
+    "env": {
+      "webdriver": false, "webdriver_type": "boolean", "webdriver_getter_native": true, "webdriver_on_proto": true, "webdriver_own_prop": false,
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
+      "uaData": {"brands": [{"brand": "Not-A.Brand", "version": "99"}, {"brand": "Google Chrome", "version": "157"}, {"brand": "Chromium", "version": "157"}], "platform": "macOS", "mobile": false},
+      "platform": "MacIntel", "languages": ["en-US", "en"], "plugins": 5, "pdfViewerEnabled": true,
+      "window": {"iw": 1512, "ih": 862, "ow": 1512, "oh": 949},
+      "webgl": {"vendor": "Google Inc. (Apple)", "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M2, Unspecified Version)"},
+      "windowChrome": "object", "windowExternal": "[object External]", "hasFocus": true, "visibilityState": "visible"
+    },
+    "auto": {
+      "globals": {"selenium_cdc": [], "playwright_globals": [], "puppeteer_globals": [], "exposed_installed": [], "unnamed_native_globals": [], "botd_props": []},
+      "runtimeEnableLeak": {"rounds": 40, "stackLookupCount": 0, "prepareStackTraceCount": 0, "nameGetterCount": 40},
+      "ipcFlooding": {"applied": 200, "error": null, "all300": false},
+      "docInterception": {"nextHopProtocol": "h2", "transferSize": 5120, "intercepted": false},
+      "permissions": {"notificationPermission": "default", "permissionsQuery": "prompt", "mismatch": false},
+      "workerConsistency": {"differs": []},
+      "nativeTampering": {"tampered": {}, "iframeSharesRealm": false},
+      "hookHits": [{"fn": "getElementById", "pptr": false, "utilityScript": false, "puppeteerEval": false}]
+    },
+    "botd": {
+      "result": {"bot": false},
+      "detections": {
+        "detectAppVersion": {"bot": false}, "detectDocumentAttributes": {"bot": false}, "detectErrorTrace": {"bot": false},
+        "detectEvalLengthInconsistency": {"bot": false}, "detectFunctionBind": {"bot": false},
+        "detectLanguagesLengthInconsistency": {"bot": false}, "detectNotificationPermissions": {"bot": false},
+        "detectPluginsArray": {"bot": false}, "detectPluginsLengthInconsistency": {"bot": false}, "detectProcess": {"bot": false},
+        "detectUserAgent": {"bot": false}, "detectWebDriver": {"bot": false}, "detectWebGL": {"bot": false},
+        "detectWindowExternal": {"bot": false}, "detectWindowSize": {"bot": false}, "detectMimeTypesConsistent": {"bot": false},
+        "detectProductSub": {"bot": false}, "detectDistinctiveProperties": {"bot": false}
+      }
+    },
+    "dom_add": [{"tag": "P", "nattr": 0, "attrs": [], "open_shadow": 0, "disp": "block", "parent": "body", "how": "scan5s"}],
+    "botscent": {"reasons": [], "type": "human", "agent_name": null, "version": "1.2.0"},
+    "hidden_input": {"trusted_hidden": 0, "trusted_pointerdown": 0, "trusted_focused": 0},
+    "markers": {"list": "2026-11-13", "from": 1794518390000, "until": 1794518460000, "hidden": [], "spans": []},
+    "nav": {"headers": {
+      "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
+      "sec-ch-ua": "\"Not-A.Brand\";v=\"99\", \"Google Chrome\";v=\"157\", \"Chromium\";v=\"157\"",
+      "accept-language": "en-US,en;q=0.9", "sec-fetch-site": "none", "sec-fetch-mode": "navigate", "sec-fetch-user": "?1", "sec-fetch-dest": "document"
+    }},
+    "ext_probe": {"found": []}
+  },
+  "session": {
+    "collect": {
+      "requests": 20,
+      "headers": {
+        "user-agent": {"present": 20, "values": ["Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36"]},
+        "sec-ch-ua": {"present": 20, "values": ["\"Not-A.Brand\";v=\"99\", \"Google Chrome\";v=\"157\", \"Chromium\";v=\"157\""]},
+        "accept-language": {"present": 20, "values": ["en-US,en;q=0.9"]},
+        "sec-fetch-site": {"present": 20, "values": ["same-origin"]},
+        "sec-fetch-mode": {"present": 20, "values": ["cors"]},
+        "sec-fetch-user": {"present": 0, "values": []},
+        "sec-fetch-dest": {"present": 20, "values": ["empty"]}
+      },
+      "ip_classes": ["residential"]
+    },
+    "viewport_changes": [{"page": 1, "dw": -200, "dh": 0, "doh": 0, "w": 1312, "h": 862}]
+  },
+  "cases": {
+    "env.auto.webdriver": {
+      "hit": [{"env": {"webdriver": true}},
+              {"env": {"webdriver": "$delete"}, "botd": {"detections": {"detectWebDriver": {"bot": true, "botKind": "headless_chrome"}}}}],
+      "miss": [{}, {"botd": {"detections": {"detectWebDriver": {"bot": true, "botKind": "headless_chrome"}}}}]
+    },
+    "env.auto.headless-ua": {
+      "hit": [{"env": {"userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.7827.55 Safari/537.36"}},
+              {"env": {"uaData": {"brands": [{"brand": "HeadlessChrome", "version": "149"}, {"brand": "Chromium", "version": "149"}]}}},
+              {"env": "$delete", "botd": {"detections": {"detectAppVersion": {"bot": true, "botKind": "headless_chrome"}}}}],
+      "miss": [{}, {"env": {"userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 14.5; rv:140.0) Gecko/20100101 Firefox/140.0", "uaData": null}}]
+    },
+    "env.auto.headless-ua-collector": {
+      "hit": [{"collect": {"headers": {"user-agent": {"values": ["Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.7827.55 Safari/537.36"]}}}},
+              {"collect": {"headers": {"sec-ch-ua": {"values": ["\"HeadlessChrome\";v=\"149\", \"Chromium\";v=\"149\", \"Not)A;Brand\";v=\"24\""]}}}}],
+      "miss": [{}]
+    },
+    "env.auto.headless-ua-server": {
+      "hit": [{"nav": {"headers": {"user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.7827.55 Safari/537.36"}}},
+              {"nav": {"headers": {"sec-ch-ua": "\"HeadlessChrome\";v=\"149\", \"Chromium\";v=\"149\""}}}],
+      "miss": [{}, {"nav": {"headers": {"user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 14.5; rv:140.0) Gecko/20100101 Firefox/140.0", "sec-ch-ua": null}}}]
+    },
+    "env.auto.collect-no-accept-language": {
+      "hit": [{"collect": {"headers": {"accept-language": {"present": 0, "values": []}}}}],
+      "miss": [{}, {"collect": {"requests": 0, "headers": {"accept-language": {"present": 0, "values": []}}}}]
+    },
+    "env.auto.cdp-runtime-leak": {
+      "hit": [{"auto": {"runtimeEnableLeak": {"prepareStackTraceCount": 40}}},
+              {"auto": {"runtimeEnableLeak": {"nameGetterCount": 120}}},
+              {"auto": {"runtimeEnableLeak": {"rounds": 1, "prepareStackTraceCount": 1, "nameGetterCount": 2, "stackLookupCount": 0, "firstHitRound": 1}}},
+              {"auto": {"runtimeEnableLeak": {"rounds": 1, "prepareStackTraceCount": 0, "nameGetterCount": 2, "stackLookupCount": 0, "firstHitRound": 1}}}],
+      "miss": [{}, {"env": {"uaData": null}, "auto": {"runtimeEnableLeak": {"nameGetterCount": 120}}},
+               {"auto": {"runtimeEnableLeak": {"rounds": 3, "prepareStackTraceCount": 0, "nameGetterCount": 3, "stackLookupCount": 0, "firstHitRound": null}}}]
+    },
+    "env.auto.ipc-flooding-off": {
+      "hit": [{"auto": {"ipcFlooding": {"applied": 300, "all300": true}}}],
+      "miss": [{}, {"env": {"userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 14.5; rv:140.0) Gecko/20100101 Firefox/140.0"}, "auto": {"ipcFlooding": {"applied": 300, "all300": true}}}]
+    },
+    "env.auto.document-intercepted": {
+      "hit": [{"auto": {"docInterception": {"nextHopProtocol": "", "transferSize": 5120, "intercepted": true}}}],
+      "miss": [{}]
+    },
+    "env.auto.playwright-globals": {
+      "hit": [{"auto": {"globals": {"playwright_globals": ["__pwInitScripts"]}}}],
+      "miss": [{}]
+    },
+    "env.auto.puppeteer-globals": {
+      "hit": [{"auto": {"globals": {"puppeteer_globals": ["__puppeteer_utility_world__"]}}}],
+      "miss": [{}]
+    },
+    "env.auto.exposed-binding": {
+      "hit": [{"auto": {"globals": {"exposed_installed": ["sendResult"]}}}],
+      "miss": [{}]
+    },
+    "env.auto.selenium-globals": {
+      "hit": [{"auto": {"globals": {"selenium_cdc": ["cdc_adoQpoasnfa76pfcZLmcfl_Array"]}}},
+              {"auto": {"globals": {"botd_props": ["webdriver"]}}},
+              {"botd": {"detections": {"detectDocumentAttributes": {"bot": true, "botKind": "selenium"}}}}],
+      "miss": [{}, {"botd": {"detections": {"detectDistinctiveProperties": {"bot": true, "botKind": "phantomjs"}}}}]
+    },
+    "env.auto.legacy-automation-globals": {
+      "hit": [{"auto": {"globals": {"botd_props": ["phantomjs"]}}},
+              {"botd": {"detections": {"detectDistinctiveProperties": {"bot": true, "botKind": "nightmarejs"}}}}],
+      "miss": [{}, {"auto": {"globals": {"botd_props": ["selenium"]}}}]
+    },
+    "env.auto.cdp-binding-globals": {
+      "hit": [{"auto": {"globals": {"unnamed_native_globals": ["cdp_binding_7f3a"]}}}],
+      "miss": [{}]
+    },
+    "env.auto.chrome-object-missing": {
+      "hit": [{"env": {"windowChrome": "undefined"}}],
+      "miss": [{},
+               {"env": {"windowChrome": "undefined", "userAgent": "Mozilla/5.0 (Linux; Android 14; Pixel 8 Build/AP2A; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/157.0.0.0 Mobile Safari/537.36"}},
+               {"env": {"windowChrome": "undefined", "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 14.5; rv:140.0) Gecko/20100101 Firefox/140.0"}}]
+    },
+    "env.auto.notification-permission-mismatch": {
+      "hit": [{"auto": {"permissions": {"notificationPermission": "denied", "permissionsQuery": "prompt", "mismatch": true}}},
+              {"auto": {"permissions": "$delete"}, "botd": {"detections": {"detectNotificationPermissions": {"bot": true, "botKind": "headless_chrome"}}}}],
+      "miss": [{}, {"auto": {"permissions": {"notificationPermission": "denied", "permissionsQuery": "denied", "mismatch": false}}}]
+    },
+    "env.auto.plugins-empty": {
+      "hit": [{"botd": {"detections": {"detectPluginsLengthInconsistency": {"bot": true, "botKind": "headless_chrome"}}}},
+              {"botd": "$delete", "env": {"plugins": 0}}],
+      "miss": [{}, {"botd": "$delete", "env": {"plugins": 0, "userAgent": "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Mobile Safari/537.36"}}]
+    },
+    "env.auto.software-render-headless": {
+      "hit": [{"env": {"webgl": {"renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"}}}],
+      "miss": [{},
+               {"env": {"platform": "Linux x86_64", "webgl": {"renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"}}},
+               {"env": {"userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36", "webgl": {"renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"}}}]
+    },
+    "env.auto.chromium-only-brand": {
+      "hit": [{"env": {"uaData": {"brands": [{"brand": "Chromium", "version": "149"}, {"brand": "Not)A;Brand", "version": "24"}]}}}],
+      "miss": [{},
+               {"env": {"uaData": {"brands": [{"brand": "Not)A;Brand", "version": "8"}, {"brand": "Microsoft Edge", "version": "157"}, {"brand": "Chromium", "version": "157"}]}}},
+               {"env": {"uaData": {"brands": [{"brand": "Chromium", "version": "149"}, {"brand": "Not)A;Brand", "version": "24"}], "mobile": true}}}]
+    },
+    "env.auto.default-viewport": {
+      "hit": [{"env": {"window": {"iw": 1280, "ih": 720}}}, {"env": {"window": {"iw": 800, "ih": 600}}}],
+      "miss": [{}, {"env": {"window": {"iw": 1280, "ih": 800}}}]
+    },
+    "env.auto.main-world-eval-stack": {
+      "hit": [{"auto": {"hookHits": [{"fn": "querySelector", "pptr": false, "utilityScript": true, "puppeteerEval": false}]}}],
+      "miss": [{}]
+    },
+    "env.auto.electron": {
+      "hit": [{"env": {"userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) SomeApp/1.2.3 Chrome/138.0.7204.251 Electron/37.6.0 Safari/537.36"}},
+              {"botd": {"detections": {"detectProcess": {"bot": true, "botKind": "electron"}}}}],
+      "miss": [{}]
+    },
+    "env.auto.legacy-headless-engine": {
+      "hit": [{"env": {"userAgent": "Mozilla/5.0 (Unknown; Linux x86_64) AppleWebKit/538.1 (KHTML, like Gecko) PhantomJS/2.1.1 Safari/538.1"}},
+              {"botd": {"detections": {"detectErrorTrace": {"bot": true, "botKind": "phantomjs"}}}}],
+      "miss": [{}]
+    },
+    "env.auto.sequentum": {
+      "hit": [{"env": {"windowExternal": "[object SequentumExternal]"}},
+              {"botd": {"detections": {"detectWindowExternal": {"bot": true, "botKind": "sequentum"}}}}],
+      "miss": [{}]
+    },
+    "env.auto.mesa-offscreen-webgl": {
+      "hit": [{"env": {"webgl": {"vendor": "Brian Paul", "renderer": "Mesa OffScreen"}}},
+              {"botd": {"detections": {"detectWebGL": {"bot": true, "botKind": "headless_chrome"}}}}],
+      "miss": [{}]
+    },
+    "env.auto.zero-outer-window-focused": {
+      "hit": [{"botd": {"detections": {"detectWindowSize": {"bot": true, "botKind": "headless_chrome"}}}},
+              {"botd": "$delete", "env": {"window": {"ow": 0, "oh": 0}}}],
+      "miss": [{}, {"botd": "$delete", "env": {"hasFocus": false, "visibilityState": "hidden", "window": {"ow": 0, "oh": 0}}}]
+    },
+    "env.auto.languages-empty": {
+      "hit": [{"botd": {"detections": {"detectLanguagesLengthInconsistency": {"bot": true, "botKind": "headless_chrome"}}}},
+              {"botd": "$delete", "env": {"languages": []}}],
+      "miss": [{}]
+    },
+    "env.spoof.webdriver-getter-patched": {
+      "hit": [{"env": {"webdriver_getter_native": false}}, {"env": {"webdriver_own_prop": true}}, {"env": {"webdriver_on_proto": false}}],
+      "miss": [{}]
+    },
+    "env.spoof.eval-length-mismatch": {
+      "hit": [{"botd": {"detections": {"detectEvalLengthInconsistency": {"bot": true, "botKind": "unknown"}}}}],
+      "miss": [{}]
+    },
+    "env.spoof.mimetypes-inconsistent": {
+      "hit": [{"botd": {"detections": {"detectMimeTypesConsistent": {"bot": true, "botKind": "unknown"}}}}],
+      "miss": [{}]
+    },
+    "env.spoof.productsub-mismatch": {
+      "hit": [{"botd": {"detections": {"detectProductSub": {"bot": true, "botKind": "unknown"}}}}],
+      "miss": [{}]
+    },
+    "env.spoof.plugins-array-fake": {
+      "hit": [{"botd": {"detections": {"detectPluginsArray": {"bot": true, "botKind": "headless_chrome"}}}}],
+      "miss": [{}]
+    },
+    "env.spoof.worker-mismatch": {
+      "hit": [{"auto": {"workerConsistency": {"differs": ["userAgent"]}}}],
+      "miss": [{}, {"auto": {"workerConsistency": {"differs": ["languages", "hardwareConcurrency"]}}}]
+    },
+    "env.spoof.native-functions-patched": {
+      "hit": [{"auto": {"nativeTampering": {"tampered": {"Navigator.webdriver": ["toString: () => false"]}}}},
+              {"auto": {"nativeTampering": {"iframeSharesRealm": true}}}],
+      "miss": [{}]
+    },
+    "env.spoof.ua-platform-mismatch": {
+      "hit": [{"env": {"userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36"}},
+              {"env": {"uaData": {"platform": "Windows"}}}],
+      "miss": [{}, {"env": {"userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36", "platform": "Win32", "uaData": {"platform": "Windows"}}}]
+    },
+    "env.spoof.empty-brands-desktop-chrome": {
+      "hit": [{"env": {"uaData": {"brands": []}}}],
+      "miss": [{}, {"env": {"userAgent": "Mozilla/5.0 (Linux; Android 14; Pixel 8 Build/AP2A; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/157.0.0.0 Mobile Safari/537.36", "uaData": {"brands": [], "mobile": true}}}]
+    },
+    "env.product.cursor-browser": {
+      "hit": [{"env": {"userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Cursor/3.23.12 Chrome/138.0.7204.251 Electron/37.6.0 Safari/537.36"}}],
+      "miss": [{}, {"env": {"userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) NotCursor/1.0 Chrome/157.0.0.0 Safari/537.36"}}]
+    },
+    "env.product.cloudflare-browser-run": {
+      "hit": [{"env": {"userAgent": "Kitesurf/1.0 (Cloudflare Browser Run)"}}, {"env": {"platform": "Cloudflare Workers"}}],
+      "miss": [{}]
+    },
+    "env.product.muse": {
+      "hit": [{"botscent": {"reasons": ["muse.cloud-browser.password-manager"], "type": "agent", "agent_name": "muse"}}],
+      "miss": [{}]
+    },
+    "env.product.grok-bot": {
+      "hit": [{"botscent": {"reasons": ["grok.cloud-computer.environment"], "type": "agent", "agent_name": "grok-bot"}}],
+      "miss": [{}]
+    },
+    "env.product.instinct": {
+      "hit": [{"botscent": {"reasons": ["instinct.credentials.wrappers", "instinct.geetest.accessor-pair"], "type": "agent", "agent_name": "instinct"}}],
+      "miss": [{}, {"botscent": {"reasons": ["instinct.credentials.wrappers"], "type": "agent"}}]
+    },
+    "env.product.codex-browser": {
+      "hit": [{"botscent": {"reasons": ["codex.prompt.anonymous-native", "codex.overlay.shadow-root"], "type": "agent", "agent_name": "codex-browser"}}],
+      "miss": [{}, {"botscent": {"reasons": ["codex.keyboard.empty-layout-map"], "type": "agent"}}]
+    },
+    "env.product.chatgpt-chrome": {
+      "hit": [{"botscent": {"reasons": ["chatgpt.badge.active"], "type": "agent", "agent_name": "chatgpt-chrome"}}],
+      "miss": [{}]
+    },
+    "env.product.claude-chrome-marker": {
+      "hit": [{"botscent": {"reasons": ["claude.marker.active"], "type": "agent", "agent_name": "claude-chrome"}}],
+      "miss": [{}]
+    },
+    "env.product.claude-chrome-indicator": {
+      "hit": [{"markers": {"list": "2026-11-13", "from": 1794518390000, "until": 1794518460000, "hidden": [], "spans": [{"marker": "claude-chrome.working", "product": "claude-chrome", "kind": "indicator", "from": 1794518400000, "to": 1794518433000}]}},
+              {"markers": {"list": "2026-11-13", "from": 1794518390000, "until": 1794518460000, "hidden": [], "spans": [{"marker": "claude-chrome.waiting", "product": "claude-chrome", "kind": "waiting", "from": 1794518400000, "to": 1794518433000}, {"marker": "claude-chrome.recorder", "product": "claude-chrome", "kind": "indicator", "from": 1794518400000, "to": 1794518433000}]}}],
+      "miss": [{}, {"markers": {"list": "2026-11-13", "from": 1794518390000, "until": 1794518460000, "hidden": [], "spans": []}},
+               {"markers": {"list": "2026-11-13", "from": 1794518390000, "until": 1794518460000, "hidden": [], "spans": [{"marker": "claude-chrome.waiting", "product": "claude-chrome", "kind": "waiting", "from": 1794518400000, "to": 1794518433000}, {"marker": "claude-chrome.bottom", "product": "claude-chrome", "kind": "attached", "from": 1794518400000, "to": 1794518433000}]}},
+               {"markers": {"list": "2026-11-13", "from": 1794518390000, "until": 1794518460000, "hidden": [], "spans": [{"marker": "comet.overlay", "product": "comet", "kind": "indicator", "from": 1794518400000, "to": 1794518433000}]}}]
+    },
+    "env.cloud.linux-swiftshader": {
+      "hit": [{"env": {"platform": "Linux x86_64", "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "uaData": {"platform": "Linux"}, "webgl": {"renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"}}}],
+      "miss": [{},
+               {"env": {"platform": "Linux x86_64", "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36", "uaData": {"platform": "Linux"}, "webgl": {"renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"}}},
+               {"env": {"platform": "Linux x86_64", "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.0.0 Safari/537.36", "uaData": {"platform": "Linux"}, "webgl": {"renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"}}}]
+    },
+    "env.cloud.linux-mesa-software": {
+      "hit": [{"env": {"platform": "Linux x86_64", "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "uaData": {"platform": "Linux"}, "webgl": {"renderer": "ANGLE (Mesa, llvmpipe (LLVM 19.1.7 256 bits), OpenGL 4.5)"}}}],
+      "miss": [{}]
+    },
+    "env.cloud.datacenter-ip": {
+      "hit": [{"collect": {"ip_classes": ["cloud"]}}, {"collect": {"ip_classes": ["residential", "cdn"]}}],
+      "miss": [{}]
+    },
+    "env.ext.closed-shadow-host": {
+      "hit": [{"dom_add": [{"tag": "P", "nattr": 0, "attrs": [], "open_shadow": 0, "disp": "block", "parent": "body", "how": "scan5s"},
+                           {"tag": "DIV", "nattr": 0, "attrs": [], "open_shadow": 0, "disp": "contents", "parent": "body", "how": "added"}]}],
+      "miss": [{},
+               {"dom_add": [{"tag": "DIV", "nattr": 0, "attrs": [], "open_shadow": 0, "disp": "block", "parent": "body", "how": "added"}]},
+               {"dom_add": [{"tag": "DIV", "nattr": 1, "attrs": ["id"], "open_shadow": 0, "disp": "contents", "parent": "body", "how": "added"}]}]
+    },
+    "env.ext.viewport-shrink": {
+      "hit": [{"viewport_changes": [{"page": 3, "dw": 0, "dh": -56, "w": 1920, "h": 902}]},
+              {"viewport_changes": [{"page": 1, "dw": 0, "dh": -56, "doh": 0, "w": 1920, "h": 902}]}],
+      "miss": [{},
+               {"viewport_changes": [{"page": 1, "dw": 0, "dh": -56, "doh": -56, "w": 1920, "h": 902}]},
+               {"viewport_changes": [{"page": 1, "dw": 0, "dh": -310, "doh": 0, "w": 1920, "h": 648}]}]
+    },
+    "env.ext.cross-site-landing": {
+      "hit": [{"nav": {"headers": {"sec-fetch-site": "cross-site", "sec-fetch-user": null}}}],
+      "miss": [{}, {"nav": {"headers": {"sec-fetch-site": "cross-site", "sec-fetch-user": "?1"}}}]
+    },
+    "env.ext.background-new-tab": {
+      "hit": [{"env": {"visibilityState": "hidden", "hasFocus": false, "window": {"ow": 0, "oh": 0}}}],
+      "miss": [{}, {"env": {"visibilityState": "hidden", "hasFocus": false}}]
+    },
+    "env.ext.hidden-trusted-pointerdown": {
+      "hit": [{"hidden_input": {"trusted_hidden": 1, "trusted_pointerdown": 1, "trusted_focused": 0}}],
+      "miss": [{}, {"hidden_input": {"trusted_hidden": 2, "trusted_pointerdown": 0, "trusted_focused": 0}}]
+    },
+    "env.ext.hidden-focus-emulated": {
+      "hit": [{"hidden_input": {"trusted_hidden": 3, "trusted_pointerdown": 0, "trusted_focused": 3}}],
+      "miss": [{}]
+    },
+    "env.ext.extension-probe": {
+      "hit": [{"ext_probe": {"found": ["claude-chrome"]}}],
+      "miss": [{}]
+    }
+  }
+}

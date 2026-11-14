@@ -1,0 +1,208 @@
+"""GET /api/session/<id>: one session as its page shows it (S5.1; S5.4 draws it); GET …/replay?chunk=<n>: replay.py.
+
+Opening a session judges it first when its verdict is stale or an older judge's (judging.on_open), as opening a
+replay always did. A session that does not exist or does not count (visits.py: a self-check, another site's upload, a
+prefetch) is a 404. SessionDetail:
+    session    the session as the lists show it (visits.page)
+    title      who acted, in one line (api.en.json "title"): "A human, then Claude in Chrome, then the human again"
+               from a Human + agent session's runs (unsure runs skipped), else "A human", the agent's name ("An
+               unnamed agent" when no name fits), or for a Human session on thin evidence why it is thin
+    percent    how sure cake is of the verdict, 1 to 99 (detect/confidence.py, calibrated: Human that a human acted,
+               a Human session on thin evidence too, Agent that an agent did, Bot by how its name was checked); None
+               for a session judged before verdicts kept it. It is the page's one word on how sure the verdict is: the
+               summary says no other (D34: one conclusion, one measure, as a bot score is one number)
+    summary    what happened, who and why, in the page's words (summary()): who acted when, turn by turn (the
+               timeline's runs, on its clock: a hand-off at the moment the timeline marks it), else the reason that
+               decided the verdict (the first in its tone: data/api.json "summary"); then the layers that point to the
+               verdict, each with its own percent as the layer shows it. A session without reasons (judged before S3.4) gets its class's
+               rule from judging.en.json
+    timeline   who acted when over the whole recording, in ms from the session's first recorded event (epoch_ms, so
+               the replay's events line up; visits.recording): the stored segments, and for a Human + agent session
+               the hand-offs between a human's and an agent's runs as detect/timeline.py marks them; its length
+               reaches the last action, the last replay event or the last segment, whichever is later: the player's
+               length, which the session's own duration_ms (the lists') is too
+    pages      pages.py: the pages in the order they opened (entry page first, exit page last), on the timeline's clock;
+               the session's own pages is how many there are, and its share each actor's share of the actions Every
+               action lists (actions.share: the same actions Pages visited counts), so the page counts actions once
+    layers     reasons.py, each reason's moments on the timeline's clock;  actions: actions.py;  replay: replay.py;
+               server: server_half.py
+"""
+import json
+from collections import namedtuple
+from http import HTTPStatus
+from urllib.parse import unquote
+
+from agentcake import judging
+from agentcake.api import actions, answers, pages, periods, reasons, replay, server_half, visits
+from agentcake.config import load_cfg
+from agentcake.detect import markers, verdict_text
+from agentcake.detect import timeline as behavior_timeline
+
+PREFIX = "/api/session/"
+REPLAY_SUFFIX = "/replay"
+HUMAN_AGENT, UNSURE, HUMAN, BOT, THIN = "human_agent", "unsure", "human", "bot", "thin"
+
+
+@answers.view
+def view(request):
+    rest = request.path[len(PREFIX):]
+    if rest.endswith(REPLAY_SUFFIX):
+        return replay.chunk(request, unquote(rest[:-len(REPLAY_SUFFIX)]))
+    return detail(unquote(rest))
+
+
+def detail(session_id):
+    judging.on_open(session_id)
+    con = visits.connect()
+    try:
+        found, _ = visits.page(con, visits.Scope().where("s.id = ?", session_id), 1, periods.now_ms())
+        if not found:
+            return answers.error(HTTPStatus.NOT_FOUND, "no_session")
+        body = _detail(con, session_id, found[0])
+    finally:
+        con.close()
+    return answers.ok(body)
+
+
+def _detail(con, session_id, summary):
+    (verdict_class, reasons_json, layers_json, detail_json, net, freed, dropped) = con.execute(
+        "SELECT verdict_class, reasons, layers, verdict_detail, net, replay_freed_ms, events_dropped FROM sessions "
+        "WHERE id=?", (session_id,)).fetchone()
+    epoch, length = visits.recording(con, session_id)
+    runs = con.execute("SELECT t_start, t_end, actor FROM segments WHERE session_id=? ORDER BY t_start",
+                       (session_id,)).fetchall()
+    verdict, turns, evidence = summary["verdict"], summary["agent_turns"], summary["evidence"]
+    handoffs = behavior_timeline.handoffs([{"who": who, "start": t_start, "end": t_end} for t_start, t_end, who in runs])
+    kept = reasons.stored(reasons_json)
+    detail = json.loads(detail_json) if detail_json else {}
+    whole = None if turns == HUMAN_AGENT else verdict  # a Human + agent session's input outside every segment is unsure
+    views = pages.views(con, session_id)
+    found = actions.recorded(con, session_id, runs, whole, views)
+    visit = pages.Visit(views, found, epoch)
+    listed = visit.listed(length)
+    layers = reasons.layers(layers_json, reasons_json, epoch, turns == HUMAN_AGENT, verdict)
+    story = Story(epoch, runs if verdict != BOT else [], summary["agent"], layers)
+    return {"session": dict(summary, duration_ms=length, pages=len(listed), share=actions.share(found)),
+            "title": title(verdict, turns, verdict_class, summary["agent"], runs, evidence),
+            "summary": verdict_summary(verdict, turns or evidence, detail.get("judging"), kept, story),
+            "percent": detail.get("percent"),
+            "timeline": {"duration_ms": length, "segments": visits.relative(runs, epoch, length),
+                         "handoffs": [{"at_ms": int(min(length, max(0, handoff["t"] - epoch))), "to": handoff["to"]}
+                                      for handoff in handoffs] if turns == HUMAN_AGENT else []},
+            "pages": listed,
+            "layers": layers,
+            "actions": actions.listed(found, visit.path_of, epoch),
+            "replay": replay.info(con, session_id, epoch, freed, dropped, load_cfg()),
+            "server": server_half.table(con, session_id, net, epoch, summary["pages"])}
+
+
+def title(verdict, turns, verdict_class, agent, runs, evidence=None):
+    """Who acted, in one line; turns: an Agent session's split (visits.TURNS), agent: its name or None (Unnamed),
+    evidence: thin for a Human session cake could not tell, whose title says why."""
+    words = answers.words()["title"]
+    if turns == HUMAN_AGENT:
+        order = []
+        for _, _, who in runs:
+            if who != UNSURE and (not order or order[-1] != who):
+                order.append(who)
+        if order:
+            return _turns(order, agent, words)
+    if evidence:
+        return words["too_little_data"] if verdict_class == "too_little_data" else words["unsure"]
+    if verdict == HUMAN:
+        return words["human"]
+    if agent:
+        return words["agent"].format(agent=agent)
+    return words["unnamed"] if turns else words["unsure"]
+
+
+def _turns(order, agent, words):
+    said, seen = None, set()
+    for who in order:
+        if who == HUMAN:
+            part = words["human"] if said is None else words["human_again" if HUMAN in seen else "human_later"]
+        elif agent:
+            part = words["agent_again" if who in seen else "agent"].format(agent=agent)
+        else:
+            part = words["unnamed_again" if who in seen else ("unnamed" if said is None else "unnamed_later")]
+        seen.add(who)
+        said = part if said is None else words["then"].format(before=said, after=part)
+    return said
+
+
+# What the summary tells beside the verdict: the recording's start (epoch ms), the stored runs (t_start, t_end, actor),
+# the agent's name (None: unnamed) and the layers as the page shows them (reasons.layers).
+Story = namedtuple("Story", "epoch runs agent layers")
+
+
+def verdict_summary(verdict, group, judging_class, kept, story=None):
+    """What happened, who and why (see the module docstring); group: an Agent session's split, or thin for a Human
+    session on thin evidence, which picks the reason and the rule before the verdict does. Without a story (or runs
+    to tell), the deciding reason stands for who acted."""
+    said = _turns_told(verdict, story) if story and group != THIN else None
+    if said is None:
+        chosen = _deciding(verdict, kept)
+        if chosen is None:
+            rules = answers.numbers()["summary"]
+            return verdict_text.judging()["classes"][judging_class or rules["classes"][group or verdict]]["how"]
+        said = verdict_text.words(chosen, story.epoch if story else None)[0]
+    why = _pointing(verdict, story.layers) if story else None
+    return f"{said} {why}" if why else said
+
+
+def _deciding(verdict, kept):
+    """The reason that decided the verdict: the first in the verdict's tone, else the first of the fallback layer
+    (data/api.json "summary"); None without one."""
+    rules = answers.numbers()["summary"]
+    tone = rules["tones"].get(verdict)
+    return (next((r for r in kept if tone and r.get("tone") == tone), None)
+            or next((r for r in kept if r.get("layer") == rules["fallback_layer"]), None))
+
+
+def _turns_told(verdict, story):
+    """Who acted when, turn by turn, on the timeline's clock: the first turn from its start to its end, then each
+    hand-off at the moment the timeline marks it; None when no human or agent run is there to tell."""
+    turns = []
+    for t_start, t_end, who in story.runs:
+        if who == UNSURE:
+            continue
+        if turns and turns[-1]["who"] == who:
+            turns[-1]["end"] = t_end
+        else:
+            turns.append({"who": who, "start": t_start, "end": t_end})
+    if not turns or (verdict == HUMAN and any(turn["who"] != HUMAN for turn in turns)):
+        return None
+    words, seen = answers.words()["summary"], set()
+    at = lambda t: markers.clock(max(0, t - story.epoch))  # noqa: E731  (a moment as the player writes it)
+    said = []
+    for turn in turns:
+        who = _who(turn["who"], story.agent, turn["who"] in seen, words["who"])
+        if not said:
+            said.append(words["acted"].format(who=who, start=at(turn["start"]), end=at(turn["end"])))
+        else:
+            said.append(words["took_over_again" if turn["who"] in seen else "took_over"].format(who=who,
+                                                                                               at=at(turn["start"])))
+        seen.add(turn["who"])
+    return " ".join(said)
+
+
+def _who(actor, agent, again, words):
+    if actor == HUMAN:
+        return words["human_again" if again else "human"]
+    if agent:
+        return words["agent"].format(agent=agent)
+    return words["unnamed_again" if again else "unnamed"]
+
+
+def _pointing(verdict, layers):
+    """The layers whose conclusion is the verdict's, each with the percent the layer shows (how sure it is of that
+    conclusion); None when none does."""
+    agreeing = answers.numbers()["summary"]["supports"].get(verdict) or ()
+    words, names = answers.words()["summary"], verdict_text.judging()["layers"]
+    leaning = [layer for layer in layers if layer.get("state") in agreeing and layer.get("percent") is not None]
+    found = [words["supports" if n == 0 else "supports_too"].format(layer=names[layer["layer"]], percent=layer["percent"])
+             for n, layer in enumerate(leaning)]
+    if not found:
+        return None
+    listed = found[0] if len(found) == 1 else words["list"].format(items=", ".join(found[:-1]), last=found[-1])
+    return words["pointing"].format(layers=listed)

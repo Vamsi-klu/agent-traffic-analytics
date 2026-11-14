@@ -1,0 +1,137 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "overview.schema.json",
+  "title": "Overview",
+  "description": "GET /api/overview?range= : the dashboard.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["counts", "agent_last_week", "share_by_day", "agents_seen", "top_pages", "latest", "latest_agent", "average_length", "storage", "coverage"],
+  "properties": {
+    "counts": { "$ref": "common.schema.json#/$defs/SessionCounts" },
+    "agent_last_week": { "$ref": "common.schema.json#/$defs/Count" },
+    "share_by_day": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["day", "human", "agent", "unsure"],
+        "properties": {
+          "day": { "$ref": "common.schema.json#/$defs/Text" },
+          "human": { "$ref": "common.schema.json#/$defs/Percent" },
+          "agent": { "$ref": "common.schema.json#/$defs/Percent" },
+          "unsure": { "$ref": "common.schema.json#/$defs/Percent" }
+        }
+      }
+    },
+    "agents_seen": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "sessions"],
+        "properties": {
+          "name": { "$ref": "common.schema.json#/$defs/NullableText" },
+          "sessions": { "$ref": "common.schema.json#/$defs/Count" }
+        }
+      }
+    },
+    "top_pages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "agent", "human"],
+        "properties": {
+          "path": { "$ref": "common.schema.json#/$defs/Text" },
+          "agent": { "$ref": "common.schema.json#/$defs/Count" },
+          "human": { "$ref": "common.schema.json#/$defs/Count" }
+        }
+      }
+    },
+    "latest": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/SessionSummary" } },
+    "latest_agent": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/SessionSummary" } },
+    "average_length": { "$ref": "#/$defs/AverageLength" },
+    "storage": { "$ref": "#/$defs/Storage" },
+    "coverage": { "$ref": "#/$defs/Coverage" }
+  },
+  "$defs": {
+    "Length": { "type": ["integer", "null"], "minimum": 0 },
+    "AverageLength": {
+      "description": "D30: the average length of a session, its first to its last recorded action, in ms; null when the range has no such session.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ms", "about"],
+      "properties": {
+        "ms": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["human", "agent_only", "human_agent"],
+          "properties": {
+            "human": { "$ref": "#/$defs/Length" },
+            "agent_only": { "$ref": "#/$defs/Length" },
+            "human_agent": { "$ref": "#/$defs/Length" }
+          }
+        },
+        "about": { "$ref": "common.schema.json#/$defs/Text" }
+      }
+    },
+    "Storage": {
+      "description": "The disk budget and what cake's data uses of it, whatever the filters: the settings page's numbers (storage, budget_mb, auto_free), with the disk under it and why new replays are stopped, if they are.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["used_bytes", "budget_mb", "warn_at_pct", "days_left", "auto_free", "disk", "replays_stopped"],
+      "properties": {
+        "used_bytes": { "$ref": "common.schema.json#/$defs/Count" },
+        "budget_mb": { "type": "integer", "minimum": 1 },
+        "warn_at_pct": { "$ref": "common.schema.json#/$defs/Percent" },
+        "days_left": { "type": ["number", "null"], "minimum": 0 },
+        "auto_free": { "type": "boolean" },
+        "disk": { "$ref": "common.schema.json#/$defs/Disk" },
+        "replays_stopped": { "$ref": "common.schema.json#/$defs/ReplaysStopped" }
+      }
+    },
+    "Coverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["title", "lead", "columns", "rows", "bot"],
+      "properties": {
+        "title": { "$ref": "common.schema.json#/$defs/Text" },
+        "lead": { "$ref": "common.schema.json#/$defs/Text" },
+        "columns": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["what", "shown_as", "how"],
+          "properties": {
+            "what": { "$ref": "common.schema.json#/$defs/Text" },
+            "shown_as": { "$ref": "common.schema.json#/$defs/Text" },
+            "how": { "$ref": "common.schema.json#/$defs/Text" }
+          }
+        },
+        "rows": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["what", "verdict", "shown_as", "how"],
+            "properties": {
+              "what": { "$ref": "common.schema.json#/$defs/Text" },
+              "verdict": { "$ref": "common.schema.json#/$defs/Verdict" },
+              "shown_as": { "$ref": "common.schema.json#/$defs/Text" },
+              "how": { "$ref": "common.schema.json#/$defs/Text" }
+            }
+          }
+        },
+        "bot": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["question", "answer"],
+          "properties": {
+            "question": { "$ref": "common.schema.json#/$defs/Text" },
+            "answer": { "$ref": "common.schema.json#/$defs/Text" }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "_about": "GOAL A7: the 10 named User-Agents and the answer for each (the list id, Agent or Bot by D17, and the kind), the same 10 S3.1 tests (tests/test_lists.py A7; tests/test_eval_tables.py checks the two agree). The strings are each vendor's documented form; Claude-Agent's comes from a second-hand source and is marked unverified in the list. `agentcake eval` judges each as a local session with nothing but its User-Agent.",
+  "cases": [
+    {"user_agent": "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko); compatible; ChatGPT-User/1.0; +https://openai.com/bot",
+     "name": "chatgpt-user", "class": "agent", "kind": "ai-assistant"},
+    {"user_agent": "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko); compatible; GPTBot/1.1; +https://openai.com/gptbot",
+     "name": "gptbot", "class": "bot", "kind": "ai-crawler"},
+    {"user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko; compatible; Claude-Agent/1.0) Chrome/142.0.0.0 Safari/537.36",
+     "name": "claude-agent", "class": "agent", "kind": "cloud-agent"},
+    {"user_agent": "Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5X Build/MMB29P) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.7444.59 Mobile Safari/537.36 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
+     "name": "googlebot", "class": "bot", "kind": "search-crawler"},
+    {"user_agent": "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm) Chrome/116.0.1938.76 Safari/537.36",
+     "name": "bingbot", "class": "bot", "kind": "search-crawler"},
+    {"user_agent": "Mozilla/5.0+(compatible; UptimeRobot/2.0; http://www.uptimerobot.com/)",
+     "name": "uptimerobot", "class": "bot", "kind": "monitoring"},
+    {"user_agent": "Mozilla/5.0 (Linux; Android 11; moto g power (2022)) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Mobile Safari/537.36 Chrome-Lighthouse",
+     "name": "lighthouse", "class": "bot", "kind": "seo-audit"},
+    {"user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 PTST/251105.150512",
+     "name": "ptst", "class": "bot", "kind": "seo-audit"},
+    {"user_agent": "Mozilla/5.0 (compatible; AhrefsSiteAudit/6.1; +http://ahrefs.com/robot/site-audit)",
+     "name": "ahrefssiteaudit", "class": "bot", "kind": "seo-audit"},
+    {"user_agent": "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)",
+     "name": "facebookexternalhit", "class": "bot", "kind": "link-preview"}
+  ]
+}

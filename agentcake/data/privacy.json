@@ -1,0 +1,33 @@
+{
+  "_doc": "What Agent Cake's page script never records, and how it records what it may (plan step S1.4; GOAL G4, G12; D9). build_js.py puts the 'page' object into cake.js as CFG.privacy. None of it is a setting: inputs are always masked and private elements are never recorded, whatever the site owner configures. Selectors are CSS; a key of one character gets the class of the first single_character pattern (a regular expression) it matches.",
+  "page": {
+    "mask_all_inputs": true,
+    "private_selector": "[data-cake-private], input[type=password], [autocomplete^=\"cc-\"]",
+    "mask_text_selector": "[contenteditable]:not([contenteditable=\"false\"])",
+    "private_dropped_events": ["keydown", "keyup", "input", "change"],
+    "private_dropped_fields": ["s", "r"],
+    "key_classes": {
+      "single_character": [
+        {"class": "digit", "pattern": "\\d", "flags": ""},
+        {"class": "space", "pattern": "\\s", "flags": ""},
+        {"class": "letter", "pattern": "[a-z]", "flags": "i"}
+      ],
+      "single_character_other": "symbol",
+      "named": {
+        "Backspace": "delete",
+        "Delete": "delete",
+        "Enter": "enter",
+        "Tab": "tab",
+        "Shift": "modifier",
+        "Control": "modifier",
+        "Alt": "modifier",
+        "Meta": "modifier",
+        "CapsLock": "modifier",
+        "Unidentified": "unidentified",
+        "": "unidentified"
+      },
+      "prefixes": {"Arrow": "arrow"},
+      "other": "other"
+    }
+  }
+}

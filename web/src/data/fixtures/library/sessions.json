@@ -1,0 +1,539 @@
+{
+  "counts": {
+    "all": 28,
+    "human": 0,
+    "agent": 28,
+    "bot": 0,
+    "agent_only": 28,
+    "human_agent": 0,
+    "thin": 0
+  },
+  "total": 28,
+  "agent_names": [
+    "Claude in Chrome"
+  ],
+  "results": [
+    {
+      "id": "79c3ffe7336e40b88b873e96971a4a3d",
+      "verdict": "agent",
+      "evidence": null,
+      "agent_turns": "agent_only",
+      "agent": null,
+      "certainty": null,
+      "when": "Today 09:28",
+      "duration_ms": 1669,
+      "pages": 6,
+      "share": {
+        "human": 0,
+        "agent": 84,
+        "unsure": 16
+      },
+      "segments": [
+        {
+          "who": "unsure",
+          "start_ms": 187,
+          "end_ms": 513
+        },
+        {
+          "who": "agent",
+          "start_ms": 682,
+          "end_ms": 1312
+        }
+      ]
+    },
+    {
+      "id": "8b2209261998404792d3a7bd018411ae",
+      "verdict": "agent",
+      "evidence": null,
+      "agent_turns": "agent_only",
+      "agent": null,
+      "certainty": null,
+      "when": "Today 09:28",
+      "duration_ms": 1606,
+      "pages": 6,
+      "share": {
+        "human": 0,
+        "agent": 96,
+        "unsure": 4
+      },
+      "segments": [
+        {
+          "who": "unsure",
+          "start_ms": 90,
+          "end_ms": 90
+        },
+        {
+          "who": "agent",
+          "start_ms": 169,
+          "end_ms": 169
+        },
+        {
+          "who": "agent",
+          "start_ms": 171,
+          "end_ms": 526
+        },
+        {
+          "who": "agent",
+          "start_ms": 564,
+          "end_ms": 564
+        },
+        {
+          "who": "agent",
+          "start_ms": 614,
+          "end_ms": 1148
+        }
+      ]
+    },
+    {
+      "id": "7d82a5c8ac905b49858057fc4efc0d05",
+      "verdict": "agent",
+      "evidence": null,
+      "agent_turns": "agent_only",
+      "agent": null,
+      "certainty": null,
+      "when": "Tue 20:56",
+      "duration_ms": 73058,
+      "pages": 4,
+      "share": {
+        "human": 0,
+        "agent": 100,
+        "unsure": 0
+      },
+      "segments": [
+        {
+          "who": "agent",
+          "start_ms": 13704,
+          "end_ms": 63773
+        }
+      ]
+    },
+    {
+      "id": "48fdcf593f807f90ddfcca6f9a907ec5",
+      "verdict": "agent",
+      "evidence": null,
+      "agent_turns": "agent_only",
+      "agent": null,
+      "certainty": null,
+      "when": "Tue 20:04",
+      "duration_ms": 42495,
+      "pages": 4,
+      "share": {
+        "human": 0,
+        "agent": 100,
+        "unsure": 0
+      },
+      "segments": [
+        {
+          "who": "agent",
+          "start_ms": 2803,
+          "end_ms": 38344
+        }
+      ]
+    },
+    {
+      "id": "d393388e358b8660b162219bdc3513d9",
+      "verdict": "agent",
+      "evidence": null,
+      "agent_turns": "agent_only",
+      "agent": null,
+      "certainty": null,
+      "when": "Tue 20:04",
+      "duration_ms": 44379,
+      "pages": 4,
+      "share": {
+        "human": 0,
+        "agent": 100,
+        "unsure": 0
+      },
+      "segments": [
+        {
+          "who": "agent",
+          "start_ms": 3603,
+          "end_ms": 40442
+        }
+      ]
+    },
+    {
+      "id": "fa8e5c88f4c4f9b98780f83cbc36e0c7",
+      "verdict": "agent",
+      "evidence": null,
+      "agent_turns": "agent_only",
+      "agent": "Claude in Chrome",
+      "certainty": "likely",
+      "when": "Tue 20:03",
+      "duration_ms": 15674,
+      "pages": 4,
+      "share": {
+        "human": 0,
+        "agent": 100,
+        "unsure": 0
+      },
+      "segments": [
+        {
+          "who": "agent",
+          "start_ms": 1963,
+          "end_ms": 14195
+        },
+        {
+          "who": "agent",
+          "start_ms": 14203,
+          "end_ms": 14377
+        }
+      ]
+    },
+    {
+      "id": "d87f005d99717e5ca9e7dda67275a7cd",
+      "verdict": "agent",
+      "evidence": null,
+      "agent_turns": "agent_only",
+      "agent": null,
+      "certainty": null,
+      "when": "Tue 20:03",
+      "duration_ms": 76552,
+      "pages": 4,
+      "share": {
+        "human": 0,
+        "agent": 100,
+        "unsure": 0
+      },
+      "segments": [
+        {
+          "who": "agent",
+          "start_ms": 9061,
+          "end_ms": 64415
+        }
+      ]
+    },
+    {
+      "id": "5215a991476deee15a944527bffa907c",
+      "verdict": "agent",
+      "evidence": null,
+      "agent_turns": "agent_only",
+      "agent": null,
+      "certainty": null,
+      "when": "Tue 20:02",
+      "duration_ms": 90487,
+      "pages": 4,
+      "share": {
+        "human": 0,
+        "agent": 100,
+        "unsure": 0
+      },
+      "segments": [
+        {
+          "who": "agent",
+          "start_ms": 7416,
+          "end_ms": 79051
+        }
+      ]
+    },
+    {
+      "id": "5659eb5ebd0f0b5f76b3bf8aab28decf",
+      "verdict": "agent",
+      "evidence": null,
+      "agent_turns": "agent_only",
+      "agent": null,
+      "certainty": null,
+      "when": "Tue 20:01",
+      "duration_ms": 41244,
+      "pages": 4,
+      "share": {
+        "human": 0,
+        "agent": 100,
+        "unsure": 0
+      },
+      "segments": [
+        {
+          "who": "agent",
+          "start_ms": 929,
+          "end_ms": 8932
+        },
+        {
+          "who": "agent",
+          "start_ms": 8939,
+          "end_ms": 30431
+        },
+        {
+          "who": "agent",
+          "start_ms": 31308,
+          "end_ms": 37537
+        }
+      ]
+    },
+    {
+      "id": "e28e78888e300bd1530abf791779ecbc",
+      "verdict": "agent",
+      "evidence": null,
+      "agent_turns": "agent_only",
+      "agent": null,
+      "certainty": null,
+      "when": "Tue 20:01",
+      "duration_ms": 43306,
+      "pages": 4,
+      "share": {
+        "human": 0,
+        "agent": 100,
+        "unsure": 0
+      },
+      "segments": [
+        {
+          "who": "agent",
+          "start_ms": 1775,
+          "end_ms": 39318
+        }
+      ]
+    },
+    {
+      "id": "86347cf00aa6d54c241f2a989e9ee44e",
+      "verdict": "agent",
+      "evidence": null,
+      "agent_turns": "agent_only",
+      "agent": "Claude in Chrome",
+      "certainty": "likely",
+      "when": "Tue 20:01",
+      "duration_ms": 146227,
+      "pages": 4,
+      "share": {
+        "human": 0,
+        "agent": 100,
+        "unsure": 0
+      },
+      "segments": [
+        {
+          "who": "agent",
+          "start_ms": 31833,
+          "end_ms": 132549
+        }
+      ]
+    },
+    {
+      "id": "29a5a4145a8b3be0eed43c4c1b49980f",
+      "verdict": "agent",
+      "evidence": null,
+      "agent_turns": "agent_only",
+      "agent": null,
+      "certainty": null,
+      "when": "Tue 20:00",
+      "duration_ms": 69899,
+      "pages": 4,
+      "share": {
+        "human": 0,
+        "agent": 100,
+        "unsure": 0
+      },
+      "segments": [
+        {
+          "who": "agent",
+          "start_ms": 6542,
+          "end_ms": 63652
+        }
+      ]
+    },
+    {
+      "id": "0058ecbca1a9f96670bea516f86b4c2e",
+      "verdict": "agent",
+      "evidence": null,
+      "agent_turns": "agent_only",
+      "agent": null,
+      "certainty": null,
+      "when": "Tue 20:00",
+      "duration_ms": 86605,
+      "pages": 4,
+      "share": {
+        "human": 0,
+        "agent": 100,
+        "unsure": 0
+      },
+      "segments": [
+        {
+          "who": "agent",
+          "start_ms": 12789,
+          "end_ms": 74677
+        }
+      ]
+    },
+    {
+      "id": "8fff36161285f300a8dcbfeec747df97",
+      "verdict": "agent",
+      "evidence": null,
+      "agent_turns": "agent_only",
+      "agent": null,
+      "certainty": null,
+      "when": "Tue 19:59",
+      "duration_ms": 46607,
+      "pages": 4,
+      "share": {
+        "human": 0,
+        "agent": 100,
+        "unsure": 0
+      },
+      "segments": [
+        {
+          "who": "agent",
+          "start_ms": 4162,
+          "end_ms": 11489
+        },
+        {
+          "who": "agent",
+          "start_ms": 11496,
+          "end_ms": 35257
+        },
+        {
+          "who": "agent",
+          "start_ms": 36424,
+          "end_ms": 42966
+        }
+      ]
+    },
+    {
+      "id": "ea6344fd63b89cc913dadb338ed2f98b",
+      "verdict": "agent",
+      "evidence": null,
+      "agent_turns": "agent_only",
+      "agent": null,
+      "certainty": null,
+      "when": "Tue 19:58",
+      "duration_ms": 44456,
+      "pages": 4,
+      "share": {
+        "human": 0,
+        "agent": 100,
+        "unsure": 0
+      },
+      "segments": [
+        {
+          "who": "agent",
+          "start_ms": 3675,
+          "end_ms": 40533
+        }
+      ]
+    },
+    {
+      "id": "5a85851ecfb2f0015d683454ddc4c424",
+      "verdict": "agent",
+      "evidence": null,
+      "agent_turns": "agent_only",
+      "agent": "Claude in Chrome",
+      "certainty": "likely",
+      "when": "Tue 19:58",
+      "duration_ms": 153223,
+      "pages": 4,
+      "share": {
+        "human": 0,
+        "agent": 100,
+        "unsure": 0
+      },
+      "segments": [
+        {
+          "who": "agent",
+          "start_ms": 26090,
+          "end_ms": 125075
+        }
+      ]
+    },
+    {
+      "id": "c8a54b748592aa4ad726000d99404323",
+      "verdict": "agent",
+      "evidence": null,
+      "agent_turns": "agent_only",
+      "agent": null,
+      "certainty": null,
+      "when": "Tue 19:58",
+      "duration_ms": 72173,
+      "pages": 4,
+      "share": {
+        "human": 0,
+        "agent": 100,
+        "unsure": 0
+      },
+      "segments": [
+        {
+          "who": "agent",
+          "start_ms": 6797,
+          "end_ms": 60653
+        }
+      ]
+    },
+    {
+      "id": "5855598b127b9af15e78ac71251d330e",
+      "verdict": "agent",
+      "evidence": null,
+      "agent_turns": "agent_only",
+      "agent": null,
+      "certainty": null,
+      "when": "Tue 19:57",
+      "duration_ms": 75180,
+      "pages": 4,
+      "share": {
+        "human": 0,
+        "agent": 100,
+        "unsure": 0
+      },
+      "segments": [
+        {
+          "who": "agent",
+          "start_ms": 12576,
+          "end_ms": 65346
+        }
+      ]
+    },
+    {
+      "id": "5f23061508be274649c8ea215a9e56d2",
+      "verdict": "agent",
+      "evidence": null,
+      "agent_turns": "agent_only",
+      "agent": null,
+      "certainty": null,
+      "when": "Tue 19:57",
+      "duration_ms": 43352,
+      "pages": 4,
+      "share": {
+        "human": 0,
+        "agent": 100,
+        "unsure": 0
+      },
+      "segments": [
+        {
+          "who": "agent",
+          "start_ms": 2863,
+          "end_ms": 9923
+        },
+        {
+          "who": "agent",
+          "start_ms": 9930,
+          "end_ms": 31123
+        },
+        {
+          "who": "agent",
+          "start_ms": 32764,
+          "end_ms": 39909
+        }
+      ]
+    },
+    {
+      "id": "154c2cb09debf72768790506ca010493",
+      "verdict": "agent",
+      "evidence": null,
+      "agent_turns": "agent_only",
+      "agent": null,
+      "certainty": null,
+      "when": "Tue 19:56",
+      "duration_ms": 43655,
+      "pages": 4,
+      "share": {
+        "human": 0,
+        "agent": 100,
+        "unsure": 0
+      },
+      "segments": [
+        {
+          "who": "agent",
+          "start_ms": 1762,
+          "end_ms": 39864
+        }
+      ]
+    }
+  ],
+  "next": "MTc5NDM0MDU5ODE2OToxNTRjMmNiMDlkZWJmNzI3Njg3OTA1MDZjYTAxMDQ5Mw",
+  "page_size": 20
+}

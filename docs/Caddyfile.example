@@ -1,0 +1,20 @@
+# AgentCake: Caddy's own JSON access log is all `agentcake logs import` needs (SERVER.md, "Server logs"): it holds
+# every request header, the time to the microsecond and the Host. AgentCake finds the format by itself, or takes
+# `--format caddy-json`. The log stays yours: AgentCake reads it where it is, never copies it, and keeps nothing of a
+# line that matches no visit. Like any access log it holds visitors' addresses: keep Caddy's rolling of it.
+
+example.com {
+	log {
+		output file /var/log/caddy/agentcake.log
+		format json
+	}
+	# ... the rest of your site, as before
+}
+
+# Caddy logs the address it was connected from (request.remote_ip) and, with trusted_proxies set, the visitor's
+# (request.client_ip), which AgentCake takes first: it has to be the same one your load balancer sends AgentCake as
+# its client IP header. Caddy does not log the values of Cookie and Authorization unless log_credentials is on, and
+# AgentCake reads neither in any case.
+#
+# Then, on this machine, every five minutes (cron), to the AgentCake server's public listener:
+#   agentcake logs import /var/log/caddy/agentcake.log --since 10m --to http://192.0.2.10:8080/cake

@@ -1,0 +1,105 @@
+{
+  "about": "Web server access logs for `agentcake logs import` (S4.4, D20): the formats Agent Cake reads, what each web server's format string means, which lines are page requests, which of their headers go to Agent Cake, and what the recommended formats add to the usual ones. A format is described by the web server's own format string and compiled into a parser, the idea GoAccess uses for its log formats (github.com/allinurl/goaccess, MIT); no GoAccess code is used. The format strings and config lines are the same as in docs/nginx.conf.example, docs/apache.conf.example and docs/Caddyfile.example, which tests/test_log_formats.py checks.",
+
+  "formats": {
+    "caddy-json": {
+      "server": "caddy",
+      "about": "Caddy's access log in its default JSON encoding: every request header is in it.",
+      "json": {"ip": ["request.client_ip", "request.remote_ip"], "time": "ts", "method": "request.method",
+               "target": "request.uri", "protocol": "request.proto", "host": "request.host", "status": "status",
+               "headers": "request.headers", "tls": "request.tls"},
+      "schemes": {"tls": "https", "plain": "http"},
+      "config": ["\tlog {", "\t\toutput file /var/log/caddy/agentcake.log", "\t\tformat json", "\t}"]
+    },
+    "nginx-agentcake": {
+      "server": "nginx",
+      "about": "The recommended nginx format: the time in milliseconds, the Host, and the headers that tell browsers, signed agents and automation apart.",
+      "template": "$remote_addr [$msec] \"$request\" $status $scheme \"$http_host\" \"$http_user_agent\" \"$http_accept_language\" \"$http_sec_fetch_site\" \"$http_sec_fetch_mode\" \"$http_sec_fetch_dest\" \"$http_sec_fetch_user\" \"$http_sec_ch_ua\" \"$http_signature_agent\" \"$http_signature_input\" \"$http_signature\"",
+      "config": ["log_format agentcake '$remote_addr [$msec] \"$request\" $status $scheme \"$http_host\" '",
+                 "                     '\"$http_user_agent\" \"$http_accept_language\" '",
+                 "                     '\"$http_sec_fetch_site\" \"$http_sec_fetch_mode\" \"$http_sec_fetch_dest\" \"$http_sec_fetch_user\" '",
+                 "                     '\"$http_sec_ch_ua\" \"$http_signature_agent\" \"$http_signature_input\" \"$http_signature\"';",
+                 "access_log /var/log/nginx/agentcake.log agentcake;"]
+    },
+    "apache-agentcake": {
+      "server": "apache",
+      "about": "The recommended Apache format (mod_log_config): the same fields as nginx-agentcake, the time in milliseconds when the request began.",
+      "template": "%a [%{msec}t] \"%r\" %>s \"%{Host}i\" \"%{User-Agent}i\" \"%{Accept-Language}i\" \"%{Sec-Fetch-Site}i\" \"%{Sec-Fetch-Mode}i\" \"%{Sec-Fetch-Dest}i\" \"%{Sec-Fetch-User}i\" \"%{Sec-CH-UA}i\" \"%{Signature-Agent}i\" \"%{Signature-Input}i\" \"%{Signature}i\"",
+      "config": ["LogFormat \"%a [%{msec}t] \\\"%r\\\" %>s \\\"%{Host}i\\\" \\\"%{User-Agent}i\\\" \\\"%{Accept-Language}i\\\" \\\"%{Sec-Fetch-Site}i\\\" \\\"%{Sec-Fetch-Mode}i\\\" \\\"%{Sec-Fetch-Dest}i\\\" \\\"%{Sec-Fetch-User}i\\\" \\\"%{Sec-CH-UA}i\\\" \\\"%{Signature-Agent}i\\\" \\\"%{Signature-Input}i\\\" \\\"%{Signature}i\\\"\" agentcake",
+                 "CustomLog \"${APACHE_LOG_DIR}/agentcake.log\" agentcake"]
+    },
+    "combined": {
+      "server": "nginx",
+      "about": "The combined format both nginx and Apache ship (the NCSA Combined Log Format): no Host, no Accept-Language, no Sec-Fetch-* and no signature, and the time in whole seconds.",
+      "template": "$remote_addr - $remote_user [$time_local] \"$request\" $status $body_bytes_sent \"$http_referer\" \"$http_user_agent\"",
+      "apache_template": "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\""
+    }
+  },
+  "detect": {"order": ["caddy-json", "nginx-agentcake", "apache-agentcake", "combined"], "sample_lines": 50},
+  "servers": {"about": "How each web server is named in what `logs formats` prints.", "nginx": "nginx",
+              "apache": "Apache", "caddy": "Caddy"},
+  "custom": {"about": "The names of a format given by its own format string (--nginx-format, --apache-format).",
+             "nginx": "nginx-custom", "apache": "apache-custom"},
+
+  "nginx": {
+    "about": "nginx log_format variables (nginx.org/en/docs/http/ngx_http_log_module.html) that carry a field Agent Cake reads; $http_<name> is the request header <name>, with _ for -. Other variables are matched and left out.",
+    "header_prefix": "http_",
+    "roles": {"remote_addr": "ip", "realip_remote_addr": "ip", "msec": "time_s", "time_local": "time_clf",
+              "time_iso8601": "time_iso", "request": "request", "request_method": "method", "request_uri": "target",
+              "uri": "path", "args": "query", "server_protocol": "protocol", "status": "status", "http_host": "host",
+              "host": "host", "scheme": "scheme"}
+  },
+  "apache": {
+    "about": "mod_log_config directives (httpd.apache.org/docs/2.4/mod/mod_log_config.html) that carry a field Agent Cake reads; %{Name}i is the request header Name. %t without an argument is written in brackets. Other directives are matched and left out.",
+    "header_letter": "i",
+    "roles": {"a": "ip", "h": "ip", "t": "time_clf_bracketed", "r": "request", "m": "method", "U": "path", "q": "query_marked",
+              "H": "protocol", "s": "status", "V": "host"},
+    "time_arguments": {"msec": "time_ms", "begin:msec": "time_ms", "end:msec": "time_ms", "sec": "time_sec",
+                       "begin:sec": "time_sec", "end:sec": "time_sec", "usec": "time_us", "begin:usec": "time_us",
+                       "end:usec": "time_us"}
+  },
+
+  "empty_values": ["-", ""],
+  "default_scheme": "https",
+  "max_line_chars": 16384,
+
+  "page": {
+    "about": "Which log lines are page requests, the only ones sent: a GET that is not a redirect, not a static file (data/edge.json's skip_extensions, the middleware's rule) and not a dot-file; when the log has Sec-Fetch-Dest, a document.",
+    "method": "GET",
+    "dest_header": "sec-fetch-dest",
+    "dest": "document",
+    "redirect_statuses": [300, 301, 302, 303, 305, 307, 308]
+  },
+
+  "send_headers": {
+    "about": "The headers of a page request sent to Agent Cake: what the network facts keep (data/netfacts.json) and what verifies a Web Bot Auth signature. Never cookies, credentials or the Referer, even when a log holds them (Caddy logs every header).",
+    "names": ["user-agent", "accept-language", "sec-fetch-site", "sec-fetch-mode", "sec-fetch-dest", "sec-fetch-user",
+              "sec-ch-ua", "sec-ch-ua-mobile", "sec-ch-ua-platform", "signature-agent", "signature-input", "signature"]
+  },
+
+  "recommended": {
+    "about": "What the recommended formats log beyond combined, and whether every current browser sends it on a page request (always_sent): one of those empty on every line of a log is likely removed on the way, by a proxy or a CDN. host is the Host header; a signature over @authority cannot be checked without it.",
+    "fields": {"host": {"always_sent": true}, "user-agent": {"always_sent": true}, "accept-language": {"always_sent": true},
+               "sec-fetch-site": {"always_sent": true}, "sec-fetch-mode": {"always_sent": true},
+               "sec-fetch-dest": {"always_sent": true}, "sec-fetch-user": {"always_sent": false},
+               "sec-ch-ua": {"always_sent": false}, "signature-agent": {"always_sent": false},
+               "signature-input": {"always_sent": false}, "signature": {"always_sent": false}},
+    "empty_min_requests": 20
+  },
+
+  "edge": {
+    "about": "POST /edge (route): log records from the web server, signed with the server half's secret (srv_secret). The header holds <prefix>.<time in ms>.<base64url HMAC-SHA256 of '<prefix>.<time>.' and the body>; a request outside the page tokens' age window (token_max_age_ms, token_max_future_ms) or with another MAC is refused (403). batch_records is how many records `logs import` sends per request, max_records how many one request may hold, timeout_s how long it waits for one answer (matching a batch reads the visits of its minutes).",
+    "route": "/edge",
+    "header": "Cake-Edge-Signature",
+    "prefix": "e1",
+    "version": 1,
+    "batch_records": 500,
+    "max_records": 5000,
+    "run_id_bytes": 6,
+    "timeout_s": 60,
+    "max_chars": {"ip": 64, "method": 16, "target": 2000, "host": 255, "scheme": 8, "header": 2000, "format": 40,
+                  "run": 32, "field": 32}
+  },
+
+  "duration_units": {"about": "The units of `logs import --since`, in seconds.", "s": 1, "m": 60, "h": 3600, "d": 86400}
+}

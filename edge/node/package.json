@@ -1,0 +1,24 @@
+{
+  "name": "@agentcake/edge",
+  "version": "0.0.0",
+  "private": true,
+  "description": "AgentCake site middleware: a signed Server-Timing token on each page response, the server half of AgentCake.",
+  "license": "MIT",
+  "type": "commonjs",
+  "main": "./index.js",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": { "types": "./index.d.ts", "default": "./index.js" },
+    "./express": { "types": "./express.d.ts", "default": "./express.js" },
+    "./next": { "types": "./next.d.ts", "default": "./next.js" },
+    "./hono": { "types": "./hono.d.ts", "default": "./hono.js" },
+    "./package.json": "./package.json"
+  },
+  "files": ["*.js", "*.d.ts", "lib/", "defaults.json", "headers.json", "README.md"],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test test/"
+  }
+}

@@ -1,0 +1,751 @@
+{
+  "$comment": "Agent Cake's environment layer (S3.3): each rule reads one trace of automation, of a named agent product, of a cloud machine or of an extension acting on the page. agentcake/detect/env_rules.py evaluates `match` (grammar in its docstring) against the signals env_signals.py builds; a hit carries id, layer, kind, half, strength, grade and the value that matched. `scope`: page = on each page view, landing = the first page view only, session = the session as a whole. `botscent`: the botscent page-half reasons a rule stands for, so the two can be compared on recorded sessions. `names`: the agent product or automation tool a rule names; `suggests`: a name a rule hints at without proving it. `enabled`: the default; the user's config can switch any rule. `date`: when the evidence was taken; product rules follow one product's build and must be re-checked when it changes. Rule definitions and collision notes taken from botscent 1.2.0 and BotD 2.0.0 (both MIT) are credited in source_refs and THIRD_PARTY.md.",
+  "version": 1,
+  "updated": "2026-11-12",
+  "legend": {
+    "kinds": {
+      "automation": "A trace of an automation driver, or of the flags it launches the browser with: an automated browser.",
+      "spoofing": "The browser misreports itself: stealth automation, or a privacy or user-agent tool.",
+      "product": "Names one agent product. Tied to that product's build: dated, re-checked when the product changes.",
+      "cloud_host": "The browser runs on a cloud machine without a GPU: a cloud browser that is not named.",
+      "extension": "An extension or a debugger acted on this page inside the visitor's own browser."
+    },
+    "halves": {
+      "page": "Read by cake.js in the visitor's page.",
+      "collector": "Read by cake's collect endpoint from cake.js's own requests.",
+      "server": "Read by the site's server on the page request (the server half's token)."
+    },
+    "strengths": {
+      "hard": "No known collision outside the software it points at: behaviour does not overturn it.",
+      "soft": "Real evidence with a known collision (DevTools, privacy tools, uncommon browsers): weighed with behaviour.",
+      "weak": "Goes into the reasons only; it changes no conclusion."
+    },
+    "grades": {
+      "measured": "We measured it ourselves (lab recordings or tartini.ai).",
+      "project-claim": "The source project's own measurement, not reproduced by us.",
+      "source": "Read in a detector's source code or documentation, not measured.",
+      "inferred": "Inferred; neither measured nor taken from a detector."
+    }
+  },
+  "source_refs": {
+    "botscent": "nalinbhardwaj/botscent 1.2.0, commit 7f948003, MIT: registry/reasons.json, registry/page.json, src/page/rules.ts",
+    "BotD": "fingerprintjs/BotD 2.0.0 (npm build botd.esm.js; repository commit 193c471a), MIT: its detectors",
+    "rebrowser": "rebrowser/rebrowser-bot-detector commit 55fa59b, README test descriptions; package.json says MIT but the repository has no LICENSE file, so only its published detection ideas are used, none of its code",
+    "audit": "Agent Cake's signal audit of 2026-11-12 (119 signals, ids sig-NNN; ours)",
+    "lab": "Agent Cake's lab recordings of 2026-11-09 and 2026-11-11 (ours: env.js, raw.js, bs.js and the lab server's request log)",
+    "agent_markers": "Agent Cake's table of agent products' marks, agentcake/data/agent_markers.json (ours; its own source_refs say where each mark comes from), read by env_signals into each page's markers"
+  },
+  "signals": {
+    "network_headers": ["user-agent", "sec-ch-ua", "accept-language", "sec-fetch-site", "sec-fetch-mode", "sec-fetch-user", "sec-fetch-dest"],
+    "hidden_input": {"events": ["pointerdown", "keydown", "wheel", "input"], "pointer": "pointerdown"}
+  },
+  "botscent": {
+    "version": "1.2.0",
+    "commit": "7f948003",
+    "page_reasons": [
+      "browser.webdriver-flag", "ua.page-declared-engine", "muse.cloud-browser.password-manager",
+      "instinct.credentials.wrappers", "instinct.geetest.accessor-pair", "grok.cloud-computer.environment",
+      "codex.prompt.anonymous-native", "codex.keyboard.empty-layout-map", "codex.overlay.shadow-root",
+      "chatgpt.badge.active", "claude.marker.active", "hidden.input.focus-emulated", "hidden.input.trusted-pointerdown"
+    ]
+  },
+  "rules": [
+    {
+      "id": "env.auto.webdriver", "layer": "env", "kind": "automation", "half": "page", "scope": "page", "strength": "hard", "enabled": true,
+      "title": "The browser reports that automation software controls it.",
+      "detail": "navigator.webdriver is true.",
+      "match": {"first": [{"path": "env.webdriver", "eq": true}, {"path": "botd.detections.detectWebDriver.bot", "eq": true}]},
+      "grade": "measured", "date": "2026-11-11",
+      "evidence": "Lab 2026-11-11: 22 of 22 Playwright sessions (12 headless, 10 headed); 0 of 4 Claude in Chrome. Lab 2026-11-09: 15 of 15 Playwright and Puppeteer visits with default settings; 0 of 3 human visits; 0 of 4 Claude in Chrome.",
+      "sources": ["botscent:browser.webdriver-flag", "BotD:detectWebDriver", "rebrowser:navigatorWebdriver", "audit:sig-024", "lab"],
+      "botscent": ["browser.webdriver-flag"],
+      "collisions": "None among botscent's 44 human documents (a Windows VM, a Linux container, Safari, Firefox, an iPhone, DevTools open) or our 3 human visits. A person using a browser that automation launched would match. Stealth setups turn it off (see env.spoof.webdriver-getter-patched)."
+    },
+    {
+      "id": "env.auto.headless-ua", "layer": "env", "kind": "automation", "half": "page", "scope": "page", "strength": "hard", "enabled": true,
+      "title": "The browser identifies itself as headless Chrome, a browser without a window that automation uses.",
+      "detail": "The page's user agent or brand list says HeadlessChrome.",
+      "match": {"first": [
+        {"any": [{"path": "env.userAgent", "regex": "HeadlessChrome/[0-9.]+"}, {"some": "env.uaData.brands", "where": {"path": "brand", "eq": "HeadlessChrome"}}]},
+        {"any": [
+          {"all": [{"path": "botd.detections.detectUserAgent.bot", "eq": true}, {"path": "botd.detections.detectUserAgent.botKind", "eq": "headless_chrome"}]},
+          {"all": [{"path": "botd.detections.detectAppVersion.bot", "eq": true}, {"path": "botd.detections.detectAppVersion.botKind", "eq": "headless_chrome"}]}
+        ]}
+      ]},
+      "grade": "measured", "date": "2026-11-11",
+      "evidence": "Lab 2026-11-11: 12 of 12 headless Playwright sessions, 0 of 10 headed, 0 of 4 Claude in Chrome. Lab 2026-11-09: every headless visit that kept its user agent (V05-V07, V09-V12, V18); 0 of 3 humans.",
+      "sources": ["rebrowser:headless", "BotD:detectUserAgent", "BotD:detectAppVersion", "audit:sig-002", "lab"],
+      "collisions": "No person browses headless; a person driving a remote headless session would match."
+    },
+    {
+      "id": "env.auto.headless-ua-collector", "layer": "env", "kind": "automation", "half": "collector", "scope": "session", "strength": "hard", "enabled": true,
+      "title": "The browser identifies itself as headless Chrome, a browser without a window that automation uses.",
+      "detail": "The User-Agent or sec-ch-ua of cake.js's requests says HeadlessChrome.",
+      "match": {"any": [
+        {"some": "collect.headers.user-agent.values", "where": {"regex": "HeadlessChrome/[0-9.]+"}},
+        {"some": "collect.headers.sec-ch-ua.values", "where": {"regex": "\"HeadlessChrome\""}}
+      ]},
+      "grade": "measured", "date": "2026-11-11",
+      "evidence": "Lab 2026-11-11: the collect requests of 12 of 12 headless Playwright sessions; none of the headed or Claude in Chrome sessions.",
+      "sources": ["botscent:ua.headless-chrome (request half)", "audit:sig-002", "audit:sig-003", "lab"],
+      "collisions": "Same as env.auto.headless-ua: no person browses headless."
+    },
+    {
+      "id": "env.auto.headless-ua-server", "layer": "env", "kind": "automation", "half": "server", "scope": "page", "strength": "hard", "enabled": true,
+      "title": "The browser identifies itself as headless Chrome, a browser without a window that automation uses.",
+      "detail": "The User-Agent or sec-ch-ua of the page request says HeadlessChrome.",
+      "match": {"any": [
+        {"path": "nav.headers.user-agent", "regex": "HeadlessChrome/[0-9.]+"},
+        {"path": "nav.headers.sec-ch-ua", "regex": "\"HeadlessChrome\""}
+      ]},
+      "grade": "measured", "date": "2026-11-11",
+      "evidence": "Lab 2026-11-11: the page requests of 12 of 12 headless Playwright sessions. tartini.ai 2026-11-10: 13 of 13 headless visits in botscent's server half; headed Playwright not matched.",
+      "sources": ["botscent:ua.headless-chrome (request half)", "audit:sig-002", "lab"],
+      "collisions": "Same as env.auto.headless-ua."
+    },
+    {
+      "id": "env.auto.collect-no-accept-language", "layer": "env", "kind": "automation", "half": "collector", "scope": "session", "strength": "hard", "enabled": true,
+      "title": "The requests leave out the language header that browsers normally send.",
+      "detail": "None of cake.js's requests carried Accept-Language, as in chrome-headless-shell.",
+      "match": {"all": [{"path": "collect.requests", "gte": 1}, {"path": "collect.headers.accept-language.present", "eq": 0}]},
+      "report": ["collect.requests", "collect.headers.accept-language.present"],
+      "grade": "measured", "date": "2026-11-11",
+      "evidence": "Lab 2026-11-11: 1,324 of 1,324 collect requests from headless Playwright (chrome-headless-shell) had no Accept-Language; 1,273 of 1,273 from headed Playwright and Claude in Chrome had it. Lab 2026-11-09: 0 of 20 from chrome-headless-shell (V05) had it; 40 of 40 from the 3 human visits had it; new headless mode (V06, V07) sends it.",
+      "sources": ["audit:sig-101", "lab"],
+      "collisions": "None known: every browser a person uses sends Accept-Language. A privacy tool that strips the header would match (untested). Covers chrome-headless-shell (Playwright's and Puppeteer's default headless), not Chrome's new headless mode."
+    },
+    {
+      "id": "env.auto.cdp-runtime-leak", "layer": "env", "kind": "automation", "half": "page", "scope": "page", "strength": "soft", "enabled": true,
+      "title": "The page shows signs of a debugging connection. Automation tools and open DevTools can cause this.",
+      "detail": "A DevTools-protocol client has Runtime enabled: console arguments are serialized.",
+      "match": {"any": [
+        {"path": "auto.runtimeEnableLeak.prepareStackTraceCount", "gt": 0},
+        {"path": "auto.runtimeEnableLeak.stackLookupCount", "gt": 0},
+        {"all": [{"path": "env.uaData", "exists": true}, {"path": "auto.runtimeEnableLeak.nameGetterCount", "divide_by": "auto.runtimeEnableLeak.rounds", "gt": 1.5}]}
+      ]},
+      "report": ["auto.runtimeEnableLeak.prepareStackTraceCount", "auto.runtimeEnableLeak.nameGetterCount", "auto.runtimeEnableLeak.rounds"],
+      "grade": "measured", "date": "2026-11-11",
+      "evidence": "Lab 2026-11-11: 22 of 22 Playwright sessions; 0 of 4 Claude in Chrome. Lab 2026-11-09: every Playwright and Puppeteer visit including the stealth (V08) and connect-over-CDP (V18) ones; 0 of 3 humans; 0 of 4 Claude in Chrome.",
+      "sources": ["rebrowser:runtimeEnableLeak", "audit:sig-044", "lab"],
+      "collisions": "Open DevTools trigger it too (rebrowser's README), and so can a logging library or an extension that inspects console calls: a developer browsing with DevTools open matches."
+    },
+    {
+      "id": "env.auto.ipc-flooding-off", "layer": "env", "kind": "automation", "half": "page", "scope": "page", "strength": "hard", "enabled": true,
+      "title": "Chrome runs with a browser protection turned off.",
+      "detail": "All 300 history.replaceState calls went through: Chrome runs with --disable-ipc-flooding-protection.",
+      "match": {"all": [{"path": "auto.ipcFlooding.all300", "eq": true}, {"path": "env.userAgent", "regex": "Chrome/[0-9]"}]},
+      "report": ["auto.ipcFlooding.applied"],
+      "grade": "measured", "date": "2026-11-11",
+      "evidence": "Lab 2026-11-11: 22 of 22 Playwright sessions applied 300; 4 of 4 Claude in Chrome stopped at 200. Lab 2026-11-09: every visit launched by Playwright or Puppeteer, the stealth one (V08) included; 0 of 3 humans; not V18, which connected to a Chrome it did not launch.",
+      "sources": ["rebrowser:ipcFloodingProtection", "lab"],
+      "collisions": "A person who starts Chrome with --disable-ipc-flooding-protection (rare). Firefox and Safari throw instead of applying, so the rule is limited to Chrome user agents."
+    },
+    {
+      "id": "env.auto.document-intercepted", "layer": "env", "kind": "automation", "half": "page", "scope": "page", "strength": "hard", "enabled": true,
+      "title": "An automation tool supplied this page instead of loading it over the network.",
+      "detail": "The automation tool served the page; the browser didn't load it from the network.",
+      "match": {"path": "auto.docInterception.intercepted", "eq": true},
+      "report": ["auto.docInterception.nextHopProtocol", "auto.docInterception.transferSize"],
+      "grade": "source", "date": "2026-11-09",
+      "evidence": "rebrowser documentInterception: an empty nextHopProtocol with bytes transferred never happens on a normal or cached load. No lab session intercepted its pages.",
+      "sources": ["rebrowser:documentInterception", "lab"],
+      "collisions": "None known (rebrowser). Pages served by a service worker report workerStart and are not matched."
+    },
+    {
+      "id": "env.auto.playwright-globals", "layer": "env", "kind": "automation", "half": "page", "scope": "page", "strength": "hard", "enabled": true,
+      "title": "The page contains signs of Playwright, an automation tool.",
+      "detail": "Playwright's globals are on the page: __pwInitScripts and __playwright__binding__.",
+      "match": {"path": "auto.globals.playwright_globals", "nonempty": true},
+      "names": "playwright",
+      "grade": "source", "date": "2026-11-09",
+      "evidence": "rebrowser pwInitScripts. Playwright 1.64 left none in the lab (0 of 22 sessions), so this catches older or other Playwright builds only.",
+      "sources": ["rebrowser:pwInitScripts", "audit:sig-026", "lab"],
+      "collisions": "None known; a page's own variable named like playwright... would match."
+    },
+    {
+      "id": "env.auto.puppeteer-globals", "layer": "env", "kind": "automation", "half": "page", "scope": "page", "strength": "hard", "enabled": true,
+      "title": "The page contains signs of Puppeteer, an automation tool.",
+      "detail": "Puppeteer's globals are on the page: puppeteer_* and __puppeteer*.",
+      "match": {"path": "auto.globals.puppeteer_globals", "nonempty": true},
+      "names": "puppeteer",
+      "grade": "source", "date": "2026-11-09",
+      "evidence": "rebrowser exposeFunctionLeak and sourceUrlLeak. None in the lab: Puppeteer 24 (V09) left no global.",
+      "sources": ["rebrowser:exposeFunctionLeak", "audit:sig-026", "lab"],
+      "collisions": "None known; a page's own variable named puppeteer_... would match."
+    },
+    {
+      "id": "env.auto.exposed-binding", "layer": "env", "kind": "automation", "half": "page", "scope": "page", "strength": "hard", "enabled": true,
+      "title": "An automation tool added its own function to the page.",
+      "detail": "A function exposed by the automation driver, marked __installed, is on the page.",
+      "match": {"path": "auto.globals.exposed_installed", "nonempty": true},
+      "grade": "source", "date": "2026-11-09",
+      "evidence": "rebrowser exposeFunctionLeak: page.exposeFunction leaves a readable wrapper. None in the lab (the lab scripts exposed no function).",
+      "sources": ["rebrowser:exposeFunctionLeak", "audit:sig-026"],
+      "collisions": "None known."
+    },
+    {
+      "id": "env.auto.selenium-globals", "layer": "env", "kind": "automation", "half": "page", "scope": "page", "strength": "hard", "enabled": true,
+      "title": "The page contains signs of Selenium or ChromeDriver automation.",
+      "detail": "Selenium or ChromeDriver variables are on the page: cdc_, $wdc_, __webdriver_*, and __selenium_*.",
+      "match": {"any": [
+        {"path": "auto.globals.selenium_cdc", "nonempty": true},
+        {"some": "auto.globals.botd_props", "where": {"in": ["selenium", "webdriver"]}},
+        {"path": "botd.detections.detectDocumentAttributes.bot", "eq": true},
+        {"all": [{"path": "botd.detections.detectDistinctiveProperties.bot", "eq": true}, {"path": "botd.detections.detectDistinctiveProperties.botKind", "in": ["selenium", "webdriver"]}]}
+      ]},
+      "names": "selenium",
+      "grade": "source", "date": "2026-11-09",
+      "evidence": "BotD distinctive properties and document attributes, the cdc_ pattern from rebrowser. None in the lab (no Selenium run).",
+      "sources": ["BotD:detectDistinctiveProperties", "BotD:detectDocumentAttributes", "audit:sig-026"],
+      "collisions": "None known."
+    },
+    {
+      "id": "env.auto.legacy-automation-globals", "layer": "env", "kind": "automation", "half": "page", "scope": "page", "strength": "soft", "enabled": true,
+      "title": "The page contains signs of older automation tools or tools that display websites inside apps. Your site's scripts can leave some of the same signs.",
+      "detail": "Globals left by older automation or embedding tools, such as PhantomJS, Nightmare, CEF, Awesomium, or WebdriverIO, are on the page.",
+      "match": {"any": [
+        {"some": "auto.globals.botd_props", "where": {"in": ["awesomium", "cef", "cefsharp", "coachjs", "fminer", "geb", "nightmare", "phantomas", "phantomjs", "rhino", "wdio", "domAutomation"]}},
+        {"all": [{"path": "botd.detections.detectDistinctiveProperties.bot", "eq": true}, {"path": "botd.detections.detectDistinctiveProperties.botKind", "in": ["awesomium", "cef", "cefsharp", "coachjs", "fminer", "geb", "nightmarejs", "phantomas", "phantomjs", "rhino", "webdriverio", "headless_chrome"]}]}
+      ]},
+      "grade": "source", "date": "2026-11-09",
+      "evidence": "BotD's list of distinctive properties. None in the lab.",
+      "sources": ["BotD:detectDistinctiveProperties", "audit:sig-026"],
+      "collisions": "Some of the names are generic (emit for CoachJS, spawn for Rhino, geb), so a site's own script can define them; CEF and CefSharp also show web pages to people inside desktop apps."
+    },
+    {
+      "id": "env.auto.cdp-binding-globals", "layer": "env", "kind": "automation", "half": "page", "scope": "page", "strength": "soft", "enabled": true,
+      "title": "An automation tool may have added functions to the page.",
+      "detail": "Nameless native functions are on window, as CDP Runtime.addBinding leaves them.",
+      "match": {"path": "auto.globals.unnamed_native_globals", "nonempty": true},
+      "grade": "source", "date": "2026-11-09",
+      "evidence": "rebrowser cdpBindingGlobals (rated yellow there). None in the lab.",
+      "sources": ["rebrowser:cdpBindingGlobals", "audit:sig-026"],
+      "collisions": "A page's own scripts can create functions that look the same (rebrowser)."
+    },
+    {
+      "id": "env.auto.chrome-object-missing", "layer": "env", "kind": "automation", "half": "page", "scope": "page", "strength": "soft", "enabled": true,
+      "title": "The browser identifies itself as Chrome but lacks a normal Chrome feature.",
+      "detail": "A Chrome user agent without window.chrome, as in chrome-headless-shell.",
+      "match": {"all": [
+        {"path": "env.windowChrome", "eq": "undefined"},
+        {"path": "env.userAgent", "regex": "Chrome/[0-9]"},
+        {"not": {"path": "env.userAgent", "regex": "; wv\\)|Electron/"}}
+      ]},
+      "report": ["env.windowChrome", "env.platform"],
+      "grade": "measured", "date": "2026-11-11",
+      "evidence": "Lab 2026-11-11: 12 of 12 headless Playwright sessions (chrome-headless-shell); 0 of 10 headed; 0 of 4 Claude in Chrome. Lab 2026-11-09: V05 (headless shell); 0 of 3 humans.",
+      "sources": ["rebrowser:headless", "audit:sig-038", "lab"],
+      "collisions": "Embedded Chromium in apps (Android WebView is excluded by its wv token, Electron by its token; other embedders untested)."
+    },
+    {
+      "id": "env.auto.notification-permission-mismatch", "layer": "env", "kind": "automation", "half": "page", "scope": "page", "strength": "hard", "enabled": true,
+      "title": "The browser gives conflicting answers about notification permissions.",
+      "detail": "Notification.permission says denied while permissions.query says prompt, as in chrome-headless-shell.",
+      "match": {"first": [{"path": "auto.permissions.mismatch", "eq": true}, {"path": "botd.detections.detectNotificationPermissions.bot", "eq": true}]},
+      "report": ["auto.permissions.notificationPermission", "auto.permissions.permissionsQuery"],
+      "grade": "measured", "date": "2026-11-11",
+      "evidence": "Lab 2026-11-11: 12 of 12 headless Playwright sessions; 0 of 10 headed; 0 of 4 Claude in Chrome. Lab 2026-11-09: V05 (headless shell); 0 of 3 humans.",
+      "sources": ["rebrowser:headless", "BotD:detectNotificationPermissions", "audit:sig-041", "lab"],
+      "collisions": "None known: only chrome-headless-shell answers this way (rebrowser, BotD)."
+    },
+    {
+      "id": "env.auto.plugins-empty", "layer": "env", "kind": "automation", "half": "page", "scope": "page", "strength": "soft", "enabled": true,
+      "title": "Desktop Chrome reports no plugins.",
+      "detail": "navigator.plugins is empty on desktop Chrome.",
+      "match": {"first": [
+        {"path": "botd.detections.detectPluginsLengthInconsistency.bot", "eq": true},
+        {"all": [{"path": "env.plugins", "eq": 0}, {"path": "env.userAgent", "regex": "Chrome/[0-9]"}, {"not": {"path": "env.userAgent", "regex": "Android|Mobile"}}]}
+      ]},
+      "report": ["env.plugins", "env.pdfViewerEnabled"],
+      "grade": "measured", "date": "2026-11-11",
+      "evidence": "Lab 2026-11-11: 12 of 12 headless Playwright sessions; 0 of 10 headed; 0 of 4 Claude in Chrome. Lab 2026-11-09: V05; 0 of 3 humans.",
+      "sources": ["BotD:detectPluginsLengthInconsistency", "audit:sig-037", "lab"],
+      "collisions": "Chrome with its PDF viewer turned off (\"Download PDFs\") also reports no plugins."
+    },
+    {
+      "id": "env.auto.software-render-headless", "layer": "env", "kind": "automation", "half": "page", "scope": "page", "strength": "soft", "enabled": true,
+      "title": "The browser draws graphics in software, which can mean Chrome running without a window.",
+      "detail": "WebGL renders with SwiftShader on a desktop that isn't Linux, which Chrome 138+ only does headless or with a flag.",
+      "match": {"all": [
+        {"path": "env.webgl.renderer", "regex": "SwiftShader"},
+        {"not": {"path": "env.platform", "regex": "^Linux"}},
+        {"path": "env.userAgent", "number": "Chrome/([0-9]+)", "gte": 138}
+      ]},
+      "report": ["env.webgl.renderer", "env.platform"],
+      "grade": "measured", "date": "2026-11-11",
+      "evidence": "Lab 2026-11-11: 12 of 12 headless Playwright sessions on macOS; 0 of 10 headed; 0 of 4 Claude in Chrome. Lab 2026-11-09: V05; 0 of 3 humans.",
+      "sources": ["rebrowser:headless", "audit:sig-027", "lab"],
+      "collisions": "Chrome started with --enable-unsafe-swiftshader, or a machine whose GPU Chrome blocks (rebrowser: no automatic fallback since Chrome 138). Linux is left to env.cloud.linux-swiftshader."
+    },
+    {
+      "id": "env.auto.chromium-only-brand", "layer": "env", "kind": "automation", "half": "page", "scope": "page", "strength": "soft", "enabled": true,
+      "title": "The browser reports the same brand information as a default automation browser.",
+      "detail": "The brand list is Chromium alone on a desktop: Chrome for Testing, the default browser of Playwright and Puppeteer.",
+      "match": {"all": [
+        {"some": "env.uaData.brands", "where": {"path": "brand", "eq": "Chromium"}},
+        {"not": {"some": "env.uaData.brands", "where": {"all": [{"not": {"path": "brand", "eq": "Chromium"}}, {"not": {"path": "brand", "regex": "^\\s*Not.A.Brand$"}}]}}},
+        {"path": "env.uaData.mobile", "eq": false}
+      ]},
+      "report": ["env.uaData.brands"],
+      "grade": "measured", "date": "2026-11-11",
+      "evidence": "Lab 2026-11-11: 10 of 10 headed Playwright sessions (Chrome for Testing); headless ones carry HeadlessChrome instead; 0 of 4 Claude in Chrome. Lab 2026-11-09: V06; 0 of 3 humans.",
+      "sources": ["rebrowser:useragent", "lab"],
+      "collisions": "People who browse with a plain Chromium build (Linux distribution packages, ungoogled-chromium). Edge, Brave and Opera add their own brand and do not match."
+    },
+    {
+      "id": "env.auto.default-viewport", "layer": "env", "kind": "automation", "half": "page", "scope": "page", "strength": "weak", "enabled": true,
+      "title": "The page area is exactly an automation tool's default size.",
+      "detail": "The viewport is exactly Playwright's default of 1280x720 or Puppeteer's default of 800x600.",
+      "match": {"any": [
+        {"all": [{"path": "env.window.iw", "eq": 1280}, {"path": "env.window.ih", "eq": 720}]},
+        {"all": [{"path": "env.window.iw", "eq": 800}, {"path": "env.window.ih", "eq": 600}]}
+      ]},
+      "report": ["env.window.iw", "env.window.ih"],
+      "grade": "measured", "date": "2026-11-09",
+      "evidence": "Lab 2026-11-09: every visit Playwright launched (1280x720) and every Puppeteer visit (800x600); not V18, which attached to a Chrome it did not launch; 0 of 3 humans. The 2026-11-11 lab set its own 1280x800 viewport, so it does not match there.",
+      "sources": ["rebrowser:viewport", "audit:sig-029", "lab"],
+      "collisions": "An ordinary window can end up at these sizes (rebrowser rates it a hint, not proof)."
+    },
+    {
+      "id": "env.auto.main-world-eval-stack", "layer": "env", "kind": "automation", "half": "page", "scope": "page", "strength": "hard", "enabled": false,
+      "title": "An automation script called browser functions on this page.",
+      "detail": "The stack of a DOM call shows pptr:, UtilityScript, or __puppeteer_evaluation_script__.",
+      "match": {"some": "auto.hookHits", "where": {"any": [{"path": "pptr", "eq": true}, {"path": "utilityScript", "eq": true}, {"path": "puppeteerEval", "eq": true}]}},
+      "grade": "measured", "date": "2026-11-09",
+      "evidence": "Lab 2026-11-09: Playwright's page.evaluate clicks (V12) left UtilityScript in the stack of the hooked querySelector. Off by default: cake.js must wrap the site's own DOM methods to see it.",
+      "sources": ["rebrowser:mainWorldExecution", "rebrowser:sourceUrlLeak", "audit:sig-051", "lab"],
+      "collisions": "None known. Wrapping the site's document.querySelector and friends can break a site or slow it down, so the site owner turns it on in settings."
+    },
+    {
+      "id": "env.auto.electron", "layer": "env", "kind": "automation", "half": "page", "scope": "page", "strength": "weak", "enabled": true,
+      "title": "The page is open inside a desktop app's built-in browser.",
+      "detail": "The page runs inside an Electron app's built-in browser.",
+      "match": {"any": [{"path": "env.userAgent", "regex": "Electron/[0-9.]+"}, {"path": "botd.detections.detectProcess.bot", "eq": true}]},
+      "grade": "source", "date": "2026-11-09",
+      "evidence": "BotD detectProcess, detectUserAgent and detectAppVersion. Desktop AI apps with their own browser are named by the name layer's user-agent list (S3.1); this only says an app's browser was used.",
+      "sources": ["BotD:detectProcess", "BotD:detectUserAgent", "BotD:detectAppVersion"],
+      "collisions": "People read web pages inside many desktop apps built on Electron."
+    },
+    {
+      "id": "env.auto.legacy-headless-engine", "layer": "env", "kind": "automation", "half": "page", "scope": "page", "strength": "hard", "enabled": true,
+      "title": "The visitor uses an old browser engine associated with automation.",
+      "detail": "PhantomJS or SlimerJS, found by the user agent, the error stack, or a missing Function.prototype.bind",
+      "match": {"any": [
+        {"path": "env.userAgent", "regex": "PhantomJS|SlimerJS"},
+        {"path": "botd.detections.detectErrorTrace.bot", "eq": true},
+        {"path": "botd.detections.detectFunctionBind.bot", "eq": true}
+      ]},
+      "grade": "source", "date": "2026-11-09",
+      "evidence": "BotD detectUserAgent, detectErrorTrace and detectFunctionBind. None in the lab.",
+      "sources": ["BotD:detectErrorTrace", "BotD:detectFunctionBind", "BotD:detectUserAgent"],
+      "collisions": "None known: nobody browses with these engines."
+    },
+    {
+      "id": "env.auto.sequentum", "layer": "env", "kind": "automation", "half": "page", "scope": "page", "strength": "hard", "enabled": true,
+      "title": "The visitor uses Sequentum, a scraping tool's browser.",
+      "detail": "window.external names Sequentum.",
+      "match": {"any": [{"path": "env.windowExternal", "regex": "Sequentum"}, {"path": "botd.detections.detectWindowExternal.bot", "eq": true}]},
+      "grade": "source", "date": "2026-11-09",
+      "evidence": "BotD detectWindowExternal. None in the lab.",
+      "sources": ["BotD:detectWindowExternal"],
+      "collisions": "None known."
+    },
+    {
+      "id": "env.auto.mesa-offscreen-webgl", "layer": "env", "kind": "automation", "half": "page", "scope": "page", "strength": "hard", "enabled": true,
+      "title": "The browser draws graphics with software that old automated browsers used.",
+      "detail": "WebGL reports Mesa OffScreen with vendor Brian Paul, as old headless Chrome did.",
+      "match": {"any": [
+        {"all": [{"path": "env.webgl.vendor", "eq": "Brian Paul"}, {"path": "env.webgl.renderer", "eq": "Mesa OffScreen"}]},
+        {"path": "botd.detections.detectWebGL.bot", "eq": true}
+      ]},
+      "grade": "source", "date": "2026-11-09",
+      "evidence": "BotD detectWebGL. None in the lab.",
+      "sources": ["BotD:detectWebGL"],
+      "collisions": "None known."
+    },
+    {
+      "id": "env.auto.zero-outer-window-focused", "layer": "env", "kind": "automation", "half": "page", "scope": "page", "strength": "soft", "enabled": true,
+      "title": "The page has focus, but its browser window reports no size.",
+      "detail": "The focused page's window has an outer size of 0x0.",
+      "match": {"first": [
+        {"path": "botd.detections.detectWindowSize.bot", "eq": true},
+        {"all": [{"path": "env.hasFocus", "eq": true}, {"path": "env.window.ow", "eq": 0}, {"path": "env.window.oh", "eq": 0}]}
+      ]},
+      "report": ["env.window.ow", "env.window.oh"],
+      "grade": "source", "date": "2026-11-09",
+      "evidence": "BotD detectWindowSize. In the lab only unfocused pages had a 0x0 window (a tab opened in the background), which BotD and this rule leave alone.",
+      "sources": ["BotD:detectWindowSize"],
+      "collisions": "BotD skips unfocused pages because a background tab has a 0x0 window; other collisions untested."
+    },
+    {
+      "id": "env.auto.languages-empty", "layer": "env", "kind": "automation", "half": "page", "scope": "page", "strength": "soft", "enabled": true,
+      "title": "The browser reports no languages.",
+      "detail": "navigator.languages is empty.",
+      "match": {"first": [
+        {"path": "botd.detections.detectLanguagesLengthInconsistency.bot", "eq": true},
+        {"all": [{"path": "env.languages", "exists": true}, {"not": {"path": "env.languages", "nonempty": true}}]}
+      ]},
+      "grade": "source", "date": "2026-11-09",
+      "evidence": "BotD detectLanguagesLengthInconsistency (older headless Chrome). None in the lab.",
+      "sources": ["BotD:detectLanguagesLengthInconsistency"],
+      "collisions": "Untested; privacy settings that empty the list would match."
+    },
+    {
+      "id": "env.spoof.webdriver-getter-patched", "layer": "env", "kind": "spoofing", "half": "page", "scope": "page", "strength": "soft", "enabled": true,
+      "title": "The browser's automation flag was altered.",
+      "detail": "navigator.webdriver's getter isn't native, it's an own property, or it was removed.",
+      "match": {"any": [
+        {"path": "env.webdriver_getter_native", "eq": false},
+        {"path": "env.webdriver_own_prop", "eq": true},
+        {"path": "env.webdriver_on_proto", "eq": false}
+      ]},
+      "report": ["env.webdriver", "env.webdriver_getter_native", "env.webdriver_own_prop", "env.webdriver_on_proto"],
+      "grade": "measured", "date": "2026-11-09",
+      "evidence": "Lab 2026-11-09: the stealth Playwright visit (V08: webdriver false through a non-native getter) 2 of 2; 0 of 3 humans; 0 of 4 Claude in Chrome. None in the 2026-11-11 lab.",
+      "sources": ["rebrowser:nativeTampering", "audit:sig-025", "lab"],
+      "collisions": "Anti-fingerprinting extensions that wrap navigator getters (untested)."
+    },
+    {
+      "id": "env.spoof.eval-length-mismatch", "layer": "env", "kind": "spoofing", "half": "page", "scope": "page", "strength": "soft", "enabled": true,
+      "title": "A browser function doesn't match the browser's reported identity.",
+      "detail": "eval's source length doesn't fit the engine the page claims.",
+      "match": {"path": "botd.detections.detectEvalLengthInconsistency.bot", "eq": true},
+      "grade": "source", "date": "2026-11-09",
+      "evidence": "BotD detectEvalLengthInconsistency: a user agent claiming another engine. None in the lab.",
+      "sources": ["BotD:detectEvalLengthInconsistency"],
+      "collisions": "User-agent switcher extensions."
+    },
+    {
+      "id": "env.spoof.mimetypes-inconsistent", "layer": "env", "kind": "spoofing", "half": "page", "scope": "page", "strength": "soft", "enabled": true,
+      "title": "The browser's list of file types has an unexpected structure.",
+      "detail": "navigator.mimeTypes isn't built the way the browser builds it.",
+      "match": {"path": "botd.detections.detectMimeTypesConsistent.bot", "eq": true},
+      "grade": "source", "date": "2026-11-09",
+      "evidence": "BotD detectMimeTypesConsistent. None in the lab.",
+      "sources": ["BotD:detectMimeTypesConsistent"],
+      "collisions": "Fingerprint-spoofing extensions."
+    },
+    {
+      "id": "env.spoof.productsub-mismatch", "layer": "env", "kind": "spoofing", "half": "page", "scope": "page", "strength": "soft", "enabled": true,
+      "title": "The browser reports conflicting identity details.",
+      "detail": "navigator.productSub doesn't fit the browser the page claims.",
+      "match": {"path": "botd.detections.detectProductSub.bot", "eq": true},
+      "grade": "source", "date": "2026-11-09",
+      "evidence": "BotD detectProductSub. None in the lab.",
+      "sources": ["BotD:detectProductSub"],
+      "collisions": "User-agent switcher extensions."
+    },
+    {
+      "id": "env.spoof.plugins-array-fake", "layer": "env", "kind": "spoofing", "half": "page", "scope": "page", "strength": "soft", "enabled": true,
+      "title": "The browser's plugin list has an unexpected structure.",
+      "detail": "navigator.plugins isn't a real PluginArray.",
+      "match": {"path": "botd.detections.detectPluginsArray.bot", "eq": true},
+      "grade": "source", "date": "2026-11-09",
+      "evidence": "BotD detectPluginsArray (a stealth script's replacement list). None in the lab.",
+      "sources": ["BotD:detectPluginsArray"],
+      "collisions": "Fingerprint-spoofing extensions."
+    },
+    {
+      "id": "env.spoof.worker-mismatch", "layer": "env", "kind": "spoofing", "half": "page", "scope": "page", "strength": "soft", "enabled": true,
+      "title": "The page and a background script report different browser details.",
+      "detail": "A web worker sees a different user agent, platform, or brand list than the page.",
+      "match": {"some": "auto.workerConsistency.differs", "where": {"in": ["userAgent", "platform", "brands"]}},
+      "report": ["auto.workerConsistency.differs"],
+      "grade": "source", "date": "2026-11-09",
+      "evidence": "rebrowser workerConsistency: values faked by page scripts do not reach workers. No difference in the 2026-11-11 lab.",
+      "sources": ["rebrowser:workerConsistency", "audit:sig-036", "lab"],
+      "collisions": "User-agent switcher extensions that patch only the page. Differences in languages or CPU count are left out because privacy extensions cause them (rebrowser)."
+    },
+    {
+      "id": "env.spoof.native-functions-patched", "layer": "env", "kind": "spoofing", "half": "page", "scope": "page", "strength": "weak", "enabled": true,
+      "title": "Built-in browser functions were changed. Privacy extensions can do this too.",
+      "detail": "Native browser functions were replaced or wrapped.",
+      "match": {"any": [{"path": "auto.nativeTampering.tampered", "nonempty": true}, {"path": "auto.nativeTampering.iframeSharesRealm", "eq": true}]},
+      "report": ["auto.nativeTampering.tampered"],
+      "grade": "measured", "date": "2026-11-09",
+      "evidence": "Lab 2026-11-09: the stealth visit (V08) 2 of 2; 0 of 3 humans. None in the 2026-11-11 lab.",
+      "sources": ["rebrowser:nativeTampering", "audit:sig-035", "lab"],
+      "collisions": "Fingerprint-spoofing and privacy extensions wrap the same functions (rebrowser)."
+    },
+    {
+      "id": "env.spoof.ua-platform-mismatch", "layer": "env", "kind": "spoofing", "half": "page", "scope": "page", "strength": "soft", "enabled": true,
+      "title": "The browser reports conflicting system details.",
+      "detail": "The user agent's operating system disagrees with navigator.platform.",
+      "match": {"any": [
+        {"all": [{"path": "env.userAgent", "regex": "Windows NT"}, {"not": {"path": "env.platform", "regex": "^Win"}}]},
+        {"all": [{"path": "env.userAgent", "regex": "Macintosh"}, {"not": {"path": "env.platform", "regex": "^Mac"}}]},
+        {"all": [{"path": "env.userAgent", "regex": "X11; Linux|Linux x86_64"}, {"not": {"path": "env.platform", "regex": "^Linux"}}]},
+        {"all": [{"path": "env.uaData.platform", "eq": "Windows"}, {"not": {"path": "env.platform", "regex": "^Win"}}]},
+        {"all": [{"path": "env.uaData.platform", "eq": "macOS"}, {"not": {"path": "env.platform", "regex": "^Mac"}}]},
+        {"all": [{"path": "env.uaData.platform", "eq": "Linux"}, {"not": {"path": "env.platform", "regex": "^Linux"}}]}
+      ]},
+      "report": ["env.userAgent", "env.platform", "env.uaData.platform"],
+      "grade": "source", "date": "2026-11-09",
+      "evidence": "rebrowser platformMismatch: overriding the user agent leaves navigator.platform and the client hints telling the truth. None in the lab.",
+      "sources": ["rebrowser:platformMismatch", "audit:sig-003"],
+      "collisions": "User-agent switcher extensions."
+    },
+    {
+      "id": "env.spoof.empty-brands-desktop-chrome", "layer": "env", "kind": "spoofing", "half": "page", "scope": "page", "strength": "hard", "enabled": true,
+      "title": "Desktop Chrome leaves out its browser brand information.",
+      "detail": "The brand list is empty on desktop Chrome, as it can be after Puppeteer's setUserAgent.",
+      "match": {"all": [
+        {"path": "env.userAgent", "regex": "Chrome/[0-9]"},
+        {"not": {"path": "env.userAgent", "regex": "Mobile|Android|; wv\\)|Electron/"}},
+        {"path": "env.uaData", "exists": true},
+        {"not": {"path": "env.uaData.brands", "nonempty": true}}
+      ]},
+      "grade": "source", "date": "2026-11-09",
+      "evidence": "rebrowser platformMismatch: never happens in a real desktop Chrome. None in the lab.",
+      "sources": ["rebrowser:platformMismatch"],
+      "collisions": "Apps that set a custom WebView user agent on mobile (excluded)."
+    },
+    {
+      "id": "env.product.cursor-browser", "layer": "env", "kind": "product", "half": "page", "scope": "page", "strength": "hard", "enabled": true,
+      "title": "The page is open in Cursor's in-app browser.",
+      "detail": "The user agent carries Cursor/<version>.",
+      "match": {"path": "env.userAgent", "regex": "(?:^|[ \\t;(,+])Cursor/[0-9.]*"},
+      "names": "cursor-browser",
+      "grade": "project-claim", "date": "2026-10-08",
+      "evidence": "botscent: Cursor 3.23.12 on macOS, 2 of 2 documents named cursor-browser; Safari on the same Mac human.",
+      "sources": ["botscent:ua.page-declared-engine", "botscent:registry/page.json", "audit:sig-005"],
+      "botscent": ["ua.page-declared-engine"],
+      "collisions": "A person browsing Cursor's in-app browser by hand is named cursor-browser by design: it names the browser, not who acts in it. Anyone can send the token."
+    },
+    {
+      "id": "env.product.cloudflare-browser-run", "layer": "env", "kind": "product", "half": "page", "scope": "page", "strength": "hard", "enabled": true,
+      "title": "The browser identifies itself as Cloudflare Browser Run, a hosted browser.",
+      "detail": "The page's navigator reports user agent Kitesurf/ or platform Cloudflare Workers.",
+      "match": {"any": [{"path": "env.userAgent", "regex": "^Kitesurf/[0-9.]*"}, {"path": "env.platform", "eq": "Cloudflare Workers"}]},
+      "names": "cloudflare-browser-run",
+      "grade": "project-claim", "date": "2026-10-02",
+      "evidence": "botscent registry/page.json, replayed on every benchmark sheet with 57 human control documents.",
+      "sources": ["botscent:ua.page-declared-engine", "botscent:registry/page.json"],
+      "botscent": ["ua.page-declared-engine"],
+      "collisions": "No person's browser declares the hosted engine. Forgeable like any declaration."
+    },
+    {
+      "id": "env.product.muse", "layer": "env", "kind": "product", "half": "page", "scope": "page", "strength": "hard", "enabled": true,
+      "title": "The browser matches Muse's cloud browser.",
+      "detail": "The page has 1Password's credential accessors, on Linux x86_64 with Chrome 139+ and SwiftShader.",
+      "match": {"path": "botscent.reasons", "contains": "muse.cloud-browser.password-manager"},
+      "names": "muse",
+      "grade": "measured", "date": "2026-11-11",
+      "evidence": "tartini.ai 2026-11-11: botscent's page half named muse in 4 of 4 Muse visits (confirmed by the user). botscent 2026-10-03: Muse 21 of 21 documents, 0 of 82 human documents, 0 of 4 with 1Password.",
+      "sources": ["botscent:muse.cloud-browser.password-manager", "audit:sig-102", "audit:sig-032"],
+      "botscent": ["muse.cloud-browser.password-manager"],
+      "collisions": "A person matches only with 1Password, Linux and Chrome launched with --enable-unsafe-swiftshader (untested; rare). Another automation host running 1Password would be named muse."
+    },
+    {
+      "id": "env.product.grok-bot", "layer": "env", "kind": "product", "half": "page", "scope": "page", "strength": "hard", "enabled": true,
+      "title": "The browser matches Grok Bot's cloud computer.",
+      "detail": "Linux x86_64, Chrome 139+, WebGL rendered by SwiftShader, and 5 of its 6 machine signs",
+      "match": {"path": "botscent.reasons", "contains": "grok.cloud-computer.environment"},
+      "names": "grok-bot",
+      "grade": "project-claim", "date": "2026-10-04",
+      "evidence": "botscent: Grok Bot 67 of 67 documents with all six signs (28 September to 3 October), 0 of 90 human documents, 0 of 210 other agents' documents. Not measured by us yet (GOAL T16).",
+      "sources": ["botscent:grok.cloud-computer.environment", "audit:sig-103", "audit:sig-030", "audit:sig-031", "audit:sig-104"],
+      "botscent": ["grok.cloud-computer.environment"],
+      "collisions": "A person working inside Grok Bot's own computer is named grok-bot by design. A stock Ubuntu cloud desktop holds 3 of the 6 signs and no SwiftShader. Another product on the same machine image would be named grok-bot."
+    },
+    {
+      "id": "env.product.instinct", "layer": "env", "kind": "product", "half": "page", "scope": "page", "strength": "hard", "enabled": true,
+      "title": "The browser matches Instinct's cloud desktop.",
+      "detail": "Its credential methods are wrapped, and GeeTest's accessor pair is present.",
+      "match": {"all": [
+        {"path": "botscent.reasons", "contains": "instinct.credentials.wrappers"},
+        {"path": "botscent.reasons", "contains": "instinct.geetest.accessor-pair"}
+      ]},
+      "names": "instinct",
+      "grade": "project-claim", "date": "2026-10-02",
+      "evidence": "botscent: replayed on every benchmark sheet with 57 human control documents; each half counts only with the other.",
+      "sources": ["botscent:instinct.credentials.wrappers", "botscent:instinct.geetest.accessor-pair", "audit:sig-033"],
+      "botscent": ["instinct.credentials.wrappers", "instinct.geetest.accessor-pair"],
+      "collisions": "Untested: a credential or CAPTCHA extension that wraps the same methods, or a person on the same remote desktop."
+    },
+    {
+      "id": "env.product.codex-browser", "layer": "env", "kind": "product", "half": "page", "scope": "page", "strength": "hard", "enabled": true,
+      "title": "The page is open in the Codex in-app browser.",
+      "detail": "It shows 2 of the browser's 3 signs: the prompt shape, an empty keyboard layout, and an overlay.",
+      "match": {"at_least": 2, "of": [
+        {"path": "botscent.reasons", "contains": "codex.prompt.anonymous-native"},
+        {"path": "botscent.reasons", "contains": "codex.keyboard.empty-layout-map"},
+        {"path": "botscent.reasons", "contains": "codex.overlay.shadow-root"}
+      ]},
+      "names": "codex-browser",
+      "grade": "project-claim", "date": "2026-10-02",
+      "evidence": "botscent: a person in the Codex in-app browser matches too (4 of 4 documents); replayed on every benchmark sheet with 57 human control documents.",
+      "sources": ["botscent:codex.prompt.anonymous-native", "botscent:codex.keyboard.empty-layout-map", "botscent:codex.overlay.shadow-root", "audit:sig-034", "audit:sig-105"],
+      "botscent": ["codex.prompt.anonymous-native", "codex.keyboard.empty-layout-map", "codex.overlay.shadow-root"],
+      "collisions": "A person browsing the Codex in-app browser by hand is named codex-browser by design: it names the browser, not who acts in it."
+    },
+    {
+      "id": "env.product.chatgpt-chrome", "layer": "env", "kind": "product", "half": "page", "scope": "page", "strength": "hard", "enabled": true,
+      "title": "ChatGPT for Chrome was active on this page.",
+      "detail": "Its activity badge was on the page's favicon.",
+      "match": {"path": "botscent.reasons", "contains": "chatgpt.badge.active"},
+      "names": "chatgpt-chrome",
+      "grade": "project-claim", "date": "2026-10-02",
+      "evidence": "botscent: 71 samples in 17 documents were a badged icon link. Not measured by us.",
+      "sources": ["botscent:chatgpt.badge.active", "audit:sig-046"],
+      "botscent": ["chatgpt.badge.active"],
+      "collisions": "A person who takes the tab over in the seconds before the badge is removed."
+    },
+    {
+      "id": "env.product.claude-chrome-marker", "layer": "env", "kind": "product", "half": "page", "scope": "page", "strength": "hard", "enabled": true,
+      "title": "Claude in Chrome was active on this page.",
+      "detail": "Its activity marker was on the page: claude-agent-glow-border and the other IDs.",
+      "match": {"path": "botscent.reasons", "contains": "claude.marker.active"},
+      "names": "claude-chrome",
+      "grade": "project-claim", "date": "2026-10-02",
+      "evidence": "botscent's older measurements. Lab 2026-11-11: Claude in Chrome 1.0.106 hides its marker in a closed shadow root, so 0 of 4 sessions matched; env.ext.closed-shadow-host sees that version.",
+      "sources": ["botscent:claude.marker.active", "audit:sig-046", "lab"],
+      "botscent": ["claude.marker.active"],
+      "collisions": "A person taking the tab over before the marker is removed."
+    },
+    {
+      "id": "env.product.claude-chrome-indicator", "layer": "env", "kind": "product", "half": "page", "scope": "page", "strength": "hard", "enabled": true,
+      "title": "Claude in Chrome's working indicator appeared on this page.",
+      "detail": "The indicator lit up on the page.",
+      "match": {"some": "markers.spans", "where": {"all": [{"path": "product", "eq": "claude-chrome"}, {"path": "kind", "eq": "indicator"}]}},
+      "names": "claude-chrome",
+      "grade": "source", "date": "2026-11-13",
+      "evidence": "agentcake/data/agent_markers.json: Claude in Chrome 1.0.107 draws its 'Claude is working here' tag inside a closed shadow root while its agent works and takes it away when it stops (its agent-visual-indicator.js, read 2026-11-13); cake.js hit-tests where the tag is drawn (claude-chrome.working) and the recorder checks the same spots and one more (claude-chrome.recorder); versions before 1.0.105 put ids in the page itself (claude-chrome.page-dom). Lab 2026-11-11 (1.0.106): the closed-shadow host on 13 of 13 pages. Not yet seen in a recording of 1.0.107: re-grade after the hand-off recordings.",
+      "sources": ["agent_markers:claude-chrome.working", "agent_markers:claude-chrome.recorder", "lab"],
+      "collisions": "Another extension that draws a clickable mark at the same spots from an attribute-less display: contents host (none known; untested). The recorder's check also counts the tab pill, which shows while the tab is shared with Claude and the agent is idle."
+    },
+    {
+      "id": "env.cloud.linux-swiftshader", "layer": "env", "kind": "cloud_host", "half": "page", "scope": "page", "strength": "soft", "enabled": true,
+      "title": "The browser shows signs of running on a cloud machine.",
+      "detail": "Linux x86_64, Chrome 139+, and WebGL rendered by SwiftShader",
+      "match": {"all": [
+        {"path": "env.platform", "eq": "Linux x86_64"},
+        {"path": "env.userAgent", "number": "\\bChrome/([0-9]+)", "gte": 139},
+        {"path": "env.webgl.renderer", "regex": "SwiftShader"}
+      ]},
+      "report": ["env.platform", "env.webgl.renderer"],
+      "grade": "source", "date": "2026-10-04",
+      "evidence": "botscent's cloud-host clauses (isCloudHost, isSoftwareRenderer), shared by Muse and Grok Bot: Chrome 139+ no longer falls back to SwiftShader without a flag. Not measured on our own cloud runs yet.",
+      "sources": ["botscent:src/page/rules.ts isCloudHost", "rebrowser:headless", "audit:sig-027", "audit:sig-028"],
+      "collisions": "A person on Linux whose Chrome runs with --enable-unsafe-swiftshader, or headless Chrome on a Linux CI machine (an automated browser anyway)."
+    },
+    {
+      "id": "env.cloud.linux-mesa-software", "layer": "env", "kind": "cloud_host", "half": "page", "scope": "page", "strength": "weak", "enabled": true,
+      "title": "The browser draws graphics in software, as on cloud servers and virtual machines.",
+      "detail": "WebGL renders in software through Mesa's llvmpipe on Linux: a machine without a GPU.",
+      "match": {"all": [{"path": "env.platform", "regex": "^Linux"}, {"path": "env.webgl.renderer", "regex": "llvmpipe|softpipe"}]},
+      "report": ["env.webgl.renderer"],
+      "grade": "inferred", "date": "2026-11-12",
+      "evidence": "Software rendering is a cloud-machine sign (audit sig-027 lists llvmpipe); no measurement.",
+      "sources": ["audit:sig-027"],
+      "collisions": "People on Linux virtual machines or remote desktops without a GPU."
+    },
+    {
+      "id": "env.cloud.datacenter-ip", "layer": "env", "kind": "cloud_host", "half": "collector", "scope": "session", "strength": "weak", "enabled": true,
+      "title": "Requests from cake.js came from a cloud or content delivery network.",
+      "detail": "cake.js's requests came from a cloud or CDN network.",
+      "match": {"some": "collect.ip_classes", "where": {"in": ["cloud", "cdn"]}},
+      "report": ["collect.ip_classes"],
+      "grade": "measured", "date": "2026-11-11",
+      "evidence": "tartini.ai 2026-11-10 and 2026-11-11: Muse came from Cloudflare's network both times. Needs cake on a server (S2.3's network facts); local mode only sees 127.0.0.1.",
+      "sources": ["audit:sig-010", "audit:sig-107"],
+      "collisions": "VPN and Cloudflare WARP users, and people browsing from a company cloud desktop. A datacenter IP never makes a Bot on its own (D17)."
+    },
+    {
+      "id": "env.ext.closed-shadow-host", "layer": "env", "kind": "extension", "half": "page", "scope": "page", "strength": "soft", "enabled": true,
+      "title": "A browser extension added an element to the page.",
+      "detail": "A closed-shadow-root host was added under <body>: a <div> with no attributes and display: contents.",
+      "match": {"some": "dom_add", "where": {"all": [
+        {"path": "tag", "eq": "DIV"},
+        {"path": "nattr", "eq": 0},
+        {"path": "disp", "eq": "contents"},
+        {"path": "parent", "in": ["body", "html"]},
+        {"path": "open_shadow", "eq": 0}
+      ]}},
+      "suggests": "claude-chrome",
+      "grade": "measured", "date": "2026-11-11",
+      "evidence": "Lab 2026-11-11: Claude in Chrome 1.0.106 added it to 13 of 13 pages the DOM watch covered (4 of 4 sessions); 0 of the Playwright pages; a script-added plain <div> (display block, motest-01) does not match.",
+      "sources": ["audit:sig-045", "lab"],
+      "collisions": "Other extensions that draw into a closed shadow root the same way are untested (no human control with other extensions yet). It says an extension drew on this page, not that it was acting at a given moment."
+    },
+    {
+      "id": "env.ext.viewport-shrink", "layer": "env", "kind": "extension", "half": "page", "scope": "session", "strength": "weak", "enabled": true,
+      "title": "The visible page area got shorter, consistent with Chrome's debugging bar appearing.",
+      "detail": "The viewport got 40-72 px shorter with the same width: Chrome's \"started debugging this browser\" bar appeared.",
+      "match": {"some": "viewport_changes", "where": {"all": [
+        {"path": "dw", "eq": 0},
+        {"path": "dh", "gte": -72},
+        {"path": "dh", "lte": -40},
+        {"any": [{"path": "doh", "eq": 0}, {"not": {"path": "doh", "exists": true}}]}
+      ]}},
+      "grade": "measured", "date": "2026-11-11",
+      "evidence": "Lab 2026-11-11: cic-01's open tab went from 958 to 902 px (56 px) when the debugger attached for the next run. Lab 2026-11-09: the user's own tab shrank the same way while Claude in Chrome ran in another tab.",
+      "sources": ["audit:sig-047", "lab"],
+      "collisions": "The bar belongs to the whole browser: a person's own tab in that browser shrinks too. A toolbar of similar height appearing would match."
+    },
+    {
+      "id": "env.ext.cross-site-landing", "layer": "env", "kind": "extension", "half": "server", "scope": "landing", "strength": "weak", "enabled": true,
+      "title": "The first page was opened from another site without a click, tap, or key press.",
+      "detail": "Sec-Fetch-Site is cross-site and there's no Sec-Fetch-User.",
+      "match": {"all": [
+        {"path": "nav.headers.sec-fetch-site", "eq": "cross-site"},
+        {"path": "nav.headers.sec-fetch-mode", "eq": "navigate"},
+        {"not": {"path": "nav.headers.sec-fetch-user", "exists": true}}
+      ]},
+      "report": ["nav.headers.sec-fetch-site", "nav.headers.sec-fetch-mode", "nav.headers.sec-fetch-user"],
+      "grade": "measured", "date": "2026-11-11",
+      "evidence": "Lab 2026-11-11: 4 of 4 Claude in Chrome first pages; Playwright opened its pages as none with ?1. Lab 2026-11-09: 4 of 4 Claude in Chrome; 0 of 3 humans (typed address: none with ?1).",
+      "sources": ["audit:sig-054", "lab"],
+      "collisions": "A person sent on by another site's script without a click (link shorteners and redirect pages such as t.co, some sign-in flows)."
+    },
+    {
+      "id": "env.ext.background-new-tab", "layer": "env", "kind": "extension", "half": "page", "scope": "landing", "strength": "weak", "enabled": true,
+      "title": "The first page loaded in the background, which can happen when an extension opens a tab.",
+      "detail": "It loaded hidden, unfocused, and in a window with no outer size.",
+      "match": {"all": [
+        {"path": "env.visibilityState", "eq": "hidden"},
+        {"path": "env.hasFocus", "eq": false},
+        {"path": "env.window.ow", "eq": 0},
+        {"path": "env.window.oh", "eq": 0}
+      ]},
+      "report": ["env.visibilityState", "env.hasFocus", "env.window.ow", "env.window.oh"],
+      "grade": "measured", "date": "2026-11-11",
+      "evidence": "Lab 2026-11-11: 4 of 4 Claude in Chrome first pages. Lab 2026-11-09: 2 of 4; 0 of 3 humans.",
+      "sources": ["audit:sig-043", "audit:sig-096", "lab"],
+      "collisions": "A person who opens a link in a background tab (untested)."
+    },
+    {
+      "id": "env.ext.hidden-trusted-pointerdown", "layer": "env", "kind": "extension", "half": "page", "scope": "page", "strength": "hard", "enabled": true,
+      "title": "A debugging tool sent input to the hidden page.",
+      "detail": "A trusted pointerdown arrived while the document was hidden.",
+      "match": {"path": "hidden_input.trusted_pointerdown", "gte": 1},
+      "grade": "project-claim", "date": "2026-10-02",
+      "evidence": "botscent: no person can click in a hidden document; none in 44 human documents. Lab 2026-11-11: Claude in Chrome brought each tab to the front before acting, so none matched.",
+      "sources": ["botscent:hidden.input.trusted-pointerdown", "audit:sig-049", "lab"],
+      "botscent": ["hidden.input.trusted-pointerdown"],
+      "collisions": "None known."
+    },
+    {
+      "id": "env.ext.hidden-focus-emulated", "layer": "env", "kind": "extension", "half": "page", "scope": "page", "strength": "hard", "enabled": true,
+      "title": "The hidden page received input while reporting that it had focus.",
+      "detail": "Trusted input arrived while the document was hidden yet reported focus (focus emulation).",
+      "match": {"path": "hidden_input.trusted_focused", "gte": 1},
+      "grade": "project-claim", "date": "2026-10-02",
+      "evidence": "botscent: focus while hidden needs Emulation.setFocusEmulationEnabled; none in 44 human documents. None in the lab.",
+      "sources": ["botscent:hidden.input.focus-emulated", "audit:sig-048", "lab"],
+      "botscent": ["hidden.input.focus-emulated"],
+      "collisions": "None known."
+    },
+    {
+      "id": "env.ext.extension-probe", "layer": "env", "kind": "extension", "half": "page", "scope": "page", "strength": "soft", "enabled": false,
+      "title": "An agent extension is installed in this browser.",
+      "detail": "An agent extension's public files load (web_accessible_resources).",
+      "match": {"path": "ext_probe.found", "nonempty": true},
+      "report": ["ext_probe.found"],
+      "grade": "source", "date": "2026-11-12",
+      "evidence": "Audit sig-098. Off by default: probing which extensions a visitor has installed is a device fingerprint (visitors in Europe must consent first), and installed is not in use. The list of extensions to probe is not defined yet.",
+      "sources": ["audit:sig-098"],
+      "collisions": "Says the extension is installed, not that it acted: a person with the extension installed matches on every page."
+    }
+  ]
+}

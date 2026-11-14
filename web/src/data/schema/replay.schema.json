@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "replay.schema.json",
+  "title": "ReplayChunk",
+  "description": "GET /api/session/<id>/replay?chunk=<n> : the rrweb events of one replay chunk (n counts from 0, as listed in the session's replay.chunks); 404 with an error body when there is no such chunk.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["chunk", "start_ms", "end_ms", "events"],
+  "properties": {
+    "chunk": { "$ref": "common.schema.json#/$defs/Count" },
+    "start_ms": { "$ref": "common.schema.json#/$defs/Ms" },
+    "end_ms": { "$ref": "common.schema.json#/$defs/Ms" },
+    "events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["type", "timestamp", "data"],
+        "properties": {
+          "type": { "type": "integer", "minimum": 0 },
+          "timestamp": { "type": "integer", "minimum": 0 },
+          "data": { "type": "object" }
+        }
+      }
+    }
+  }
+}

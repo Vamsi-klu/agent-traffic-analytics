@@ -1,0 +1,35 @@
+{
+  "$comment": "How `npm run build` writes the third-party notices of the local pages (scripts/notices.mjs): one file in dist/, which the release copies into the package with the pages, so every wheel carries it. It lists each npm package whose code or styles the build put into dist/ (read from the bundle, never from package.json, so build tools are not listed and a package used only at build time is not either), with its version, the licence its package.json declares and the licence and notice files the package ships, unchanged; then the files listed below. MIT, ISC, BSD and Apache-2.0 all ask for these to go with every copy.",
+  "file": "THIRD_PARTY_NOTICES.txt",
+  "header": [
+    "THIRD-PARTY SOFTWARE NOTICES",
+    "",
+    "The local pages in this folder are compiled from their own code and from the third-party software below, whose",
+    "code, styles or fonts are in assets/. Each entry gives its name, its version and the licence it declares, then",
+    "the licence and notice files it comes with, unchanged.",
+    "",
+    "Listed below:"
+  ],
+  "licence_files": {
+    "$comment": "The files of a package that are copied into the notices: every top-level file whose name starts like one of these (case ignored), e.g. LICENSE, LICENSE.md, LICENCE.md, LICENSE-MIT, COPYING, NOTICE.",
+    "prefixes": ["licence", "license", "copying", "notice"]
+  },
+  "files": {
+    "$comment": "Third-party files that are not npm packages, kept in web/src and compiled into dist/ (THIRD_PARTY.md): each is listed when the build put it into dist/, with its licence file, which stays in web/src.",
+    "entries": [
+      {"file": "src/assets/fonts/Fredoka-Variable.ttf", "license": "OFL-1.1", "licence_file": "src/assets/fonts/Fredoka-OFL.txt"},
+      {"file": "src/assets/fonts/Nunito-Variable.ttf", "license": "OFL-1.1", "licence_file": "src/assets/fonts/Nunito-OFL.txt"}
+    ]
+  },
+  "texts": {
+    "$comment": "The licence text of a bundled package whose npm package ships no licence file, taken from its source repository (the link names the commit). Each is checked for one version: the build stops when the bundled version differs, when the package now ships its own licence file, or when it is no longer bundled, so the text is looked at again.",
+    "packages": {
+      "react-remove-scroll-bar": {
+        "version": "2.3.8",
+        "why": "its npm package ships no licence file; its package.json says MIT, and its repository added this LICENSE on 2025-05-21, after 2.3.8 (2024-12-15)",
+        "source": "https://github.com/theKashey/react-remove-scroll-bar/blob/7301c160fda44cb8cf2b9fdfde61efad35736196/LICENSE",
+        "text": "MIT License\n\nCopyright (c) 2025 Anton Korzunov <thekashey@gmail.com>\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n"
+      }
+    }
+  }
+}

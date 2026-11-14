@@ -1,0 +1,143 @@
+{
+  "about": "The website frameworks `setup --print --site` and `doctor` recognise (S6.1), tried in this order; the first that matches is the site's. detect: any of these paths exists (paths), package.json lists one of these packages (node_deps), a Python dependency file or import names one of these packages (python_deps), or the folder holds a file with one of these endings (suffixes). script: where the cake.js line goes (static: every .html page; next: the layout file; head: every template that has </head>; plugin: the WordPress plugin adds it). app: how the file that makes the app is found (regexes, or file names). middleware: the server half (edge/<edge>/), found in the site's code by a file that matches every one of patterns (or by the paths that exist, for the plugin), with the files that must sit side by side for the frameworks that copy them; copy is the entry of data/copy.en.json that says how to mount it, readme the edge folder's README that says it in full.",
+  "secret_env": "CAKE_SERVER_TIMING_SECRET",
+  "public_address": "https://{domain}{prefix}",
+  "python_dependency_files": ["requirements.txt", "requirements-dev.txt", "pyproject.toml", "Pipfile", "setup.py", "setup.cfg"],
+  "frameworks": [
+    {
+      "name": "wordpress",
+      "detect": {"paths": ["wp-config.php", "wp-config-sample.php", "wp-content/themes"]},
+      "script": "plugin",
+      "middleware": {
+        "name": "the Agent Cake plugin",
+        "edge": "wordpress",
+        "plugin": "wordpress/agentcake",
+        "paths": ["wp-content/plugins/agentcake/agentcake.php"],
+        "copy": "setup_site_mw_wordpress",
+        "secret_copy": "setup_site_secret_wordpress",
+        "readme": "wordpress/agentcake/README.md"
+      }
+    },
+    {
+      "name": "next-app",
+      "detect": {"paths": ["app/layout.tsx", "app/layout.jsx", "app/layout.js", "src/app/layout.tsx", "src/app/layout.js"]},
+      "script": "next",
+      "app": {"files": ["middleware.ts", "middleware.js", "proxy.ts", "proxy.js", "src/middleware.ts", "src/middleware.js", "src/proxy.ts", "src/proxy.js"]},
+      "middleware": {
+        "name": "cakeNext",
+        "edge": "node",
+        "patterns": ["\\bcakeNext\\s*\\("],
+        "suffixes": [".ts", ".js", ".mjs"],
+        "copy": "setup_site_mw_next",
+        "readme": "node/README.md"
+      }
+    },
+    {
+      "name": "next-pages",
+      "detect": {"paths": ["pages/_app.tsx", "pages/_app.js", "src/pages/_app.tsx"]},
+      "script": "next",
+      "app": {"files": ["middleware.ts", "middleware.js", "proxy.ts", "proxy.js", "src/middleware.ts", "src/middleware.js", "src/proxy.ts", "src/proxy.js"]},
+      "middleware": {
+        "name": "cakeNext",
+        "edge": "node",
+        "patterns": ["\\bcakeNext\\s*\\("],
+        "suffixes": [".ts", ".js", ".mjs"],
+        "copy": "setup_site_mw_next",
+        "readme": "node/README.md"
+      }
+    },
+    {
+      "name": "express",
+      "detect": {"node_deps": ["express"]},
+      "script": "head",
+      "app": {"patterns": ["\\bexpress\\s*\\(\\s*\\)"], "suffixes": [".js", ".mjs", ".cjs", ".ts"]},
+      "middleware": {
+        "name": "cakeExpress",
+        "edge": "node",
+        "patterns": ["\\bcakeExpress\\s*\\("],
+        "suffixes": [".js", ".mjs", ".cjs", ".ts"],
+        "copy": "setup_site_mw_express",
+        "readme": "node/README.md"
+      }
+    },
+    {
+      "name": "hono",
+      "detect": {"node_deps": ["hono"]},
+      "script": "head",
+      "app": {"patterns": ["\\bnew\\s+Hono\\s*\\("], "suffixes": [".js", ".mjs", ".ts", ".tsx"]},
+      "middleware": {
+        "name": "cakeHono",
+        "edge": "node",
+        "patterns": ["\\bcakeHono\\s*\\("],
+        "suffixes": [".js", ".mjs", ".ts", ".tsx"],
+        "copy": "setup_site_mw_hono",
+        "readme": "node/README.md"
+      }
+    },
+    {
+      "name": "django",
+      "detect": {"python_deps": ["django"]},
+      "script": "head",
+      "app": {"patterns": ["\\bget_wsgi_application\\s*\\("], "suffixes": ["wsgi.py"]},
+      "middleware": {
+        "name": "CakeEdgeWSGI",
+        "edge": "python",
+        "patterns": ["\\bCakeEdge(?:WSGI|ASGI)\\s*\\("],
+        "suffixes": [".py"],
+        "files": ["cake_edge.py", "cake_edge.json"],
+        "copy": "setup_site_mw_django",
+        "readme": "python/README.md"
+      }
+    },
+    {
+      "name": "fastapi",
+      "detect": {"python_deps": ["fastapi"]},
+      "script": "head",
+      "app": {"patterns": ["\\bFastAPI\\s*\\("], "suffixes": [".py"]},
+      "middleware": {
+        "name": "CakeEdgeASGI",
+        "edge": "python",
+        "patterns": ["(?:\\badd_middleware\\s*\\(\\s*CakeEdgeASGI\\b|\\bCakeEdgeASGI\\s*\\()"],
+        "suffixes": [".py"],
+        "files": ["cake_edge.py", "cake_edge.json"],
+        "copy": "setup_site_mw_fastapi",
+        "readme": "python/README.md"
+      }
+    },
+    {
+      "name": "flask",
+      "detect": {"python_deps": ["flask"]},
+      "script": "head",
+      "app": {"patterns": ["\\bFlask\\s*\\(\\s*__name__"], "suffixes": [".py"]},
+      "middleware": {
+        "name": "CakeEdgeWSGI",
+        "edge": "python",
+        "patterns": ["\\bCakeEdgeWSGI\\s*\\("],
+        "suffixes": [".py"],
+        "files": ["cake_edge.py", "cake_edge.json"],
+        "copy": "setup_site_mw_flask",
+        "readme": "python/README.md"
+      }
+    },
+    {
+      "name": "php",
+      "detect": {"suffixes": [".php"]},
+      "script": "head",
+      "app": {"files": ["index.php", "public/index.php"]},
+      "middleware": {
+        "name": "AgentCake\\Edge",
+        "edge": "php",
+        "patterns": ["cake_edge\\.php", "->\\s*(?:sendHeader|tokenForRequest)\\s*\\("],
+        "suffixes": [".php"],
+        "files": ["cake_edge.php", "cake_edge_format.php", "cake_edge.json"],
+        "copy": "setup_site_mw_php",
+        "readme": "php/README.md"
+      }
+    },
+    {
+      "name": "static",
+      "detect": {"suffixes": [".html"]},
+      "script": "static"
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Consent · cake.js browser test</title>
+<style>
+body { font: 16px/1.5 system-ui, sans-serif; max-width: 760px; margin: 0 auto; padding: 0 16px 64px; }
+#bar { position: fixed; left: 0; right: 0; bottom: 0; padding: 12px 16px; border-top: 1px solid; background: Canvas; }
+</style>
+<script>
+  // The simplest consent bar, for GOAL T10 (as tartini.ai does it): the answer is remembered in localStorage; with
+  // a "yes" from an earlier page, cake.js is told to start before it has even loaded (the queue form).
+  window.cake = window.cake || []
+  if (localStorage.getItem('consent') === 'yes') window.cake.push('start')
+</script>
+<script src="/cake.js" data-site="{{SITE_KEY}}" data-consent="required" defer></script>
+</head>
+<body>
+<h1>A page that asks before recording</h1>
+<p>cake.js is on this page with data-consent="required": it records nothing until the visitor agrees.</p>
+<p><button id="press" type="button">Press me</button> <a id="next" href="/pages/consent.html?page=2">Next page</a></p>
+<div id="bar" role="dialog" aria-label="Consent">
+  <span>May we record this visit?</span>
+  <button id="accept" type="button">Accept</button>
+  <button id="reject" type="button">Reject</button>
+</div>
+<script>
+  // cake.js may still be loading (it is deferred): then the call waits in the queue.
+  function tell(command) {
+    if (typeof window.cake[command] === 'function') window.cake[command]()
+    else window.cake.push(command)
+  }
+  document.getElementById('accept').onclick = function () {
+    localStorage.setItem('consent', 'yes')
+    tell('start')
+  }
+  document.getElementById('reject').onclick = function () {
+    localStorage.setItem('consent', 'no')
+    tell('stop')
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,71 @@
+{
+  "$comment": "The JSON API's numbers and mappings (S5.1, agentcake/api/). The words of its answers are in api.en.json, the dashboard's coverage note in coverage.en.json, the home page's example in example.json. Times in ms unless the key says otherwise.",
+
+  "page_size": 20,
+  "latest": 6,
+  "latest_agent": 3,
+  "top_pages": 10,
+  "range_days": {"today": 1, "7d": 7, "30d": 30},
+  "compare_days": 7,
+  "weekday_label_days": 7,
+  "receiving_days": 7,
+  "max_actions": 2000,
+  "action_merge_ms": 1000,
+  "budget_choices_mb": [5120, 10240, 20480, 51200],
+
+  "$verdicts": "D39's verdict (judging.en.json 'verdicts') of each class verdict.py gives and of cake 0.3.4's verdict column (human, agent, unsure): mixed is an Agent session; Not sure and Too little data are Human, marked: evidence 'thin' (the user, 11/13: a session cake can't tell is counted as human, and marked; the reasons say why), as is a session not judged yet. agent_turns splits an Agent session: Agent only, or Human + agent (a human and an agent took turns). certainty: how sure an agent's or a bot's name is, by attribute.py's certainty (verified names are certain). layer_states: a layer's state as the reasons panel shows it (the behavior layer's mixed: Human + agent).",
+  "verdicts": {"human": "human", "agent": "agent", "mixed": "agent", "bot": "bot", "not_sure": "human",
+               "too_little_data": "human", "unsure": "human"},
+  "agent_turns": {"agent": "agent_only", "mixed": "human_agent"},
+  "evidence": {"not_sure": "thin", "too_little_data": "thin", "unsure": "thin"},
+  "certainty": {"certain": "verified", "likely": "likely", "possible": "possible"},
+  "layer_states": {"human": "human", "agent": "agent", "mixed": "human_agent", "unsure": "unknown", "bot": "bot",
+                   "no_hit": "no_hit", "off": "off", "not_sure": "unknown", "too_little_data": "unknown"},
+
+  "reasons": {
+    "$comment": "Where a verdict's reason shows in the four layers of 'Why this verdict', and the kind of evidence the page draws its icon for. A reason shows in the layer its evidence belongs to: the layer layer_by_id names for its id first (a name read off a product's or a tool's trace in the page is the environment's finding, as a verdict judged before it moved there kept it under name), else its own, and comes after the layer's own reasons (a name after the trace it was read from); a reason of a layer the page does not have (weak signals, crawler-like patterns) goes to other_layers; exclusion reasons only come with prefetches, which are no visit. kind: by_id first, then an environment rule's own kind (env_rule_kinds), then the half it was read from (by_source), then the layer's default.",
+    "layers": ["name", "verify", "environment", "behavior"],
+    "other_layers": {"weak": "environment"},
+    "layer_by_id": {"name.from-trace": "environment", "name.tool": "environment",
+                    "crawler.like": "behavior", "weak.same-address": "verify", "weak.timezone-country": "verify",
+                    "weak.language-country": "verify", "weak.header-order": "verify", "weak.rhythm-pauses": "behavior"},
+    "kind_by_id": {"name.signer": "server", "name.unknown-signer": "server", "name.signer-mismatch": "server",
+                   "name.from-trace": "page", "env.extension-unnamed": "page", "behavior.handoff": "motion",
+                   "behavior.short-run": "clicks", "behavior.assistive": "keys", "behavior.touch": "motion",
+                   "weak.rhythm-pauses": "clicks", "crawler.like": "server"},
+    "env_rule_kinds": {"product": "page", "extension": "page", "automation": "browser", "spoofing": "browser",
+                       "cloud_host": "browser"},
+    "by_source": {"server": "server", "collector": "server"},
+    "by_layer": {"name": "user_agent", "verify": "server", "environment": "browser", "behavior": "model"},
+    "$turns": "A session whose timeline has hand-offs (a Human + agent session) shows its behavior layer as Human + agent, whatever the model said of the session as a whole, and words the model's own line as these say (the timeline's turns are the behavior layer's finding).",
+    "turns_words": {"behavior.agent": "behavior.turns", "behavior.human": "behavior.turns-runs",
+                    "behavior.unsure": "behavior.turns-runs", "behavior.one-kind": "behavior.turns-runs"},
+    "$bot": "A Bot session whose environment layer found an agent's traces says why it is still a Bot (api.en.json 'layer_notes', bot_environment, in the layer bot_note_layer names); a layer less than half sure of its own conclusion reads Unknown and says why first (layer_notes both_ways).",
+    "bot_note_layer": "environment",
+    "$agree": "A layer lists only the reasons that fit the conclusion it shows (a reason for one side beside that side's conclusion; a layer that can't tell lists both); only_when names the conclusions a reason belongs to.",
+    "tone_states": {"agent": ["agent", "human_agent", "bot"], "human": ["human", "human_agent"]},
+    "only_when": {"behavior.overruled": ["human"]}
+  },
+
+  "summary": {
+    "$comment": "How the session page sums up a verdict (agentcake/api/session.py): who acted when, from the timeline's runs; for a session without runs to tell (a bot, a Human one on thin evidence), the first reason in the verdict's tone, else the first of fallback_layer; a session without reasons gets the rule of its class (judging.en.json; 'classes', by its agent_turns for an Agent session, 'thin' for a Human one on thin evidence, else its verdict, for a verdict from before S3.4). Then the layers whose conclusion is the verdict's ('supports': the layer states that agree with it), each with its percent when the layer shows one.",
+    "supports": {"human": ["human"], "agent": ["agent", "human_agent"], "bot": ["bot"]},
+    "tones": {"human": "human", "agent": "agent", "bot": "agent"},
+    "fallback_layer": "behavior",
+    "classes": {"human": "human", "agent_only": "agent_ai", "human_agent": "mixed", "bot": "bot", "thin": "not_sure"}
+  },
+
+  "settings": {
+    "$comment": "The settings page (S5.5). layers: the four layers that judge, which run always and are not settings (verify runs only in server mode, where visits do not all come from 127.0.0.1). refresh_ms: how often the open page asks again where visits come from, so that the first visit shows as connected within I3 (10 s). server_half_tokens: how many of the latest server-half tokens tell which request headers never reached the site's server (none of them had it: something in front of the server removes it). server_half_headers: those headers, by their role in edge.json; a browser sends them on every page request over HTTPS, which Sec-Fetch-User is not (only after a click).",
+    "layers": {"name": true, "environment": true, "behavior": true},
+    "refresh_ms": 5000,
+    "server_half_tokens": 200,
+    "server_half_headers": {"sec_fetch_site": "s", "sec_fetch_mode": "m", "sec_fetch_dest": "d"}
+  },
+
+  "actions": {
+    "$comment": "Which of the visitor's raw input events make an action of 'Every action' (detect/segment.py's names), and which kind; events of one kind closer together than action_merge_ms are one action (typing a word, one scroll).",
+    "click": "click", "dblclick": "click", "contextmenu": "click", "input": "type", "change": "type",
+    "wheel": "scroll", "scroll": "scroll", "touchstart": "touch"
+  }
+}

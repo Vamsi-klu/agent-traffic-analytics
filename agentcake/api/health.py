@@ -1,0 +1,34 @@
+"""GET /api/health on the local listener, and GET /healthz on server mode's public listener (S1.1, S5.1).
+
+/api/health is what `agentcake status`, `start`, `doctor`, `migrate` and `delete` ask the running cake (daemon.py),
+in the fields of cake 0.3.4 but its demo shop's (D37): version, data folder (absolute: migrate compares it), site key,
+sessions (every row), real sessions (not self-checks, and not uploads from another site: site_origin.py), self-check
+visits, and the disk: budget and use, the disk's free space and why new replays are stopped (space.space_status,
+S2.5). Like every /api answer it is for this computer only (answers.local_only).
+/healthz answers the load balancer's health check: "ok", nothing about the data.
+"""
+from http import HTTPStatus
+
+from agentcake import __version__, config, paths, store
+from agentcake.api import answers
+from agentcake.responses import TEXT, Response
+from agentcake.space import space_status
+
+
+@answers.view
+def view(request):
+    c, con = config.load_cfg(), store.db()
+    try:
+        total, real, selfcheck = con.execute(
+            "SELECT COUNT(*), SUM(is_test = 0 AND COALESCE(origin, 'site') != 'other'), SUM(is_test = 1) "
+            "FROM sessions").fetchone()
+        space = space_status(con, c)
+    finally:
+        con.close()
+    return answers.ok({"ok": True, "version": __version__, "home": paths.home(), "site_key": c.get("site_key"),
+                       "sessions": total, "real_sessions": real or 0, "selfcheck_visits": selfcheck or 0,
+                       "space": space})
+
+
+def healthz(request):
+    return Response(HTTPStatus.OK, "ok", TEXT)

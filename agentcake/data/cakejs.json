@@ -1,0 +1,164 @@
+{
+  "_doc": "Agent Cake's page script (cake.js), plan steps S1.3, S1.4. build_js.py puts the 'script' object into agentcake/static/cake.js as CFG, with the data files under 'build' -> 'data' added (privacy.json's rules become CFG.privacy, agent_markers.json's page part CFG.markers); no number or name is written in the script sources. 'build' lists the sources in the order they are put together (paths relative to agentcake/). Units are in the key names; _bytes limits count JSON characters, except keepalive_max_bytes, which counts the bytes on the wire. The upload format is docs/collect-format.md.",
+  "build": {
+    "out": "static/cake.js",
+    "runtime_marker": "cake:runtime",
+    "build_id_chars": 12,
+    "data": {"privacy": {"file": "data/privacy.json", "key": "page"}, "markers": {"file": "data/agent_markers.json", "key": "page"}},
+    "parts": [
+      {
+        "file": "static/rrweb-record.min.js",
+        "wrap": "umd",
+        "expose": {"rrweb": "this.rrwebRecord"},
+        "name": "rrweb record",
+        "version": "2.0.0-alpha.18",
+        "source": "rrweb-io/rrweb, record UMD build as shipped with cake 0.3.x (local source checked at commit 3339038d)",
+        "licence": "static/src/rrweb.LICENSE.txt",
+        "sha256": "2367677ce53cda568394c3a60260b1c0ce7c1e14dc0224ecf1d2e080e725448e"
+      },
+      {
+        "file": "static/src/botd.js",
+        "wrap": "scoped",
+        "expose": {"botdLoad": "load"},
+        "name": "BotD",
+        "version": "2.0.0",
+        "source": "@fingerprintjs/botd 2.0.0, dist/botd.esm.js; telemetry and export removed (see the file's header)",
+        "licence": "static/src/botd.LICENSE.txt"
+      },
+      {
+        "file": "static/src/botscent.js",
+        "wrap": "deferred",
+        "as": "startBotscent",
+        "name": "botscent page half",
+        "version": "1.2.0",
+        "source": "botscent 1.2.0 on npm, dist/botscent.js, unchanged (github.com/nalinbhardwaj/botscent commit 7f948003)",
+        "licence": "static/src/botscent.LICENSE.txt",
+        "sha256": "ed094ea321235eddfeba07e46694ca2bab8c33b6db2c4b37f48cab306f70065b"
+      },
+      {"file": "static/src/util.js", "wrap": "scoped"},
+      {"file": "static/src/schedule.js", "wrap": "scoped"},
+      {"file": "static/src/transport.js", "wrap": "scoped"},
+      {"file": "static/src/edge_token.js", "wrap": "scoped"},
+      {"file": "static/src/raw.js", "wrap": "scoped"},
+      {"file": "static/src/replay.js", "wrap": "scoped"},
+      {"file": "static/src/automation.js", "wrap": "scoped"},
+      {"file": "static/src/env.js", "wrap": "scoped"},
+      {"file": "static/src/probes.js", "wrap": "scoped"},
+      {"file": "static/src/markers.js", "wrap": "scoped"},
+      {"file": "static/src/detectors.js", "wrap": "scoped"},
+      {"file": "static/src/cake_main.js", "wrap": "scoped"}
+    ]
+  },
+  "script": {
+    "format_version": 1,
+    "collect_path": "collect",
+    "attr": {"site": "data-site", "consent": "data-consent"},
+    "consent": {"required": "required", "commands": {"start": "start", "stop": "stop"}},
+    "defaults": {"hook_dom": false, "hide_selectors": ""},
+    "storage": {"session": "cake_sid", "page_number": "cake_pn", "pending": "cake_pending", "frames_done": "cake_frames"},
+    "id_bytes": 16,
+    "time_precision": 10,
+    "idle_timeout_ms": 1000,
+    "idle_gap_ms": 50,
+    "content_type": "text/plain",
+    "gzip_query": "?z=gzip",
+    "token": {"entry": "cake"},
+    "batch": {
+      "max_bytes": 51200,
+      "interval_min_ms": 2000,
+      "interval_max_ms": 10000,
+      "interval_growth": 2,
+      "keepalive_max_bytes": 60000,
+      "compress_min_bytes": 2048,
+      "pending_max_bytes": 1048576,
+      "max_record_bytes": 4194304,
+      "retry_statuses": [408, 429, 500, 502, 503, 504]
+    },
+    "limits": {
+      "records_per_page": {"e": 100000, "r": 200000, "x": 5000},
+      "error_chars": 200
+    },
+    "rrweb": {
+      "sampling": {"mousemove": 50, "scroll": 150, "input": "last"}
+    },
+    "raw": {
+      "events": [
+        "pointermove", "pointerdown", "pointerup", "pointerover", "mousemove", "mousedown", "mouseup", "mouseover",
+        "click", "dblclick", "contextmenu", "wheel", "keydown", "keyup", "input", "change", "focus", "blur",
+        "touchstart", "touchend"
+      ],
+      "target_events": [
+        "pointerdown", "pointerup", "click", "mouseover", "focus", "blur", "input", "keydown", "keyup", "mousedown",
+        "mouseup", "change", "dblclick", "contextmenu", "wheel"
+      ],
+      "target_selector": "a,button,input,select,textarea,label,summary,[role=button],[role=link]",
+      "geo_poll_ms": 500,
+      "dom_scan_delay_ms": 5000,
+      "dom_attr_names_max": 8
+    },
+    "env": {
+      "frame_history_writes": 300,
+      "frame_burst_writes": 50,
+      "frame_burst_gap_ms": 20,
+      "probe_attr": "data-cake-probe",
+      "cdp_rounds": 3,
+      "cdp_message": "cake probe",
+      "cdp_round_ms": 100,
+      "cdp_name_lookups_per_round": 1.5,
+      "stack_chars": 400,
+      "distinctive_globals": {
+        "awesomium": ["awesomium"],
+        "cef": ["RunPerfTest"],
+        "cefsharp": ["CefSharp"],
+        "coachjs": ["emit"],
+        "fminer": ["fmget_targets"],
+        "geb": ["geb"],
+        "nightmare": ["__nightmare", "nightmare"],
+        "phantomas": ["__phantomas"],
+        "phantomjs": ["callPhantom", "_phantom"],
+        "rhino": ["spawn"],
+        "selenium": ["_Selenium_IDE_Recorder", "_selenium", "calledSelenium"],
+        "wdio": ["wdioElectron"],
+        "webdriver": [
+          "webdriver", "__webdriverFunc", "__lastWatirAlert", "__lastWatirConfirm", "__lastWatirPrompt",
+          "_WEBDRIVER_ELEM_CACHE", "ChromeDriverw", "__driver_evaluate", "__webdriver_evaluate", "__selenium_evaluate",
+          "__fxdriver_evaluate", "__driver_unwrapped", "__webdriver_unwrapped", "__selenium_unwrapped",
+          "__fxdriver_unwrapped", "__webdriver_script_func", "__webdriver_script_fn"
+        ],
+        "domAutomation": ["domAutomation", "domAutomationController"]
+      },
+      "global_patterns": {
+        "selenium_cdc_window": ["^cdc_|^\\$cdc_|^([a-z]){3}_.*_(Array|Promise|Symbol)$", ""],
+        "selenium_cdc_document": ["^\\$cdc_|^\\$wdc_|selenium|webdriver|driver", ""],
+        "playwright": ["^__pw|playwright", "i"],
+        "puppeteer": ["^puppeteer_|^__puppeteer", "i"]
+      },
+      "hook": {
+        "methods": ["getElementById", "querySelector", "querySelectorAll", "getElementsByClassName"],
+        "markers": {"pptr": "pptr:", "utilityScript": "UtilityScript.", "puppeteerEval": "__puppeteer_evaluation_script__"},
+        "checks_max": 2000,
+        "hits_max": 20,
+        "arg_chars": 60,
+        "stack_frames": 5
+      }
+    },
+    "probes": {
+      "timeout_ms": 3000,
+      "source_chars": 60,
+      "high_entropy_hints": ["fullVersionList", "platformVersion", "architecture", "model", "bitness"],
+      "native_getters": {
+        "Navigator": ["webdriver", "userAgent", "platform", "languages", "plugins", "hardwareConcurrency"]
+      },
+      "native_methods": {
+        "Permissions": ["query"],
+        "WebGLRenderingContext": ["getParameter"],
+        "Function": ["toString"]
+      },
+      "fonts": ["Ubuntu", "Droid Sans", "Cambria", "DejaVu Sans", "Liberation Sans"],
+      "font_bases": ["monospace", "serif", "sans-serif"],
+      "font_sample": "mmmmmmmmmmlli0123456789",
+      "font_px": 32
+    },
+    "botscent": {"sample_ms": 3000}
+  }
+}

@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "common.schema.json",
+  "title": "Shapes shared by the /api endpoints (web/src/data/types.ts)",
+  "$defs": {
+    "Verdict": { "enum": ["human", "agent", "bot"] },
+    "Actor": { "enum": ["human", "agent", "unsure"] },
+    "AgentTurns": { "enum": ["agent_only", "human_agent"] },
+    "Certainty": { "enum": ["verified", "likely", "possible"] },
+    "Count": { "type": "integer", "minimum": 0 },
+    "Ms": { "type": "integer", "minimum": 0 },
+    "Percent": { "type": "integer", "minimum": 0, "maximum": 100 },
+    "Text": { "type": "string", "minLength": 1 },
+    "Share": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["human", "agent", "unsure"],
+      "properties": {
+        "human": { "$ref": "#/$defs/Percent" },
+        "agent": { "$ref": "#/$defs/Percent" },
+        "unsure": { "$ref": "#/$defs/Percent" }
+      }
+    },
+    "Segment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["who", "start_ms", "end_ms"],
+      "properties": {
+        "who": { "$ref": "#/$defs/Actor" },
+        "start_ms": { "$ref": "#/$defs/Ms" },
+        "end_ms": { "$ref": "#/$defs/Ms" }
+      }
+    },
+    "Handoff": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["at_ms", "to"],
+      "properties": {
+        "at_ms": { "$ref": "#/$defs/Ms" },
+        "to": { "enum": ["human", "agent"] }
+      }
+    },
+    "Timeline": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["duration_ms", "segments", "handoffs"],
+      "properties": {
+        "duration_ms": { "$ref": "#/$defs/Ms" },
+        "segments": { "type": "array", "items": { "$ref": "#/$defs/Segment" } },
+        "handoffs": { "type": "array", "items": { "$ref": "#/$defs/Handoff" } }
+      }
+    },
+    "SessionSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "verdict", "evidence", "agent_turns", "agent", "certainty", "when", "duration_ms", "pages", "share"],
+      "properties": {
+        "id": { "$ref": "#/$defs/Text" },
+        "verdict": { "$ref": "#/$defs/Verdict" },
+        "evidence": { "enum": ["thin", null] },
+        "agent_turns": { "enum": ["agent_only", "human_agent", null] },
+        "agent": { "type": ["string", "null"], "minLength": 1 },
+        "certainty": { "enum": ["verified", "likely", "possible", null] },
+        "when": { "$ref": "#/$defs/Text" },
+        "duration_ms": { "$ref": "#/$defs/Ms" },
+        "pages": { "$ref": "#/$defs/Count" },
+        "share": { "$ref": "#/$defs/Share" },
+        "segments": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/Segment" } }
+      }
+    },
+    "SessionCounts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["all", "human", "agent", "bot", "agent_only", "human_agent", "thin"],
+      "properties": {
+        "all": { "$ref": "#/$defs/Count" },
+        "human": { "$ref": "#/$defs/Count" },
+        "agent": { "$ref": "#/$defs/Count" },
+        "bot": { "$ref": "#/$defs/Count" },
+        "agent_only": { "$ref": "#/$defs/Count" },
+        "human_agent": { "$ref": "#/$defs/Count" },
+        "thin": { "$ref": "#/$defs/Count" }
+      }
+    },
+    "NullableText": { "type": ["string", "null"], "minLength": 1 },
+    "Disk": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["total", "free", "min_free", "low"],
+      "properties": {
+        "total": { "$ref": "#/$defs/Count" },
+        "free": { "$ref": "#/$defs/Count" },
+        "min_free": { "$ref": "#/$defs/Count" },
+        "low": { "type": "boolean" }
+      }
+    },
+    "ReplaysStopped": { "enum": ["disk", "disk_full_other", "budget", null] }
+  }
+}

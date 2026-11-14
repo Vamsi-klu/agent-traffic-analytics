@@ -1,0 +1,81 @@
+{
+  "$comment": "How tools/release.py builds a release of Agent Cake (plan step S6.4; D3, D23). Paths are relative to the repository, or to the commit being built. Each value is written once: the version only in agentcake/__init__.py; the package's name, Python, command and shipped files in pyproject.toml; the folder the compiled pages go to in agentcake/data/web.json; the runtime marker of cake.js in agentcake/data/cakejs.json.",
+  "package": "agentcake",
+  "version_file": "agentcake/__init__.py",
+  "out_dir": "dist",
+  "tag_prefix": "v",
+  "files": {
+    "$comment": "The release's files other than the wheel and the release folder, whose names the wheel and source distribution formats fix (project.py). {name} is pyproject.toml's name, {version} the version.",
+    "pyz": "{name}.pyz",
+    "checksums": "SHA256SUMS"
+  },
+  "toolchain": {
+    "$comment": "What .github/workflows/release.yml builds with (tests/test_release_workflow.py keeps them equal). A build with another Python (its zlib) or Node can differ byte for byte; release.py says so. Node: an LTS that every package of web/package-lock.json accepts (react-router 8.5.1 needs 22.22.0 or newer); Node 20.20.2 and 24.22.1 were checked to build the same bytes (S6.4).",
+    "python": "3.14.7",
+    "node": "24.22.1"
+  },
+  "lists": {
+    "$comment": "D23: every release ships freshly built lists. `release.py refresh` runs the scripts (online) in the working tree, to be reviewed and committed; `release.py build` refuses a commit whose lists were built more than max_age_days before it.",
+    "names_file": "agentcake/data/lists/names.json",
+    "max_age_days": 7,
+    "refresh": ["tools/build_lists.py", "tools/build_timezones.py"],
+    "data_folder": "agentcake/data"
+  },
+  "web": {
+    "$comment": "The local pages: built in the exported commit's web folder (npm ci runs no install script of any package: none is needed, and npm 10 and 11 then install alike) and copied into the package, under the folder agentcake/data/web.json names (settings_key), where agentcake.paths.web_dir() looks first.",
+    "folder": "web",
+    "dist": "dist",
+    "commands": [["npm", "ci", "--ignore-scripts", "--no-audit", "--no-fund", "--prefer-offline"], ["npm", "run", "build"]],
+    "settings_file": "agentcake/data/web.json",
+    "settings_key": ["folders", "release"],
+    "notices": {
+      "$comment": "The third-party notices `npm run build` writes into the compiled pages (web/scripts/notices.mjs): their file name in web/notices.json; notices.py checks that the copied pages hold them and that the packages they list are the versions the lockfile locks.",
+      "settings_file": "web/notices.json",
+      "settings_key": ["file"],
+      "lockfile": "web/package-lock.json"
+    }
+  },
+  "edge": {
+    "$comment": "The sites' middleware: the commit's edge/ is copied into the package, under the folder the data file names (settings_key), where agentcake.site_setup.edge_dir() looks first (S6.1). skip: tests and development scripts, relative to edge/.",
+    "folder": "edge",
+    "skip": ["node/test", "node/scripts", "php/tests"],
+    "settings_file": "agentcake/data/site_files.json",
+    "settings_key": ["edge_folder"]
+  },
+  "cakejs": {
+    "$comment": "cake.js is minified with esbuild, pinned in tools/releasing/package.json and package-lock.json and used only here. The target is the syntax cake.js's sources already need (optional chaining), so esbuild rewrites no syntax and adds none newer. The runtime slot stands in for cake.js's runtime marker while esbuild runs (a comment inside an expression is not kept).",
+    "file": "agentcake/static/cake.js",
+    "check": ["agentcake/build_js.py", "--check"],
+    "config_file": "agentcake/data/cakejs.json",
+    "tools_folder": "tools/releasing",
+    "install": ["npm", "ci", "--ignore-scripts", "--no-audit", "--no-fund", "--prefer-offline"],
+    "esbuild": "node_modules/.bin/esbuild",
+    "flags": ["--minify", "--legal-comments=inline", "--charset=utf8", "--target=es2020", "--log-level=warning"],
+    "runtime_slot": "__agentcake_runtime__"
+  },
+  "package_files": {
+    "$comment": "Never shipped, wherever they are in the package.",
+    "skip_dirs": ["__pycache__", "node_modules", ".git"],
+    "skip_suffixes": [".pyc", ".pyo"],
+    "skip_names": [".DS_Store"]
+  },
+  "scan": {
+    "$comment": "scan.py looks for this computer's paths and the git user's name and email in every file of a release; a value shorter than min_chars (a home folder like /root, a short user name) is skipped, since it could turn up by chance in minified code.",
+    "min_chars": 8
+  },
+  "license_globs": ["LICEN[CS]E*", "COPYING*", "NOTICE*", "AUTHORS*"],
+  "archive": {
+    "$comment": "The release folder (agentcake-<version>.tar.gz): pyproject.toml's [tool.flit.sdist] files plus the built package, and the wheel in wheel_folder, next to Dockerfile, for `docker build` (SERVER.md).",
+    "wheel_folder": "dist"
+  },
+  "pyz": {
+    "$comment": "agentcake.pyz: a zip of the package behind a shebang line; tools/releasing/pyz_main.py is its __main__.py and unpacks the package into <CAKE_HOME>/<unpack_folder>/<version>-<hash>/ on the first run. from_zip: the commands that read only the package's own files and run straight from the zip, making no CAKE_HOME (S6.6: they work in a coding agent's sandbox, which cannot write CAKE_HOME); agentcake/cli.py answers them before reading any setting.",
+    "shebang": "#!/usr/bin/env python3",
+    "bootstrap": "tools/releasing/pyz_main.py",
+    "unpack_folder": "pyz",
+    "from_zip": ["--version", "help", "-h", "--help"],
+    "build_hash_chars": 12
+  },
+  "zip_compresslevel": 9,
+  "modes": {"file": "644", "executable": "755", "folder": "755"}
+}

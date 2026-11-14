@@ -1,0 +1,162 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "./styles/tokens.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* Tailwind theme: maps tokens.css to utility classes (bg-primary, text-human, shadow-hard, font-heading …).
+   No values here: every value lives in styles/tokens.css. */
+@theme inline {
+  --font-sans: var(--font-sans);
+  --font-heading: var(--font-heading);
+  --font-mono: var(--font-mono);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-line: var(--line);
+  --color-faint-foreground: var(--faint-foreground);
+  --color-highlight: var(--highlight);
+  --color-highlight-foreground: var(--highlight-foreground);
+  --color-human: var(--human);
+  --color-human-soft: var(--human-soft);
+  --color-human-foreground: var(--human-foreground);
+  --color-agent: var(--agent);
+  --color-agent-soft: var(--agent-soft);
+  --color-agent-foreground: var(--agent-foreground);
+  --color-unsure: var(--unsure);
+  --color-unsure-soft: var(--unsure-soft);
+  --color-unsure-foreground: var(--unsure-foreground);
+  --color-ok: var(--ok);
+  --color-ok-soft: var(--ok-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+  /* the cartoon frame: one offset hard shadow, two sizes, used through components only */
+  --shadow-hard: 4px 4px 0 var(--shadow-color);
+  --shadow-hard-sm: 2px 2px 0 var(--shadow-color);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-weight: 500;
+  }
+  h1, h2, h3 {
+    @apply font-heading;
+  }
+  button:not(:disabled), [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+}
+
+/* Unsure texture (dots) and agent hatching for high contrast: pattern utilities, colours from tokens */
+@utility pattern-dots {
+  background-color: var(--unsure-soft);
+  background-image: radial-gradient(var(--unsure) 1px, transparent 1.2px);
+  background-size: 5px 5px;
+}
+@utility pattern-mixed {
+  background-image: linear-gradient(90deg, var(--human-soft) 50%, var(--agent-soft) 50%);
+}
+@utility pattern-mixed-solid {
+  background-image: linear-gradient(90deg, var(--human) 50%, var(--agent) 50%);
+}
+@media (prefers-contrast: more) {
+  .bg-agent { background-image: repeating-linear-gradient(45deg, transparent 0 4px, var(--card) 4px 6px); }
+}
+
+/* Mascot motion (Crumb's wave pose only) */
+@keyframes cake-hop { 0%, 100% { transform: translateY(0) rotate(-3deg); } 45%, 60% { transform: translateY(-14px) rotate(3deg); } }
+@keyframes cake-wave { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(-22deg); } }
+@keyframes cake-shadow { 0%, 100% { transform: scaleX(1); opacity: .18; } 50% { transform: scaleX(.75); opacity: .1; } }
+.crumb .hop { animation: cake-hop 1600ms ease-in-out infinite; transform-box: fill-box; transform-origin: 50% 100%; }
+.crumb .wave { animation: cake-wave 900ms ease-in-out infinite; transform-box: fill-box; transform-origin: 90% 90%; }
+.crumb .shadow { animation: cake-shadow 1600ms ease-in-out infinite; transform-box: fill-box; transform-origin: 50% 50%; }
+
+/* Mascot paint: Crumb's SVG uses these classes only (colours from tokens.css) */
+.crumb .o { stroke: var(--cake-outline); stroke-linecap: round; stroke-linejoin: round; fill: none; }
+.crumb .f-body { fill: var(--cake-shine); } .crumb .f-jam { fill: var(--cake-jam); } .crumb .f-cream { fill: var(--cake-cream); }
+.crumb .f-frosting { fill: var(--cake-frosting); } .crumb .f-cherry { fill: var(--cake-cherry); } .crumb .f-cheek { fill: var(--cake-cheek); }
+.crumb .f-shine { fill: var(--cake-shine); } .crumb .f-outline { fill: var(--cake-outline); } .crumb .f-glass { fill: var(--cake-shine); fill-opacity: .55; }
+.crumb .shadow { fill: var(--cake-outline); opacity: .18; } .crumb .faint { opacity: .55; }
+.crumb text { fill: var(--cake-outline); font-family: var(--font-heading); font-weight: 700; }
+/* Crumb's outer line, limbs, feet, magnifier and "z" use --cake-line (ink in light, warm light grey in dark, so Crumb
+   stays visible on a dark page); the face (.face: eyes, mouth) stays ink on the white body. Avatars keep their paint. */
+.crumb:not(.avatar) .o:not(.face) { stroke: var(--cake-line); }
+.crumb:not(.avatar) .f-outline:not(.face) { fill: var(--cake-line); }
+.crumb:not(.avatar) text { fill: var(--cake-line); }
+
+/* Agent avatars + Crumb idle (DESIGN.md §15): sway, bob and a little squash on the body, a blink now and then.
+   Each avatar has its own beat (data-phase). Everything stops under prefers-reduced-motion (global rule above). */
+.avatar .f-avatar-1 { fill: var(--avatar-1); } .avatar .f-avatar-2 { fill: var(--avatar-2); } .avatar .f-avatar-3 { fill: var(--avatar-3); }
+.avatar .f-avatar-4 { fill: var(--avatar-4); } .avatar .f-avatar-5 { fill: var(--avatar-5); } .avatar .f-avatar-6 { fill: var(--avatar-6); }
+.avatar .line { fill: none; stroke: var(--cake-outline); stroke-width: 2.4; stroke-linejoin: round; stroke-linecap: round; }
+.avatar .sclera { fill: var(--cake-shine); stroke: var(--cake-outline); stroke-width: 1.3; }
+.avatar .pupil { fill: var(--cake-outline); }
+.avatar .wob, .crumb .idle { animation: avatar-idle 2.6s ease-in-out infinite; transform-box: fill-box; transform-origin: 50% 100%; }
+.avatar .eyes, .crumb .blink { animation: avatar-blink 5.2s linear infinite; transform-box: fill-box; transform-origin: 50% 50%; }
+.avatar[data-phase="1"] .wob { animation-duration: 2.2s; animation-delay: -.6s; } .avatar[data-phase="1"] .eyes { animation-duration: 4.4s; animation-delay: -1.7s; }
+.avatar[data-phase="2"] .wob { animation-duration: 3s; animation-delay: -1.1s; } .avatar[data-phase="2"] .eyes { animation-duration: 6.1s; animation-delay: -3.2s; }
+.avatar[data-phase="3"] .wob { animation-duration: 2.4s; animation-delay: -1.9s; } .avatar[data-phase="3"] .eyes { animation-duration: 5.6s; animation-delay: -.4s; }
+.avatar[data-phase="4"] .wob { animation-duration: 2.8s; animation-delay: -.3s; } .avatar[data-phase="4"] .eyes { animation-duration: 4.8s; animation-delay: -2.5s; }
+.avatar[data-phase="5"] .wob { animation-duration: 2.1s; animation-delay: -1.4s; } .avatar[data-phase="5"] .eyes { animation-duration: 6.6s; animation-delay: -4.1s; }
+.crumb .idle { animation-duration: 3.2s; }
+@keyframes avatar-idle {
+  0%, 100% { transform: translateY(0) rotate(-4deg) scale(1.03, .97); }
+  25% { transform: translateY(-7%) rotate(0deg) scale(.97, 1.03); }
+  50% { transform: translateY(0) rotate(4deg) scale(1.03, .97); }
+  75% { transform: translateY(-4%) rotate(0deg) scale(.98, 1.02); }
+}
+@keyframes avatar-blink { 0%, 91%, 100% { transform: scaleY(1); } 94% { transform: scaleY(.1); } 97% { transform: scaleY(1); } }
+
+/* Replay player (rrweb-player, S5.4; its own stylesheet loads first, from /static/): the frame sits on the stage's
+   background, and rrweb's cursor carries the name of who acts at that moment, in that side's colours (data-who and
+   data-label, set by lib/replay-engine.ts). The player scales the recorded page down to the stage; --replay-unscale
+   (set by the engine from that scale) keeps the label at the interface's size. */
+.cake-replay { --replay-unscale: 1; }
+.cake-replay .rr-player { @apply float-none rounded-none bg-muted shadow-none; }
+.cake-replay .replayer-mouse::after { @apply bg-human; }
+.cake-replay .replayer-mouse[data-who="agent"]::after { @apply bg-agent; }
+.cake-replay .replayer-mouse[data-who="unsure"]::after { @apply bg-unsure; }
+.cake-replay .replayer-mouse.touch-device.touch-active { @apply border-human; }
+.cake-replay .replayer-mouse.touch-device.touch-active[data-who="agent"] { @apply border-agent; }
+.cake-replay .replayer-mouse:where([data-label]:not([data-label=""]))::before { /* :where adds nothing, so the colours below win */
+  content: attr(data-label);
+  transform: scale(var(--replay-unscale));
+  @apply absolute top-full left-full origin-top-left rounded-full border-2 border-line bg-human-soft px-2 font-sans text-xs font-extrabold whitespace-nowrap text-human-foreground;
+}
+.cake-replay .replayer-mouse[data-who="agent"]::before { @apply bg-agent-soft text-agent-foreground; }
+.cake-replay .replayer-mouse[data-who="unsure"]::before { @apply border-dashed bg-unsure-soft text-unsure-foreground; }

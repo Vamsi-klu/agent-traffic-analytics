@@ -1,0 +1,26 @@
+{
+  "site_domain": "shop.example.com",
+  "site_key": "ck_3f9a2c7d41e8",
+  "script_tag": "<script src=\"/cake/cake.js\" data-site=\"ck_3f9a2c7d41e8\" defer></script>",
+  "sources": { "site": "receiving", "server_half": "receiving" },
+  "last_seen": { "site": "Today 09:28", "server_half": "Today 09:28" },
+  "route": "server",
+  "server_half": {
+    "missing": ["Sec-Fetch-Site", "Sec-Fetch-Mode", "Sec-Fetch-Dest"],
+    "logs": { "last": "Today 06:00", "format": "nginx", "missing": ["Accept-Language"], "empty": [] }
+  },
+  "refresh_ms": 5000,
+  "lists": { "built": "2026-11-12", "age_days": 1, "max_age_days": 30, "stale": false, "update_command": "agentcake lists update" },
+  "retention_days": 0,
+  "retention_choices": [0, 90, 30],
+  "budget_mb": 10240,
+  "budget_choices_mb": [5120, 10240, 20480, 51200],
+  "auto_free": true,
+  "storage": { "used_bytes": 3328599654, "warn_at_pct": 80, "days_left": 120,
+               "disk": { "total": 494384795648, "free": 171798691840, "min_free": 10737418240, "low": false }, "replays_stopped": null,
+               "free_to_pct": 90 },
+  "hook_dom": false,
+  "hide_selectors": ".account-email, #address",
+  "layers": { "name": true, "verify": true, "environment": true, "behavior": true },
+  "database": { "path": "/var/lib/cake/cake.db", "sessions": 150 }
+}

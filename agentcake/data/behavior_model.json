@@ -1,0 +1,101 @@
+{
+  "_about": "Parameters of the behaviour model (agentcake/detect/model.py and timeline.py, plan step S3.7). Values are our own research code's, unchanged: the lab's rules and HMM (the behaviour lab's labcore.py, 2026-11-11), the session fallback (cake-data/compare_models.py active_rate and choudhary, 2026-11-11), research note 12's missing variant and its decision rule (cake-ph-eval/phcore.py rules_hmm and all_models, 2026-11-12), and cake 0.3.4's per-action judge (its cake.py: rr_actions, p_agent, hmm_smooth; tests/judge_0_3_4.py).",
+  "min_actions": 3,
+  "rules": {
+    "_about": "The lab's readable rules, scored on each action segment's 25 features (features.py). A rule fires when all of its conditions hold; a segment's score is the logistic of the sum of the weights that fired, so a segment where nothing fires scores 0.5 (no evidence). A condition is [feature, operator, value] or [feature, operator, value, value used when the feature has no data]; without the fourth element, a feature with no data never fires the rule (research note 12's missing variant). Listed in the lab's order (the order of the sum and of the reasons). Job borrow-rules B2 changed the even-typing rule: the lab fired it from 3 keys, which 20 of 72 three-key stretches of motion-attestation's real typing would trip; it now needs 9 keys at the lab's spread (< 0.15; agent-detector's uniform typing, 8 gaps, uses the same) or, over 3 to 8 keys, a spread under 0.08 (bot-signal's linear typing and motion-attestation's flight times use 0.08), the two never together; the feature key_iv_cv is still measured from 3 keys, as the lab did. Measured (job borrow-rules): the clean humans' typing segments it fires on went from 9 (in 6 of 11 sessions) to 5 (4 of 11), and every lab agent segment fires as before. kind: the kind of evidence a rule is, for the session's corroboration (session.corroboration).",
+    "list": [
+      {"id": "untrusted", "kind": "integrity", "why": "untrusted events", "weight": 3.0, "all": [["untrusted", ">", 0]]},
+      {"id": "few_moves_before_click", "kind": "approach", "why": "<=2 moves before click", "weight": 1.6,
+       "all": [["moves_before_click", "<=", 2]]},
+      {"id": "many_moves_before_click", "kind": "approach", "why": ">=10 moves before click", "weight": -1.6,
+       "all": [["moves_before_click", ">=", 10]]},
+      {"id": "click_at_centre", "kind": "aim", "why": "click within 4% of centre", "weight": 1.4,
+       "all": [["click_center_norm", "<", 0.04]]},
+      {"id": "click_off_centre", "kind": "aim", "why": "click off centre", "weight": -0.8, "all": [["click_center_norm", ">", 0.15]]},
+      {"id": "input_without_keydown", "kind": "keys", "why": "input without keydown", "weight": 2.0,
+       "all": [["input_no_keydown", ">", 0.5]]},
+      {"id": "metronome_typing", "kind": "keys", "why": "metronome typing", "weight": 1.0,
+       "all": [["keys_n", ">=", 9, 0], ["key_iv_cv", "<", 0.15]]},
+      {"id": "metronome_typing_short", "kind": "keys", "why": "very even typing over a few keys", "weight": 1.0,
+       "all": [["keys_n", ">=", 3, 0], ["keys_n", "<", 9, 0], ["key_iv_cv", "<", 0.08]]},
+      {"id": "key_burst", "kind": "keys", "why": "keys <8 ms apart", "weight": 2.0, "all": [["key_burst", ">", 0.5]]},
+      {"id": "click_under_1px", "kind": "aim", "why": "click <1 px from centre", "weight": 0.8, "all": [["click_lt1px", ">", 0.5]]},
+      {"id": "screen_offset_jump", "kind": "integrity", "why": "screen-client offset jumped", "weight": 1.2,
+       "all": [["screen_offset_jump", ">", 0.5]]},
+      {"id": "scroll_without_wheel", "kind": "scroll", "why": "scroll without wheel/key", "weight": 0.6,
+       "all": [["scroll_no_wheel", ">", 0.8], ["wheel_n", "==", 0, 0]]},
+      {"id": "screen_equals_client", "kind": "integrity", "why": "screenX==clientX", "weight": 0.8, "all": [["screen_eq_client", ">", 0.9]]},
+      {"id": "zero_movement", "kind": "integrity", "why": "movementX/Y always 0", "weight": 0.8,
+       "all": [["zero_movement_frac", ">", 0.9], ["n_move", ">=", 3, 0]]},
+      {"id": "curved_moves", "kind": "motion", "why": "many curved moves", "weight": -1.2,
+       "all": [["n_move", ">=", 15, 0], ["straightness", "<", 0.9]]},
+      {"id": "no_focus", "kind": "page", "why": "acting while page has no focus", "weight": 0.7, "all": [["no_focus", ">", 0.5]]}
+    ]
+  },
+  "hmm": {
+    "_about": "Two-state hidden Markov smoothing of the segment scores over the session (labcore.forward_backward): switch is the chance that the actor changes between two segments, prior the chance the first segment is an agent's, temper flattens the scores (segments are not independent), clamp keeps scores away from 0 and 1.",
+    "switch": 0.03,
+    "prior": 0.5,
+    "temper": 0.7,
+    "clamp": 0.0001
+  },
+  "labels": {
+    "_about": "A smoothed segment is an agent's at agent_min or above, a human's at human_max or below, and unsure in between. agent_min is note 12's missing-variant threshold: a segment without evidence (0.5) never counts as an agent's.",
+    "human_max": 0.35,
+    "agent_min": 0.65
+  },
+  "session": {
+    "_about": "The whole session is an agent's when at least min_agent_actions of its action segments are an agent's on their own evidence (labelled agent and an agent rule fired in them: the smoothing labels a strong action's neighbours too, and one action must never make an agent of a session; the minimum verdict.json mixed.min_actions asks of either side), or when the fallback fires; otherwise a human's when any of its segments is; and unsure (shown as a human with thin evidence, D39) when none is either. Segments nobody can tell count for neither side, whatever their share (the user's rule of 2026-11-13: human + unknown is human, agent + unknown is agent, human + agent + unknown is agent). corroboration (plan step S3.7, decision D36; agent-detector's and HABITS' rule, research notes 19 and 21): without hard evidence (a rule of hard_rules fired), an agent verdict needs evidence of min_kinds independent kinds (each rule's kind; the fallback's in fallback.kinds); a recording without raw input (rrweb only) can show two kinds at most, so there evidence on min_observations_without_raw_input actions (segments where an agent rule fired, and the session's pointer movement when the active move rate fired; a teleport click lies in a click segment already counted) stands in for the second kind. Otherwise the verdict is unsure and the evidence names the one kind it saw.",
+    "min_agent_actions": 3,
+    "corroboration": {"hard_rules": ["untrusted"], "min_kinds": 2, "min_observations_without_raw_input": 2}
+  },
+  "fallback": {
+    "_about": "Session-level checks that need no rule to fire (note 11's recommendation, coded in note 12 as Choudhary's variant). Active move rate: mousemoves per second counted only inside movement bursts (two moves less than burst_gap_ms apart belong to one burst; min_active_s is the shortest burst time divided into; moves that never form a burst give 0; fewer than min_moves moves give no rate at all, no evidence: job borrow-rules B1); an agent below active_rate_below. Teleport clicks: a click with no mousemove before it, or whose last move came at most click_window_ms before it after a jump of more than jump_px in less than jump_ms; an agent above teleport_share_above. Typing cadence (raw input only): the class isHumanCadence gives the session's typing ends at bot (the cadence section).",
+    "burst_gap_ms": 100,
+    "min_active_s": 0.05,
+    "min_moves": 2,
+    "active_rate_below": 10,
+    "click_window_ms": 100,
+    "jump_ms": 50,
+    "jump_px": 100,
+    "teleport_share_above": 0.2,
+    "kinds": {"active_move_rate": "motion", "teleport_clicks": "approach", "typing_cadence": "keys"}
+  },
+  "cadence": {
+    "_about": "Typing cadence (agentcake/detect/cadence.py, plan step S3.7, decision D36; job behavior-best, lead 1 of the open-source bench S9.6): isHumanCadence 1.5.1's score and class of a session's typing (github.com/RoloBits/isHumanCadence, commit 21b39ea3, MIT; THIRD_PARTY.md), every value its own, unchanged: weights from analyzer.ts DEFAULT_WEIGHTS, classes from index.ts DEFAULT_CLASSIFICATION_THRESHOLDS, the rest from analyzer.ts, anti-spoof.ts and observer.ts; window and min_samples are index.ts's DEFAULT_WINDOW_SIZE and DEFAULT_MIN_SAMPLES; fine_clock_ms is ours (the earlier key-hold attempt's: a coarse clock gives no evidence). neutral: a measure's score without enough samples. Measured with agentcake eval: on the lab it ends at bot for the four Claude in Chrome sessions and three of the ten human-like Playwright scripts; the recorder's eight people who typed 20 keys or more end at human, their lowest score 0.49; the CMU keystroke benchmark's 408 sittings of 51 people (Killourhy and Maxion 2009) never reach bot, their lowest score 0.356.",
+    "window": 50,
+    "min_samples": 20,
+    "fine_clock_ms": 4,
+    "input_without_keystroke_ms": 50,
+    "weights": {"dwell_variance": 0.15, "flight_fit": 0.15, "timing_entropy": 0.2, "correction_ratio": 0.1, "burst_regularity": 0.15, "rollover_rate": 0.25},
+    "classes": {"bot_to_unknown": 0.45, "unknown_to_bot": 0.35, "unknown_to_human": 0.7, "human_to_unknown": 0.6},
+    "dwell": {"min_samples": 5, "neutral": 0.5, "up": [0.3, 8], "down": [-0.05, 80]},
+    "flight": {"min_samples": 5, "neutral": 0.5, "floor_ms": 60, "floor_share": 0.5, "floor_penalty": 0.15},
+    "spoof": {"min_samples": 5, "neutral": 0.5, "ks_critical": 1.22, "pass_base": 0.7, "pass_bonus": 0.3, "fail_base": 0.7, "autocorr_floor": 0.05, "autocorr_max": 0.3, "log_normality": 0.45, "uniformity": 0.3, "autocorrelation": 0.25},
+    "entropy": {"min_samples": 5, "neutral": 0.5, "bins": 10, "up": [3, 1.5], "down": [-3, 3.5], "fluctuation": [1, 4], "entropy_weight": 0.7, "fluctuation_weight": 0.3},
+    "correction": {"min_keys": 5, "neutral": 0.5, "sigmoid": [80, 0.015], "excessive": 0.3, "excessive_penalty": 0.8},
+    "burst": {"min_samples": 10, "neutral": 0.5, "pause_ms": 300, "min_pauses": 2, "sigmoid": [8, 0.2]},
+    "rollover": {"min_keys": 10, "neutral": 0.5, "sigmoid": [60, 0.03]}
+  },
+  "timeline": {
+    "_about": "Who did each action, the shares and the hand-offs: cake 0.3.4's per-action judge (tests/judge_0_3_4.py), ported to the raw-event format. An action is a click or an input; inputs less than input_merge_ms apart are one action. Features per action: moves_per_s (mousemoves since the previous action per second, the time at least min_span_s), moves_before_act (mousemoves in the window_ms before it), straight (end-to-end distance over path length of those moves, 1 below min_straight_moves moves), pause_s (seconds since the previous action), no_move_act (1 when at most one move came before it); each capped at caps. p_agent is the logistic of bias plus the weighted features, smoothed by the HMM below and labelled with labels. A hand-off starts at the first event of the new actor's first action: its pointer approach, events at most approach_pause_ms apart (features.json uses the same pause to end an approach).",
+    "weights": {"moves_per_s": -0.55, "moves_before_act": -0.35, "straight": 1.2, "pause_s": 0.25, "no_move_act": 1.6},
+    "bias": 0.4,
+    "logit_limit": 30,
+    "caps": {"moves_per_s": 20, "moves_before_act": 30, "pause_s": 15},
+    "window_ms": 1500,
+    "input_merge_ms": 1500,
+    "min_straight_moves": 3,
+    "min_span_s": 1.0,
+    "approach_pause_ms": 2000,
+    "no_pointer_no_evidence": true,
+    "movement_evidence": true,
+    "hmm": {"switch": 0.05, "prior": 0.5, "temper": 0.7, "clamp": 0},
+    "labels": {"human_max": 0.35, "agent_min": 0.65},
+    "evidence": {
+      "_about": "With movement_evidence (above), stretches that are not actions enter the timeline's smoothing when they carry evidence (model.py): action segments of these kinds, scored by the rules above, plus pointer_glides when the pointer glides like a hand (its moves inside movement bursts come at least at the fallback's active_rate_below a second). pointer_glides_weight is the lab's weight for >=10 moves before a click (many_moves_before_click), the same evidence in movement. no_pointer_no_evidence (above): an action with no pointer position in its window gets no evidence from no_move_act and straight. With both switches false the timeline is 0.3.4's per-action judge, as in the first version of S3.7.",
+      "kinds": ["scroll", "move"],
+      "pointer_glides_weight": -1.6
+    }
+  }
+}

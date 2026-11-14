@@ -1,0 +1,3119 @@
+{
+  "about": [
+    "Shared test vectors for AgentCake's server-half token: every site middleware (edge/node, edge/python, edge/php and",
+    "the WordPress plugin that carries it) and cake's own maker and verifier (agentcake/edge_token.py) must reproduce",
+    "them. The secrets are for tests only and are never used anywhere else. Written by edge/node/scripts/make-vectors.js;",
+    "checked by edge/node/test/vectors.test.js, tests/test_edge_vectors.py, tests/test_edge_python.py and",
+    "edge/php/tests/vectors_test.php.",
+    "mint: a request, a time, a token id and a client address make `token` (null: the request gets none); `payload` is",
+    "what the token holds. verify: `result` is what cake concludes at `now_ms` (ok, stale or bad). network_keys: the",
+    "prefix and key of an address on a day (null: not an address)."
+  ],
+  "rules": {
+    "token_prefix": "c1",
+    "payload_version": 1,
+    "max_age_ms": 900000,
+    "max_future_ms": 60000,
+    "network_key_label": "ip",
+    "network_key_hex_chars": 16,
+    "ipv4_prefix_bits": 24,
+    "ipv6_prefix_bits": 48
+  },
+  "secrets": {
+    "main": "test-only secret for the shared vectors, never used anywhere else",
+    "other": "a second test-only secret, to show a token signed with another key",
+    "tartini": "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk"
+  },
+  "mint": [
+    {
+      "name": "Chrome, address typed: Sec-Fetch-Site none, Sec-Fetch-User ?1",
+      "secret": "main",
+      "now_ms": 1794502800000,
+      "id": "vector-01",
+      "client_ip": "203.0.113.77",
+      "verdict": null,
+      "version": null,
+      "request": {
+        "method": "GET",
+        "path": "/",
+        "headers": [
+          [
+            "Host",
+            "shop.example"
+          ],
+          [
+            "Connection",
+            "keep-alive"
+          ],
+          [
+            "sec-ch-ua",
+            "\"Chromium\";v=\"142\", \"Google Chrome\";v=\"142\", \"Not_A Brand\";v=\"99\""
+          ],
+          [
+            "sec-ch-ua-mobile",
+            "?0"
+          ],
+          [
+            "sec-ch-ua-platform",
+            "\"macOS\""
+          ],
+          [
+            "Upgrade-Insecure-Requests",
+            "1"
+          ],
+          [
+            "User-Agent",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"
+          ],
+          [
+            "Accept",
+            "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8"
+          ],
+          [
+            "Sec-Fetch-Site",
+            "none"
+          ],
+          [
+            "Sec-Fetch-Mode",
+            "navigate"
+          ],
+          [
+            "Sec-Fetch-User",
+            "?1"
+          ],
+          [
+            "Sec-Fetch-Dest",
+            "document"
+          ],
+          [
+            "Accept-Encoding",
+            "gzip, deflate, br, zstd"
+          ],
+          [
+            "Accept-Language",
+            "en-US,en;q=0.9"
+          ]
+        ]
+      },
+      "payload": {
+        "v": 1,
+        "id": "vector-01",
+        "t": 1794502800000,
+        "p": "/",
+        "sf": {
+          "s": "none",
+          "m": "navigate",
+          "d": "document",
+          "u": "?1"
+        },
+        "sp": null,
+        "md": false,
+        "al": "en-US,en;q=0.9",
+        "ch": {
+          "ua": "\"Chromium\";v=\"142\", \"Google Chrome\";v=\"142\", \"Not_A Brand\";v=\"99\"",
+          "pf": "\"macOS\"",
+          "mb": "?0"
+        },
+        "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
+        "hn": [
+          "host",
+          "connection",
+          "sec-ch-ua",
+          "sec-ch-ua-mobile",
+          "sec-ch-ua-platform",
+          "upgrade-insecure-requests",
+          "user-agent",
+          "accept",
+          "sec-fetch-site",
+          "sec-fetch-mode",
+          "sec-fetch-user",
+          "sec-fetch-dest",
+          "accept-encoding",
+          "accept-language"
+        ],
+        "sg": {
+          "a": null,
+          "s": false,
+          "i": false
+        },
+        "ik": "0f9d8e93e273d6c4",
+        "bs": null,
+        "bsv": null
+      },
+      "token": "c1.eyJ2IjoxLCJpZCI6InZlY3Rvci0wMSIsInQiOjE3OTQ1MDI4MDAwMDAsInAiOiIvIiwic2YiOnsicyI6Im5vbmUiLCJtIjoibmF2aWdhdGUiLCJkIjoiZG9jdW1lbnQiLCJ1IjoiPzEifSwic3AiOm51bGwsIm1kIjpmYWxzZSwiYWwiOiJlbi1VUyxlbjtxPTAuOSIsImNoIjp7InVhIjoiXCJDaHJvbWl1bVwiO3Y9XCIxNDJcIiwgXCJHb29nbGUgQ2hyb21lXCI7dj1cIjE0MlwiLCBcIk5vdF9BIEJyYW5kXCI7dj1cIjk5XCIiLCJwZiI6IlwibWFjT1NcIiIsIm1iIjoiPzAifSwidWEiOiJNb3ppbGxhLzUuMCAoTWFjaW50b3NoOyBJbnRlbCBNYWMgT1MgWCAxMF8xNV83KSBBcHBsZVdlYktpdC81MzcuMzYgKEtIVE1MLCBsaWtlIEdlY2tvKSBDaHJvbWUvMTQyLjAuMC4wIFNhZmFyaS81MzcuMzYiLCJobiI6WyJob3N0IiwiY29ubmVjdGlvbiIsInNlYy1jaC11YSIsInNlYy1jaC11YS1tb2JpbGUiLCJzZWMtY2gtdWEtcGxhdGZvcm0iLCJ1cGdyYWRlLWluc2VjdXJlLXJlcXVlc3RzIiwidXNlci1hZ2VudCIsImFjY2VwdCIsInNlYy1mZXRjaC1zaXRlIiwic2VjLWZldGNoLW1vZGUiLCJzZWMtZmV0Y2gtdXNlciIsInNlYy1mZXRjaC1kZXN0IiwiYWNjZXB0LWVuY29kaW5nIiwiYWNjZXB0LWxhbmd1YWdlIl0sInNnIjp7ImEiOm51bGwsInMiOmZhbHNlLCJpIjpmYWxzZX0sImlrIjoiMGY5ZDhlOTNlMjczZDZjNCIsImJzIjpudWxsLCJic3YiOm51bGx9.XkliJ11lQeJK3GBmBWJaQms79XIhN1RnkZz-6HC5Ca0"
+    },
+    {
+      "name": "Chrome, a link on the same site, with a query the token leaves out",
+      "secret": "main",
+      "now_ms": 1794502800000,
+      "id": "vector-02",
+      "client_ip": "203.0.113.77",
+      "verdict": null,
+      "version": null,
+      "request": {
+        "method": "GET",
+        "path": "/products/cake?ref=home",
+        "headers": [
+          [
+            "Host",
+            "shop.example"
+          ],
+          [
+            "Connection",
+            "keep-alive"
+          ],
+          [
+            "sec-ch-ua",
+            "\"Chromium\";v=\"142\", \"Google Chrome\";v=\"142\", \"Not_A Brand\";v=\"99\""
+          ],
+          [
+            "sec-ch-ua-mobile",
+            "?0"
+          ],
+          [
+            "sec-ch-ua-platform",
+            "\"macOS\""
+          ],
+          [
+            "Upgrade-Insecure-Requests",
+            "1"
+          ],
+          [
+            "User-Agent",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"
+          ],
+          [
+            "Accept",
+            "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8"
+          ],
+          [
+            "Sec-Fetch-Site",
+            "same-origin"
+          ],
+          [
+            "Sec-Fetch-Mode",
+            "navigate"
+          ],
+          [
+            "Sec-Fetch-User",
+            "?1"
+          ],
+          [
+            "Sec-Fetch-Dest",
+            "document"
+          ],
+          [
+            "Referer",
+            "https://shop.example/"
+          ],
+          [
+            "Accept-Encoding",
+            "gzip, deflate, br, zstd"
+          ],
+          [
+            "Accept-Language",
+            "en-US,en;q=0.9"
+          ]
+        ]
+      },
+      "payload": {
+        "v": 1,
+        "id": "vector-02",
+        "t": 1794502800000,
+        "p": "/products/cake",
+        "sf": {
+          "s": "same-origin",
+          "m": "navigate",
+          "d": "document",
+          "u": "?1"
+        },
+        "sp": null,
+        "md": false,
+        "al": "en-US,en;q=0.9",
+        "ch": {
+          "ua": "\"Chromium\";v=\"142\", \"Google Chrome\";v=\"142\", \"Not_A Brand\";v=\"99\"",
+          "pf": "\"macOS\"",
+          "mb": "?0"
+        },
+        "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
+        "hn": [
+          "host",
+          "connection",
+          "sec-ch-ua",
+          "sec-ch-ua-mobile",
+          "sec-ch-ua-platform",
+          "upgrade-insecure-requests",
+          "user-agent",
+          "accept",
+          "sec-fetch-site",
+          "sec-fetch-mode",
+          "sec-fetch-user",
+          "sec-fetch-dest",
+          "referer",
+          "accept-encoding",
+          "accept-language"
+        ],
+        "sg": {
+          "a": null,
+          "s": false,
+          "i": false
+        },
+        "ik": "0f9d8e93e273d6c4",
+        "bs": null,
+        "bsv": null
+      },
+      "token": "c1.eyJ2IjoxLCJpZCI6InZlY3Rvci0wMiIsInQiOjE3OTQ1MDI4MDAwMDAsInAiOiIvcHJvZHVjdHMvY2FrZSIsInNmIjp7InMiOiJzYW1lLW9yaWdpbiIsIm0iOiJuYXZpZ2F0ZSIsImQiOiJkb2N1bWVudCIsInUiOiI_MSJ9LCJzcCI6bnVsbCwibWQiOmZhbHNlLCJhbCI6ImVuLVVTLGVuO3E9MC45IiwiY2giOnsidWEiOiJcIkNocm9taXVtXCI7dj1cIjE0MlwiLCBcIkdvb2dsZSBDaHJvbWVcIjt2PVwiMTQyXCIsIFwiTm90X0EgQnJhbmRcIjt2PVwiOTlcIiIsInBmIjoiXCJtYWNPU1wiIiwibWIiOiI_MCJ9LCJ1YSI6Ik1vemlsbGEvNS4wIChNYWNpbnRvc2g7IEludGVsIE1hYyBPUyBYIDEwXzE1XzcpIEFwcGxlV2ViS2l0LzUzNy4zNiAoS0hUTUwsIGxpa2UgR2Vja28pIENocm9tZS8xNDIuMC4wLjAgU2FmYXJpLzUzNy4zNiIsImhuIjpbImhvc3QiLCJjb25uZWN0aW9uIiwic2VjLWNoLXVhIiwic2VjLWNoLXVhLW1vYmlsZSIsInNlYy1jaC11YS1wbGF0Zm9ybSIsInVwZ3JhZGUtaW5zZWN1cmUtcmVxdWVzdHMiLCJ1c2VyLWFnZW50IiwiYWNjZXB0Iiwic2VjLWZldGNoLXNpdGUiLCJzZWMtZmV0Y2gtbW9kZSIsInNlYy1mZXRjaC11c2VyIiwic2VjLWZldGNoLWRlc3QiLCJyZWZlcmVyIiwiYWNjZXB0LWVuY29kaW5nIiwiYWNjZXB0LWxhbmd1YWdlIl0sInNnIjp7ImEiOm51bGwsInMiOmZhbHNlLCJpIjpmYWxzZX0sImlrIjoiMGY5ZDhlOTNlMjczZDZjNCIsImJzIjpudWxsLCJic3YiOm51bGx9.o5ni6i8YhTEYM6OCU7HLS6jZsEMz2ZjzfM3HxAlF89c"
+    },
+    {
+      "name": "first page from another site, no user activation (what Claude in Chrome's first page looks like)",
+      "secret": "main",
+      "now_ms": 1794502800000,
+      "id": "vector-03",
+      "client_ip": "203.0.113.77",
+      "verdict": null,
+      "version": null,
+      "request": {
+        "method": "GET",
+        "path": "/",
+        "headers": [
+          [
+            "Host",
+            "shop.example"
+          ],
+          [
+            "Connection",
+            "keep-alive"
+          ],
+          [
+            "sec-ch-ua",
+            "\"Chromium\";v=\"142\", \"Google Chrome\";v=\"142\", \"Not_A Brand\";v=\"99\""
+          ],
+          [
+            "sec-ch-ua-mobile",
+            "?0"
+          ],
+          [
+            "sec-ch-ua-platform",
+            "\"macOS\""
+          ],
+          [
+            "Upgrade-Insecure-Requests",
+            "1"
+          ],
+          [
+            "User-Agent",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"
+          ],
+          [
+            "Accept",
+            "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8"
+          ],
+          [
+            "Sec-Fetch-Site",
+            "cross-site"
+          ],
+          [
+            "Sec-Fetch-Mode",
+            "navigate"
+          ],
+          [
+            "Sec-Fetch-Dest",
+            "document"
+          ],
+          [
+            "Accept-Encoding",
+            "gzip, deflate, br, zstd"
+          ],
+          [
+            "Accept-Language",
+            "en-US,en;q=0.9"
+          ]
+        ]
+      },
+      "payload": {
+        "v": 1,
+        "id": "vector-03",
+        "t": 1794502800000,
+        "p": "/",
+        "sf": {
+          "s": "cross-site",
+          "m": "navigate",
+          "d": "document",
+          "u": null
+        },
+        "sp": null,
+        "md": false,
+        "al": "en-US,en;q=0.9",
+        "ch": {
+          "ua": "\"Chromium\";v=\"142\", \"Google Chrome\";v=\"142\", \"Not_A Brand\";v=\"99\"",
+          "pf": "\"macOS\"",
+          "mb": "?0"
+        },
+        "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
+        "hn": [
+          "host",
+          "connection",
+          "sec-ch-ua",
+          "sec-ch-ua-mobile",
+          "sec-ch-ua-platform",
+          "upgrade-insecure-requests",
+          "user-agent",
+          "accept",
+          "sec-fetch-site",
+          "sec-fetch-mode",
+          "sec-fetch-dest",
+          "accept-encoding",
+          "accept-language"
+        ],
+        "sg": {
+          "a": null,
+          "s": false,
+          "i": false
+        },
+        "ik": "0f9d8e93e273d6c4",
+        "bs": null,
+        "bsv": null
+      },
+      "token": "c1.eyJ2IjoxLCJpZCI6InZlY3Rvci0wMyIsInQiOjE3OTQ1MDI4MDAwMDAsInAiOiIvIiwic2YiOnsicyI6ImNyb3NzLXNpdGUiLCJtIjoibmF2aWdhdGUiLCJkIjoiZG9jdW1lbnQiLCJ1IjpudWxsfSwic3AiOm51bGwsIm1kIjpmYWxzZSwiYWwiOiJlbi1VUyxlbjtxPTAuOSIsImNoIjp7InVhIjoiXCJDaHJvbWl1bVwiO3Y9XCIxNDJcIiwgXCJHb29nbGUgQ2hyb21lXCI7dj1cIjE0MlwiLCBcIk5vdF9BIEJyYW5kXCI7dj1cIjk5XCIiLCJwZiI6IlwibWFjT1NcIiIsIm1iIjoiPzAifSwidWEiOiJNb3ppbGxhLzUuMCAoTWFjaW50b3NoOyBJbnRlbCBNYWMgT1MgWCAxMF8xNV83KSBBcHBsZVdlYktpdC81MzcuMzYgKEtIVE1MLCBsaWtlIEdlY2tvKSBDaHJvbWUvMTQyLjAuMC4wIFNhZmFyaS81MzcuMzYiLCJobiI6WyJob3N0IiwiY29ubmVjdGlvbiIsInNlYy1jaC11YSIsInNlYy1jaC11YS1tb2JpbGUiLCJzZWMtY2gtdWEtcGxhdGZvcm0iLCJ1cGdyYWRlLWluc2VjdXJlLXJlcXVlc3RzIiwidXNlci1hZ2VudCIsImFjY2VwdCIsInNlYy1mZXRjaC1zaXRlIiwic2VjLWZldGNoLW1vZGUiLCJzZWMtZmV0Y2gtZGVzdCIsImFjY2VwdC1lbmNvZGluZyIsImFjY2VwdC1sYW5ndWFnZSJdLCJzZyI6eyJhIjpudWxsLCJzIjpmYWxzZSwiaSI6ZmFsc2V9LCJpayI6IjBmOWQ4ZTkzZTI3M2Q2YzQiLCJicyI6bnVsbCwiYnN2IjpudWxsfQ.7qeOGE_LjBX8uj3cvv-_0JP3l0gg3l5PuYJ8VWDe49M"
+    },
+    {
+      "name": "a signed agent: Signature-Agent kept as sent, Signature and Signature-Input only as present",
+      "secret": "main",
+      "now_ms": 1794502800000,
+      "id": "vector-04",
+      "client_ip": "203.0.113.77",
+      "verdict": null,
+      "version": null,
+      "request": {
+        "method": "GET",
+        "path": "/",
+        "headers": [
+          [
+            "Host",
+            "shop.example"
+          ],
+          [
+            "Connection",
+            "keep-alive"
+          ],
+          [
+            "sec-ch-ua",
+            "\"Chromium\";v=\"142\", \"Google Chrome\";v=\"142\", \"Not_A Brand\";v=\"99\""
+          ],
+          [
+            "sec-ch-ua-mobile",
+            "?0"
+          ],
+          [
+            "sec-ch-ua-platform",
+            "\"macOS\""
+          ],
+          [
+            "Upgrade-Insecure-Requests",
+            "1"
+          ],
+          [
+            "User-Agent",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"
+          ],
+          [
+            "Accept",
+            "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8"
+          ],
+          [
+            "Sec-Fetch-Site",
+            "cross-site"
+          ],
+          [
+            "Sec-Fetch-Mode",
+            "navigate"
+          ],
+          [
+            "Sec-Fetch-Dest",
+            "document"
+          ],
+          [
+            "Signature-Agent",
+            "\"https://chatgpt.com\""
+          ],
+          [
+            "Signature-Input",
+            "sig1=(\"@authority\" \"signature-agent\");created=1794502790;keyid=\"k1\";tag=\"web-bot-auth\""
+          ],
+          [
+            "Signature",
+            "sig1=:dGVzdC1vbmx5LXNpZ25hdHVyZQ==:"
+          ],
+          [
+            "Accept-Encoding",
+            "gzip, deflate, br, zstd"
+          ],
+          [
+            "Accept-Language",
+            "en-US,en;q=0.9"
+          ]
+        ]
+      },
+      "payload": {
+        "v": 1,
+        "id": "vector-04",
+        "t": 1794502800000,
+        "p": "/",
+        "sf": {
+          "s": "cross-site",
+          "m": "navigate",
+          "d": "document",
+          "u": null
+        },
+        "sp": null,
+        "md": false,
+        "al": "en-US,en;q=0.9",
+        "ch": {
+          "ua": "\"Chromium\";v=\"142\", \"Google Chrome\";v=\"142\", \"Not_A Brand\";v=\"99\"",
+          "pf": "\"macOS\"",
+          "mb": "?0"
+        },
+        "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
+        "hn": [
+          "host",
+          "connection",
+          "sec-ch-ua",
+          "sec-ch-ua-mobile",
+          "sec-ch-ua-platform",
+          "upgrade-insecure-requests",
+          "user-agent",
+          "accept",
+          "sec-fetch-site",
+          "sec-fetch-mode",
+          "sec-fetch-dest",
+          "signature-agent",
+          "signature-input",
+          "signature",
+          "accept-encoding",
+          "accept-language"
+        ],
+        "sg": {
+          "a": "\"https://chatgpt.com\"",
+          "s": true,
+          "i": true
+        },
+        "ik": "0f9d8e93e273d6c4",
+        "bs": null,
+        "bsv": null
+      },
+      "token": "c1.eyJ2IjoxLCJpZCI6InZlY3Rvci0wNCIsInQiOjE3OTQ1MDI4MDAwMDAsInAiOiIvIiwic2YiOnsicyI6ImNyb3NzLXNpdGUiLCJtIjoibmF2aWdhdGUiLCJkIjoiZG9jdW1lbnQiLCJ1IjpudWxsfSwic3AiOm51bGwsIm1kIjpmYWxzZSwiYWwiOiJlbi1VUyxlbjtxPTAuOSIsImNoIjp7InVhIjoiXCJDaHJvbWl1bVwiO3Y9XCIxNDJcIiwgXCJHb29nbGUgQ2hyb21lXCI7dj1cIjE0MlwiLCBcIk5vdF9BIEJyYW5kXCI7dj1cIjk5XCIiLCJwZiI6IlwibWFjT1NcIiIsIm1iIjoiPzAifSwidWEiOiJNb3ppbGxhLzUuMCAoTWFjaW50b3NoOyBJbnRlbCBNYWMgT1MgWCAxMF8xNV83KSBBcHBsZVdlYktpdC81MzcuMzYgKEtIVE1MLCBsaWtlIEdlY2tvKSBDaHJvbWUvMTQyLjAuMC4wIFNhZmFyaS81MzcuMzYiLCJobiI6WyJob3N0IiwiY29ubmVjdGlvbiIsInNlYy1jaC11YSIsInNlYy1jaC11YS1tb2JpbGUiLCJzZWMtY2gtdWEtcGxhdGZvcm0iLCJ1cGdyYWRlLWluc2VjdXJlLXJlcXVlc3RzIiwidXNlci1hZ2VudCIsImFjY2VwdCIsInNlYy1mZXRjaC1zaXRlIiwic2VjLWZldGNoLW1vZGUiLCJzZWMtZmV0Y2gtZGVzdCIsInNpZ25hdHVyZS1hZ2VudCIsInNpZ25hdHVyZS1pbnB1dCIsInNpZ25hdHVyZSIsImFjY2VwdC1lbmNvZGluZyIsImFjY2VwdC1sYW5ndWFnZSJdLCJzZyI6eyJhIjoiXCJodHRwczovL2NoYXRncHQuY29tXCIiLCJzIjp0cnVlLCJpIjp0cnVlfSwiaWsiOiIwZjlkOGU5M2UyNzNkNmM0IiwiYnMiOm51bGwsImJzdiI6bnVsbH0.4GV8P4V76nEVCo5ZlwiVgPFl6V3t-IVU-fpBCZDRoB4"
+    },
+    {
+      "name": "a prerender: Sec-Purpose recorded, no user activation",
+      "secret": "main",
+      "now_ms": 1794502800000,
+      "id": "vector-05",
+      "client_ip": "203.0.113.77",
+      "verdict": null,
+      "version": null,
+      "request": {
+        "method": "GET",
+        "path": "/next",
+        "headers": [
+          [
+            "Host",
+            "shop.example"
+          ],
+          [
+            "Connection",
+            "keep-alive"
+          ],
+          [
+            "sec-ch-ua",
+            "\"Chromium\";v=\"142\", \"Google Chrome\";v=\"142\", \"Not_A Brand\";v=\"99\""
+          ],
+          [
+            "sec-ch-ua-mobile",
+            "?0"
+          ],
+          [
+            "sec-ch-ua-platform",
+            "\"macOS\""
+          ],
+          [
+            "Upgrade-Insecure-Requests",
+            "1"
+          ],
+          [
+            "User-Agent",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"
+          ],
+          [
+            "Accept",
+            "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8"
+          ],
+          [
+            "Sec-Purpose",
+            "prefetch;prerender"
+          ],
+          [
+            "Sec-Fetch-Site",
+            "same-origin"
+          ],
+          [
+            "Sec-Fetch-Mode",
+            "navigate"
+          ],
+          [
+            "Sec-Fetch-Dest",
+            "document"
+          ],
+          [
+            "Accept-Encoding",
+            "gzip, deflate, br, zstd"
+          ],
+          [
+            "Accept-Language",
+            "en-US,en;q=0.9"
+          ]
+        ]
+      },
+      "payload": {
+        "v": 1,
+        "id": "vector-05",
+        "t": 1794502800000,
+        "p": "/next",
+        "sf": {
+          "s": "same-origin",
+          "m": "navigate",
+          "d": "document",
+          "u": null
+        },
+        "sp": "prefetch;prerender",
+        "md": false,
+        "al": "en-US,en;q=0.9",
+        "ch": {
+          "ua": "\"Chromium\";v=\"142\", \"Google Chrome\";v=\"142\", \"Not_A Brand\";v=\"99\"",
+          "pf": "\"macOS\"",
+          "mb": "?0"
+        },
+        "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
+        "hn": [
+          "host",
+          "connection",
+          "sec-ch-ua",
+          "sec-ch-ua-mobile",
+          "sec-ch-ua-platform",
+          "upgrade-insecure-requests",
+          "user-agent",
+          "accept",
+          "sec-purpose",
+          "sec-fetch-site",
+          "sec-fetch-mode",
+          "sec-fetch-dest",
+          "accept-encoding",
+          "accept-language"
+        ],
+        "sg": {
+          "a": null,
+          "s": false,
+          "i": false
+        },
+        "ik": "0f9d8e93e273d6c4",
+        "bs": null,
+        "bsv": null
+      },
+      "token": "c1.eyJ2IjoxLCJpZCI6InZlY3Rvci0wNSIsInQiOjE3OTQ1MDI4MDAwMDAsInAiOiIvbmV4dCIsInNmIjp7InMiOiJzYW1lLW9yaWdpbiIsIm0iOiJuYXZpZ2F0ZSIsImQiOiJkb2N1bWVudCIsInUiOm51bGx9LCJzcCI6InByZWZldGNoO3ByZXJlbmRlciIsIm1kIjpmYWxzZSwiYWwiOiJlbi1VUyxlbjtxPTAuOSIsImNoIjp7InVhIjoiXCJDaHJvbWl1bVwiO3Y9XCIxNDJcIiwgXCJHb29nbGUgQ2hyb21lXCI7dj1cIjE0MlwiLCBcIk5vdF9BIEJyYW5kXCI7dj1cIjk5XCIiLCJwZiI6IlwibWFjT1NcIiIsIm1iIjoiPzAifSwidWEiOiJNb3ppbGxhLzUuMCAoTWFjaW50b3NoOyBJbnRlbCBNYWMgT1MgWCAxMF8xNV83KSBBcHBsZVdlYktpdC81MzcuMzYgKEtIVE1MLCBsaWtlIEdlY2tvKSBDaHJvbWUvMTQyLjAuMC4wIFNhZmFyaS81MzcuMzYiLCJobiI6WyJob3N0IiwiY29ubmVjdGlvbiIsInNlYy1jaC11YSIsInNlYy1jaC11YS1tb2JpbGUiLCJzZWMtY2gtdWEtcGxhdGZvcm0iLCJ1cGdyYWRlLWluc2VjdXJlLXJlcXVlc3RzIiwidXNlci1hZ2VudCIsImFjY2VwdCIsInNlYy1wdXJwb3NlIiwic2VjLWZldGNoLXNpdGUiLCJzZWMtZmV0Y2gtbW9kZSIsInNlYy1mZXRjaC1kZXN0IiwiYWNjZXB0LWVuY29kaW5nIiwiYWNjZXB0LWxhbmd1YWdlIl0sInNnIjp7ImEiOm51bGwsInMiOmZhbHNlLCJpIjpmYWxzZX0sImlrIjoiMGY5ZDhlOTNlMjczZDZjNCIsImJzIjpudWxsLCJic3YiOm51bGx9.3wtyFueM93sfFptaWLzxSKjwtZqZqbKrE8cRT4_qgcc"
+    },
+    {
+      "name": "Safari 15, no fetch metadata, accepts text/html; an IPv6 client",
+      "secret": "main",
+      "now_ms": 1794502800000,
+      "id": "vector-06",
+      "client_ip": "2001:db8:abcd:12::1",
+      "verdict": null,
+      "version": null,
+      "request": {
+        "method": "GET",
+        "path": "/",
+        "headers": [
+          [
+            "Host",
+            "shop.example"
+          ],
+          [
+            "Connection",
+            "keep-alive"
+          ],
+          [
+            "Accept",
+            "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+          ],
+          [
+            "User-Agent",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.6 Safari/605.1.15"
+          ],
+          [
+            "Accept-Language",
+            "en-GB,en;q=0.9"
+          ],
+          [
+            "Accept-Encoding",
+            "gzip, deflate, br"
+          ]
+        ]
+      },
+      "payload": {
+        "v": 1,
+        "id": "vector-06",
+        "t": 1794502800000,
+        "p": "/",
+        "sf": {
+          "s": null,
+          "m": null,
+          "d": null,
+          "u": null
+        },
+        "sp": null,
+        "md": false,
+        "al": "en-GB,en;q=0.9",
+        "ch": {
+          "ua": null,
+          "pf": null,
+          "mb": null
+        },
+        "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.6 Safari/605.1.15",
+        "hn": [
+          "host",
+          "connection",
+          "accept",
+          "user-agent",
+          "accept-language",
+          "accept-encoding"
+        ],
+        "sg": {
+          "a": null,
+          "s": false,
+          "i": false
+        },
+        "ik": "4d654849b725a46d",
+        "bs": null,
+        "bsv": null
+      },
+      "token": "c1.eyJ2IjoxLCJpZCI6InZlY3Rvci0wNiIsInQiOjE3OTQ1MDI4MDAwMDAsInAiOiIvIiwic2YiOnsicyI6bnVsbCwibSI6bnVsbCwiZCI6bnVsbCwidSI6bnVsbH0sInNwIjpudWxsLCJtZCI6ZmFsc2UsImFsIjoiZW4tR0IsZW47cT0wLjkiLCJjaCI6eyJ1YSI6bnVsbCwicGYiOm51bGwsIm1iIjpudWxsfSwidWEiOiJNb3ppbGxhLzUuMCAoTWFjaW50b3NoOyBJbnRlbCBNYWMgT1MgWCAxMF8xNV83KSBBcHBsZVdlYktpdC82MDUuMS4xNSAoS0hUTUwsIGxpa2UgR2Vja28pIFZlcnNpb24vMTUuNiBTYWZhcmkvNjA1LjEuMTUiLCJobiI6WyJob3N0IiwiY29ubmVjdGlvbiIsImFjY2VwdCIsInVzZXItYWdlbnQiLCJhY2NlcHQtbGFuZ3VhZ2UiLCJhY2NlcHQtZW5jb2RpbmciXSwic2ciOnsiYSI6bnVsbCwicyI6ZmFsc2UsImkiOmZhbHNlfSwiaWsiOiI0ZDY1NDg0OWI3MjVhNDZkIiwiYnMiOm51bGwsImJzdiI6bnVsbH0.YpwPPqETx_E4L9gMMaGoTpt8LqwCO2WcWYcTyi-yTFI"
+    },
+    {
+      "name": "an agent asking for markdown first",
+      "secret": "main",
+      "now_ms": 1794502800000,
+      "id": "vector-07",
+      "client_ip": "203.0.113.77",
+      "verdict": null,
+      "version": null,
+      "request": {
+        "method": "GET",
+        "path": "/",
+        "headers": [
+          [
+            "Host",
+            "shop.example"
+          ],
+          [
+            "Connection",
+            "keep-alive"
+          ],
+          [
+            "User-Agent",
+            "ExampleAgent/1.0"
+          ],
+          [
+            "Accept",
+            "text/markdown, text/html;q=0.9"
+          ]
+        ]
+      },
+      "payload": {
+        "v": 1,
+        "id": "vector-07",
+        "t": 1794502800000,
+        "p": "/",
+        "sf": {
+          "s": null,
+          "m": null,
+          "d": null,
+          "u": null
+        },
+        "sp": null,
+        "md": true,
+        "al": null,
+        "ch": {
+          "ua": null,
+          "pf": null,
+          "mb": null
+        },
+        "ua": "ExampleAgent/1.0",
+        "hn": [
+          "host",
+          "connection",
+          "user-agent",
+          "accept"
+        ],
+        "sg": {
+          "a": null,
+          "s": false,
+          "i": false
+        },
+        "ik": "0f9d8e93e273d6c4",
+        "bs": null,
+        "bsv": null
+      },
+      "token": "c1.eyJ2IjoxLCJpZCI6InZlY3Rvci0wNyIsInQiOjE3OTQ1MDI4MDAwMDAsInAiOiIvIiwic2YiOnsicyI6bnVsbCwibSI6bnVsbCwiZCI6bnVsbCwidSI6bnVsbH0sInNwIjpudWxsLCJtZCI6dHJ1ZSwiYWwiOm51bGwsImNoIjp7InVhIjpudWxsLCJwZiI6bnVsbCwibWIiOm51bGx9LCJ1YSI6IkV4YW1wbGVBZ2VudC8xLjAiLCJobiI6WyJob3N0IiwiY29ubmVjdGlvbiIsInVzZXItYWdlbnQiLCJhY2NlcHQiXSwic2ciOnsiYSI6bnVsbCwicyI6ZmFsc2UsImkiOmZhbHNlfSwiaWsiOiIwZjlkOGU5M2UyNzNkNmM0IiwiYnMiOm51bGwsImJzdiI6bnVsbH0.Ek8lraVC7GslXtHjD6hNCRe8X5GGSz41tzj-6UDWsuY"
+    },
+    {
+      "name": "long values cut, control characters removed",
+      "secret": "main",
+      "now_ms": 1794502800000,
+      "id": "vector-08",
+      "client_ip": "203.0.113.77",
+      "verdict": null,
+      "version": null,
+      "request": {
+        "method": "GET",
+        "path": "/pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp",
+        "headers": [
+          [
+            "Host",
+            "shop.example"
+          ],
+          [
+            "Connection",
+            "keep-alive"
+          ],
+          [
+            "sec-ch-ua",
+            "\"Chromium\";v=\"142\", \"Google Chrome\";v=\"142\", \"Not_A Brand\";v=\"99\""
+          ],
+          [
+            "sec-ch-ua-mobile",
+            "?0"
+          ],
+          [
+            "sec-ch-ua-platform",
+            "\"macOS\""
+          ],
+          [
+            "Upgrade-Insecure-Requests",
+            "1"
+          ],
+          [
+            "User-Agent",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+          ],
+          [
+            "Accept",
+            "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8"
+          ],
+          [
+            "Sec-Fetch-Site",
+            "none"
+          ],
+          [
+            "Sec-Fetch-Mode",
+            "navigate"
+          ],
+          [
+            "Sec-Fetch-User",
+            "?1"
+          ],
+          [
+            "Sec-Fetch-Dest",
+            "document"
+          ],
+          [
+            "X-Long",
+            "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+          ],
+          [
+            "Accept-Encoding",
+            "gzip, deflate, br, zstd"
+          ],
+          [
+            "Accept-Language",
+            "en\u0007-US,\u001fen;q=0.9"
+          ]
+        ]
+      },
+      "payload": {
+        "v": 1,
+        "id": "vector-08",
+        "t": 1794502800000,
+        "p": "/ppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp",
+        "sf": {
+          "s": "none",
+          "m": "navigate",
+          "d": "document",
+          "u": "?1"
+        },
+        "sp": null,
+        "md": false,
+        "al": "en-US,en;q=0.9",
+        "ch": {
+          "ua": "\"Chromium\";v=\"142\", \"Google Chrome\";v=\"142\", \"Not_A Brand\";v=\"99\"",
+          "pf": "\"macOS\"",
+          "mb": "?0"
+        },
+        "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+        "hn": [
+          "host",
+          "connection",
+          "sec-ch-ua",
+          "sec-ch-ua-mobile",
+          "sec-ch-ua-platform",
+          "upgrade-insecure-requests",
+          "user-agent",
+          "accept",
+          "sec-fetch-site",
+          "sec-fetch-mode",
+          "sec-fetch-user",
+          "sec-fetch-dest",
+          "x-long",
+          "accept-encoding",
+          "accept-language"
+        ],
+        "sg": {
+          "a": null,
+          "s": false,
+          "i": false
+        },
+        "ik": "0f9d8e93e273d6c4",
+        "bs": null,
+        "bsv": null
+      },
+      "token": "c1.eyJ2IjoxLCJpZCI6InZlY3Rvci0wOCIsInQiOjE3OTQ1MDI4MDAwMDAsInAiOiIvcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcCIsInNmIjp7InMiOiJub25lIiwibSI6Im5hdmlnYXRlIiwiZCI6ImRvY3VtZW50IiwidSI6Ij8xIn0sInNwIjpudWxsLCJtZCI6ZmFsc2UsImFsIjoiZW4tVVMsZW47cT0wLjkiLCJjaCI6eyJ1YSI6IlwiQ2hyb21pdW1cIjt2PVwiMTQyXCIsIFwiR29vZ2xlIENocm9tZVwiO3Y9XCIxNDJcIiwgXCJOb3RfQSBCcmFuZFwiO3Y9XCI5OVwiIiwicGYiOiJcIm1hY09TXCIiLCJtYiI6Ij8wIn0sInVhIjoiTW96aWxsYS81LjAgKE1hY2ludG9zaDsgSW50ZWwgTWFjIE9TIFggMTBfMTVfNykgQXBwbGVXZWJLaXQvNTM3LjM2IChLSFRNTCwgbGlrZSBHZWNrbykgQ2hyb21lLzE0Mi4wLjAuMCBTYWZhcmkvNTM3LjM2IEFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQSIsImhuIjpbImhvc3QiLCJjb25uZWN0aW9uIiwic2VjLWNoLXVhIiwic2VjLWNoLXVhLW1vYmlsZSIsInNlYy1jaC11YS1wbGF0Zm9ybSIsInVwZ3JhZGUtaW5zZWN1cmUtcmVxdWVzdHMiLCJ1c2VyLWFnZW50IiwiYWNjZXB0Iiwic2VjLWZldGNoLXNpdGUiLCJzZWMtZmV0Y2gtbW9kZSIsInNlYy1mZXRjaC11c2VyIiwic2VjLWZldGNoLWRlc3QiLCJ4LWxvbmciLCJhY2NlcHQtZW5jb2RpbmciLCJhY2NlcHQtbGFuZ3VhZ2UiXSwic2ciOnsiYSI6bnVsbCwicyI6ZmFsc2UsImkiOmZhbHNlfSwiaWsiOiIwZjlkOGU5M2UyNzNkNmM0IiwiYnMiOm51bGwsImJzdiI6bnVsbH0.hig4iDY3wSoEWqCdfuo_KKi9_Cp9aqOlDQGi_n91Nwc"
+    },
+    {
+      "name": "a header line sent twice is joined with ', '",
+      "secret": "main",
+      "now_ms": 1794502800000,
+      "id": "vector-09",
+      "client_ip": "203.0.113.77",
+      "verdict": null,
+      "version": null,
+      "request": {
+        "method": "GET",
+        "path": "/",
+        "headers": [
+          [
+            "Host",
+            "shop.example"
+          ],
+          [
+            "Connection",
+            "keep-alive"
+          ],
+          [
+            "sec-ch-ua",
+            "\"Chromium\";v=\"142\", \"Google Chrome\";v=\"142\", \"Not_A Brand\";v=\"99\""
+          ],
+          [
+            "sec-ch-ua-mobile",
+            "?0"
+          ],
+          [
+            "sec-ch-ua-platform",
+            "\"macOS\""
+          ],
+          [
+            "Upgrade-Insecure-Requests",
+            "1"
+          ],
+          [
+            "User-Agent",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"
+          ],
+          [
+            "Accept",
+            "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8"
+          ],
+          [
+            "Sec-Fetch-Site",
+            "none"
+          ],
+          [
+            "Sec-Fetch-Mode",
+            "navigate"
+          ],
+          [
+            "Sec-Fetch-User",
+            "?1"
+          ],
+          [
+            "Sec-Fetch-Dest",
+            "document"
+          ],
+          [
+            "Accept-Encoding",
+            "gzip, deflate, br, zstd"
+          ],
+          [
+            "Accept-Language",
+            "en-US,en;q=0.9"
+          ],
+          [
+            "Accept-Language",
+            "fr;q=0.5"
+          ]
+        ]
+      },
+      "payload": {
+        "v": 1,
+        "id": "vector-09",
+        "t": 1794502800000,
+        "p": "/",
+        "sf": {
+          "s": "none",
+          "m": "navigate",
+          "d": "document",
+          "u": "?1"
+        },
+        "sp": null,
+        "md": false,
+        "al": "en-US,en;q=0.9, fr;q=0.5",
+        "ch": {
+          "ua": "\"Chromium\";v=\"142\", \"Google Chrome\";v=\"142\", \"Not_A Brand\";v=\"99\"",
+          "pf": "\"macOS\"",
+          "mb": "?0"
+        },
+        "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
+        "hn": [
+          "host",
+          "connection",
+          "sec-ch-ua",
+          "sec-ch-ua-mobile",
+          "sec-ch-ua-platform",
+          "upgrade-insecure-requests",
+          "user-agent",
+          "accept",
+          "sec-fetch-site",
+          "sec-fetch-mode",
+          "sec-fetch-user",
+          "sec-fetch-dest",
+          "accept-encoding",
+          "accept-language",
+          "accept-language"
+        ],
+        "sg": {
+          "a": null,
+          "s": false,
+          "i": false
+        },
+        "ik": "0f9d8e93e273d6c4",
+        "bs": null,
+        "bsv": null
+      },
+      "token": "c1.eyJ2IjoxLCJpZCI6InZlY3Rvci0wOSIsInQiOjE3OTQ1MDI4MDAwMDAsInAiOiIvIiwic2YiOnsicyI6Im5vbmUiLCJtIjoibmF2aWdhdGUiLCJkIjoiZG9jdW1lbnQiLCJ1IjoiPzEifSwic3AiOm51bGwsIm1kIjpmYWxzZSwiYWwiOiJlbi1VUyxlbjtxPTAuOSwgZnI7cT0wLjUiLCJjaCI6eyJ1YSI6IlwiQ2hyb21pdW1cIjt2PVwiMTQyXCIsIFwiR29vZ2xlIENocm9tZVwiO3Y9XCIxNDJcIiwgXCJOb3RfQSBCcmFuZFwiO3Y9XCI5OVwiIiwicGYiOiJcIm1hY09TXCIiLCJtYiI6Ij8wIn0sInVhIjoiTW96aWxsYS81LjAgKE1hY2ludG9zaDsgSW50ZWwgTWFjIE9TIFggMTBfMTVfNykgQXBwbGVXZWJLaXQvNTM3LjM2IChLSFRNTCwgbGlrZSBHZWNrbykgQ2hyb21lLzE0Mi4wLjAuMCBTYWZhcmkvNTM3LjM2IiwiaG4iOlsiaG9zdCIsImNvbm5lY3Rpb24iLCJzZWMtY2gtdWEiLCJzZWMtY2gtdWEtbW9iaWxlIiwic2VjLWNoLXVhLXBsYXRmb3JtIiwidXBncmFkZS1pbnNlY3VyZS1yZXF1ZXN0cyIsInVzZXItYWdlbnQiLCJhY2NlcHQiLCJzZWMtZmV0Y2gtc2l0ZSIsInNlYy1mZXRjaC1tb2RlIiwic2VjLWZldGNoLXVzZXIiLCJzZWMtZmV0Y2gtZGVzdCIsImFjY2VwdC1lbmNvZGluZyIsImFjY2VwdC1sYW5ndWFnZSIsImFjY2VwdC1sYW5ndWFnZSJdLCJzZyI6eyJhIjpudWxsLCJzIjpmYWxzZSwiaSI6ZmFsc2V9LCJpayI6IjBmOWQ4ZTkzZTI3M2Q2YzQiLCJicyI6bnVsbCwiYnN2IjpudWxsfQ.4j6b0AKQkGkgPkVU3aoVlnhAXlAIuawpukl5mFKgX24"
+    },
+    {
+      "name": "more header lines than the token keeps names of",
+      "secret": "main",
+      "now_ms": 1794502800000,
+      "id": "vector-10",
+      "client_ip": "203.0.113.77",
+      "verdict": null,
+      "version": null,
+      "request": {
+        "method": "GET",
+        "path": "/",
+        "headers": [
+          [
+            "Host",
+            "shop.example"
+          ],
+          [
+            "Connection",
+            "keep-alive"
+          ],
+          [
+            "sec-ch-ua",
+            "\"Chromium\";v=\"142\", \"Google Chrome\";v=\"142\", \"Not_A Brand\";v=\"99\""
+          ],
+          [
+            "sec-ch-ua-mobile",
+            "?0"
+          ],
+          [
+            "sec-ch-ua-platform",
+            "\"macOS\""
+          ],
+          [
+            "Upgrade-Insecure-Requests",
+            "1"
+          ],
+          [
+            "User-Agent",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"
+          ],
+          [
+            "Accept",
+            "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8"
+          ],
+          [
+            "Sec-Fetch-Site",
+            "none"
+          ],
+          [
+            "Sec-Fetch-Mode",
+            "navigate"
+          ],
+          [
+            "Sec-Fetch-User",
+            "?1"
+          ],
+          [
+            "Sec-Fetch-Dest",
+            "document"
+          ],
+          [
+            "Accept-Encoding",
+            "gzip, deflate, br, zstd"
+          ],
+          [
+            "Accept-Language",
+            "en-US,en;q=0.9"
+          ],
+          [
+            "X-Extra-0",
+            "extra-0"
+          ],
+          [
+            "X-Extra-1",
+            "extra-1"
+          ],
+          [
+            "X-Extra-2",
+            "extra-2"
+          ],
+          [
+            "X-Extra-3",
+            "extra-3"
+          ],
+          [
+            "X-Extra-4",
+            "extra-4"
+          ],
+          [
+            "X-Extra-5",
+            "extra-5"
+          ],
+          [
+            "X-Extra-6",
+            "extra-6"
+          ],
+          [
+            "X-Extra-7",
+            "extra-7"
+          ],
+          [
+            "X-Extra-8",
+            "extra-8"
+          ],
+          [
+            "X-Extra-9",
+            "extra-9"
+          ],
+          [
+            "X-Extra-10",
+            "extra-10"
+          ],
+          [
+            "X-Extra-11",
+            "extra-11"
+          ],
+          [
+            "X-Extra-12",
+            "extra-12"
+          ],
+          [
+            "X-Extra-13",
+            "extra-13"
+          ],
+          [
+            "X-Extra-14",
+            "extra-14"
+          ],
+          [
+            "X-Extra-15",
+            "extra-15"
+          ],
+          [
+            "X-Extra-16",
+            "extra-16"
+          ],
+          [
+            "X-Extra-17",
+            "extra-17"
+          ],
+          [
+            "X-Extra-18",
+            "extra-18"
+          ],
+          [
+            "X-Extra-19",
+            "extra-19"
+          ],
+          [
+            "X-Extra-20",
+            "extra-20"
+          ],
+          [
+            "X-Extra-21",
+            "extra-21"
+          ],
+          [
+            "X-Extra-22",
+            "extra-22"
+          ],
+          [
+            "X-Extra-23",
+            "extra-23"
+          ],
+          [
+            "X-Extra-24",
+            "extra-24"
+          ],
+          [
+            "X-Extra-25",
+            "extra-25"
+          ],
+          [
+            "X-Extra-26",
+            "extra-26"
+          ],
+          [
+            "X-Extra-27",
+            "extra-27"
+          ],
+          [
+            "X-Extra-28",
+            "extra-28"
+          ],
+          [
+            "X-Extra-29",
+            "extra-29"
+          ]
+        ]
+      },
+      "payload": {
+        "v": 1,
+        "id": "vector-10",
+        "t": 1794502800000,
+        "p": "/",
+        "sf": {
+          "s": "none",
+          "m": "navigate",
+          "d": "document",
+          "u": "?1"
+        },
+        "sp": null,
+        "md": false,
+        "al": "en-US,en;q=0.9",
+        "ch": {
+          "ua": "\"Chromium\";v=\"142\", \"Google Chrome\";v=\"142\", \"Not_A Brand\";v=\"99\"",
+          "pf": "\"macOS\"",
+          "mb": "?0"
+        },
+        "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
+        "hn": [
+          "host",
+          "connection",
+          "sec-ch-ua",
+          "sec-ch-ua-mobile",
+          "sec-ch-ua-platform",
+          "upgrade-insecure-requests",
+          "user-agent",
+          "accept",
+          "sec-fetch-site",
+          "sec-fetch-mode",
+          "sec-fetch-user",
+          "sec-fetch-dest",
+          "accept-encoding",
+          "accept-language",
+          "x-extra-0",
+          "x-extra-1",
+          "x-extra-2",
+          "x-extra-3",
+          "x-extra-4",
+          "x-extra-5",
+          "x-extra-6",
+          "x-extra-7",
+          "x-extra-8",
+          "x-extra-9",
+          "x-extra-10",
+          "x-extra-11",
+          "x-extra-12",
+          "x-extra-13",
+          "x-extra-14",
+          "x-extra-15",
+          "x-extra-16",
+          "x-extra-17",
+          "x-extra-18",
+          "x-extra-19",
+          "x-extra-20",
+          "x-extra-21",
+          "x-extra-22",
+          "x-extra-23",
+          "x-extra-24",
+          "x-extra-25"
+        ],
+        "sg": {
+          "a": null,
+          "s": false,
+          "i": false
+        },
+        "ik": "0f9d8e93e273d6c4",
+        "bs": null,
+        "bsv": null
+      },
+      "token": "c1.eyJ2IjoxLCJpZCI6InZlY3Rvci0xMCIsInQiOjE3OTQ1MDI4MDAwMDAsInAiOiIvIiwic2YiOnsicyI6Im5vbmUiLCJtIjoibmF2aWdhdGUiLCJkIjoiZG9jdW1lbnQiLCJ1IjoiPzEifSwic3AiOm51bGwsIm1kIjpmYWxzZSwiYWwiOiJlbi1VUyxlbjtxPTAuOSIsImNoIjp7InVhIjoiXCJDaHJvbWl1bVwiO3Y9XCIxNDJcIiwgXCJHb29nbGUgQ2hyb21lXCI7dj1cIjE0MlwiLCBcIk5vdF9BIEJyYW5kXCI7dj1cIjk5XCIiLCJwZiI6IlwibWFjT1NcIiIsIm1iIjoiPzAifSwidWEiOiJNb3ppbGxhLzUuMCAoTWFjaW50b3NoOyBJbnRlbCBNYWMgT1MgWCAxMF8xNV83KSBBcHBsZVdlYktpdC81MzcuMzYgKEtIVE1MLCBsaWtlIEdlY2tvKSBDaHJvbWUvMTQyLjAuMC4wIFNhZmFyaS81MzcuMzYiLCJobiI6WyJob3N0IiwiY29ubmVjdGlvbiIsInNlYy1jaC11YSIsInNlYy1jaC11YS1tb2JpbGUiLCJzZWMtY2gtdWEtcGxhdGZvcm0iLCJ1cGdyYWRlLWluc2VjdXJlLXJlcXVlc3RzIiwidXNlci1hZ2VudCIsImFjY2VwdCIsInNlYy1mZXRjaC1zaXRlIiwic2VjLWZldGNoLW1vZGUiLCJzZWMtZmV0Y2gtdXNlciIsInNlYy1mZXRjaC1kZXN0IiwiYWNjZXB0LWVuY29kaW5nIiwiYWNjZXB0LWxhbmd1YWdlIiwieC1leHRyYS0wIiwieC1leHRyYS0xIiwieC1leHRyYS0yIiwieC1leHRyYS0zIiwieC1leHRyYS00IiwieC1leHRyYS01IiwieC1leHRyYS02IiwieC1leHRyYS03IiwieC1leHRyYS04IiwieC1leHRyYS05IiwieC1leHRyYS0xMCIsIngtZXh0cmEtMTEiLCJ4LWV4dHJhLTEyIiwieC1leHRyYS0xMyIsIngtZXh0cmEtMTQiLCJ4LWV4dHJhLTE1IiwieC1leHRyYS0xNiIsIngtZXh0cmEtMTciLCJ4LWV4dHJhLTE4IiwieC1leHRyYS0xOSIsIngtZXh0cmEtMjAiLCJ4LWV4dHJhLTIxIiwieC1leHRyYS0yMiIsIngtZXh0cmEtMjMiLCJ4LWV4dHJhLTI0IiwieC1leHRyYS0yNSJdLCJzZyI6eyJhIjpudWxsLCJzIjpmYWxzZSwiaSI6ZmFsc2V9LCJpayI6IjBmOWQ4ZTkzZTI3M2Q2YzQiLCJicyI6bnVsbCwiYnN2IjpudWxsfQ.J3AttuDHDkRf0TVPYrYxP5Vp4ONW5x6FQIFXbbGcfzs"
+    },
+    {
+      "name": "no client address: no network key",
+      "secret": "main",
+      "now_ms": 1794502800000,
+      "id": "vector-11",
+      "client_ip": null,
+      "verdict": null,
+      "version": null,
+      "request": {
+        "method": "GET",
+        "path": "/",
+        "headers": [
+          [
+            "Host",
+            "shop.example"
+          ],
+          [
+            "Connection",
+            "keep-alive"
+          ],
+          [
+            "sec-ch-ua",
+            "\"Chromium\";v=\"142\", \"Google Chrome\";v=\"142\", \"Not_A Brand\";v=\"99\""
+          ],
+          [
+            "sec-ch-ua-mobile",
+            "?0"
+          ],
+          [
+            "sec-ch-ua-platform",
+            "\"macOS\""
+          ],
+          [
+            "Upgrade-Insecure-Requests",
+            "1"
+          ],
+          [
+            "User-Agent",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"
+          ],
+          [
+            "Accept",
+            "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8"
+          ],
+          [
+            "Sec-Fetch-Site",
+            "none"
+          ],
+          [
+            "Sec-Fetch-Mode",
+            "navigate"
+          ],
+          [
+            "Sec-Fetch-User",
+            "?1"
+          ],
+          [
+            "Sec-Fetch-Dest",
+            "document"
+          ],
+          [
+            "Accept-Encoding",
+            "gzip, deflate, br, zstd"
+          ],
+          [
+            "Accept-Language",
+            "en-US,en;q=0.9"
+          ]
+        ]
+      },
+      "payload": {
+        "v": 1,
+        "id": "vector-11",
+        "t": 1794502800000,
+        "p": "/",
+        "sf": {
+          "s": "none",
+          "m": "navigate",
+          "d": "document",
+          "u": "?1"
+        },
+        "sp": null,
+        "md": false,
+        "al": "en-US,en;q=0.9",
+        "ch": {
+          "ua": "\"Chromium\";v=\"142\", \"Google Chrome\";v=\"142\", \"Not_A Brand\";v=\"99\"",
+          "pf": "\"macOS\"",
+          "mb": "?0"
+        },
+        "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
+        "hn": [
+          "host",
+          "connection",
+          "sec-ch-ua",
+          "sec-ch-ua-mobile",
+          "sec-ch-ua-platform",
+          "upgrade-insecure-requests",
+          "user-agent",
+          "accept",
+          "sec-fetch-site",
+          "sec-fetch-mode",
+          "sec-fetch-user",
+          "sec-fetch-dest",
+          "accept-encoding",
+          "accept-language"
+        ],
+        "sg": {
+          "a": null,
+          "s": false,
+          "i": false
+        },
+        "ik": null,
+        "bs": null,
+        "bsv": null
+      },
+      "token": "c1.eyJ2IjoxLCJpZCI6InZlY3Rvci0xMSIsInQiOjE3OTQ1MDI4MDAwMDAsInAiOiIvIiwic2YiOnsicyI6Im5vbmUiLCJtIjoibmF2aWdhdGUiLCJkIjoiZG9jdW1lbnQiLCJ1IjoiPzEifSwic3AiOm51bGwsIm1kIjpmYWxzZSwiYWwiOiJlbi1VUyxlbjtxPTAuOSIsImNoIjp7InVhIjoiXCJDaHJvbWl1bVwiO3Y9XCIxNDJcIiwgXCJHb29nbGUgQ2hyb21lXCI7dj1cIjE0MlwiLCBcIk5vdF9BIEJyYW5kXCI7dj1cIjk5XCIiLCJwZiI6IlwibWFjT1NcIiIsIm1iIjoiPzAifSwidWEiOiJNb3ppbGxhLzUuMCAoTWFjaW50b3NoOyBJbnRlbCBNYWMgT1MgWCAxMF8xNV83KSBBcHBsZVdlYktpdC81MzcuMzYgKEtIVE1MLCBsaWtlIEdlY2tvKSBDaHJvbWUvMTQyLjAuMC4wIFNhZmFyaS81MzcuMzYiLCJobiI6WyJob3N0IiwiY29ubmVjdGlvbiIsInNlYy1jaC11YSIsInNlYy1jaC11YS1tb2JpbGUiLCJzZWMtY2gtdWEtcGxhdGZvcm0iLCJ1cGdyYWRlLWluc2VjdXJlLXJlcXVlc3RzIiwidXNlci1hZ2VudCIsImFjY2VwdCIsInNlYy1mZXRjaC1zaXRlIiwic2VjLWZldGNoLW1vZGUiLCJzZWMtZmV0Y2gtdXNlciIsInNlYy1mZXRjaC1kZXN0IiwiYWNjZXB0LWVuY29kaW5nIiwiYWNjZXB0LWxhbmd1YWdlIl0sInNnIjp7ImEiOm51bGwsInMiOmZhbHNlLCJpIjpmYWxzZX0sImlrIjpudWxsLCJicyI6bnVsbCwiYnN2IjpudWxsfQ.GgNtBQd8lZJZ-s4Yt5p-kHcPVtDu6IAXAPiTRyo0zF8"
+    },
+    {
+      "name": "an IPv4-mapped IPv6 client has its IPv4 network key",
+      "secret": "main",
+      "now_ms": 1794502800000,
+      "id": "vector-12",
+      "client_ip": "::ffff:203.0.113.77",
+      "verdict": null,
+      "version": null,
+      "request": {
+        "method": "GET",
+        "path": "/",
+        "headers": [
+          [
+            "Host",
+            "shop.example"
+          ],
+          [
+            "Connection",
+            "keep-alive"
+          ],
+          [
+            "sec-ch-ua",
+            "\"Chromium\";v=\"142\", \"Google Chrome\";v=\"142\", \"Not_A Brand\";v=\"99\""
+          ],
+          [
+            "sec-ch-ua-mobile",
+            "?0"
+          ],
+          [
+            "sec-ch-ua-platform",
+            "\"macOS\""
+          ],
+          [
+            "Upgrade-Insecure-Requests",
+            "1"
+          ],
+          [
+            "User-Agent",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"
+          ],
+          [
+            "Accept",
+            "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8"
+          ],
+          [
+            "Sec-Fetch-Site",
+            "none"
+          ],
+          [
+            "Sec-Fetch-Mode",
+            "navigate"
+          ],
+          [
+            "Sec-Fetch-User",
+            "?1"
+          ],
+          [
+            "Sec-Fetch-Dest",
+            "document"
+          ],
+          [
+            "Accept-Encoding",
+            "gzip, deflate, br, zstd"
+          ],
+          [
+            "Accept-Language",
+            "en-US,en;q=0.9"
+          ]
+        ]
+      },
+      "payload": {
+        "v": 1,
+        "id": "vector-12",
+        "t": 1794502800000,
+        "p": "/",
+        "sf": {
+          "s": "none",
+          "m": "navigate",
+          "d": "document",
+          "u": "?1"
+        },
+        "sp": null,
+        "md": false,
+        "al": "en-US,en;q=0.9",
+        "ch": {
+          "ua": "\"Chromium\";v=\"142\", \"Google Chrome\";v=\"142\", \"Not_A Brand\";v=\"99\"",
+          "pf": "\"macOS\"",
+          "mb": "?0"
+        },
+        "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
+        "hn": [
+          "host",
+          "connection",
+          "sec-ch-ua",
+          "sec-ch-ua-mobile",
+          "sec-ch-ua-platform",
+          "upgrade-insecure-requests",
+          "user-agent",
+          "accept",
+          "sec-fetch-site",
+          "sec-fetch-mode",
+          "sec-fetch-user",
+          "sec-fetch-dest",
+          "accept-encoding",
+          "accept-language"
+        ],
+        "sg": {
+          "a": null,
+          "s": false,
+          "i": false
+        },
+        "ik": "0f9d8e93e273d6c4",
+        "bs": null,
+        "bsv": null
+      },
+      "token": "c1.eyJ2IjoxLCJpZCI6InZlY3Rvci0xMiIsInQiOjE3OTQ1MDI4MDAwMDAsInAiOiIvIiwic2YiOnsicyI6Im5vbmUiLCJtIjoibmF2aWdhdGUiLCJkIjoiZG9jdW1lbnQiLCJ1IjoiPzEifSwic3AiOm51bGwsIm1kIjpmYWxzZSwiYWwiOiJlbi1VUyxlbjtxPTAuOSIsImNoIjp7InVhIjoiXCJDaHJvbWl1bVwiO3Y9XCIxNDJcIiwgXCJHb29nbGUgQ2hyb21lXCI7dj1cIjE0MlwiLCBcIk5vdF9BIEJyYW5kXCI7dj1cIjk5XCIiLCJwZiI6IlwibWFjT1NcIiIsIm1iIjoiPzAifSwidWEiOiJNb3ppbGxhLzUuMCAoTWFjaW50b3NoOyBJbnRlbCBNYWMgT1MgWCAxMF8xNV83KSBBcHBsZVdlYktpdC81MzcuMzYgKEtIVE1MLCBsaWtlIEdlY2tvKSBDaHJvbWUvMTQyLjAuMC4wIFNhZmFyaS81MzcuMzYiLCJobiI6WyJob3N0IiwiY29ubmVjdGlvbiIsInNlYy1jaC11YSIsInNlYy1jaC11YS1tb2JpbGUiLCJzZWMtY2gtdWEtcGxhdGZvcm0iLCJ1cGdyYWRlLWluc2VjdXJlLXJlcXVlc3RzIiwidXNlci1hZ2VudCIsImFjY2VwdCIsInNlYy1mZXRjaC1zaXRlIiwic2VjLWZldGNoLW1vZGUiLCJzZWMtZmV0Y2gtdXNlciIsInNlYy1mZXRjaC1kZXN0IiwiYWNjZXB0LWVuY29kaW5nIiwiYWNjZXB0LWxhbmd1YWdlIl0sInNnIjp7ImEiOm51bGwsInMiOmZhbHNlLCJpIjpmYWxzZX0sImlrIjoiMGY5ZDhlOTNlMjczZDZjNCIsImJzIjpudWxsLCJic3YiOm51bGx9.WJLcEX4CF_H5Ycae83J_WSvPXOqqfOuYPTc7oJX_6_Y"
+    },
+    {
+      "name": "botscent's verdict and version",
+      "secret": "main",
+      "now_ms": 1794502800000,
+      "id": "vector-13",
+      "client_ip": "203.0.113.77",
+      "verdict": {
+        "type": "agent",
+        "agent_name": "claude-in-chrome",
+        "reasons": [
+          "extension-marker",
+          "not an id!"
+        ]
+      },
+      "version": "1.2.0",
+      "request": {
+        "method": "GET",
+        "path": "/",
+        "headers": [
+          [
+            "Host",
+            "shop.example"
+          ],
+          [
+            "Connection",
+            "keep-alive"
+          ],
+          [
+            "sec-ch-ua",
+            "\"Chromium\";v=\"142\", \"Google Chrome\";v=\"142\", \"Not_A Brand\";v=\"99\""
+          ],
+          [
+            "sec-ch-ua-mobile",
+            "?0"
+          ],
+          [
+            "sec-ch-ua-platform",
+            "\"macOS\""
+          ],
+          [
+            "Upgrade-Insecure-Requests",
+            "1"
+          ],
+          [
+            "User-Agent",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"
+          ],
+          [
+            "Accept",
+            "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8"
+          ],
+          [
+            "Sec-Fetch-Site",
+            "none"
+          ],
+          [
+            "Sec-Fetch-Mode",
+            "navigate"
+          ],
+          [
+            "Sec-Fetch-User",
+            "?1"
+          ],
+          [
+            "Sec-Fetch-Dest",
+            "document"
+          ],
+          [
+            "Accept-Encoding",
+            "gzip, deflate, br, zstd"
+          ],
+          [
+            "Accept-Language",
+            "en-US,en;q=0.9"
+          ]
+        ]
+      },
+      "payload": {
+        "v": 1,
+        "id": "vector-13",
+        "t": 1794502800000,
+        "p": "/",
+        "sf": {
+          "s": "none",
+          "m": "navigate",
+          "d": "document",
+          "u": "?1"
+        },
+        "sp": null,
+        "md": false,
+        "al": "en-US,en;q=0.9",
+        "ch": {
+          "ua": "\"Chromium\";v=\"142\", \"Google Chrome\";v=\"142\", \"Not_A Brand\";v=\"99\"",
+          "pf": "\"macOS\"",
+          "mb": "?0"
+        },
+        "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
+        "hn": [
+          "host",
+          "connection",
+          "sec-ch-ua",
+          "sec-ch-ua-mobile",
+          "sec-ch-ua-platform",
+          "upgrade-insecure-requests",
+          "user-agent",
+          "accept",
+          "sec-fetch-site",
+          "sec-fetch-mode",
+          "sec-fetch-user",
+          "sec-fetch-dest",
+          "accept-encoding",
+          "accept-language"
+        ],
+        "sg": {
+          "a": null,
+          "s": false,
+          "i": false
+        },
+        "ik": "0f9d8e93e273d6c4",
+        "bs": {
+          "t": "agent",
+          "a": "claude-in-chrome",
+          "r": [
+            "extension-marker"
+          ]
+        },
+        "bsv": "1.2.0"
+      },
+      "token": "c1.eyJ2IjoxLCJpZCI6InZlY3Rvci0xMyIsInQiOjE3OTQ1MDI4MDAwMDAsInAiOiIvIiwic2YiOnsicyI6Im5vbmUiLCJtIjoibmF2aWdhdGUiLCJkIjoiZG9jdW1lbnQiLCJ1IjoiPzEifSwic3AiOm51bGwsIm1kIjpmYWxzZSwiYWwiOiJlbi1VUyxlbjtxPTAuOSIsImNoIjp7InVhIjoiXCJDaHJvbWl1bVwiO3Y9XCIxNDJcIiwgXCJHb29nbGUgQ2hyb21lXCI7dj1cIjE0MlwiLCBcIk5vdF9BIEJyYW5kXCI7dj1cIjk5XCIiLCJwZiI6IlwibWFjT1NcIiIsIm1iIjoiPzAifSwidWEiOiJNb3ppbGxhLzUuMCAoTWFjaW50b3NoOyBJbnRlbCBNYWMgT1MgWCAxMF8xNV83KSBBcHBsZVdlYktpdC81MzcuMzYgKEtIVE1MLCBsaWtlIEdlY2tvKSBDaHJvbWUvMTQyLjAuMC4wIFNhZmFyaS81MzcuMzYiLCJobiI6WyJob3N0IiwiY29ubmVjdGlvbiIsInNlYy1jaC11YSIsInNlYy1jaC11YS1tb2JpbGUiLCJzZWMtY2gtdWEtcGxhdGZvcm0iLCJ1cGdyYWRlLWluc2VjdXJlLXJlcXVlc3RzIiwidXNlci1hZ2VudCIsImFjY2VwdCIsInNlYy1mZXRjaC1zaXRlIiwic2VjLWZldGNoLW1vZGUiLCJzZWMtZmV0Y2gtdXNlciIsInNlYy1mZXRjaC1kZXN0IiwiYWNjZXB0LWVuY29kaW5nIiwiYWNjZXB0LWxhbmd1YWdlIl0sInNnIjp7ImEiOm51bGwsInMiOmZhbHNlLCJpIjpmYWxzZX0sImlrIjoiMGY5ZDhlOTNlMjczZDZjNCIsImJzIjp7InQiOiJhZ2VudCIsImEiOiJjbGF1ZGUtaW4tY2hyb21lIiwiciI6WyJleHRlbnNpb24tbWFya2VyIl19LCJic3YiOiIxLjIuMCJ9.cucqLTxkqXjLcnnrcllVipInMbsK5iHKtjoM_k-bnE4"
+    },
+    {
+      "name": "a value with a Latin-1 character (UTF-8 in the JSON)",
+      "secret": "main",
+      "now_ms": 1794502800000,
+      "id": "vector-14",
+      "client_ip": "203.0.113.77",
+      "verdict": null,
+      "version": null,
+      "request": {
+        "method": "GET",
+        "path": "/",
+        "headers": [
+          [
+            "Host",
+            "shop.example"
+          ],
+          [
+            "Connection",
+            "keep-alive"
+          ],
+          [
+            "sec-ch-ua",
+            "\"Chromium\";v=\"142\", \"Google Chrome\";v=\"142\", \"Not_A Brand\";v=\"99\""
+          ],
+          [
+            "sec-ch-ua-mobile",
+            "?0"
+          ],
+          [
+            "sec-ch-ua-platform",
+            "\"macOS\""
+          ],
+          [
+            "Upgrade-Insecure-Requests",
+            "1"
+          ],
+          [
+            "User-Agent",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"
+          ],
+          [
+            "Accept",
+            "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8"
+          ],
+          [
+            "Sec-Fetch-Site",
+            "none"
+          ],
+          [
+            "Sec-Fetch-Mode",
+            "navigate"
+          ],
+          [
+            "Sec-Fetch-User",
+            "?1"
+          ],
+          [
+            "Sec-Fetch-Dest",
+            "document"
+          ],
+          [
+            "Signature-Agent",
+            "\"https://agent.example/café\""
+          ],
+          [
+            "Accept-Encoding",
+            "gzip, deflate, br, zstd"
+          ],
+          [
+            "Accept-Language",
+            "en-US,en;q=0.9"
+          ]
+        ]
+      },
+      "payload": {
+        "v": 1,
+        "id": "vector-14",
+        "t": 1794502800000,
+        "p": "/",
+        "sf": {
+          "s": "none",
+          "m": "navigate",
+          "d": "document",
+          "u": "?1"
+        },
+        "sp": null,
+        "md": false,
+        "al": "en-US,en;q=0.9",
+        "ch": {
+          "ua": "\"Chromium\";v=\"142\", \"Google Chrome\";v=\"142\", \"Not_A Brand\";v=\"99\"",
+          "pf": "\"macOS\"",
+          "mb": "?0"
+        },
+        "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
+        "hn": [
+          "host",
+          "connection",
+          "sec-ch-ua",
+          "sec-ch-ua-mobile",
+          "sec-ch-ua-platform",
+          "upgrade-insecure-requests",
+          "user-agent",
+          "accept",
+          "sec-fetch-site",
+          "sec-fetch-mode",
+          "sec-fetch-user",
+          "sec-fetch-dest",
+          "signature-agent",
+          "accept-encoding",
+          "accept-language"
+        ],
+        "sg": {
+          "a": "\"https://agent.example/café\"",
+          "s": false,
+          "i": false
+        },
+        "ik": "0f9d8e93e273d6c4",
+        "bs": null,
+        "bsv": null
+      },
+      "token": "c1.eyJ2IjoxLCJpZCI6InZlY3Rvci0xNCIsInQiOjE3OTQ1MDI4MDAwMDAsInAiOiIvIiwic2YiOnsicyI6Im5vbmUiLCJtIjoibmF2aWdhdGUiLCJkIjoiZG9jdW1lbnQiLCJ1IjoiPzEifSwic3AiOm51bGwsIm1kIjpmYWxzZSwiYWwiOiJlbi1VUyxlbjtxPTAuOSIsImNoIjp7InVhIjoiXCJDaHJvbWl1bVwiO3Y9XCIxNDJcIiwgXCJHb29nbGUgQ2hyb21lXCI7dj1cIjE0MlwiLCBcIk5vdF9BIEJyYW5kXCI7dj1cIjk5XCIiLCJwZiI6IlwibWFjT1NcIiIsIm1iIjoiPzAifSwidWEiOiJNb3ppbGxhLzUuMCAoTWFjaW50b3NoOyBJbnRlbCBNYWMgT1MgWCAxMF8xNV83KSBBcHBsZVdlYktpdC81MzcuMzYgKEtIVE1MLCBsaWtlIEdlY2tvKSBDaHJvbWUvMTQyLjAuMC4wIFNhZmFyaS81MzcuMzYiLCJobiI6WyJob3N0IiwiY29ubmVjdGlvbiIsInNlYy1jaC11YSIsInNlYy1jaC11YS1tb2JpbGUiLCJzZWMtY2gtdWEtcGxhdGZvcm0iLCJ1cGdyYWRlLWluc2VjdXJlLXJlcXVlc3RzIiwidXNlci1hZ2VudCIsImFjY2VwdCIsInNlYy1mZXRjaC1zaXRlIiwic2VjLWZldGNoLW1vZGUiLCJzZWMtZmV0Y2gtdXNlciIsInNlYy1mZXRjaC1kZXN0Iiwic2lnbmF0dXJlLWFnZW50IiwiYWNjZXB0LWVuY29kaW5nIiwiYWNjZXB0LWxhbmd1YWdlIl0sInNnIjp7ImEiOiJcImh0dHBzOi8vYWdlbnQuZXhhbXBsZS9jYWbDqVwiIiwicyI6ZmFsc2UsImkiOmZhbHNlfSwiaWsiOiIwZjlkOGU5M2UyNzNkNmM0IiwiYnMiOm51bGwsImJzdiI6bnVsbH0.zLi2kUevtQNLn5S4hhybgneWfk3iMmg2WeHXqo3Jmd0"
+    },
+    {
+      "name": "signed with the other secret",
+      "secret": "other",
+      "now_ms": 1794502800000,
+      "id": "vector-15",
+      "client_ip": "203.0.113.77",
+      "verdict": null,
+      "version": null,
+      "request": {
+        "method": "GET",
+        "path": "/",
+        "headers": [
+          [
+            "Host",
+            "shop.example"
+          ],
+          [
+            "Connection",
+            "keep-alive"
+          ],
+          [
+            "sec-ch-ua",
+            "\"Chromium\";v=\"142\", \"Google Chrome\";v=\"142\", \"Not_A Brand\";v=\"99\""
+          ],
+          [
+            "sec-ch-ua-mobile",
+            "?0"
+          ],
+          [
+            "sec-ch-ua-platform",
+            "\"macOS\""
+          ],
+          [
+            "Upgrade-Insecure-Requests",
+            "1"
+          ],
+          [
+            "User-Agent",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"
+          ],
+          [
+            "Accept",
+            "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8"
+          ],
+          [
+            "Sec-Fetch-Site",
+            "none"
+          ],
+          [
+            "Sec-Fetch-Mode",
+            "navigate"
+          ],
+          [
+            "Sec-Fetch-User",
+            "?1"
+          ],
+          [
+            "Sec-Fetch-Dest",
+            "document"
+          ],
+          [
+            "Accept-Encoding",
+            "gzip, deflate, br, zstd"
+          ],
+          [
+            "Accept-Language",
+            "en-US,en;q=0.9"
+          ]
+        ]
+      },
+      "payload": {
+        "v": 1,
+        "id": "vector-15",
+        "t": 1794502800000,
+        "p": "/",
+        "sf": {
+          "s": "none",
+          "m": "navigate",
+          "d": "document",
+          "u": "?1"
+        },
+        "sp": null,
+        "md": false,
+        "al": "en-US,en;q=0.9",
+        "ch": {
+          "ua": "\"Chromium\";v=\"142\", \"Google Chrome\";v=\"142\", \"Not_A Brand\";v=\"99\"",
+          "pf": "\"macOS\"",
+          "mb": "?0"
+        },
+        "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
+        "hn": [
+          "host",
+          "connection",
+          "sec-ch-ua",
+          "sec-ch-ua-mobile",
+          "sec-ch-ua-platform",
+          "upgrade-insecure-requests",
+          "user-agent",
+          "accept",
+          "sec-fetch-site",
+          "sec-fetch-mode",
+          "sec-fetch-user",
+          "sec-fetch-dest",
+          "accept-encoding",
+          "accept-language"
+        ],
+        "sg": {
+          "a": null,
+          "s": false,
+          "i": false
+        },
+        "ik": "5b0f49fa4090e37f",
+        "bs": null,
+        "bsv": null
+      },
+      "token": "c1.eyJ2IjoxLCJpZCI6InZlY3Rvci0xNSIsInQiOjE3OTQ1MDI4MDAwMDAsInAiOiIvIiwic2YiOnsicyI6Im5vbmUiLCJtIjoibmF2aWdhdGUiLCJkIjoiZG9jdW1lbnQiLCJ1IjoiPzEifSwic3AiOm51bGwsIm1kIjpmYWxzZSwiYWwiOiJlbi1VUyxlbjtxPTAuOSIsImNoIjp7InVhIjoiXCJDaHJvbWl1bVwiO3Y9XCIxNDJcIiwgXCJHb29nbGUgQ2hyb21lXCI7dj1cIjE0MlwiLCBcIk5vdF9BIEJyYW5kXCI7dj1cIjk5XCIiLCJwZiI6IlwibWFjT1NcIiIsIm1iIjoiPzAifSwidWEiOiJNb3ppbGxhLzUuMCAoTWFjaW50b3NoOyBJbnRlbCBNYWMgT1MgWCAxMF8xNV83KSBBcHBsZVdlYktpdC81MzcuMzYgKEtIVE1MLCBsaWtlIEdlY2tvKSBDaHJvbWUvMTQyLjAuMC4wIFNhZmFyaS81MzcuMzYiLCJobiI6WyJob3N0IiwiY29ubmVjdGlvbiIsInNlYy1jaC11YSIsInNlYy1jaC11YS1tb2JpbGUiLCJzZWMtY2gtdWEtcGxhdGZvcm0iLCJ1cGdyYWRlLWluc2VjdXJlLXJlcXVlc3RzIiwidXNlci1hZ2VudCIsImFjY2VwdCIsInNlYy1mZXRjaC1zaXRlIiwic2VjLWZldGNoLW1vZGUiLCJzZWMtZmV0Y2gtdXNlciIsInNlYy1mZXRjaC1kZXN0IiwiYWNjZXB0LWVuY29kaW5nIiwiYWNjZXB0LWxhbmd1YWdlIl0sInNnIjp7ImEiOm51bGwsInMiOmZhbHNlLCJpIjpmYWxzZX0sImlrIjoiNWIwZjQ5ZmE0MDkwZTM3ZiIsImJzIjpudWxsLCJic3YiOm51bGx9.CE734pxNXljYF7xagxJe5KefCAoRemmw7Ke3iy1fdiQ"
+    },
+    {
+      "name": "the path as sent: a target starting with // is a path, not a host",
+      "secret": "main",
+      "now_ms": 1794502800000,
+      "id": "vector-16",
+      "client_ip": "203.0.113.77",
+      "verdict": null,
+      "version": null,
+      "request": {
+        "method": "GET",
+        "path": "//shop/about?x=1",
+        "headers": [
+          [
+            "Host",
+            "shop.example"
+          ],
+          [
+            "Connection",
+            "keep-alive"
+          ],
+          [
+            "sec-ch-ua",
+            "\"Chromium\";v=\"142\", \"Google Chrome\";v=\"142\", \"Not_A Brand\";v=\"99\""
+          ],
+          [
+            "sec-ch-ua-mobile",
+            "?0"
+          ],
+          [
+            "sec-ch-ua-platform",
+            "\"macOS\""
+          ],
+          [
+            "Upgrade-Insecure-Requests",
+            "1"
+          ],
+          [
+            "User-Agent",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"
+          ],
+          [
+            "Accept",
+            "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8"
+          ],
+          [
+            "Sec-Fetch-Site",
+            "none"
+          ],
+          [
+            "Sec-Fetch-Mode",
+            "navigate"
+          ],
+          [
+            "Sec-Fetch-User",
+            "?1"
+          ],
+          [
+            "Sec-Fetch-Dest",
+            "document"
+          ],
+          [
+            "Accept-Encoding",
+            "gzip, deflate, br, zstd"
+          ],
+          [
+            "Accept-Language",
+            "en-US,en;q=0.9"
+          ]
+        ]
+      },
+      "payload": {
+        "v": 1,
+        "id": "vector-16",
+        "t": 1794502800000,
+        "p": "//shop/about",
+        "sf": {
+          "s": "none",
+          "m": "navigate",
+          "d": "document",
+          "u": "?1"
+        },
+        "sp": null,
+        "md": false,
+        "al": "en-US,en;q=0.9",
+        "ch": {
+          "ua": "\"Chromium\";v=\"142\", \"Google Chrome\";v=\"142\", \"Not_A Brand\";v=\"99\"",
+          "pf": "\"macOS\"",
+          "mb": "?0"
+        },
+        "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
+        "hn": [
+          "host",
+          "connection",
+          "sec-ch-ua",
+          "sec-ch-ua-mobile",
+          "sec-ch-ua-platform",
+          "upgrade-insecure-requests",
+          "user-agent",
+          "accept",
+          "sec-fetch-site",
+          "sec-fetch-mode",
+          "sec-fetch-user",
+          "sec-fetch-dest",
+          "accept-encoding",
+          "accept-language"
+        ],
+        "sg": {
+          "a": null,
+          "s": false,
+          "i": false
+        },
+        "ik": "0f9d8e93e273d6c4",
+        "bs": null,
+        "bsv": null
+      },
+      "token": "c1.eyJ2IjoxLCJpZCI6InZlY3Rvci0xNiIsInQiOjE3OTQ1MDI4MDAwMDAsInAiOiIvL3Nob3AvYWJvdXQiLCJzZiI6eyJzIjoibm9uZSIsIm0iOiJuYXZpZ2F0ZSIsImQiOiJkb2N1bWVudCIsInUiOiI_MSJ9LCJzcCI6bnVsbCwibWQiOmZhbHNlLCJhbCI6ImVuLVVTLGVuO3E9MC45IiwiY2giOnsidWEiOiJcIkNocm9taXVtXCI7dj1cIjE0MlwiLCBcIkdvb2dsZSBDaHJvbWVcIjt2PVwiMTQyXCIsIFwiTm90X0EgQnJhbmRcIjt2PVwiOTlcIiIsInBmIjoiXCJtYWNPU1wiIiwibWIiOiI_MCJ9LCJ1YSI6Ik1vemlsbGEvNS4wIChNYWNpbnRvc2g7IEludGVsIE1hYyBPUyBYIDEwXzE1XzcpIEFwcGxlV2ViS2l0LzUzNy4zNiAoS0hUTUwsIGxpa2UgR2Vja28pIENocm9tZS8xNDIuMC4wLjAgU2FmYXJpLzUzNy4zNiIsImhuIjpbImhvc3QiLCJjb25uZWN0aW9uIiwic2VjLWNoLXVhIiwic2VjLWNoLXVhLW1vYmlsZSIsInNlYy1jaC11YS1wbGF0Zm9ybSIsInVwZ3JhZGUtaW5zZWN1cmUtcmVxdWVzdHMiLCJ1c2VyLWFnZW50IiwiYWNjZXB0Iiwic2VjLWZldGNoLXNpdGUiLCJzZWMtZmV0Y2gtbW9kZSIsInNlYy1mZXRjaC11c2VyIiwic2VjLWZldGNoLWRlc3QiLCJhY2NlcHQtZW5jb2RpbmciLCJhY2NlcHQtbGFuZ3VhZ2UiXSwic2ciOnsiYSI6bnVsbCwicyI6ZmFsc2UsImkiOmZhbHNlfSwiaWsiOiIwZjlkOGU5M2UyNzNkNmM0IiwiYnMiOm51bGwsImJzdiI6bnVsbH0.BVyWbApzvEncuegOndjBtwOpWkcbTDwg5RQpl40h2sY"
+    },
+    {
+      "name": "not a page: dot segments are not resolved, and a segment starting with . is a dot-file",
+      "secret": "main",
+      "now_ms": 1794502800000,
+      "id": "vector-17",
+      "client_ip": "203.0.113.77",
+      "verdict": null,
+      "version": null,
+      "request": {
+        "method": "GET",
+        "path": "/a/b/..",
+        "headers": [
+          [
+            "Host",
+            "shop.example"
+          ],
+          [
+            "Connection",
+            "keep-alive"
+          ],
+          [
+            "sec-ch-ua",
+            "\"Chromium\";v=\"142\", \"Google Chrome\";v=\"142\", \"Not_A Brand\";v=\"99\""
+          ],
+          [
+            "sec-ch-ua-mobile",
+            "?0"
+          ],
+          [
+            "sec-ch-ua-platform",
+            "\"macOS\""
+          ],
+          [
+            "Upgrade-Insecure-Requests",
+            "1"
+          ],
+          [
+            "User-Agent",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"
+          ],
+          [
+            "Accept",
+            "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8"
+          ],
+          [
+            "Sec-Fetch-Site",
+            "none"
+          ],
+          [
+            "Sec-Fetch-Mode",
+            "navigate"
+          ],
+          [
+            "Sec-Fetch-User",
+            "?1"
+          ],
+          [
+            "Sec-Fetch-Dest",
+            "document"
+          ],
+          [
+            "Accept-Encoding",
+            "gzip, deflate, br, zstd"
+          ],
+          [
+            "Accept-Language",
+            "en-US,en;q=0.9"
+          ]
+        ]
+      },
+      "payload": null,
+      "token": null
+    },
+    {
+      "name": "not a page: a POST",
+      "secret": "main",
+      "now_ms": 1794502800000,
+      "id": "vector-18",
+      "client_ip": "203.0.113.77",
+      "verdict": null,
+      "version": null,
+      "request": {
+        "method": "POST",
+        "path": "/",
+        "headers": [
+          [
+            "Host",
+            "shop.example"
+          ],
+          [
+            "Connection",
+            "keep-alive"
+          ],
+          [
+            "sec-ch-ua",
+            "\"Chromium\";v=\"142\", \"Google Chrome\";v=\"142\", \"Not_A Brand\";v=\"99\""
+          ],
+          [
+            "sec-ch-ua-mobile",
+            "?0"
+          ],
+          [
+            "sec-ch-ua-platform",
+            "\"macOS\""
+          ],
+          [
+            "Upgrade-Insecure-Requests",
+            "1"
+          ],
+          [
+            "User-Agent",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"
+          ],
+          [
+            "Accept",
+            "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8"
+          ],
+          [
+            "Sec-Fetch-Site",
+            "none"
+          ],
+          [
+            "Sec-Fetch-Mode",
+            "navigate"
+          ],
+          [
+            "Sec-Fetch-User",
+            "?1"
+          ],
+          [
+            "Sec-Fetch-Dest",
+            "document"
+          ],
+          [
+            "Accept-Encoding",
+            "gzip, deflate, br, zstd"
+          ],
+          [
+            "Accept-Language",
+            "en-US,en;q=0.9"
+          ]
+        ]
+      },
+      "payload": null,
+      "token": null
+    },
+    {
+      "name": "not a page: a HEAD",
+      "secret": "main",
+      "now_ms": 1794502800000,
+      "id": "vector-19",
+      "client_ip": "203.0.113.77",
+      "verdict": null,
+      "version": null,
+      "request": {
+        "method": "HEAD",
+        "path": "/",
+        "headers": [
+          [
+            "Host",
+            "shop.example"
+          ],
+          [
+            "Connection",
+            "keep-alive"
+          ],
+          [
+            "sec-ch-ua",
+            "\"Chromium\";v=\"142\", \"Google Chrome\";v=\"142\", \"Not_A Brand\";v=\"99\""
+          ],
+          [
+            "sec-ch-ua-mobile",
+            "?0"
+          ],
+          [
+            "sec-ch-ua-platform",
+            "\"macOS\""
+          ],
+          [
+            "Upgrade-Insecure-Requests",
+            "1"
+          ],
+          [
+            "User-Agent",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"
+          ],
+          [
+            "Accept",
+            "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8"
+          ],
+          [
+            "Sec-Fetch-Site",
+            "none"
+          ],
+          [
+            "Sec-Fetch-Mode",
+            "navigate"
+          ],
+          [
+            "Sec-Fetch-User",
+            "?1"
+          ],
+          [
+            "Sec-Fetch-Dest",
+            "document"
+          ],
+          [
+            "Accept-Encoding",
+            "gzip, deflate, br, zstd"
+          ],
+          [
+            "Accept-Language",
+            "en-US,en;q=0.9"
+          ]
+        ]
+      },
+      "payload": null,
+      "token": null
+    },
+    {
+      "name": "not a page: a frame",
+      "secret": "main",
+      "now_ms": 1794502800000,
+      "id": "vector-20",
+      "client_ip": "203.0.113.77",
+      "verdict": null,
+      "version": null,
+      "request": {
+        "method": "GET",
+        "path": "/",
+        "headers": [
+          [
+            "Host",
+            "shop.example"
+          ],
+          [
+            "Connection",
+            "keep-alive"
+          ],
+          [
+            "sec-ch-ua",
+            "\"Chromium\";v=\"142\", \"Google Chrome\";v=\"142\", \"Not_A Brand\";v=\"99\""
+          ],
+          [
+            "sec-ch-ua-mobile",
+            "?0"
+          ],
+          [
+            "sec-ch-ua-platform",
+            "\"macOS\""
+          ],
+          [
+            "Upgrade-Insecure-Requests",
+            "1"
+          ],
+          [
+            "User-Agent",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"
+          ],
+          [
+            "Accept",
+            "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8"
+          ],
+          [
+            "Sec-Fetch-Site",
+            "none"
+          ],
+          [
+            "Sec-Fetch-Mode",
+            "navigate"
+          ],
+          [
+            "Sec-Fetch-User",
+            "?1"
+          ],
+          [
+            "Sec-Fetch-Dest",
+            "iframe"
+          ],
+          [
+            "Accept-Encoding",
+            "gzip, deflate, br, zstd"
+          ],
+          [
+            "Accept-Language",
+            "en-US,en;q=0.9"
+          ]
+        ]
+      },
+      "payload": null,
+      "token": null
+    },
+    {
+      "name": "not a page: a script",
+      "secret": "main",
+      "now_ms": 1794502800000,
+      "id": "vector-21",
+      "client_ip": "203.0.113.77",
+      "verdict": null,
+      "version": null,
+      "request": {
+        "method": "GET",
+        "path": "/app",
+        "headers": [
+          [
+            "Host",
+            "shop.example"
+          ],
+          [
+            "Connection",
+            "keep-alive"
+          ],
+          [
+            "sec-ch-ua",
+            "\"Chromium\";v=\"142\", \"Google Chrome\";v=\"142\", \"Not_A Brand\";v=\"99\""
+          ],
+          [
+            "sec-ch-ua-mobile",
+            "?0"
+          ],
+          [
+            "sec-ch-ua-platform",
+            "\"macOS\""
+          ],
+          [
+            "Upgrade-Insecure-Requests",
+            "1"
+          ],
+          [
+            "User-Agent",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"
+          ],
+          [
+            "Accept",
+            "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8"
+          ],
+          [
+            "Sec-Fetch-Site",
+            "none"
+          ],
+          [
+            "Sec-Fetch-Mode",
+            "navigate"
+          ],
+          [
+            "Sec-Fetch-User",
+            "?1"
+          ],
+          [
+            "Sec-Fetch-Dest",
+            "script"
+          ],
+          [
+            "Accept-Encoding",
+            "gzip, deflate, br, zstd"
+          ],
+          [
+            "Accept-Language",
+            "en-US,en;q=0.9"
+          ]
+        ]
+      },
+      "payload": null,
+      "token": null
+    },
+    {
+      "name": "not a page: a fetch() call",
+      "secret": "main",
+      "now_ms": 1794502800000,
+      "id": "vector-22",
+      "client_ip": "203.0.113.77",
+      "verdict": null,
+      "version": null,
+      "request": {
+        "method": "GET",
+        "path": "/api/cart",
+        "headers": [
+          [
+            "Host",
+            "shop.example"
+          ],
+          [
+            "Connection",
+            "keep-alive"
+          ],
+          [
+            "sec-ch-ua",
+            "\"Chromium\";v=\"142\", \"Google Chrome\";v=\"142\", \"Not_A Brand\";v=\"99\""
+          ],
+          [
+            "sec-ch-ua-mobile",
+            "?0"
+          ],
+          [
+            "sec-ch-ua-platform",
+            "\"macOS\""
+          ],
+          [
+            "Upgrade-Insecure-Requests",
+            "1"
+          ],
+          [
+            "User-Agent",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"
+          ],
+          [
+            "Accept",
+            "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8"
+          ],
+          [
+            "Sec-Fetch-Site",
+            "none"
+          ],
+          [
+            "Sec-Fetch-Mode",
+            "navigate"
+          ],
+          [
+            "Sec-Fetch-User",
+            "?1"
+          ],
+          [
+            "Sec-Fetch-Dest",
+            "empty"
+          ],
+          [
+            "Accept-Encoding",
+            "gzip, deflate, br, zstd"
+          ],
+          [
+            "Accept-Language",
+            "en-US,en;q=0.9"
+          ]
+        ]
+      },
+      "payload": null,
+      "token": null
+    },
+    {
+      "name": "not a page: an image opened in a tab",
+      "secret": "main",
+      "now_ms": 1794502800000,
+      "id": "vector-23",
+      "client_ip": "203.0.113.77",
+      "verdict": null,
+      "version": null,
+      "request": {
+        "method": "GET",
+        "path": "/logo.png",
+        "headers": [
+          [
+            "Host",
+            "shop.example"
+          ],
+          [
+            "Connection",
+            "keep-alive"
+          ],
+          [
+            "sec-ch-ua",
+            "\"Chromium\";v=\"142\", \"Google Chrome\";v=\"142\", \"Not_A Brand\";v=\"99\""
+          ],
+          [
+            "sec-ch-ua-mobile",
+            "?0"
+          ],
+          [
+            "sec-ch-ua-platform",
+            "\"macOS\""
+          ],
+          [
+            "Upgrade-Insecure-Requests",
+            "1"
+          ],
+          [
+            "User-Agent",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"
+          ],
+          [
+            "Accept",
+            "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8"
+          ],
+          [
+            "Sec-Fetch-Site",
+            "none"
+          ],
+          [
+            "Sec-Fetch-Mode",
+            "navigate"
+          ],
+          [
+            "Sec-Fetch-User",
+            "?1"
+          ],
+          [
+            "Sec-Fetch-Dest",
+            "document"
+          ],
+          [
+            "Accept-Encoding",
+            "gzip, deflate, br, zstd"
+          ],
+          [
+            "Accept-Language",
+            "en-US,en;q=0.9"
+          ]
+        ]
+      },
+      "payload": null,
+      "token": null
+    },
+    {
+      "name": "not a page: a dot-file",
+      "secret": "main",
+      "now_ms": 1794502800000,
+      "id": "vector-24",
+      "client_ip": "203.0.113.77",
+      "verdict": null,
+      "version": null,
+      "request": {
+        "method": "GET",
+        "path": "/.well-known/security.txt",
+        "headers": [
+          [
+            "Host",
+            "shop.example"
+          ],
+          [
+            "Connection",
+            "keep-alive"
+          ],
+          [
+            "sec-ch-ua",
+            "\"Chromium\";v=\"142\", \"Google Chrome\";v=\"142\", \"Not_A Brand\";v=\"99\""
+          ],
+          [
+            "sec-ch-ua-mobile",
+            "?0"
+          ],
+          [
+            "sec-ch-ua-platform",
+            "\"macOS\""
+          ],
+          [
+            "Upgrade-Insecure-Requests",
+            "1"
+          ],
+          [
+            "User-Agent",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"
+          ],
+          [
+            "Accept",
+            "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8"
+          ],
+          [
+            "Sec-Fetch-Site",
+            "none"
+          ],
+          [
+            "Sec-Fetch-Mode",
+            "navigate"
+          ],
+          [
+            "Sec-Fetch-User",
+            "?1"
+          ],
+          [
+            "Sec-Fetch-Dest",
+            "document"
+          ],
+          [
+            "Accept-Encoding",
+            "gzip, deflate, br, zstd"
+          ],
+          [
+            "Accept-Language",
+            "en-US,en;q=0.9"
+          ]
+        ]
+      },
+      "payload": null,
+      "token": null
+    },
+    {
+      "name": "not a page: a client that does not ask for HTML",
+      "secret": "main",
+      "now_ms": 1794502800000,
+      "id": "vector-25",
+      "client_ip": "203.0.113.77",
+      "verdict": null,
+      "version": null,
+      "request": {
+        "method": "GET",
+        "path": "/",
+        "headers": [
+          [
+            "Host",
+            "shop.example"
+          ],
+          [
+            "User-Agent",
+            "curl/8.7.1"
+          ],
+          [
+            "Accept",
+            "*/*"
+          ]
+        ]
+      },
+      "payload": null,
+      "token": null
+    }
+  ],
+  "verify": [
+    {
+      "name": "a page token at its own time",
+      "secret": "main",
+      "token": "c1.eyJ2IjoxLCJpZCI6InZlY3Rvci0wMSIsInQiOjE3OTQ1MDI4MDAwMDAsInAiOiIvIiwic2YiOnsicyI6Im5vbmUiLCJtIjoibmF2aWdhdGUiLCJkIjoiZG9jdW1lbnQiLCJ1IjoiPzEifSwic3AiOm51bGwsIm1kIjpmYWxzZSwiYWwiOiJlbi1VUyxlbjtxPTAuOSIsImNoIjp7InVhIjoiXCJDaHJvbWl1bVwiO3Y9XCIxNDJcIiwgXCJHb29nbGUgQ2hyb21lXCI7dj1cIjE0MlwiLCBcIk5vdF9BIEJyYW5kXCI7dj1cIjk5XCIiLCJwZiI6IlwibWFjT1NcIiIsIm1iIjoiPzAifSwidWEiOiJNb3ppbGxhLzUuMCAoTWFjaW50b3NoOyBJbnRlbCBNYWMgT1MgWCAxMF8xNV83KSBBcHBsZVdlYktpdC81MzcuMzYgKEtIVE1MLCBsaWtlIEdlY2tvKSBDaHJvbWUvMTQyLjAuMC4wIFNhZmFyaS81MzcuMzYiLCJobiI6WyJob3N0IiwiY29ubmVjdGlvbiIsInNlYy1jaC11YSIsInNlYy1jaC11YS1tb2JpbGUiLCJzZWMtY2gtdWEtcGxhdGZvcm0iLCJ1cGdyYWRlLWluc2VjdXJlLXJlcXVlc3RzIiwidXNlci1hZ2VudCIsImFjY2VwdCIsInNlYy1mZXRjaC1zaXRlIiwic2VjLWZldGNoLW1vZGUiLCJzZWMtZmV0Y2gtdXNlciIsInNlYy1mZXRjaC1kZXN0IiwiYWNjZXB0LWVuY29kaW5nIiwiYWNjZXB0LWxhbmd1YWdlIl0sInNnIjp7ImEiOm51bGwsInMiOmZhbHNlLCJpIjpmYWxzZX0sImlrIjoiMGY5ZDhlOTNlMjczZDZjNCIsImJzIjpudWxsLCJic3YiOm51bGx9.XkliJ11lQeJK3GBmBWJaQms79XIhN1RnkZz-6HC5Ca0",
+      "now_ms": 1794502800000,
+      "result": "ok",
+      "payload": {
+        "v": 1,
+        "id": "vector-01",
+        "t": 1794502800000,
+        "p": "/",
+        "sf": {
+          "s": "none",
+          "m": "navigate",
+          "d": "document",
+          "u": "?1"
+        },
+        "sp": null,
+        "md": false,
+        "al": "en-US,en;q=0.9",
+        "ch": {
+          "ua": "\"Chromium\";v=\"142\", \"Google Chrome\";v=\"142\", \"Not_A Brand\";v=\"99\"",
+          "pf": "\"macOS\"",
+          "mb": "?0"
+        },
+        "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
+        "hn": [
+          "host",
+          "connection",
+          "sec-ch-ua",
+          "sec-ch-ua-mobile",
+          "sec-ch-ua-platform",
+          "upgrade-insecure-requests",
+          "user-agent",
+          "accept",
+          "sec-fetch-site",
+          "sec-fetch-mode",
+          "sec-fetch-user",
+          "sec-fetch-dest",
+          "accept-encoding",
+          "accept-language"
+        ],
+        "sg": {
+          "a": null,
+          "s": false,
+          "i": false
+        },
+        "ik": "0f9d8e93e273d6c4",
+        "bs": null,
+        "bsv": null
+      }
+    },
+    {
+      "name": "at the end of the window",
+      "secret": "main",
+      "token": "c1.eyJ2IjoxLCJpZCI6InZlY3Rvci0wMSIsInQiOjE3OTQ1MDI4MDAwMDAsInAiOiIvIiwic2YiOnsicyI6Im5vbmUiLCJtIjoibmF2aWdhdGUiLCJkIjoiZG9jdW1lbnQiLCJ1IjoiPzEifSwic3AiOm51bGwsIm1kIjpmYWxzZSwiYWwiOiJlbi1VUyxlbjtxPTAuOSIsImNoIjp7InVhIjoiXCJDaHJvbWl1bVwiO3Y9XCIxNDJcIiwgXCJHb29nbGUgQ2hyb21lXCI7dj1cIjE0MlwiLCBcIk5vdF9BIEJyYW5kXCI7dj1cIjk5XCIiLCJwZiI6IlwibWFjT1NcIiIsIm1iIjoiPzAifSwidWEiOiJNb3ppbGxhLzUuMCAoTWFjaW50b3NoOyBJbnRlbCBNYWMgT1MgWCAxMF8xNV83KSBBcHBsZVdlYktpdC81MzcuMzYgKEtIVE1MLCBsaWtlIEdlY2tvKSBDaHJvbWUvMTQyLjAuMC4wIFNhZmFyaS81MzcuMzYiLCJobiI6WyJob3N0IiwiY29ubmVjdGlvbiIsInNlYy1jaC11YSIsInNlYy1jaC11YS1tb2JpbGUiLCJzZWMtY2gtdWEtcGxhdGZvcm0iLCJ1cGdyYWRlLWluc2VjdXJlLXJlcXVlc3RzIiwidXNlci1hZ2VudCIsImFjY2VwdCIsInNlYy1mZXRjaC1zaXRlIiwic2VjLWZldGNoLW1vZGUiLCJzZWMtZmV0Y2gtdXNlciIsInNlYy1mZXRjaC1kZXN0IiwiYWNjZXB0LWVuY29kaW5nIiwiYWNjZXB0LWxhbmd1YWdlIl0sInNnIjp7ImEiOm51bGwsInMiOmZhbHNlLCJpIjpmYWxzZX0sImlrIjoiMGY5ZDhlOTNlMjczZDZjNCIsImJzIjpudWxsLCJic3YiOm51bGx9.XkliJ11lQeJK3GBmBWJaQms79XIhN1RnkZz-6HC5Ca0",
+      "now_ms": 1794503700000,
+      "result": "ok",
+      "payload": {
+        "v": 1,
+        "id": "vector-01",
+        "t": 1794502800000,
+        "p": "/",
+        "sf": {
+          "s": "none",
+          "m": "navigate",
+          "d": "document",
+          "u": "?1"
+        },
+        "sp": null,
+        "md": false,
+        "al": "en-US,en;q=0.9",
+        "ch": {
+          "ua": "\"Chromium\";v=\"142\", \"Google Chrome\";v=\"142\", \"Not_A Brand\";v=\"99\"",
+          "pf": "\"macOS\"",
+          "mb": "?0"
+        },
+        "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
+        "hn": [
+          "host",
+          "connection",
+          "sec-ch-ua",
+          "sec-ch-ua-mobile",
+          "sec-ch-ua-platform",
+          "upgrade-insecure-requests",
+          "user-agent",
+          "accept",
+          "sec-fetch-site",
+          "sec-fetch-mode",
+          "sec-fetch-user",
+          "sec-fetch-dest",
+          "accept-encoding",
+          "accept-language"
+        ],
+        "sg": {
+          "a": null,
+          "s": false,
+          "i": false
+        },
+        "ik": "0f9d8e93e273d6c4",
+        "bs": null,
+        "bsv": null
+      }
+    },
+    {
+      "name": "one millisecond past the window",
+      "secret": "main",
+      "token": "c1.eyJ2IjoxLCJpZCI6InZlY3Rvci0wMSIsInQiOjE3OTQ1MDI4MDAwMDAsInAiOiIvIiwic2YiOnsicyI6Im5vbmUiLCJtIjoibmF2aWdhdGUiLCJkIjoiZG9jdW1lbnQiLCJ1IjoiPzEifSwic3AiOm51bGwsIm1kIjpmYWxzZSwiYWwiOiJlbi1VUyxlbjtxPTAuOSIsImNoIjp7InVhIjoiXCJDaHJvbWl1bVwiO3Y9XCIxNDJcIiwgXCJHb29nbGUgQ2hyb21lXCI7dj1cIjE0MlwiLCBcIk5vdF9BIEJyYW5kXCI7dj1cIjk5XCIiLCJwZiI6IlwibWFjT1NcIiIsIm1iIjoiPzAifSwidWEiOiJNb3ppbGxhLzUuMCAoTWFjaW50b3NoOyBJbnRlbCBNYWMgT1MgWCAxMF8xNV83KSBBcHBsZVdlYktpdC81MzcuMzYgKEtIVE1MLCBsaWtlIEdlY2tvKSBDaHJvbWUvMTQyLjAuMC4wIFNhZmFyaS81MzcuMzYiLCJobiI6WyJob3N0IiwiY29ubmVjdGlvbiIsInNlYy1jaC11YSIsInNlYy1jaC11YS1tb2JpbGUiLCJzZWMtY2gtdWEtcGxhdGZvcm0iLCJ1cGdyYWRlLWluc2VjdXJlLXJlcXVlc3RzIiwidXNlci1hZ2VudCIsImFjY2VwdCIsInNlYy1mZXRjaC1zaXRlIiwic2VjLWZldGNoLW1vZGUiLCJzZWMtZmV0Y2gtdXNlciIsInNlYy1mZXRjaC1kZXN0IiwiYWNjZXB0LWVuY29kaW5nIiwiYWNjZXB0LWxhbmd1YWdlIl0sInNnIjp7ImEiOm51bGwsInMiOmZhbHNlLCJpIjpmYWxzZX0sImlrIjoiMGY5ZDhlOTNlMjczZDZjNCIsImJzIjpudWxsLCJic3YiOm51bGx9.XkliJ11lQeJK3GBmBWJaQms79XIhN1RnkZz-6HC5Ca0",
+      "now_ms": 1794503700001,
+      "result": "stale"
+    },
+    {
+      "name": "a clock up to a minute ahead",
+      "secret": "main",
+      "token": "c1.eyJ2IjoxLCJpZCI6InZlY3Rvci0wMSIsInQiOjE3OTQ1MDI4MDAwMDAsInAiOiIvIiwic2YiOnsicyI6Im5vbmUiLCJtIjoibmF2aWdhdGUiLCJkIjoiZG9jdW1lbnQiLCJ1IjoiPzEifSwic3AiOm51bGwsIm1kIjpmYWxzZSwiYWwiOiJlbi1VUyxlbjtxPTAuOSIsImNoIjp7InVhIjoiXCJDaHJvbWl1bVwiO3Y9XCIxNDJcIiwgXCJHb29nbGUgQ2hyb21lXCI7dj1cIjE0MlwiLCBcIk5vdF9BIEJyYW5kXCI7dj1cIjk5XCIiLCJwZiI6IlwibWFjT1NcIiIsIm1iIjoiPzAifSwidWEiOiJNb3ppbGxhLzUuMCAoTWFjaW50b3NoOyBJbnRlbCBNYWMgT1MgWCAxMF8xNV83KSBBcHBsZVdlYktpdC81MzcuMzYgKEtIVE1MLCBsaWtlIEdlY2tvKSBDaHJvbWUvMTQyLjAuMC4wIFNhZmFyaS81MzcuMzYiLCJobiI6WyJob3N0IiwiY29ubmVjdGlvbiIsInNlYy1jaC11YSIsInNlYy1jaC11YS1tb2JpbGUiLCJzZWMtY2gtdWEtcGxhdGZvcm0iLCJ1cGdyYWRlLWluc2VjdXJlLXJlcXVlc3RzIiwidXNlci1hZ2VudCIsImFjY2VwdCIsInNlYy1mZXRjaC1zaXRlIiwic2VjLWZldGNoLW1vZGUiLCJzZWMtZmV0Y2gtdXNlciIsInNlYy1mZXRjaC1kZXN0IiwiYWNjZXB0LWVuY29kaW5nIiwiYWNjZXB0LWxhbmd1YWdlIl0sInNnIjp7ImEiOm51bGwsInMiOmZhbHNlLCJpIjpmYWxzZX0sImlrIjoiMGY5ZDhlOTNlMjczZDZjNCIsImJzIjpudWxsLCJic3YiOm51bGx9.XkliJ11lQeJK3GBmBWJaQms79XIhN1RnkZz-6HC5Ca0",
+      "now_ms": 1794502740000,
+      "result": "ok",
+      "payload": {
+        "v": 1,
+        "id": "vector-01",
+        "t": 1794502800000,
+        "p": "/",
+        "sf": {
+          "s": "none",
+          "m": "navigate",
+          "d": "document",
+          "u": "?1"
+        },
+        "sp": null,
+        "md": false,
+        "al": "en-US,en;q=0.9",
+        "ch": {
+          "ua": "\"Chromium\";v=\"142\", \"Google Chrome\";v=\"142\", \"Not_A Brand\";v=\"99\"",
+          "pf": "\"macOS\"",
+          "mb": "?0"
+        },
+        "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
+        "hn": [
+          "host",
+          "connection",
+          "sec-ch-ua",
+          "sec-ch-ua-mobile",
+          "sec-ch-ua-platform",
+          "upgrade-insecure-requests",
+          "user-agent",
+          "accept",
+          "sec-fetch-site",
+          "sec-fetch-mode",
+          "sec-fetch-user",
+          "sec-fetch-dest",
+          "accept-encoding",
+          "accept-language"
+        ],
+        "sg": {
+          "a": null,
+          "s": false,
+          "i": false
+        },
+        "ik": "0f9d8e93e273d6c4",
+        "bs": null,
+        "bsv": null
+      }
+    },
+    {
+      "name": "more than a minute before the token's time",
+      "secret": "main",
+      "token": "c1.eyJ2IjoxLCJpZCI6InZlY3Rvci0wMSIsInQiOjE3OTQ1MDI4MDAwMDAsInAiOiIvIiwic2YiOnsicyI6Im5vbmUiLCJtIjoibmF2aWdhdGUiLCJkIjoiZG9jdW1lbnQiLCJ1IjoiPzEifSwic3AiOm51bGwsIm1kIjpmYWxzZSwiYWwiOiJlbi1VUyxlbjtxPTAuOSIsImNoIjp7InVhIjoiXCJDaHJvbWl1bVwiO3Y9XCIxNDJcIiwgXCJHb29nbGUgQ2hyb21lXCI7dj1cIjE0MlwiLCBcIk5vdF9BIEJyYW5kXCI7dj1cIjk5XCIiLCJwZiI6IlwibWFjT1NcIiIsIm1iIjoiPzAifSwidWEiOiJNb3ppbGxhLzUuMCAoTWFjaW50b3NoOyBJbnRlbCBNYWMgT1MgWCAxMF8xNV83KSBBcHBsZVdlYktpdC81MzcuMzYgKEtIVE1MLCBsaWtlIEdlY2tvKSBDaHJvbWUvMTQyLjAuMC4wIFNhZmFyaS81MzcuMzYiLCJobiI6WyJob3N0IiwiY29ubmVjdGlvbiIsInNlYy1jaC11YSIsInNlYy1jaC11YS1tb2JpbGUiLCJzZWMtY2gtdWEtcGxhdGZvcm0iLCJ1cGdyYWRlLWluc2VjdXJlLXJlcXVlc3RzIiwidXNlci1hZ2VudCIsImFjY2VwdCIsInNlYy1mZXRjaC1zaXRlIiwic2VjLWZldGNoLW1vZGUiLCJzZWMtZmV0Y2gtdXNlciIsInNlYy1mZXRjaC1kZXN0IiwiYWNjZXB0LWVuY29kaW5nIiwiYWNjZXB0LWxhbmd1YWdlIl0sInNnIjp7ImEiOm51bGwsInMiOmZhbHNlLCJpIjpmYWxzZX0sImlrIjoiMGY5ZDhlOTNlMjczZDZjNCIsImJzIjpudWxsLCJic3YiOm51bGx9.XkliJ11lQeJK3GBmBWJaQms79XIhN1RnkZz-6HC5Ca0",
+      "now_ms": 1794502739999,
+      "result": "stale"
+    },
+    {
+      "name": "one character of the payload changed",
+      "secret": "main",
+      "token": "c1.eyJ2IjoxLCJpZCI6InZlA3Rvci0wMSIsInQiOjE3OTQ1MDI4MDAwMDAsInAiOiIvIiwic2YiOnsicyI6Im5vbmUiLCJtIjoibmF2aWdhdGUiLCJkIjoiZG9jdW1lbnQiLCJ1IjoiPzEifSwic3AiOm51bGwsIm1kIjpmYWxzZSwiYWwiOiJlbi1VUyxlbjtxPTAuOSIsImNoIjp7InVhIjoiXCJDaHJvbWl1bVwiO3Y9XCIxNDJcIiwgXCJHb29nbGUgQ2hyb21lXCI7dj1cIjE0MlwiLCBcIk5vdF9BIEJyYW5kXCI7dj1cIjk5XCIiLCJwZiI6IlwibWFjT1NcIiIsIm1iIjoiPzAifSwidWEiOiJNb3ppbGxhLzUuMCAoTWFjaW50b3NoOyBJbnRlbCBNYWMgT1MgWCAxMF8xNV83KSBBcHBsZVdlYktpdC81MzcuMzYgKEtIVE1MLCBsaWtlIEdlY2tvKSBDaHJvbWUvMTQyLjAuMC4wIFNhZmFyaS81MzcuMzYiLCJobiI6WyJob3N0IiwiY29ubmVjdGlvbiIsInNlYy1jaC11YSIsInNlYy1jaC11YS1tb2JpbGUiLCJzZWMtY2gtdWEtcGxhdGZvcm0iLCJ1cGdyYWRlLWluc2VjdXJlLXJlcXVlc3RzIiwidXNlci1hZ2VudCIsImFjY2VwdCIsInNlYy1mZXRjaC1zaXRlIiwic2VjLWZldGNoLW1vZGUiLCJzZWMtZmV0Y2gtdXNlciIsInNlYy1mZXRjaC1kZXN0IiwiYWNjZXB0LWVuY29kaW5nIiwiYWNjZXB0LWxhbmd1YWdlIl0sInNnIjp7ImEiOm51bGwsInMiOmZhbHNlLCJpIjpmYWxzZX0sImlrIjoiMGY5ZDhlOTNlMjczZDZjNCIsImJzIjpudWxsLCJic3YiOm51bGx9.XkliJ11lQeJK3GBmBWJaQms79XIhN1RnkZz-6HC5Ca0",
+      "now_ms": 1794502800000,
+      "result": "bad"
+    },
+    {
+      "name": "one character of the MAC changed",
+      "secret": "main",
+      "token": "c1.eyJ2IjoxLCJpZCI6InZlY3Rvci0wMSIsInQiOjE3OTQ1MDI4MDAwMDAsInAiOiIvIiwic2YiOnsicyI6Im5vbmUiLCJtIjoibmF2aWdhdGUiLCJkIjoiZG9jdW1lbnQiLCJ1IjoiPzEifSwic3AiOm51bGwsIm1kIjpmYWxzZSwiYWwiOiJlbi1VUyxlbjtxPTAuOSIsImNoIjp7InVhIjoiXCJDaHJvbWl1bVwiO3Y9XCIxNDJcIiwgXCJHb29nbGUgQ2hyb21lXCI7dj1cIjE0MlwiLCBcIk5vdF9BIEJyYW5kXCI7dj1cIjk5XCIiLCJwZiI6IlwibWFjT1NcIiIsIm1iIjoiPzAifSwidWEiOiJNb3ppbGxhLzUuMCAoTWFjaW50b3NoOyBJbnRlbCBNYWMgT1MgWCAxMF8xNV83KSBBcHBsZVdlYktpdC81MzcuMzYgKEtIVE1MLCBsaWtlIEdlY2tvKSBDaHJvbWUvMTQyLjAuMC4wIFNhZmFyaS81MzcuMzYiLCJobiI6WyJob3N0IiwiY29ubmVjdGlvbiIsInNlYy1jaC11YSIsInNlYy1jaC11YS1tb2JpbGUiLCJzZWMtY2gtdWEtcGxhdGZvcm0iLCJ1cGdyYWRlLWluc2VjdXJlLXJlcXVlc3RzIiwidXNlci1hZ2VudCIsImFjY2VwdCIsInNlYy1mZXRjaC1zaXRlIiwic2VjLWZldGNoLW1vZGUiLCJzZWMtZmV0Y2gtdXNlciIsInNlYy1mZXRjaC1kZXN0IiwiYWNjZXB0LWVuY29kaW5nIiwiYWNjZXB0LWxhbmd1YWdlIl0sInNnIjp7ImEiOm51bGwsInMiOmZhbHNlLCJpIjpmYWxzZX0sImlrIjoiMGY5ZDhlOTNlMjczZDZjNCIsImJzIjpudWxsLCJic3YiOm51bGx9.XkliJ11AQeJK3GBmBWJaQms79XIhN1RnkZz-6HC5Ca0",
+      "now_ms": 1794502800000,
+      "result": "bad"
+    },
+    {
+      "name": "signed with another secret",
+      "secret": "main",
+      "token": "c1.eyJ2IjoxLCJpZCI6InZlY3Rvci0xNSIsInQiOjE3OTQ1MDI4MDAwMDAsInAiOiIvIiwic2YiOnsicyI6Im5vbmUiLCJtIjoibmF2aWdhdGUiLCJkIjoiZG9jdW1lbnQiLCJ1IjoiPzEifSwic3AiOm51bGwsIm1kIjpmYWxzZSwiYWwiOiJlbi1VUyxlbjtxPTAuOSIsImNoIjp7InVhIjoiXCJDaHJvbWl1bVwiO3Y9XCIxNDJcIiwgXCJHb29nbGUgQ2hyb21lXCI7dj1cIjE0MlwiLCBcIk5vdF9BIEJyYW5kXCI7dj1cIjk5XCIiLCJwZiI6IlwibWFjT1NcIiIsIm1iIjoiPzAifSwidWEiOiJNb3ppbGxhLzUuMCAoTWFjaW50b3NoOyBJbnRlbCBNYWMgT1MgWCAxMF8xNV83KSBBcHBsZVdlYktpdC81MzcuMzYgKEtIVE1MLCBsaWtlIEdlY2tvKSBDaHJvbWUvMTQyLjAuMC4wIFNhZmFyaS81MzcuMzYiLCJobiI6WyJob3N0IiwiY29ubmVjdGlvbiIsInNlYy1jaC11YSIsInNlYy1jaC11YS1tb2JpbGUiLCJzZWMtY2gtdWEtcGxhdGZvcm0iLCJ1cGdyYWRlLWluc2VjdXJlLXJlcXVlc3RzIiwidXNlci1hZ2VudCIsImFjY2VwdCIsInNlYy1mZXRjaC1zaXRlIiwic2VjLWZldGNoLW1vZGUiLCJzZWMtZmV0Y2gtdXNlciIsInNlYy1mZXRjaC1kZXN0IiwiYWNjZXB0LWVuY29kaW5nIiwiYWNjZXB0LWxhbmd1YWdlIl0sInNnIjp7ImEiOm51bGwsInMiOmZhbHNlLCJpIjpmYWxzZX0sImlrIjoiNWIwZjQ5ZmE0MDkwZTM3ZiIsImJzIjpudWxsLCJic3YiOm51bGx9.CE734pxNXljYF7xagxJe5KefCAoRemmw7Ke3iy1fdiQ",
+      "now_ms": 1794502800000,
+      "result": "bad"
+    },
+    {
+      "name": "another prefix",
+      "secret": "main",
+      "token": "c2.eyJ2IjoxLCJpZCI6InZlY3Rvci0wMSIsInQiOjE3OTQ1MDI4MDAwMDAsInAiOiIvIiwic2YiOnsicyI6Im5vbmUiLCJtIjoibmF2aWdhdGUiLCJkIjoiZG9jdW1lbnQiLCJ1IjoiPzEifSwic3AiOm51bGwsIm1kIjpmYWxzZSwiYWwiOiJlbi1VUyxlbjtxPTAuOSIsImNoIjp7InVhIjoiXCJDaHJvbWl1bVwiO3Y9XCIxNDJcIiwgXCJHb29nbGUgQ2hyb21lXCI7dj1cIjE0MlwiLCBcIk5vdF9BIEJyYW5kXCI7dj1cIjk5XCIiLCJwZiI6IlwibWFjT1NcIiIsIm1iIjoiPzAifSwidWEiOiJNb3ppbGxhLzUuMCAoTWFjaW50b3NoOyBJbnRlbCBNYWMgT1MgWCAxMF8xNV83KSBBcHBsZVdlYktpdC81MzcuMzYgKEtIVE1MLCBsaWtlIEdlY2tvKSBDaHJvbWUvMTQyLjAuMC4wIFNhZmFyaS81MzcuMzYiLCJobiI6WyJob3N0IiwiY29ubmVjdGlvbiIsInNlYy1jaC11YSIsInNlYy1jaC11YS1tb2JpbGUiLCJzZWMtY2gtdWEtcGxhdGZvcm0iLCJ1cGdyYWRlLWluc2VjdXJlLXJlcXVlc3RzIiwidXNlci1hZ2VudCIsImFjY2VwdCIsInNlYy1mZXRjaC1zaXRlIiwic2VjLWZldGNoLW1vZGUiLCJzZWMtZmV0Y2gtdXNlciIsInNlYy1mZXRjaC1kZXN0IiwiYWNjZXB0LWVuY29kaW5nIiwiYWNjZXB0LWxhbmd1YWdlIl0sInNnIjp7ImEiOm51bGwsInMiOmZhbHNlLCJpIjpmYWxzZX0sImlrIjoiMGY5ZDhlOTNlMjczZDZjNCIsImJzIjpudWxsLCJic3YiOm51bGx9.XkliJ11lQeJK3GBmBWJaQms79XIhN1RnkZz-6HC5Ca0",
+      "now_ms": 1794502800000,
+      "result": "bad"
+    },
+    {
+      "name": "two parts",
+      "secret": "main",
+      "token": "c1.eyJ2IjoxLCJpZCI6InZlY3Rvci0wMSIsInQiOjE3OTQ1MDI4MDAwMDAsInAiOiIvIiwic2YiOnsicyI6Im5vbmUiLCJtIjoibmF2aWdhdGUiLCJkIjoiZG9jdW1lbnQiLCJ1IjoiPzEifSwic3AiOm51bGwsIm1kIjpmYWxzZSwiYWwiOiJlbi1VUyxlbjtxPTAuOSIsImNoIjp7InVhIjoiXCJDaHJvbWl1bVwiO3Y9XCIxNDJcIiwgXCJHb29nbGUgQ2hyb21lXCI7dj1cIjE0MlwiLCBcIk5vdF9BIEJyYW5kXCI7dj1cIjk5XCIiLCJwZiI6IlwibWFjT1NcIiIsIm1iIjoiPzAifSwidWEiOiJNb3ppbGxhLzUuMCAoTWFjaW50b3NoOyBJbnRlbCBNYWMgT1MgWCAxMF8xNV83KSBBcHBsZVdlYktpdC81MzcuMzYgKEtIVE1MLCBsaWtlIEdlY2tvKSBDaHJvbWUvMTQyLjAuMC4wIFNhZmFyaS81MzcuMzYiLCJobiI6WyJob3N0IiwiY29ubmVjdGlvbiIsInNlYy1jaC11YSIsInNlYy1jaC11YS1tb2JpbGUiLCJzZWMtY2gtdWEtcGxhdGZvcm0iLCJ1cGdyYWRlLWluc2VjdXJlLXJlcXVlc3RzIiwidXNlci1hZ2VudCIsImFjY2VwdCIsInNlYy1mZXRjaC1zaXRlIiwic2VjLWZldGNoLW1vZGUiLCJzZWMtZmV0Y2gtdXNlciIsInNlYy1mZXRjaC1kZXN0IiwiYWNjZXB0LWVuY29kaW5nIiwiYWNjZXB0LWxhbmd1YWdlIl0sInNnIjp7ImEiOm51bGwsInMiOmZhbHNlLCJpIjpmYWxzZX0sImlrIjoiMGY5ZDhlOTNlMjczZDZjNCIsImJzIjpudWxsLCJic3YiOm51bGx9",
+      "now_ms": 1794502800000,
+      "result": "bad"
+    },
+    {
+      "name": "four parts",
+      "secret": "main",
+      "token": "c1.eyJ2IjoxLCJpZCI6InZlY3Rvci0wMSIsInQiOjE3OTQ1MDI4MDAwMDAsInAiOiIvIiwic2YiOnsicyI6Im5vbmUiLCJtIjoibmF2aWdhdGUiLCJkIjoiZG9jdW1lbnQiLCJ1IjoiPzEifSwic3AiOm51bGwsIm1kIjpmYWxzZSwiYWwiOiJlbi1VUyxlbjtxPTAuOSIsImNoIjp7InVhIjoiXCJDaHJvbWl1bVwiO3Y9XCIxNDJcIiwgXCJHb29nbGUgQ2hyb21lXCI7dj1cIjE0MlwiLCBcIk5vdF9BIEJyYW5kXCI7dj1cIjk5XCIiLCJwZiI6IlwibWFjT1NcIiIsIm1iIjoiPzAifSwidWEiOiJNb3ppbGxhLzUuMCAoTWFjaW50b3NoOyBJbnRlbCBNYWMgT1MgWCAxMF8xNV83KSBBcHBsZVdlYktpdC81MzcuMzYgKEtIVE1MLCBsaWtlIEdlY2tvKSBDaHJvbWUvMTQyLjAuMC4wIFNhZmFyaS81MzcuMzYiLCJobiI6WyJob3N0IiwiY29ubmVjdGlvbiIsInNlYy1jaC11YSIsInNlYy1jaC11YS1tb2JpbGUiLCJzZWMtY2gtdWEtcGxhdGZvcm0iLCJ1cGdyYWRlLWluc2VjdXJlLXJlcXVlc3RzIiwidXNlci1hZ2VudCIsImFjY2VwdCIsInNlYy1mZXRjaC1zaXRlIiwic2VjLWZldGNoLW1vZGUiLCJzZWMtZmV0Y2gtdXNlciIsInNlYy1mZXRjaC1kZXN0IiwiYWNjZXB0LWVuY29kaW5nIiwiYWNjZXB0LWxhbmd1YWdlIl0sInNnIjp7ImEiOm51bGwsInMiOmZhbHNlLCJpIjpmYWxzZX0sImlrIjoiMGY5ZDhlOTNlMjczZDZjNCIsImJzIjpudWxsLCJic3YiOm51bGx9.XkliJ11lQeJK3GBmBWJaQms79XIhN1RnkZz-6HC5Ca0.XkliJ11lQeJK3GBmBWJaQms79XIhN1RnkZz-6HC5Ca0",
+      "now_ms": 1794502800000,
+      "result": "bad"
+    },
+    {
+      "name": "padding after the MAC",
+      "secret": "main",
+      "token": "c1.eyJ2IjoxLCJpZCI6InZlY3Rvci0wMSIsInQiOjE3OTQ1MDI4MDAwMDAsInAiOiIvIiwic2YiOnsicyI6Im5vbmUiLCJtIjoibmF2aWdhdGUiLCJkIjoiZG9jdW1lbnQiLCJ1IjoiPzEifSwic3AiOm51bGwsIm1kIjpmYWxzZSwiYWwiOiJlbi1VUyxlbjtxPTAuOSIsImNoIjp7InVhIjoiXCJDaHJvbWl1bVwiO3Y9XCIxNDJcIiwgXCJHb29nbGUgQ2hyb21lXCI7dj1cIjE0MlwiLCBcIk5vdF9BIEJyYW5kXCI7dj1cIjk5XCIiLCJwZiI6IlwibWFjT1NcIiIsIm1iIjoiPzAifSwidWEiOiJNb3ppbGxhLzUuMCAoTWFjaW50b3NoOyBJbnRlbCBNYWMgT1MgWCAxMF8xNV83KSBBcHBsZVdlYktpdC81MzcuMzYgKEtIVE1MLCBsaWtlIEdlY2tvKSBDaHJvbWUvMTQyLjAuMC4wIFNhZmFyaS81MzcuMzYiLCJobiI6WyJob3N0IiwiY29ubmVjdGlvbiIsInNlYy1jaC11YSIsInNlYy1jaC11YS1tb2JpbGUiLCJzZWMtY2gtdWEtcGxhdGZvcm0iLCJ1cGdyYWRlLWluc2VjdXJlLXJlcXVlc3RzIiwidXNlci1hZ2VudCIsImFjY2VwdCIsInNlYy1mZXRjaC1zaXRlIiwic2VjLWZldGNoLW1vZGUiLCJzZWMtZmV0Y2gtdXNlciIsInNlYy1mZXRjaC1kZXN0IiwiYWNjZXB0LWVuY29kaW5nIiwiYWNjZXB0LWxhbmd1YWdlIl0sInNnIjp7ImEiOm51bGwsInMiOmZhbHNlLCJpIjpmYWxzZX0sImlrIjoiMGY5ZDhlOTNlMjczZDZjNCIsImJzIjpudWxsLCJic3YiOm51bGx9.XkliJ11lQeJK3GBmBWJaQms79XIhN1RnkZz-6HC5Ca0=",
+      "now_ms": 1794502800000,
+      "result": "bad"
+    },
+    {
+      "name": "the MAC spelled with a spare bit set",
+      "secret": "main",
+      "token": "c1.eyJ2IjoxLCJpZCI6InZlY3Rvci0wMSIsInQiOjE3OTQ1MDI4MDAwMDAsInAiOiIvIiwic2YiOnsicyI6Im5vbmUiLCJtIjoibmF2aWdhdGUiLCJkIjoiZG9jdW1lbnQiLCJ1IjoiPzEifSwic3AiOm51bGwsIm1kIjpmYWxzZSwiYWwiOiJlbi1VUyxlbjtxPTAuOSIsImNoIjp7InVhIjoiXCJDaHJvbWl1bVwiO3Y9XCIxNDJcIiwgXCJHb29nbGUgQ2hyb21lXCI7dj1cIjE0MlwiLCBcIk5vdF9BIEJyYW5kXCI7dj1cIjk5XCIiLCJwZiI6IlwibWFjT1NcIiIsIm1iIjoiPzAifSwidWEiOiJNb3ppbGxhLzUuMCAoTWFjaW50b3NoOyBJbnRlbCBNYWMgT1MgWCAxMF8xNV83KSBBcHBsZVdlYktpdC81MzcuMzYgKEtIVE1MLCBsaWtlIEdlY2tvKSBDaHJvbWUvMTQyLjAuMC4wIFNhZmFyaS81MzcuMzYiLCJobiI6WyJob3N0IiwiY29ubmVjdGlvbiIsInNlYy1jaC11YSIsInNlYy1jaC11YS1tb2JpbGUiLCJzZWMtY2gtdWEtcGxhdGZvcm0iLCJ1cGdyYWRlLWluc2VjdXJlLXJlcXVlc3RzIiwidXNlci1hZ2VudCIsImFjY2VwdCIsInNlYy1mZXRjaC1zaXRlIiwic2VjLWZldGNoLW1vZGUiLCJzZWMtZmV0Y2gtdXNlciIsInNlYy1mZXRjaC1kZXN0IiwiYWNjZXB0LWVuY29kaW5nIiwiYWNjZXB0LWxhbmd1YWdlIl0sInNnIjp7ImEiOm51bGwsInMiOmZhbHNlLCJpIjpmYWxzZX0sImlrIjoiMGY5ZDhlOTNlMjczZDZjNCIsImJzIjpudWxsLCJic3YiOm51bGx9.XkliJ11lQeJK3GBmBWJaQms79XIhN1RnkZz-6HC5Ca1",
+      "now_ms": 1794502800000,
+      "result": "bad"
+    },
+    {
+      "name": "the MAC in the standard base64 alphabet",
+      "secret": "main",
+      "token": "c1.eyJ2IjoxLCJpZCI6InZlY3Rvci0wMSIsInQiOjE3OTQ1MDI4MDAwMDAsInAiOiIvIiwic2YiOnsicyI6Im5vbmUiLCJtIjoibmF2aWdhdGUiLCJkIjoiZG9jdW1lbnQiLCJ1IjoiPzEifSwic3AiOm51bGwsIm1kIjpmYWxzZSwiYWwiOiJlbi1VUyxlbjtxPTAuOSIsImNoIjp7InVhIjoiXCJDaHJvbWl1bVwiO3Y9XCIxNDJcIiwgXCJHb29nbGUgQ2hyb21lXCI7dj1cIjE0MlwiLCBcIk5vdF9BIEJyYW5kXCI7dj1cIjk5XCIiLCJwZiI6IlwibWFjT1NcIiIsIm1iIjoiPzAifSwidWEiOiJNb3ppbGxhLzUuMCAoTWFjaW50b3NoOyBJbnRlbCBNYWMgT1MgWCAxMF8xNV83KSBBcHBsZVdlYktpdC81MzcuMzYgKEtIVE1MLCBsaWtlIEdlY2tvKSBDaHJvbWUvMTQyLjAuMC4wIFNhZmFyaS81MzcuMzYiLCJobiI6WyJob3N0IiwiY29ubmVjdGlvbiIsInNlYy1jaC11YSIsInNlYy1jaC11YS1tb2JpbGUiLCJzZWMtY2gtdWEtcGxhdGZvcm0iLCJ1cGdyYWRlLWluc2VjdXJlLXJlcXVlc3RzIiwidXNlci1hZ2VudCIsImFjY2VwdCIsInNlYy1mZXRjaC1zaXRlIiwic2VjLWZldGNoLW1vZGUiLCJzZWMtZmV0Y2gtdXNlciIsInNlYy1mZXRjaC1kZXN0IiwiYWNjZXB0LWVuY29kaW5nIiwiYWNjZXB0LWxhbmd1YWdlIl0sInNnIjp7ImEiOm51bGwsInMiOmZhbHNlLCJpIjpmYWxzZX0sImlrIjoiMGY5ZDhlOTNlMjczZDZjNCIsImJzIjpudWxsLCJic3YiOm51bGx9.XkliJ11lQeJK3GBmBWJaQms79XIhN1RnkZz+6HC5Ca0",
+      "now_ms": 1794502800000,
+      "result": "bad"
+    },
+    {
+      "name": "a character outside base64url in the payload",
+      "secret": "main",
+      "token": "c1.eyJ2I*oxLCJpZCI6InZlY3Rvci0wMSIsInQiOjE3OTQ1MDI4MDAwMDAsInAiOiIvIiwic2YiOnsicyI6Im5vbmUiLCJtIjoibmF2aWdhdGUiLCJkIjoiZG9jdW1lbnQiLCJ1IjoiPzEifSwic3AiOm51bGwsIm1kIjpmYWxzZSwiYWwiOiJlbi1VUyxlbjtxPTAuOSIsImNoIjp7InVhIjoiXCJDaHJvbWl1bVwiO3Y9XCIxNDJcIiwgXCJHb29nbGUgQ2hyb21lXCI7dj1cIjE0MlwiLCBcIk5vdF9BIEJyYW5kXCI7dj1cIjk5XCIiLCJwZiI6IlwibWFjT1NcIiIsIm1iIjoiPzAifSwidWEiOiJNb3ppbGxhLzUuMCAoTWFjaW50b3NoOyBJbnRlbCBNYWMgT1MgWCAxMF8xNV83KSBBcHBsZVdlYktpdC81MzcuMzYgKEtIVE1MLCBsaWtlIEdlY2tvKSBDaHJvbWUvMTQyLjAuMC4wIFNhZmFyaS81MzcuMzYiLCJobiI6WyJob3N0IiwiY29ubmVjdGlvbiIsInNlYy1jaC11YSIsInNlYy1jaC11YS1tb2JpbGUiLCJzZWMtY2gtdWEtcGxhdGZvcm0iLCJ1cGdyYWRlLWluc2VjdXJlLXJlcXVlc3RzIiwidXNlci1hZ2VudCIsImFjY2VwdCIsInNlYy1mZXRjaC1zaXRlIiwic2VjLWZldGNoLW1vZGUiLCJzZWMtZmV0Y2gtdXNlciIsInNlYy1mZXRjaC1kZXN0IiwiYWNjZXB0LWVuY29kaW5nIiwiYWNjZXB0LWxhbmd1YWdlIl0sInNnIjp7ImEiOm51bGwsInMiOmZhbHNlLCJpIjpmYWxzZX0sImlrIjoiMGY5ZDhlOTNlMjczZDZjNCIsImJzIjpudWxsLCJic3YiOm51bGx9.XkliJ11lQeJK3GBmBWJaQms79XIhN1RnkZz-6HC5Ca0",
+      "now_ms": 1794502800000,
+      "result": "bad"
+    },
+    {
+      "name": "empty",
+      "secret": "main",
+      "token": "",
+      "now_ms": 1794502800000,
+      "result": "bad"
+    },
+    {
+      "name": "a good MAC over text that is not JSON",
+      "secret": "main",
+      "token": "c1.bm90IGpzb24.mt1BwUnxExt9b9j3EQjOlg7-hH4OqfAedjZ647B9EFM",
+      "now_ms": 1794502800000,
+      "result": "bad"
+    },
+    {
+      "name": "a good MAC over a JSON array",
+      "secret": "main",
+      "token": "c1.WzEsMl0.3kWKKLBgo2wYdyf6S8KK34xh3wwSNONK6099IEGXDpk",
+      "now_ms": 1794502800000,
+      "result": "bad"
+    },
+    {
+      "name": "a good MAC over a payload without an id",
+      "secret": "main",
+      "token": "c1.eyJ2IjoxLCJ0IjoxNzk0NTAyODAwMDAwfQ.bgmyrFc00zyqBGGDUVqSDqhezEMguztcEVxj9w3WwZU",
+      "now_ms": 1794502800000,
+      "result": "bad"
+    },
+    {
+      "name": "a good MAC over a payload whose time is not an integer",
+      "secret": "main",
+      "token": "c1.eyJ2IjoxLCJpZCI6IngiLCJ0IjoxNzk0NTAyODAwMDAwLjV9.gyevHsGuhb1jpohLOfh8UnFQRwiVOELkpGtg46J9Y9M",
+      "now_ms": 1794502800000,
+      "result": "bad"
+    },
+    {
+      "name": "a good MAC over a payload of another version",
+      "secret": "main",
+      "token": "c1.eyJ2IjoyLCJpZCI6IngiLCJ0IjoxNzk0NTAyODAwMDAwfQ.9HVp60rDaFwuS4T7bam8qbVDeS5Cr9oZ_3uytPpMODk",
+      "now_ms": 1794502800000,
+      "result": "bad"
+    },
+    {
+      "name": "a good MAC over the smallest payload there is",
+      "secret": "main",
+      "token": "c1.eyJ2IjoxLCJpZCI6IngiLCJ0IjoxNzk0NTAyODAwMDAwfQ.qI9ErGeGs9m-NVvLYThIW0X9gpmSRLSdf_kqZe5FHVU",
+      "now_ms": 1794502800000,
+      "result": "ok",
+      "payload": {
+        "v": 1,
+        "id": "x",
+        "t": 1794502800000
+      }
+    },
+    {
+      "name": "the token of tartini.ai's middleware and cake 0.3.3",
+      "secret": "tartini",
+      "token": "c1.eyJ2IjoxLCJpZCI6InZlY3Rvci0xIiwidCI6MTc5NDUwMjgwMDAwMCwicCI6Ii8iLCJicyI6eyJ0IjoiYWdlbnQiLCJhIjoiY2xhdWRlLWluLWNocm9tZSIsInIiOlsiZXh0ZW5zaW9uLW1hcmtlciJdfSwiaWsiOiIzMGZhOGNlMTFiN2E2YzJhIn0.ECFhiDnT7T0k45nKX4Vl4Z5ZaOaqBzKDynVqsUm_Y6Q",
+      "now_ms": 1794502800000,
+      "result": "ok",
+      "payload": {
+        "v": 1,
+        "id": "vector-1",
+        "t": 1794502800000,
+        "p": "/",
+        "bs": {
+          "t": "agent",
+          "a": "claude-in-chrome",
+          "r": [
+            "extension-marker"
+          ]
+        },
+        "ik": "30fa8ce11b7a6c2a"
+      }
+    }
+  ],
+  "network_keys": [
+    {
+      "name": "IPv4",
+      "secret": "main",
+      "ip": "203.0.113.77",
+      "now_ms": 1794502800000,
+      "prefix": "203.0.113.0/24",
+      "key": "0f9d8e93e273d6c4"
+    },
+    {
+      "name": "the same /24",
+      "secret": "main",
+      "ip": "203.0.113.5",
+      "now_ms": 1794502800000,
+      "prefix": "203.0.113.0/24",
+      "key": "0f9d8e93e273d6c4"
+    },
+    {
+      "name": "another /24",
+      "secret": "main",
+      "ip": "203.0.114.77",
+      "now_ms": 1794502800000,
+      "prefix": "203.0.114.0/24",
+      "key": "11f9ee02f021b164"
+    },
+    {
+      "name": "the next UTC day",
+      "secret": "main",
+      "ip": "203.0.113.77",
+      "now_ms": 1794589200000,
+      "prefix": "203.0.113.0/24",
+      "key": "717de9155255ae70"
+    },
+    {
+      "name": "spaces around the address",
+      "secret": "main",
+      "ip": " 203.0.113.77 ",
+      "now_ms": 1794502800000,
+      "prefix": "203.0.113.0/24",
+      "key": "0f9d8e93e273d6c4"
+    },
+    {
+      "name": "IPv4-mapped IPv6, dotted",
+      "secret": "main",
+      "ip": "::ffff:203.0.113.77",
+      "now_ms": 1794502800000,
+      "prefix": "203.0.113.0/24",
+      "key": "0f9d8e93e273d6c4"
+    },
+    {
+      "name": "IPv4-mapped IPv6, in hex",
+      "secret": "main",
+      "ip": "::ffff:cb00:714d",
+      "now_ms": 1794502800000,
+      "prefix": "203.0.113.0/24",
+      "key": "0f9d8e93e273d6c4"
+    },
+    {
+      "name": "IPv6",
+      "secret": "main",
+      "ip": "2001:db8:abcd:12::1",
+      "now_ms": 1794502800000,
+      "prefix": "2001:db8:abcd::/48",
+      "key": "4d654849b725a46d"
+    },
+    {
+      "name": "IPv6 with a zero third group",
+      "secret": "main",
+      "ip": "2001:db8::1",
+      "now_ms": 1794502800000,
+      "prefix": "2001:db8:0::/48",
+      "key": "1e4db6a0f43a95ba"
+    },
+    {
+      "name": "IPv6 in capitals with leading zeros",
+      "secret": "main",
+      "ip": "2001:0DB8:00ab:ffff::",
+      "now_ms": 1794502800000,
+      "prefix": "2001:db8:ab::/48",
+      "key": "b675539f70a642f9"
+    },
+    {
+      "name": "IPv6 with a zone",
+      "secret": "main",
+      "ip": "fe80::1%eth0",
+      "now_ms": 1794502800000,
+      "prefix": "fe80:0:0::/48",
+      "key": "897865954205a2c2"
+    },
+    {
+      "name": "IPv6 loopback",
+      "secret": "main",
+      "ip": "::1",
+      "now_ms": 1794502800000,
+      "prefix": "0:0:0::/48",
+      "key": "4128d6ed1bfb259b"
+    },
+    {
+      "name": "an IPv4 tail that is not mapped",
+      "secret": "main",
+      "ip": "::ffff:0:1.2.3.4",
+      "now_ms": 1794502800000,
+      "prefix": "0:0:0::/48",
+      "key": "4128d6ed1bfb259b"
+    },
+    {
+      "name": "cake 0.3.3 and tartini.ai's key",
+      "secret": "tartini",
+      "ip": "203.0.113.77",
+      "now_ms": 1794502800000,
+      "prefix": "203.0.113.0/24",
+      "key": "30fa8ce11b7a6c2a"
+    },
+    {
+      "name": "an octet over 255",
+      "secret": "main",
+      "ip": "256.1.1.1",
+      "now_ms": 1794502800000,
+      "prefix": null,
+      "key": null
+    },
+    {
+      "name": "a leading zero",
+      "secret": "main",
+      "ip": "01.2.3.4",
+      "now_ms": 1794502800000,
+      "prefix": null,
+      "key": null
+    },
+    {
+      "name": "with a port",
+      "secret": "main",
+      "ip": "1.2.3.4:80",
+      "now_ms": 1794502800000,
+      "prefix": null,
+      "key": null
+    },
+    {
+      "name": "in brackets",
+      "secret": "main",
+      "ip": "[2001:db8::1]",
+      "now_ms": 1794502800000,
+      "prefix": null,
+      "key": null
+    },
+    {
+      "name": "two ::",
+      "secret": "main",
+      "ip": "2001:db8::1::2",
+      "now_ms": 1794502800000,
+      "prefix": null,
+      "key": null
+    },
+    {
+      "name": "a mapped tail with a leading zero",
+      "secret": "main",
+      "ip": "::ffff:1.2.3.04",
+      "now_ms": 1794502800000,
+      "prefix": null,
+      "key": null
+    },
+    {
+      "name": "an empty zone",
+      "secret": "main",
+      "ip": "fe80::1%",
+      "now_ms": 1794502800000,
+      "prefix": null,
+      "key": null
+    },
+    {
+      "name": "a slash in the zone",
+      "secret": "main",
+      "ip": "fe80::1%eth/0",
+      "now_ms": 1794502800000,
+      "prefix": null,
+      "key": null
+    },
+    {
+      "name": "empty",
+      "secret": "main",
+      "ip": "",
+      "now_ms": 1794502800000,
+      "prefix": null,
+      "key": null
+    },
+    {
+      "name": "not an address",
+      "secret": "main",
+      "ip": "unknown",
+      "now_ms": 1794502800000,
+      "prefix": null,
+      "key": null
+    }
+  ]
+}

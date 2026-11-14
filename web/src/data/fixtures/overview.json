@@ -1,0 +1,131 @@
+{
+  "counts": { "all": 150, "human": 81, "agent": 47, "bot": 22, "agent_only": 38, "human_agent": 9, "thin": 10 },
+  "agent_last_week": 35,
+  "share_by_day": [
+    { "day": "Thu", "human": 76, "agent": 18, "unsure": 6 },
+    { "day": "Fri", "human": 73, "agent": 22, "unsure": 5 },
+    { "day": "Sat", "human": 68, "agent": 25, "unsure": 7 },
+    { "day": "Sun", "human": 63, "agent": 31, "unsure": 6 },
+    { "day": "Mon", "human": 67, "agent": 28, "unsure": 5 },
+    { "day": "Tue", "human": 59, "agent": 35, "unsure": 6 },
+    { "day": "Wed", "human": 58, "agent": 38, "unsure": 4 }
+  ],
+  "agents_seen": [
+    { "name": "Claude in Chrome", "sessions": 17 },
+    { "name": null, "sessions": 9 },
+    { "name": "Meta Muse", "sessions": 7 },
+    { "name": "ChatGPT agent", "sessions": 6 },
+    { "name": "Grok Bot", "sessions": 5 },
+    { "name": "Codex browser", "sessions": 3 }
+  ],
+  "top_pages": [
+    { "path": "/product/classic-tshirt", "agent": 31, "human": 12 },
+    { "path": "/cart", "agent": 22, "human": 9 },
+    { "path": "/checkout", "agent": 14, "human": 6 },
+    { "path": "/search?q=tshirt", "agent": 11, "human": 15 },
+    { "path": "/pricing", "agent": 8, "human": 21 }
+  ],
+  "latest": [
+    { "id": "7f3a-c1", "verdict": "agent", "evidence": null, "agent_turns": "human_agent", "agent": "Claude in Chrome", "certainty": "likely", "when": "Today 09:12", "duration_ms": 96400, "pages": 4,
+      "share": { "human": 52, "agent": 43, "unsure": 5 },
+      "segments": [
+        { "who": "human", "start_ms": 0, "end_ms": 38560 },
+        { "who": "agent", "start_ms": 38560, "end_ms": 80012 },
+        { "who": "unsure", "start_ms": 80012, "end_ms": 83868 },
+        { "who": "human", "start_ms": 83868, "end_ms": 96400 }
+      ] },
+    { "id": "a91e-07", "verdict": "agent", "evidence": null, "agent_turns": "agent_only", "agent": "Meta Muse", "certainty": "likely", "when": "Today 08:57", "duration_ms": 125000, "pages": 6,
+      "share": { "human": 0, "agent": 96, "unsure": 4 } },
+    { "id": "c2d0-5b", "verdict": "bot", "evidence": null, "agent_turns": null, "agent": "Uptime checker", "certainty": "likely", "when": "Today 08:50", "duration_ms": 1000, "pages": 1,
+      "share": { "human": 0, "agent": 0, "unsure": 0 } },
+    { "id": "e4b8-22", "verdict": "human", "evidence": null, "agent_turns": null, "agent": null, "certainty": null, "when": "Today 08:41", "duration_ms": 258000, "pages": 7,
+      "share": { "human": 97, "agent": 0, "unsure": 3 } },
+    { "id": "19fc-90", "verdict": "agent", "evidence": null, "agent_turns": "agent_only", "agent": null, "certainty": null, "when": "Today 08:35", "duration_ms": 13000, "pages": 3,
+      "share": { "human": 0, "agent": 100, "unsure": 0 } },
+    { "id": "5a7d-3e", "verdict": "human", "evidence": "thin", "agent_turns": null, "agent": null, "certainty": null, "when": "Today 08:20", "duration_ms": 22000, "pages": 1,
+      "share": { "human": 31, "agent": 22, "unsure": 47 } }
+  ],
+  "latest_agent": [
+    { "id": "7f3a-c1", "verdict": "agent", "evidence": null, "agent_turns": "human_agent", "agent": "Claude in Chrome", "certainty": "likely", "when": "Today 09:12", "duration_ms": 96400, "pages": 4,
+      "share": { "human": 52, "agent": 43, "unsure": 5 },
+      "segments": [
+        { "who": "human", "start_ms": 0, "end_ms": 38560 },
+        { "who": "agent", "start_ms": 38560, "end_ms": 80012 },
+        { "who": "unsure", "start_ms": 80012, "end_ms": 83868 },
+        { "who": "human", "start_ms": 83868, "end_ms": 96400 }
+      ] },
+    { "id": "a91e-07", "verdict": "agent", "evidence": null, "agent_turns": "agent_only", "agent": "Meta Muse", "certainty": "likely", "when": "Today 08:57", "duration_ms": 125000, "pages": 6,
+      "share": { "human": 0, "agent": 96, "unsure": 4 } },
+    { "id": "19fc-90", "verdict": "agent", "evidence": null, "agent_turns": "agent_only", "agent": null, "certainty": null, "when": "Today 08:35", "duration_ms": 13000, "pages": 3,
+      "share": { "human": 0, "agent": 100, "unsure": 0 } }
+  ],
+  "average_length": {
+    "ms": { "human": 184000, "agent_only": 126000, "human_agent": 199000 },
+    "about": "Measured from a session's first activity to its last, where activity is a page opening or any input, including pointer moves. Time a tab stays open afterward doesn't count. The session list shows each recording's full length, from its start to its last event."
+  },
+  "storage": { "used_bytes": 3328599654, "budget_mb": 10240, "warn_at_pct": 80, "days_left": 120, "auto_free": true,
+               "disk": { "total": 494384795648, "free": 171798691840, "min_free": 10737418240, "low": false }, "replays_stopped": null },
+  "coverage": {
+    "title": "What AgentCake records",
+    "lead": "AgentCake classifies each session on this computer, when new activity arrives and again when the session goes inactive. It doesn't call any AI service.",
+    "columns": {
+      "what": "Visitor",
+      "shown_as": "Classification",
+      "how": "Decision method"
+    },
+    "rows": [
+      {
+        "what": "A human",
+        "verdict": "human",
+        "shown_as": "The comparison group",
+        "how": "There are no automation traces and no agent name, and the behavior model judges the actions to be human."
+      },
+      {
+        "what": "A browser extension, an AI browser, or a cloud agent, like Claude in Chrome, Comet, or ChatGPT agent",
+        "verdict": "agent",
+        "shown_as": "Agent, named when the evidence identifies it",
+        "how": "There are agent traces in the page or the browser, and the behavior model judges the actions to be an agent's. Traces include an extension acting on the page or a cloud computer's fixed setup. The name comes from a verified signature, the product's own traces, or the User-Agent."
+      },
+      {
+        "what": "The built-in browser of an AI desktop app, or a cloud agent that gives its name",
+        "verdict": "agent",
+        "shown_as": "Agent, identified by name, such as Codex browser",
+        "how": "The User-Agent contains a name, or a verified signature names the visitor. The behavior model still splits the session into stretches."
+      },
+      {
+        "what": "An automated browser that doesn't give its name, like Playwright, Puppeteer, or Selenium",
+        "verdict": "agent",
+        "shown_as": "Agent, identified by the tool's name when its traces show it, otherwise Unnamed",
+        "how": "The browser shows automation markers, such as webdriver, a headless browser, or requests without a language header. The behavior model splits the session into stretches. Crawler-like patterns only go into the reasons."
+      },
+      {
+        "what": "A program that gives its name and isn't an agent: a search engine, a monitor, a link preview",
+        "verdict": "bot",
+        "shown_as": "Counted only; marked “Verified” when its signature is valid",
+        "how": "The User-Agent or a signature matches the list of programs that aren't agents. It's marked “Verified” when a published address range or a signature confirms it. The behavior model doesn't run."
+      },
+      {
+        "what": "A human and an agent taking turns",
+        "verdict": "agent",
+        "shown_as": "Human + agent, split at each hand-off",
+        "how": "The behavior model finds both a human and an agent in the same session and marks the hand-off where the actions change."
+      },
+      {
+        "what": "Too few actions, or a phone or tablet",
+        "verdict": "human",
+        "shown_as": "Human, marked Thin evidence, with the reason",
+        "how": "There are fewer actions than the behavior model needs, or the visit comes from a phone or tablet, so no guess is made. A setting controls how many actions the model needs."
+      },
+      {
+        "what": "Evidence that's too weak or points both ways",
+        "verdict": "human",
+        "shown_as": "Human, marked Thin evidence, with the reason",
+        "how": "The evidence is too weak or points both ways. Examples include a trace that open DevTools also leave and keyboard navigation like an assistive tool's."
+      }
+    ],
+    "bot": {
+      "question": "What counts as a bot",
+      "answer": "A bot is a program that names itself and is known to have no human behind it, such as a search engine, a monitor, or a link preview. A visitor that only seems automated counts as an Agent, never a Bot."
+    }
+  }
+}

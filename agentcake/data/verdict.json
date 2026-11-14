@@ -1,0 +1,76 @@
+{
+  "$comment": "How the verdict step (S3.4: agentcake/detect/verdict.py and the modules it calls) combines the four layers into one conclusion per session. The words of every reason are in reasons.json and the meaning of every class in judging.en.json; the two settings a user may change (how long a quiet session waits before its verdict is final, judge_quiet_s, and how often a sending session is judged in server mode, public_judge_interval_ms) are in defaults.json. Each value is described in $doc.",
+  "$doc": {
+    "exclude": "Rule 0: sec_purpose holds the Sec-Purpose tokens of a page request that is not a visit yet (a prefetch, or a prerender, which Chrome sends as 'prefetch;prerender'), listed from the general to the specific: the last one present names the request in the reason. On such a page the server half's facts are not used, and environment hits read from the server half on that page are dropped; a page that was prerendered and never shown is left out altogether.",
+    "env_rows": "The Agent row (D17: 'ai' = AI in a real browser, 'automated' = Automated browser) an environment rule's kind points to.",
+    "overruling_kinds": "Kinds whose hard hits behaviour does not overturn (D5: webdriver and a human-looking behaviour is still automation): the session is an Agent in the Automated browser row, never Mixed. A hard hit of any other kind (a product rule, an extension acting on the page) only says that an agent is here, like a signature: a human may still take over (Mixed).",
+    "signature_proxy_components": "Components of a Web Bot Auth signature that a proxy in front of the site may rewrite, or that collect cannot rebuild exactly (the public listener keeps the path below its prefix and the parsed query, not the request line). A signature that does not verify and covers one of them is 'could not verify', not impersonation (S3.2's warning).",
+    "mixed": "A run of the behaviour timeline counts as one side of a Mixed session when it has at least min_actions actions over at least min_span_s seconds (start to last action). min_actions is the behaviour model's own minimum (behavior_model.json); min_span_s keeps out runs no hand can make, such as lab session cic-03's 12 'human' actions in 0.66 s (Claude in Chrome typing).",
+    "assistive": "Signs of an assistive tool (research note 13, sig-088): at least min_keys keydowns of the key classes listed (cake.js reports a key's class, never the key) while the pointer moved at most max_pointer_moves times. With them, the behaviour model's agent judgement is not trusted.",
+    "crawler": "Crawler-like patterns (D17: weak signals, never a Bot): a datacenter address (a cloud range, not a relay); page loads, or the network's earlier visits, at fixed intervals (at least min_gaps gaps whose coefficient of variation is at most max_cv); and many pages in a row (at least min_pages pages, a median of at most max_median_gap_s seconds apart). At least min_signals of the three write 'looks like a crawler' into the reasons; the class does not change. Chosen for S3.4, not measured.",
+    "attribution": "Naming (S3.5, agentcake/detect/attribute.py): the certainty of a name by the level it comes from (verified: a signature or a published range; the rdns level is kept for a reverse DNS check, which nothing runs; product_rule; declared: the User-Agent, navigator.platform or Signature-Agent; extension_trace: an extension's own trace; automation_trace: an automation tool's own trace or User-Agent token). not_tools: generic list names that are no tool driving the browser, so they never name an Automated browser, each with why.",
+    "weak": "Weak signals (S3.8, agentcake/detect/weak.py): each only adds a reason, never changes a verdict. same_address: at least min_sessions sessions from one address (its salted hash) within window_s. header_order: when a User-Agent holds browser_token, that browser sends the header named first before the one named before (research note 13 sig-111: Chrome sends Host, Connection, ...; curl posing as Chrome sends Host, User-Agent, ...); the first shown header names go into the reason. window_jump: the window's position moved at least min_px between two geo records of the same window size. rhythm: with at least min_steps steps, still_share of them after still_ms of no input at all is the pause of something that looks before it acts (D17: a weak signal). Chosen for S3.8. Its script's-pace half (steps right after the previous input) was removed by job borrow-rules (D34): it fired on humans as often as on agents (job borrow-rules).",
+    "confidence": "The confidence each kind of evidence gives (research note 13 section 5; G6): an Agent or a Bot takes the best level among the evidence it rests on, a Mixed session the lower of its agent evidence and the behaviour model, Not sure and Too little data are unsure. levels lists them best first."
+  },
+  "exclude": {
+    "sec_purpose": ["prefetch", "prerender"]
+  },
+  "env_rows": {
+    "automation": "automated",
+    "spoofing": "automated",
+    "product": "ai",
+    "extension": "ai",
+    "cloud_host": "ai"
+  },
+  "overruling_kinds": ["automation", "spoofing"],
+  "signature_proxy_components": ["@path", "@target-uri", "@scheme", "@request-target", "@query", "@query-param"],
+  "mixed": {
+    "min_actions": 3,
+    "min_span_s": 3
+  },
+  "assistive": {
+    "key_classes": ["tab", "arrow"],
+    "min_keys": 5,
+    "max_pointer_moves": 0
+  },
+  "crawler": {
+    "min_signals": 2,
+    "fixed_interval": {"min_gaps": 3, "max_cv": 0.1},
+    "many_pages": {"min_pages": 10, "max_median_gap_s": 10}
+  },
+  "attribution": {
+    "certainty": {
+      "verified": "certain",
+      "product_rule": "likely",
+      "declared": "likely",
+      "extension_trace": "likely",
+      "automation_trace": "likely"
+    },
+    "not_tools": {
+      "headlesschrome": "Headless Chrome is the browser's own mode, which every automation tool can use (D17 counts headless browsers as not naming themselves)"
+    }
+  },
+  "weak": {
+    "same_address": {"min_sessions": 20, "window_s": 86400},
+    "header_order": {"browser_token": "Chrome/", "browser": "Chrome", "first": "connection", "before": "user-agent",
+                     "shown": 4},
+    "window_jump": {"min_px": 400},
+    "rhythm": {"min_steps": 5, "still_ms": 2000, "still_share": 0.6}
+  },
+  "confidence": {
+    "levels": ["certain", "likely", "possible", "unsure"],
+    "evidence": {
+      "signature": "certain",
+      "ip_range": "certain",
+      "rdns": "certain",
+      "hard_env": "likely",
+      "product_rule": "likely",
+      "declared": "likely",
+      "impersonation": "likely",
+      "behavior": "possible",
+      "soft_env": "possible",
+      "cloud_host": "possible",
+      "extension_trace": "possible"
+    }
+  }
+}

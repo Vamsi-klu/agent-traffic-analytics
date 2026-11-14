@@ -1,0 +1,16 @@
+{
+  "about": "cake 0.3.4's prototype model: logistic regression per action, smoothed over the session by a two-state (human, agent) hidden Markov model; same structure as the bh-lab model. Weights are hand-set from the 11/09 and 11/11 lab results, not trained here.",
+  "weights": {"moves_per_s": -0.55, "moves_before_act": -0.35, "straight": 1.2, "pause_s": 0.25, "no_move_act": 1.6},
+  "bias": 0.4,
+  "logit_clamp": 30,
+  "features": {
+    "move_window_ms": 1500,
+    "input_merge_ms": 1500,
+    "max_moves_per_s": 20,
+    "max_moves_before_act": 30,
+    "max_pause_s": 15,
+    "min_moves_for_straightness": 3
+  },
+  "hmm": {"switch": 0.05, "temper": 0.7},
+  "verdict": {"agent_from_p": 0.65, "human_up_to_p": 0.35, "p_decimals": 2}
+}

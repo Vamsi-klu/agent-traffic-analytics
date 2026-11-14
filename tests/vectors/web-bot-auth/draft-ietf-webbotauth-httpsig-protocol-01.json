@@ -1,0 +1,64 @@
+{
+  "$source": "draft-ietf-webbotauth-httpsig-protocol-01 (29 October 2026), Appendix E.2, https://www.ietf.org/archive/id/draft-ietf-webbotauth-httpsig-protocol-01.txt; RFC 8792 line wrapping undone. Licence: see README.md in this folder.",
+  "public_key_x": "JrQLj5P_89iXES9-vFgrIy29clF9CC_oPPsw3c5D0bs",
+  "request": {
+    "method": "POST",
+    "scheme": "https",
+    "authority": "example.com",
+    "target": "/foo?param=Value&Pet=dog",
+    "headers": [
+      [
+        "Host",
+        "example.com"
+      ],
+      [
+        "Date",
+        "Tue, 20 Apr 2021 02:07:55 GMT"
+      ],
+      [
+        "Content-Type",
+        "application/json"
+      ],
+      [
+        "Content-Digest",
+        "sha-512=:WZDPaVn/7XgHaAy8pmojAkGWoRx2UFChF41A2svX+TaPm+AbwAgBWnrIiYllu7BNNyealdVLvRwEmTHWXvJwew==:"
+      ],
+      [
+        "Content-Length",
+        "18"
+      ]
+    ]
+  },
+  "E.2.1": {
+    "headers": {
+      "Signature-Agent": "sig2=\"https://signature-agent.test\"",
+      "Signature-Input": "sig2=(\"@authority\" \"signature-agent\";key=\"sig2\");created=1735689600;keyid=\"poqkLGiymh_W0uP6PZFw-dvez3QJT5SolqXBCW38r0U\";alg=\"ed25519\";expires=4889289600;nonce=\"n9p433xm+NJ3ph3upfBIGmsuwHw387YV7Q/F+6BSpGCVjYCqQw6rznNA8PVVLySrAWsv0hQtFioQb6E1YsauiA==\";tag=\"web-bot-auth\"",
+      "Signature": "sig2=:CGokAoY/FrPpyuzTe1Fb2kLTAH9Idw6qSFd1+D77r1firsMRCxeuLu5e6O+ek3zQgDMAzjiXtLVfqE00xnABCQ==:"
+    },
+    "signature_base": "\"@authority\": example.com\n\"signature-agent\";key=\"sig2\": \"https://signature-agent.test\"\n\"@signature-params\": (\"@authority\" \"signature-agent\";key=\"sig2\");created=1735689600;keyid=\"poqkLGiymh_W0uP6PZFw-dvez3QJT5SolqXBCW38r0U\";alg=\"ed25519\";expires=4889289600;nonce=\"n9p433xm+NJ3ph3upfBIGmsuwHw387YV7Q/F+6BSpGCVjYCqQw6rznNA8PVVLySrAWsv0hQtFioQb6E1YsauiA==\";tag=\"web-bot-auth\""
+  },
+  "E.2.2": {
+    "headers": {
+      "Signature-Agent": "\"https://signature-agent.test\"",
+      "Signature-Input": "sig2=(\"@authority\" \"signature-agent\");created=1735689600;keyid=\"poqkLGiymh_W0uP6PZFw-dvez3QJT5SolqXBCW38r0U\";alg=\"ed25519\";expires=1735693200;nonce=\"e8N7S2MFd/qrd6T2R3tdfAuuANngKI7LFtKYI/vowzk4lAZYadIX6wW25MwG7DCT9RUKAJ0qVkU0mEeLElW1qg==\";tag=\"web-bot-auth\"",
+      "Signature": "sig2=:jdq0SqOwHdyHr9+r5jw3iYZH6aNGKijYp/EstF4RQTQdi5N5YYKrD+mCT1HA1nZDsi6nJKuHxUi/5Syp3rLWBA==:"
+    },
+    "signature_base": "\"@authority\": example.com\n\"signature-agent\": \"https://signature-agent.test\"\n\"@signature-params\": (\"@authority\" \"signature-agent\");created=1735689600;keyid=\"poqkLGiymh_W0uP6PZFw-dvez3QJT5SolqXBCW38r0U\";alg=\"ed25519\";expires=1735693200;nonce=\"e8N7S2MFd/qrd6T2R3tdfAuuANngKI7LFtKYI/vowzk4lAZYadIX6wW25MwG7DCT9RUKAJ0qVkU0mEeLElW1qg==\";tag=\"web-bot-auth\""
+  },
+  "E.2.3": {
+    "request": {
+      "method": "GET",
+      "scheme": "https",
+      "authority": "signature-agent.test",
+      "target": "/.well-known/http-message-signatures-directory"
+    },
+    "headers": {
+      "Content-Digest": "sha-256=:CADMT2aBdV/rqQr/NIru64ERQkCobVvllA4V0fLFDu0=:",
+      "Signature-Input": "binding=(\"@authority\";req \"content-digest\");created=1735689600;expires=4889289600;keyid=\"poqkLGiymh_W0uP6PZFw-dvez3QJT5SolqXBCW38r0U\";tag=\"http-message-signatures-directory\"",
+      "Signature": "binding=:l6P8R67tm3kujAxbHWio7ll01qrEZ0dKD/WWlGhNYEmTnFZM8Wt0VQ9zqGfvo7T/UMkBxsigzChM1Gpz7gOVBg==:"
+    },
+    "signature_base": "\"@authority\";req: signature-agent.test\n\"content-digest\": sha-256=:CADMT2aBdV/rqQr/NIru64ERQkCobVvllA4V0fLFDu0=:\n\"@signature-params\": (\"@authority\";req \"content-digest\");created=1735689600;expires=4889289600;keyid=\"poqkLGiymh_W0uP6PZFw-dvez3QJT5SolqXBCW38r0U\";tag=\"http-message-signatures-directory\"",
+    "public_key_x": "JrQLj5P_89iXES9-vFgrIy29clF9CC_oPPsw3c5D0bs",
+    "signature": "l6P8R67tm3kujAxbHWio7ll01qrEZ0dKD/WWlGhNYEmTnFZM8Wt0VQ9zqGfvo7T/UMkBxsigzChM1Gpz7gOVBg=="
+  }
+}

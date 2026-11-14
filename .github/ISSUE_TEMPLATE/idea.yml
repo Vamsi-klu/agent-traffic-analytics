@@ -1,0 +1,23 @@
+name: Idea
+description: Something AgentCake could do better.
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not paste your visitors' data: no replays, IP addresses, e-mail addresses, cookies or site keys.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What you are trying to do
+      description: The question you want AgentCake to answer about your visitors, or the job it gets in the way of.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would help
+  - type: textarea
+    id: today
+    attributes:
+      label: What you do today instead

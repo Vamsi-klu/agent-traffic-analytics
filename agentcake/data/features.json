@@ -1,0 +1,43 @@
+{
+  "_about": "Parameters of the behaviour layer's segments and features (agentcake/detect/segment.py and features.py, plan step S3.6). The values are our lab's, unchanged (the behaviour lab's labcore.py, 2026-11-11); the missing variant is research note 12's (cake-ph-eval/phcore.py, 2026-11-12).",
+  "segments": {
+    "_about": "window_ms: length of the fixed windows. One segment per action: events of a typing or scroll burst are at most gap_ms apart; pointer moves within scroll_move_ms of a scroll burst belong to it (moves made while scrolling); a pause longer than approach_pause_ms between pointer moves ends the approach to the next action.",
+    "window_ms": 1000,
+    "gap_ms": 1200,
+    "scroll_move_ms": 200,
+    "approach_pause_ms": 2000
+  },
+  "features": {
+    "_about": "min_duration_s: shortest segment length for move_rate. before_click_ms, hover_ms, down_ms: how far before a click to look for mouse moves, a mouseover on the same target and the mousedown. min_path_moves: trusted moves needed for the path features; cv_min_speeds and jerk_min_speeds: speeds needed for speed_cv and jerk_any; jerk_speed_step: a speed change above this (px/ms) is a jerk. wheel_after_ms: a scroll this soon after a wheel or key event came from it, as does one while a finger or a button is held down or this soon after its release (job borrow-rules B6, after agent-detector's scroll drivers, MIT). keydown_before_ms: typed text this soon after a keydown came from it. typed_input_types: the input types that are typed text, the only ones input_no_keydown reads (job borrow-rules B4, after agent-detector's insertWithoutKeys, MIT): a paste, an autofill or a correction (insertReplacementText), a drop and an input method's composition (isComposing) change a field without a keydown, and humans make them; nor does it read a session where a finger or a pen gave input. metronome_min_keys and burst_min_keys: keydowns needed for key_iv_cv and key_burst; key_burst_ms: keydowns closer than this are a burst. click_lt_px: a click closer than this to the centre of its target. offset_min_events: pointer events with screen positions needed on the page for screen_offset_jump. screen_eq_min_positions: screen_eq_client counts screen positions equal to page positions only when they were equal at this many different places in the session (job borrow-rules B5, after bot-signal's cdp-input-coordinate-leak, MIT): one place is a window in the screen's corner.",
+    "min_duration_s": 1.0,
+    "before_click_ms": 1500,
+    "hover_ms": 5000,
+    "down_ms": 2000,
+    "min_path_moves": 3,
+    "cv_min_speeds": 2,
+    "jerk_min_speeds": 3,
+    "jerk_speed_step": 0.5,
+    "wheel_after_ms": 400,
+    "keydown_before_ms": 150,
+    "typed_input_types": ["insertText"],
+    "metronome_min_keys": 3,
+    "burst_min_keys": 2,
+    "key_burst_ms": 8,
+    "click_lt_px": 1.0,
+    "offset_min_events": 2,
+    "screen_eq_min_positions": 2
+  },
+  "unobservable": {
+    "_about": "Features an rrweb-only recording cannot measure (no keydown, no wheel, no screenX/Y, no movementX/Y). Without raw input they are null (no data), never 0: research note 12's missing variant.",
+    "features": [
+      "keys_n",
+      "key_iv_cv",
+      "key_burst",
+      "input_no_keydown",
+      "wheel_n",
+      "scroll_no_wheel",
+      "screen_eq_client",
+      "zero_movement_frac"
+    ]
+  }
+}

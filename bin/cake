@@ -1,0 +1,4 @@
+#!/bin/sh
+# cake 0.3.x's launcher name, kept for existing installs: the command is now bin/agentcake.
+DIR="$(cd "$(dirname "$0")/.." && pwd)"
+exec "$DIR/bin/agentcake" "$@"

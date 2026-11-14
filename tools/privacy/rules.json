@@ -1,0 +1,58 @@
+{
+  "about": "What tools/privacy_scan.py looks for in a data folder (GOAL S1, plan step S6.5) and what it leaves out, each with why. It prints how many and where, never what matched.",
+  "own_addresses": {
+    "addresses": ["127.0.0.1", "0.0.0.0", "::1"],
+    "why": "Agent Cake's own listen addresses (GOAL S1). The scanned folder's public_listen host is added: also cake's own. Nothing else is left out, not even the documentation ranges tests plant."
+  },
+  "version_before_address": {
+    "pattern": "(?:[A-Za-z]/|version\\W{0,4})$",
+    "flags": "i",
+    "look_back": 40,
+    "why": "A dotted number right after a product token (\"HeadlessChrome/149.0.0.0\") or in a version field (\"uaFullVersion\":\"131.0.0.0\") is a version, not an address; one in a URL (\"//203.0.113.5/\") still counts."
+  },
+  "card": {
+    "first_digits": "23456",
+    "min_digits": 13,
+    "max_digits": 19,
+    "group_size": 4,
+    "other_groupings": [[4, 6, 5], [4, 6, 4]],
+    "why": "Luhn-valid, 13 to 19 digits (GOAL S1), standing alone, written in one piece or in the groups cards are printed in (fours; 4-6-5 and 4-6-4 for Amex and Diners). Only numbers that start with 2 to 6, the ISO/IEC 7812 major industry identifiers of payment cards: replay events are full of 13-digit times in milliseconds, which start with 1."
+  },
+  "test_cards": {
+    "numbers": ["4242424242424242"],
+    "why": "The test card number every payment form knows (GOAL S1); counted apart from other card numbers."
+  },
+  "key_fields": {
+    "text": ["key", "code", "char", "keyIdentifier"],
+    "number": ["keyCode", "which", "charCode"],
+    "names": ["Escape", "Space", "Home", "End", "PageUp", "PageDown", "Insert", "ContextMenu", "NumLock", "ScrollLock"],
+    "patterns": ["Key[A-Z]", "Digit[0-9]", "Numpad[A-Za-z0-9]+", "F[0-9]{1,2}", "(?:Shift|Control|Alt|Meta)(?:Left|Right)"],
+    "why": "A field that says which key was pressed: a one-character value, or a key or code name. The named keys and the Arrow prefix of agentcake/data/privacy.json (the key classes cake.js uses) are added; cake.js sends only the class (kc)."
+  },
+  "header_fields": {
+    "cookie": ["cookie", "set-cookie"],
+    "authorization": ["authorization", "proxy-authorization"],
+    "bearer_min_chars": 16,
+    "why": "A cookie or credential, as a header line (\"Cookie: ...\") or a field with a value; a Bearer token anywhere. cake.js sends no credentials and collect reads no cookie."
+  },
+  "private_key": {
+    "jwk_d_min_chars": 32,
+    "why": "Private key material for signatures (Web Bot Auth, RFC 9421): a PEM private key block, or a JWK that has its private member d. Published keys (x only) are fine."
+  },
+  "email": {
+    "not_top_level": ["png", "jpg", "jpeg", "gif", "svg", "webp", "avif", "ico", "bmp", "css", "js", "woff", "woff2"],
+    "why": "An address shape, except an asset name such as logo@2x.png, whose last part is a file type."
+  },
+  "skip_folders": {
+    "lists": "Name and address lists `agentcake lists update` downloaded: published data (operators' IP ranges among it), never a visit."
+  },
+  "skip_files": {
+    "srv_secret": "The server half's secret itself: its value is what the scan looks for everywhere else."
+  },
+  "skip_suffixes": {
+    "-wal": "A database's write-ahead log: read through SQLite together with its database.",
+    "-shm": "A database's shared-memory index: page numbers, no content.",
+    "-journal": "A database's rollback journal: SQLite applies it when the database is opened."
+  },
+  "max_locations": 20
+}

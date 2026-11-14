@@ -1,0 +1,54 @@
+name: Bug report
+description: Something in AgentCake doesn't work the way its documents say.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not paste your visitors' data: no replays, IP addresses, e-mail addresses, cookies or site keys.
+        A security vulnerability goes to [SECURITY.md](https://github.com/tartini-ai/agent-behavior-analysis/blob/main/SECURITY.md), not here.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you did, what you expected, and what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: The commands you ran or the pages you opened, in order.
+      placeholder: |
+        1. agentcake start
+        2. Open http://127.0.0.1:7878/
+        3. …
+  - type: input
+    id: version
+    attributes:
+      label: AgentCake version
+      description: What `agentcake --version` prints.
+      placeholder: agentcake 0.4.0
+    validations:
+      required: true
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where AgentCake runs
+      options:
+        - On my computer
+        - On a server, with Docker
+        - On a server, with systemd
+    validations:
+      required: true
+  - type: input
+    id: system
+    attributes:
+      label: System and Python
+      placeholder: macOS 15, Python 3.12
+  - type: textarea
+    id: doctor
+    attributes:
+      label: What `agentcake doctor` printed
+      description: Leave out your site's address if you'd rather not share it.
+      render: text

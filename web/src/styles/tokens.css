@@ -1,0 +1,134 @@
+/* cake · Frosting theme tokens. The ONLY place colours, fonts and shape values are written.
+   Names follow shadcn/ui (https://ui.shadcn.com/docs/theming) plus cake's extra tokens.
+   Documented in /DESIGN.md §3 (the table there must match this file: npm run check:ui).
+   Plain CSS on purpose: the React app imports it (index.css). */
+
+@font-face { font-family: "Fredoka"; src: url("../assets/fonts/Fredoka-Variable.ttf") format("truetype"); font-weight: 300 700; font-display: swap; }
+@font-face { font-family: "Nunito"; src: url("../assets/fonts/Nunito-Variable.ttf") format("truetype"); font-weight: 200 1000; font-display: swap; }
+
+:root {
+  /* shadcn/ui variables */
+  --background: #fff6ea;
+  --foreground: #2b2118;
+  --card: #ffffff;
+  --card-foreground: #2b2118;
+  --popover: #ffffff;
+  --popover-foreground: #2b2118;
+  --primary: #ff5c8a;
+  --primary-foreground: #2b2118;
+  --secondary: #fdecd4;
+  --secondary-foreground: #2b2118;
+  --muted: #f6ead9;
+  --muted-foreground: #5c4f43;
+  --accent: #fdecd4;
+  --accent-foreground: #2b2118;
+  --destructive: #c53030;
+  --border: #e6d8c4;
+  --input: #e6d8c4;
+  --ring: #2a78d6;
+  --chart-1: #2a78d6;
+  --chart-2: #eb6834;
+  --chart-3: #8a8780;
+  --chart-4: #1f8a4c;
+  --chart-5: #a8660b;
+  --radius: 0.875rem;
+  /* cake extras: cartoon frame (used by every framed component, never one-off) */
+  --line: #2b2118;
+  --shadow-color: #2b2118;
+  --faint-foreground: #75685b;
+  --highlight: #ffd45c;
+  --highlight-foreground: #2b2118;
+  /* cake extras: the four verdicts + bot */
+  --human: #2a78d6;
+  --human-soft: #dcebfc;
+  --human-foreground: #1c5cab;
+  --agent: #eb6834;
+  --agent-soft: #fde2d4;
+  --agent-foreground: #a33d15;
+  --unsure: #8a8780;
+  --unsure-soft: #ece7df;
+  --unsure-foreground: #5e5b55;
+  /* cake extras: system status (not verdicts) */
+  --ok: #1f8a4c;
+  --ok-soft: #dcf3e4;
+  --warn: #a8660b;
+  --warn-soft: #fdf0d3;
+  /* cake extras: mascot paint */
+  --cake-jam: #ff6f91;
+  --cake-cream: #fff3df;
+  --cake-frosting: #ff8fb1;
+  --cake-cherry: #e5383b;
+  --cake-cheek: #ff9fb8;
+  --cake-shine: #ffffff;
+  --cake-outline: #2b2118;
+  --cake-line: #2b2118;
+  /* cake extras: agent avatars (DESIGN.md §15). Never the verdict colours; check:ui measures the distance to them */
+  --avatar-1: #5fcf95;
+  --avatar-2: #a48cf2;
+  --avatar-3: #f27fb3;
+  --avatar-4: #a9cf45;
+  --avatar-5: #d77fdc;
+  --avatar-6: #5cc8cf;
+  /* type */
+  --font-sans: "Nunito", ui-rounded, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-heading: "Fredoka", "Nunito", ui-rounded, system-ui, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+
+.dark {
+  --background: #1b1713;
+  --foreground: #f6eee3;
+  --card: #262019;
+  --card-foreground: #f6eee3;
+  --popover: #2d261e;
+  --popover-foreground: #f6eee3;
+  --primary: #ff6f98;
+  --primary-foreground: #1b1713;
+  --secondary: #2d261e;
+  --secondary-foreground: #f6eee3;
+  --muted: #17130f;
+  --muted-foreground: #cfc2b1;
+  --accent: #352c23;
+  --accent-foreground: #f6eee3;
+  --destructive: #f07070;
+  --border: #3a3129;
+  --input: #3a3129;
+  --ring: #6ea8f0;
+  --chart-1: #3987e5;
+  --chart-2: #e0682f;
+  --chart-3: #8f8a82;
+  --chart-4: #4cc27f;
+  --chart-5: #e3a63c;
+  --line: #5a4d40;
+  --shadow-color: #0b0806;
+  --faint-foreground: #a99a88;
+  --highlight: #7a5c12;
+  --highlight-foreground: #f6eee3;
+  --human: #3987e5;
+  --human-soft: #1c3150;
+  --human-foreground: #9cc4f5;
+  --agent: #e0682f;
+  --agent-soft: #4a2617;
+  --agent-foreground: #f5a982;
+  --unsure: #8f8a82;
+  --unsure-soft: #36312b;
+  --unsure-foreground: #cdc7bd;
+  --ok: #4cc27f;
+  --ok-soft: #173525;
+  --warn: #e3a63c;
+  --warn-soft: #3b2c10;
+  --cake-jam: #f0597e;
+  --cake-cream: #f7e6cc;
+  --cake-frosting: #f67ea3;
+  --cake-cherry: #e5484b;
+  --cake-cheek: #f58aa7;
+  --cake-shine: #fff6ea;
+  --cake-outline: #120e0a;
+  --cake-line: #d9cab6;
+  --avatar-1: #8fdcb4;
+  --avatar-2: #c3b1ff;
+  --avatar-3: #ffa6c9;
+  --avatar-4: #d6e27a;
+  --avatar-5: #e8a6ea;
+  --avatar-6: #94dde2;
+}

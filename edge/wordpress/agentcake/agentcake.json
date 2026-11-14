@@ -1,0 +1,21 @@
+{
+  "about": "The AgentCake WordPress plugin's own values (agentcake.php, admin.php, uninstall.php). The middleware's values are in cake_edge.json. page_cache_constant: the constant page cache plugins (WP Super Cache, W3 Total Cache, Cache Enabler, WP Rocket and others) read as \"do not store this page\". site_key_pattern and script_path are AgentCake's (agentcake/defaults.json site_key, the /cake.js route); edge/php/tests checks them.",
+  "option": "agentcake_settings",
+  "settings_group": "agentcake",
+  "page_slug": "agentcake",
+  "capability": "manage_options",
+  "script_path": "/cake.js",
+  "site_key_pattern": "ck_[A-Za-z0-9_]{3,40}",
+  "secret_constant": "CAKE_SERVER_TIMING_SECRET",
+  "page_cache_constant": "DONOTCACHEPAGE",
+  "url_schemes": ["http", "https"],
+  "client_ip_sources": ["none", "remote_addr"],
+  "head_priority": 1,
+  "defaults": {
+    "cake_url": "",
+    "site_key": "",
+    "insert_script": true,
+    "no_store": false,
+    "client_ip": "none"
+  }
+}

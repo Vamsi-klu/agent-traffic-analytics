@@ -1,0 +1,24 @@
+# AgentCake: the recommended nginx access log for `agentcake logs import` (SERVER.md, "Server logs").
+#
+# It adds what nginx's combined format leaves out: the time in milliseconds, the Host header (checking a Web Bot Auth
+# signature over @authority needs it), Accept-Language, the Sec-Fetch-* headers, Sec-CH-UA and the three Web Bot Auth
+# headers (Signature-Agent, Signature-Input, Signature). AgentCake finds the format by itself, or takes
+# `--format nginx-agentcake`. The log stays yours: AgentCake reads it where it is, never copies it, and keeps nothing
+# of a line that matches no visit. Like any access log it holds visitors' addresses: rotate it as you rotate the others.
+
+# In the http { } block (log_format is allowed only there):
+log_format agentcake '$remote_addr [$msec] "$request" $status $scheme "$http_host" '
+                     '"$http_user_agent" "$http_accept_language" '
+                     '"$http_sec_fetch_site" "$http_sec_fetch_mode" "$http_sec_fetch_dest" "$http_sec_fetch_user" '
+                     '"$http_sec_ch_ua" "$http_signature_agent" "$http_signature_input" "$http_signature"';
+
+# In your site's server { } block, next to the access_log you have (a request can go to several logs):
+access_log /var/log/nginx/agentcake.log agentcake;
+
+# $remote_addr has to be the visitor's address, the same one your load balancer sends AgentCake as its client IP
+# header. Behind a CDN or another proxy, set it with the realip module first, for example:
+#   set_real_ip_from 192.0.2.0/24;     # your proxy's addresses
+#   real_ip_header   X-Forwarded-For;
+#
+# Then, on this machine, every five minutes (cron), to the AgentCake server's public listener:
+#   agentcake logs import /var/log/nginx/agentcake.log --since 10m --to http://192.0.2.10:8080/cake

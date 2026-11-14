@@ -1,0 +1,140 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "session.schema.json",
+  "title": "SessionDetail",
+  "description": "GET /api/session/<id> : one session with its timeline, pages, reasons, actions, replay chunks and server half; 404 with an error body when there is no such session.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["session", "title", "summary", "percent", "timeline", "pages", "layers", "actions", "replay", "server"],
+  "properties": {
+    "session": { "$ref": "common.schema.json#/$defs/SessionSummary" },
+    "title": { "$ref": "common.schema.json#/$defs/Text" },
+    "summary": { "$ref": "common.schema.json#/$defs/Text" },
+    "percent": { "$ref": "#/$defs/Sure" },
+    "timeline": { "$ref": "common.schema.json#/$defs/Timeline" },
+    "pages": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/SessionPage" } },
+    "layers": { "type": "array", "minItems": 4, "maxItems": 4, "items": { "$ref": "#/$defs/LayerReasons" } },
+    "actions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["at_ms", "who", "what", "page"],
+        "properties": {
+          "at_ms": { "$ref": "common.schema.json#/$defs/Ms" },
+          "who": { "$ref": "common.schema.json#/$defs/Actor" },
+          "what": { "$ref": "common.schema.json#/$defs/Text" },
+          "page": { "$ref": "common.schema.json#/$defs/Text" }
+        }
+      }
+    },
+    "replay": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["start_ms", "start_url", "epoch_ms", "handoff_lead_ms", "chunks", "missing"],
+      "properties": {
+        "start_ms": { "$ref": "common.schema.json#/$defs/Ms" },
+        "start_url": { "$ref": "common.schema.json#/$defs/Text" },
+        "epoch_ms": { "type": "integer", "minimum": 0 },
+        "handoff_lead_ms": { "$ref": "common.schema.json#/$defs/Ms" },
+        "chunks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["start_ms", "end_ms"],
+            "properties": {
+              "start_ms": { "$ref": "common.schema.json#/$defs/Ms" },
+              "end_ms": { "$ref": "common.schema.json#/$defs/Ms" }
+            }
+          }
+        },
+        "missing": { "enum": ["freed", "dropped", "none", null] }
+      }
+    },
+    "server": { "$ref": "#/$defs/ServerHalf" }
+  },
+  "$defs": {
+    "Sure": {
+      "description": "How sure cake is, in whole percents, calibrated (1 to 99, never certain either way); null when it doesn't say.",
+      "type": ["integer", "null"], "minimum": 1, "maximum": 99
+    },
+    "SessionPage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "at_ms", "duration_ms", "actions", "who"],
+      "properties": {
+        "path": { "$ref": "common.schema.json#/$defs/Text" },
+        "at_ms": { "$ref": "common.schema.json#/$defs/Ms" },
+        "duration_ms": { "$ref": "common.schema.json#/$defs/Ms" },
+        "actions": { "$ref": "common.schema.json#/$defs/Count" },
+        "who": { "enum": ["human", "agent", "human_agent", "unknown", null] }
+      }
+    },
+    "LayerReasons": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["layer", "state", "reasons", "percent", "leans"],
+      "properties": {
+        "layer": { "enum": ["name", "verify", "environment", "behavior"] },
+        "state": { "enum": ["human", "agent", "human_agent", "unknown", "bot", "no_hit", "off"] },
+        "percent": { "$ref": "#/$defs/Sure" },
+        "leans": { "enum": ["agent", "human", "bot", null] },
+        "reasons": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["kind", "tone", "text", "detail"],
+            "properties": {
+              "kind": { "enum": ["user_agent", "server", "page", "browser", "clicks", "keys", "motion", "model"] },
+              "tone": { "enum": ["human", "agent", "none"] },
+              "text": { "$ref": "common.schema.json#/$defs/Text" },
+              "detail": { "$ref": "common.schema.json#/$defs/NullableText" }
+            }
+          }
+        }
+      }
+    },
+    "ServerHalf": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pages", "network", "note"],
+      "properties": {
+        "pages": { "type": "array", "items": { "$ref": "#/$defs/ServerPage" } },
+        "network": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "required": ["country", "range", "ja4", "protocol"],
+          "properties": { "country": { "$ref": "common.schema.json#/$defs/NullableText" }, "range": { "$ref": "common.schema.json#/$defs/NullableText" }, "ja4": { "$ref": "common.schema.json#/$defs/NullableText" }, "protocol": { "$ref": "common.schema.json#/$defs/NullableText" } }
+        },
+        "note": { "$ref": "common.schema.json#/$defs/NullableText" }
+      }
+    },
+    "ServerPage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["at_ms", "path", "fetch", "signature", "same_network", "same_user_agent", "same_language", "reuses"],
+      "properties": {
+        "at_ms": { "$ref": "common.schema.json#/$defs/Ms" },
+        "path": { "$ref": "common.schema.json#/$defs/Text" },
+        "fetch": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["site", "mode", "dest", "user"],
+          "properties": { "site": { "$ref": "common.schema.json#/$defs/NullableText" }, "mode": { "$ref": "common.schema.json#/$defs/NullableText" }, "dest": { "$ref": "common.schema.json#/$defs/NullableText" }, "user": { "$ref": "common.schema.json#/$defs/NullableText" } }
+        },
+        "signature": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "required": ["agent", "verified"],
+          "properties": { "agent": { "$ref": "common.schema.json#/$defs/NullableText" }, "verified": { "type": "boolean" } }
+        },
+        "same_network": { "type": ["boolean", "null"] },
+        "same_user_agent": { "type": ["boolean", "null"] },
+        "same_language": { "type": ["boolean", "null"] },
+        "reuses": { "$ref": "common.schema.json#/$defs/Count" }
+      }
+    }
+  }
+}

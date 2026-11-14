@@ -1,0 +1,40 @@
+# Agent Cake on a Linux server as one systemd service (SERVER.md, "Install with systemd"; S6.3).
+#
+# The program is the release wheel unpacked into /opt/cake/app with Python's own zipfile
+# (sudo python3 -I -m zipfile -e agentcake-<version>-py3-none-any.whl /opt/cake/app), run by the system's python3. Its
+# data folder is /var/lib/cake (CAKE_HOME), owned by the unprivileged user `cake`: the only folder the service may
+# write. ExecStart runs the package's __main__.py by its path: -I keeps the working folder and PYTHON* variables out
+# of sys.path, and __main__.py adds the folder that holds the package itself, so nothing has to be installed. With the
+# wheel installed in a virtual environment instead, the command is `<venv>/bin/python3 -I -m agentcake serve`:
+# replace ExecStart in a drop-in (SERVER.md shows it). MemoryMax suits a server with 1 GB; change it without editing
+# this file: sudo systemctl set-property cake MemoryMax=800M
+#
+#   sudo install -m 644 deploy/cake.service /etc/systemd/system/cake.service
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now cake
+[Unit]
+Description=Agent Cake (which visits to a website were an AI agent, which a human), server mode
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=cake
+Group=cake
+Environment=CAKE_HOME=/var/lib/cake
+ExecStart=/usr/bin/python3 -I /opt/cake/app/agentcake/__main__.py serve
+Restart=on-failure
+RestartSec=3
+MemoryMax=600M
+# What the service creates (the database, the settings) is readable by `cake` only: it holds the site's visits.
+UMask=0077
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ReadWritePaths=/var/lib/cake
+CapabilityBoundingSet=
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+
+[Install]
+WantedBy=multi-user.target

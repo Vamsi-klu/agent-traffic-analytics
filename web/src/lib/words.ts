@@ -1,0 +1,52 @@
+// The interface's own wording, in one place (DESIGN.md §2). Visitors are Human / Agent / Unknown / Bot, never person,
+// people or user; the names of the categories themselves are src/lib/taxonomy.ts's (judging.en.json). Text that comes
+// with the data (session titles, reasons, the coverage table) is not here: it comes from /api.
+import type { DateRange } from "@/data/types"
+
+export const WORDS = {
+  agentSessions: "Agent sessions",
+  actedForHuman: "Sessions where an AI agent acted for a human",
+  rowMarker: "An AI agent acted for a human",
+  aHuman: "A human",
+  botRow: "No human behind it · counted only",
+  homeLead: "See which visits were made by a human and which by an AI agent acting for one, with a replay of each.",
+  dashboardLead: "Every visit is recorded and kept. The ones where an agent acted for a human come first.",
+  sessionsLead: "Every visit is kept. Sessions where an agent acted for a human are marked with Crumb.",
+  pinnedFilter: "Pinned: sessions where an agent acted for a human",
+  whoUnknown: "Can't tell who acted",
+  agentsByName: "Agents by name",
+  eitherTurns: "All agent sessions",
+  allHumanSessions: "All human sessions",
+  withThinEvidence: "with thin evidence",
+  pagesAgents: "Pages agents visit most",
+  pagesHumans: "Pages humans visit most",
+  averageLength: "Average session length",
+  timeChart: "Estimated human and agent time",
+  timeChartLead: "Each day's session time, split by the behavior model's estimate of who acted.",
+  comparisonGroup: "The comparison group",
+  agentWholeWay: "An agent for the whole session",
+  takingTurns: "A human and an agent taking turns",
+  toAgent: "Agent takes over",
+  toHuman: "Human takes over",
+  replayLoading: "Loading replay…",
+  replayFailed: "Couldn't load the replay.",
+  replayFreed: "This replay was deleted to free disk space. The verdict and the timeline are still here.",
+  replayDropped: "Part of this replay wasn't stored because the disk budget was full then.",
+  replayNone: "There's nothing to replay. This visit sent no page events.",
+  replayWaiting: "Loading next part…",
+  replayNoPage: "No page content was recorded at this point. The replay shows only the pointer and clicks.",
+  replayPosition: "Replay position",
+  jumpToHandoff: "Jump to hand-off",
+  pagesVisited: "Pages visited",
+  noActions: "No actions",
+  entryPage: "Entry page",
+  exitPage: "Exit page",
+  serverHalf: "Server half",
+  serverHalfLead: "What your site's server saw of each page request.",
+  serverHalfNone: "None of this session's page requests included a note from your site's server.",
+  layerOff: "This layer didn't run for this session.",
+  layerNoHit: "Nothing found",
+}
+
+/** The date filter's choices, in menu order. */
+export const RANGES: Record<DateRange, string> = { today: "Today", "7d": "Last 7 days", "30d": "Last 30 days" }

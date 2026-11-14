@@ -1,0 +1,16 @@
+{
+  "about": "What doctor sends and how it reads the answers (S6.1). page_request: the headers of the request doctor sends to a page of the user's website (site_url, or doctor --url): a page typed into a browser's address bar (Sec-Fetch-* as Chrome sends them for it), plus the three Web Bot Auth headers with values that only say they are a test; the site's middleware copies Sec-Fetch-* and Signature-Agent into its token and notes whether Signature and Signature-Input came, so doctor sees what reached the site's server. user_agent: {command}-doctor/{version}. blocked_errors: the errno names a connection to 127.0.0.1 fails with when a sandbox forbids it (macOS sandbox and Linux seccomp: EPERM or EACCES; a network namespace without loopback: ENETUNREACH), as opposed to ECONNREFUSED, which means nothing listens there. write_blocked_errors: the errno names a write in the replays folder fails with when a sandbox forbids it although the folder's permissions allow it (macOS sandbox: EPERM; Linux Landlock: EACCES), so doctor says so instead of calling the storage broken (S6.6, GOAL T7).",
+  "page_request": {
+    "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "sec-fetch-site": "none",
+    "sec-fetch-mode": "navigate",
+    "sec-fetch-dest": "document",
+    "sec-fetch-user": "?1",
+    "signature-agent": "\"https://doctor.agentcake.invalid\"",
+    "signature-input": "doctor=(\"@authority\");tag=\"agentcake-doctor-test\"",
+    "signature": "doctor=:ZG9jdG9yIHRlc3Q=:"
+  },
+  "user_agent": "{command}-doctor/{version}",
+  "blocked_errors": ["EPERM", "EACCES", "ENETUNREACH"],
+  "write_blocked_errors": ["EPERM", "EACCES"]
+}

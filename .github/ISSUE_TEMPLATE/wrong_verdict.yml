@@ -1,0 +1,82 @@
+name: Wrong verdict
+description: A session was judged Human, Agent or Bot, and it was something else.
+labels: ["wrong verdict"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not paste your visitors' data: no replays, screenshots of a replay, IP addresses, e-mail addresses, cookies or site keys.
+        Describe the session in your own words and copy only its reasons.
+  - type: dropdown
+    id: verdict
+    attributes:
+      label: What AgentCake said
+      options:
+        - Human
+        - Human, marked thin evidence
+        - "Agent: agent only"
+        - "Agent: human + agent"
+        - Bot
+    validations:
+      required: true
+  - type: dropdown
+    id: truth
+    attributes:
+      label: What it was
+      options:
+        - A human
+        - An agent, from start to finish
+        - A human and an agent, taking turns
+        - A bot (a crawler, a monitor or a link preview)
+    validations:
+      required: true
+  - type: input
+    id: agent
+    attributes:
+      label: Which agent or tool
+      description: Its name and version, if you know them.
+      placeholder: Claude in Chrome, Comet, ChatGPT agent, Playwright 1.56…
+  - type: input
+    id: named
+    attributes:
+      label: The name AgentCake gave it
+      description: The agent's name on the session page, and Verified, Likely, Possible or Unnamed.
+      placeholder: Unnamed
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and device
+      placeholder: Chrome 142 on macOS, with a trackpad
+  - type: textarea
+    id: reasons
+    attributes:
+      label: The session's reasons
+      description: Copy the reasons the session page lists, layer by layer.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: how-you-know
+    attributes:
+      label: How you know
+      description: For example, you drove the agent yourself, or you made the visit by hand.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: AgentCake version
+      description: What `agentcake --version` prints.
+      placeholder: agentcake 0.4.0
+    validations:
+      required: true
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where AgentCake runs
+      description: Signatures and published IP ranges are checked on a server only.
+      options:
+        - On my computer
+        - On a server
+    validations:
+      required: true

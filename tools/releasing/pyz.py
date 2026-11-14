@@ -1,0 +1,60 @@
+"""agentcake.pyz (S6.4): the package as one file that Python runs, `python3 agentcake.pyz <command>`.
+
+A .pyz is a zip behind a shebang line, as the standard library's zipapp makes one (PEP 441); it is written here with
+reproducible.py instead, so that its bytes are fixed. Its __main__.py is tools/releasing/pyz_main.py with three values
+filled in: BUILD, the version and a hash of the packaged files (the folder the package is unpacked into, one per
+build), UNPACK_FOLDER and FROM_ZIP, the commands run without unpacking (release.json). The package files are the
+wheel's, and the bootstrap is read from the same tree (the exported commit), so the .pyz depends on the commit alone.
+"""
+import hashlib
+import json
+import os
+
+from tools.releasing import reproducible
+from tools.releasing.settings import ReleaseError, file_name, modes
+
+MAIN = "__main__.py"  # protocol: the module Python runs in a zip it is given
+
+
+def read(path):
+    with open(path, "rb") as f:
+        return f.read()
+
+
+def content_hash(files):
+    """A hash of (name, contents) of every file, in order: the same files give the same hash."""
+    digest = hashlib.sha256()
+    for name, data, _ in files:
+        digest.update(name.encode("utf-8") + b"\0" + hashlib.sha256(data).digest())
+    return digest.hexdigest()
+
+
+def fill(template, values):
+    """The bootstrap with each "@key@" string replaced by its value, written as a Python string."""
+    for key, value in values.items():
+        slot = f'"@{key}@"'
+        if template.count(slot) != 1:
+            raise ReleaseError(f"{MAIN} of the .pyz must hold {slot} exactly once")
+        template = template.replace(slot, json.dumps(value))
+    return template
+
+
+def entries(project, settings):
+    """(name, bytes, executable) of every file of the .pyz: __main__.py, then the package."""
+    files = [(name, read(path), executable) for name, path, executable in project.package_files()]
+    chars = settings["pyz"]["build_hash_chars"]
+    build_id = f"{project.version}-{content_hash(files)[:chars]}"
+    template = read(os.path.join(project.root, settings["pyz"]["bootstrap"])).decode("utf-8")
+    main = fill(template, {"build": build_id, "unpack_folder": settings["pyz"]["unpack_folder"],
+                           "from_zip": settings["pyz"]["from_zip"]})
+    return [(MAIN, main.encode("utf-8"), False)] + files
+
+
+def build(project, out_dir, epoch, settings):
+    """Write the .pyz into out_dir, executable; returns its path."""
+    path = os.path.join(out_dir, file_name(settings, "pyz", project.name, project.version))
+    prefix = (settings["pyz"]["shebang"] + "\n").encode("utf-8")
+    reproducible.write_zip(path, entries(project, settings), epoch, modes(settings), settings["zip_compresslevel"],
+                           prefix=prefix)
+    os.chmod(path, modes(settings)["executable"])
+    return path

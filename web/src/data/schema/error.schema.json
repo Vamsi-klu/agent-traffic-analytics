@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "error.schema.json",
+  "title": "ApiErrorBody",
+  "description": "The body of every /api answer that is not 2xx: what happened, in a sentence the page can show.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["error"],
+  "properties": {
+    "error": { "$ref": "common.schema.json#/$defs/Text" }
+  }
+}

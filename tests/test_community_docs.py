@@ -1,0 +1,171 @@
+"""The repository's community files against README, the release and the command line (repo-best, 11/13).
+
+    python3 -I -m unittest discover -s tests -v      (from the AgentCake folder)
+
+What GitHub shows beside README (SECURITY.md, CONTRIBUTING.md, CODE_OF_CONDUCT.md, the issue forms and the pull request
+template in .github/), the release notes (CHANGELOG.md), the file a coding agent reads first (llms.txt, in
+llmstxt.org's format) and the questions page (docs/FAQ.md) are checked so that they stay true as AgentCake changes:
+one address for private reports, README's; every `agentcake` command they show is one the command line lists; every
+link to a file of the repository exists, llms.txt's at this release's tag; CHANGELOG's newest entry is this version;
+every question on the FAQ page is a heading that ends with "?"; each issue form has GitHub's required keys and warns
+against pasting visitors' data; the social preview is the size GitHub asks for.
+"""
+import glob
+import os
+import re
+import struct
+import sys
+import unittest
+
+TESTS = os.path.dirname(os.path.abspath(__file__))
+sys.path[:0] = [os.path.dirname(TESTS), TESTS]
+from agentcake.wording import product  # noqa: E402  (needs the path above)
+from cake_server import ROOT, read  # noqa: E402
+from test_install_docs import (INSTALL_MD, LINK, README_MD, command_words, documented_commands, listed_forms,
+                               release_tag, repositories, section)
+
+SECURITY_MD = os.path.join(ROOT, "SECURITY.md")
+CONTRIBUTING_MD = os.path.join(ROOT, "CONTRIBUTING.md")
+CODE_OF_CONDUCT_MD = os.path.join(ROOT, "CODE_OF_CONDUCT.md")
+CHANGELOG_MD = os.path.join(ROOT, "CHANGELOG.md")
+LLMS_TXT = os.path.join(ROOT, "llms.txt")
+FAQ_MD = os.path.join(ROOT, "docs", "FAQ.md")
+PULL_REQUEST_TEMPLATE = os.path.join(ROOT, ".github", "pull_request_template.md")
+ISSUE_TEMPLATES = os.path.join(ROOT, ".github", "ISSUE_TEMPLATE")
+ISSUE_CONFIG = os.path.join(ISSUE_TEMPLATES, "config.yml")
+SOCIAL_PREVIEW = os.path.join(ROOT, "docs", "assets", "readme", "social-preview.png")
+MARKDOWN = (SECURITY_MD, CONTRIBUTING_MD, CODE_OF_CONDUCT_MD, CHANGELOG_MD, FAQ_MD, PULL_REQUEST_TEMPLATE)
+
+MAILTO = re.compile(r"mailto:([^)\s>]+)")
+LLMS_LINK = re.compile(r"^- \[[^\]]+\]\((\S+)\)(?:: .+)?$")  # llmstxt.org: "- [name](url)" and optional ": notes"
+FORM_KEYS = ("name", "description", "body")  # protocol: GitHub's issue form schema, its required top-level keys
+CONFIG_KEYS = ("blank_issues_enabled", "contact_links")  # protocol: GitHub's issue template chooser, config.yml
+PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"  # protocol: the PNG file signature
+SOCIAL_PREVIEW_SIZE = (1280, 640)  # protocol: GitHub's size "for best display" of a social preview
+SOCIAL_PREVIEW_MAX_BYTES = 1_000_000  # protocol: GitHub takes a social preview under 1 MB
+PRIVACY_WARNING = "Do not paste"  # each issue form says it before the reporter writes anything
+# README's accuracy figures (a share of hand-offs may have decimals: 29.5%)
+FIGURE = r"\d+ of \d+ [\w -]+? replays|\d+(?:\.\d+)?% of hand-offs are found within \d+ seconds"
+
+
+def issue_forms():
+    """The issue forms of .github/ISSUE_TEMPLATE/: every YAML file but the chooser's config.yml."""
+    return sorted(path for path in glob.glob(os.path.join(ISSUE_TEMPLATES, "*.yml")) if path != ISSUE_CONFIG)
+
+
+def top_level_keys(yaml_text):
+    """The keys of a YAML file's top level (lines that start a key with no indent)."""
+    return re.findall(r"^([A-Za-z_][\w-]*):", yaml_text, re.M)
+
+
+def png_size(path):
+    """(width, height) from a PNG's IHDR chunk, which follows the signature."""
+    with open(path, "rb") as f:
+        head = f.read(24)
+    if head[:8] != PNG_SIGNATURE or head[12:16] != b"IHDR":
+        raise AssertionError(f"{path} is not a PNG")
+    return struct.unpack(">II", head[16:24])
+
+
+class CommunityDocuments(unittest.TestCase):
+    """The files a visitor of the repository's page reads after README say the same as README and the release."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.version, cls.tag = release_tag()
+        cls.repository, = repositories(read(INSTALL_MD))
+        cls.readme_address, = MAILTO.findall(section(read(README_MD), "Feedback"))
+
+    def test_one_address_for_private_reports(self):
+        """README's security line, SECURITY.md and the code of conduct give the same private address."""
+        for path in (SECURITY_MD, CODE_OF_CONDUCT_MD):
+            self.assertEqual(set(MAILTO.findall(read(path))), {self.readme_address}, os.path.basename(path))
+
+    def test_the_security_policy_keeps_reports_out_of_public_issues(self):
+        policy = read(SECURITY_MD)
+        for words in ("public issue", self.readme_address, "latest release"):
+            self.assertIn(words, policy)
+
+    def test_every_agentcake_command_shown_is_one_the_command_line_lists(self):
+        forms = listed_forms()
+        shown = MARKDOWN + (LLMS_TXT,) + tuple(issue_forms())
+        for path in shown:
+            for command in documented_commands(read(path)):
+                words = command_words(command)
+                self.assertTrue(any(tuple(words[:len(form)]) == form for form in forms),
+                                f"{os.path.relpath(path, ROOT)}: `{command}` is not in `agentcake help`")
+
+    def test_links_to_files_of_the_repository_exist(self):
+        for path in MARKDOWN:
+            for target in LINK.findall(read(path)):
+                if re.match(r"^(https?:|mailto:|#)", target):
+                    continue
+                local = os.path.join(os.path.dirname(path), target.split("#")[0])
+                self.assertTrue(os.path.exists(local), f"{os.path.relpath(path, ROOT)} links to {target}, missing")
+
+    def test_llms_txt_follows_llmstxt_org_and_points_at_this_release(self):
+        """An H1 with the name, a one-line summary in a blockquote, paragraphs, then H2 sections that only list links;
+        each link is a Markdown file of the repository at this release's tag, so it answers what was released."""
+        lines = read(LLMS_TXT).splitlines()
+        self.assertEqual(lines[0], f"# {product()['name']}")
+        self.assertTrue(next(line for line in lines[1:] if line.strip()).startswith("> "))
+        first_section = next(number for number, line in enumerate(lines) if line.startswith("## "))
+        self.assertFalse([line for line in lines[1:first_section] if line.startswith("#")])
+        raw = f"https://raw.githubusercontent.com/{self.repository}/{self.tag}/"
+        links = []
+        for line in (line for line in lines[first_section:] if line.strip() and not line.startswith("## ")):
+            match = LLMS_LINK.match(line)
+            self.assertTrue(match, f"llms.txt: not a link item: {line}")
+            links.append(match.group(1))
+        self.assertTrue(links)
+        for url in links:
+            self.assertTrue(url.startswith(raw), url)
+            self.assertTrue(url.endswith(".md"), url)
+            self.assertTrue(os.path.isfile(os.path.join(ROOT, url[len(raw):])), url)
+
+    def test_changelog_starts_with_this_version(self):
+        newest = re.search(r"^## (\S+)", read(CHANGELOG_MD), re.M)
+        self.assertEqual(newest.group(1), self.version)
+
+    def test_every_question_on_the_faq_page_is_a_heading(self):
+        questions = re.findall(r"^## (.+)$", read(FAQ_MD), re.M)
+        self.assertTrue(questions)
+        for question in questions:
+            self.assertTrue(question.endswith("?"), question)
+
+    def test_the_faq_page_quotes_readmes_numbers(self):
+        """The FAQ repeats README's accuracy figures (answers with numbers are the ones search and AI assistants quote),
+        so a new release's figures in README fail this test until the FAQ says the same."""
+        readme = " ".join(read(README_MD).split())
+        figures = re.findall(FIGURE, " ".join(read(FAQ_MD).split()))
+        self.assertTrue(figures)
+        for figure in figures:
+            self.assertIn(figure, readme)
+
+    def test_issue_forms_have_githubs_keys_and_warn_against_visitors_data(self):
+        forms = issue_forms()
+        self.assertTrue(forms)
+        for path in forms:
+            form = read(path)
+            self.assertLessEqual(set(FORM_KEYS), set(top_level_keys(form)), os.path.basename(path))
+            ids = re.findall(r"^\s+id: (\S+)$", form, re.M)
+            self.assertEqual(len(ids), len(set(ids)), os.path.basename(path))
+            self.assertIn(PRIVACY_WARNING, form, os.path.basename(path))
+
+    def test_the_issue_chooser_links_to_files_of_this_repository(self):
+        chooser = read(ISSUE_CONFIG)
+        self.assertLessEqual(set(CONFIG_KEYS), set(top_level_keys(chooser)))
+        blob = f"https://github.com/{self.repository}/blob/main/"
+        targets = re.findall(r"url: (\S+)", chooser)
+        self.assertTrue(targets)
+        for url in targets:
+            self.assertTrue(url.startswith(blob), url)
+            self.assertTrue(os.path.isfile(os.path.join(ROOT, url[len(blob):].split("#")[0])), url)
+
+    def test_the_social_preview_is_the_size_github_asks_for(self):
+        self.assertEqual(png_size(SOCIAL_PREVIEW), SOCIAL_PREVIEW_SIZE)
+        self.assertLess(os.path.getsize(SOCIAL_PREVIEW), SOCIAL_PREVIEW_MAX_BYTES)
+
+
+if __name__ == "__main__":
+    unittest.main()

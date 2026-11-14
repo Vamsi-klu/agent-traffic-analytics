@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{TITLE}} · Demo Shop</title>
+<link rel="stylesheet" href="/demo/shop.css">
+<script src="{{CAKE}}/cake.js" data-site="{{SITE_KEY}}" defer></script>
+</head>
+<body data-page="{{PAGE}}" data-product="{{PRODUCT}}">
+<div class="demo-note" role="note">A test shop for {{PRODUCT}}'s tests. Nothing is sold, charged or shipped; use made-up details.</div>
+<header class="top">
+  <a class="brand" href="/demo">Demo Shop</a>
+  <form class="search" action="/demo" method="get" role="search">
+    <label class="sr" for="q">Search products</label>
+    <input id="q" name="q" type="search" placeholder="Search products">
+    <button type="submit">Search</button>
+  </form>
+  <a class="cartlink" href="/demo/cart">Cart (<span id="cartcount">0</span>)</a>
+</header>
+<main id="app"></main>
+<footer class="foot">A test site for {{PRODUCT}} (tests/site)</footer>
+<script src="/demo/shop.js"></script>
+</body>
+</html>

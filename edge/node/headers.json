@@ -1,0 +1,19 @@
+{
+  "sec_fetch_site": "sec-fetch-site",
+  "sec_fetch_mode": "sec-fetch-mode",
+  "sec_fetch_dest": "sec-fetch-dest",
+  "sec_fetch_user": "sec-fetch-user",
+  "sec_purpose": "sec-purpose",
+  "accept": "accept",
+  "accept_language": "accept-language",
+  "sec_ch_ua": "sec-ch-ua",
+  "sec_ch_ua_platform": "sec-ch-ua-platform",
+  "sec_ch_ua_mobile": "sec-ch-ua-mobile",
+  "user_agent": "user-agent",
+  "signature_agent": "signature-agent",
+  "signature": "signature",
+  "signature_input": "signature-input",
+  "server_timing": "server-timing",
+  "cache_control": "cache-control",
+  "content_type": "content-type"
+}

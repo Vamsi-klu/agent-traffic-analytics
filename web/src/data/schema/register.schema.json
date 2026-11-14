@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "register.schema.json",
+  "title": "Registration",
+  "description": "GET /api/register, and the answer to a POST /api/register that was sent (S5.8, D32): whether this data folder has registered (until it has, the pages show the registration card first), what it sent and when, the checks the card makes before its button turns on (the ones cake makes), and where to write to have a registration deleted.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["registered", "sent", "email_pattern", "email_max_chars", "company_max_chars", "delete_contact"],
+  "properties": {
+    "registered": { "type": "boolean" },
+    "sent": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["body", "when"],
+      "properties": {
+        "body": { "$ref": "common.schema.json#/$defs/Text" },
+        "when": { "$ref": "common.schema.json#/$defs/Text" }
+      }
+    },
+    "email_pattern": { "$ref": "common.schema.json#/$defs/Text" },
+    "email_max_chars": { "type": "integer", "minimum": 1 },
+    "company_max_chars": { "type": "integer", "minimum": 1 },
+    "delete_contact": { "$ref": "common.schema.json#/$defs/Text" }
+  }
+}

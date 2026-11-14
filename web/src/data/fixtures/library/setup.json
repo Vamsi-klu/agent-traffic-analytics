@@ -1,0 +1,121 @@
+{
+  "sentence": {
+    "en": "In this website's code folder, run `agentcake setup --print --site`, follow the steps it prints to connect AgentCake to this website, then run `agentcake doctor` and tell me the result and what is left for me to do.",
+    "zh": "在这个网站的代码目录里运行 `agentcake setup --print --site`，按它打印的步骤把 AgentCake 接到这个网站上，最后运行 `agentcake doctor`，告诉我结果和还剩什么要我做。"
+  },
+  "terminal": "cd <your-site-folder>\nagentcake setup --print --site\nagentcake doctor",
+  "server": "agentcake config set public_listen 0.0.0.0:8080\nagentcake config set path_prefix /cake\nagentcake config set site_key <your-site-key>\nagentcake secret init\nagentcake serve",
+  "example": {
+    "sessions": [
+      {
+        "id": "example-human-agent",
+        "verdict": "agent",
+        "evidence": null,
+        "agent_turns": "human_agent",
+        "agent": "Claude in Chrome",
+        "certainty": "likely",
+        "when": "Today 09:12",
+        "duration_ms": 96400,
+        "pages": 4,
+        "share": {
+          "human": 52,
+          "agent": 43,
+          "unsure": 5
+        },
+        "segments": [
+          {
+            "who": "human",
+            "start_ms": 0,
+            "end_ms": 38560
+          },
+          {
+            "who": "agent",
+            "start_ms": 38560,
+            "end_ms": 80012
+          },
+          {
+            "who": "unsure",
+            "start_ms": 80012,
+            "end_ms": 83868
+          },
+          {
+            "who": "human",
+            "start_ms": 83868,
+            "end_ms": 96400
+          }
+        ]
+      },
+      {
+        "id": "example-agent",
+        "verdict": "agent",
+        "evidence": null,
+        "agent_turns": "agent_only",
+        "agent": null,
+        "certainty": null,
+        "when": "Today 08:57",
+        "duration_ms": 13000,
+        "pages": 3,
+        "share": {
+          "human": 0,
+          "agent": 100,
+          "unsure": 0
+        }
+      },
+      {
+        "id": "example-human",
+        "verdict": "human",
+        "evidence": null,
+        "agent_turns": null,
+        "agent": null,
+        "certainty": null,
+        "when": "Today 08:41",
+        "duration_ms": 258000,
+        "pages": 7,
+        "share": {
+          "human": 97,
+          "agent": 0,
+          "unsure": 3
+        }
+      }
+    ],
+    "timeline": {
+      "duration_ms": 96400,
+      "segments": [
+        {
+          "who": "human",
+          "start_ms": 0,
+          "end_ms": 38560
+        },
+        {
+          "who": "agent",
+          "start_ms": 38560,
+          "end_ms": 80012
+        },
+        {
+          "who": "unsure",
+          "start_ms": 80012,
+          "end_ms": 83868
+        },
+        {
+          "who": "human",
+          "start_ms": 83868,
+          "end_ms": 96400
+        }
+      ],
+      "handoffs": [
+        {
+          "at_ms": 38560,
+          "to": "agent"
+        },
+        {
+          "at_ms": 83868,
+          "to": "human"
+        }
+      ]
+    }
+  },
+  "recorded": {
+    "sessions": 28,
+    "agent": 28
+  }
+}

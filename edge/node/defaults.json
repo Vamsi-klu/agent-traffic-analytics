@@ -1,0 +1,61 @@
+{
+  "about": "AgentCake site middleware: every value it uses. A site may override the values under \"options\" when it mounts the middleware (camelCase names, see README.md). The values under \"fixed\" are shared with cake's verifier and with the shared test vectors (tests/vectors/edge_token.json), so no option changes them.",
+  "sources": {
+    "skip_extensions": "The list of static-file extensions follows @knownagents/sdk 3.1.0 src/paths.ts (Apache-2.0); the rule only, no code."
+  },
+  "options": {
+    "secret_env": "CAKE_SERVER_TIMING_SECRET",
+    "no_store": false,
+    "verdict_wait_ms": 150,
+    "max_header_names": 40,
+    "cut": {
+      "path": 200,
+      "sec_fetch": 20,
+      "sec_fetch_user": 4,
+      "sec_purpose": 40,
+      "accept_language": 40,
+      "sec_ch_ua": 160,
+      "sec_ch_ua_platform": 30,
+      "sec_ch_ua_mobile": 4,
+      "user_agent": 256,
+      "signature_agent": 200,
+      "header_name": 64
+    },
+    "skip_extensions": [
+      ".ico", ".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg", ".bmp", ".tiff", ".avif", ".heic", ".heif",
+      ".css", ".js", ".mjs", ".ts", ".jsx", ".tsx", ".map", ".wasm",
+      ".woff", ".woff2", ".ttf", ".otf", ".eot",
+      ".mp3", ".mp4", ".webm", ".wav", ".ogg", ".aac", ".m4a", ".flac", ".mov", ".avi", ".flv", ".m4v",
+      ".webmanifest", ".pdf", ".zip", ".gz"
+    ]
+  },
+  "fixed": {
+    "token_prefix": "c1",
+    "payload_version": 1,
+    "entry_name": "cake",
+    "min_secret_bytes": 32,
+    "token_id_bytes": 12,
+    "page_method": "GET",
+    "page_dest": "document",
+    "page_type": "text/html",
+    "markdown_type": "text/markdown",
+    "html_types": ["text/html", "application/xhtml+xml"],
+    "no_store_value": "private, no-store",
+    "network_key_label": "ip",
+    "network_key_hex_chars": 16,
+    "ipv4_prefix_bits": 24,
+    "ipv6_prefix_bits": 48,
+    "verdict_types": ["agent", "human"],
+    "verdict_id_max": 80,
+    "verdict_reasons_max": 20,
+    "version_max": 40,
+    "verify_max_age_ms": 900000,
+    "verify_max_future_ms": 60000
+  },
+  "messages": {
+    "short_secret": "[agentcake] the server-half secret is shorter than {min} bytes: no token is sent",
+    "unknown_options": "[agentcake] options not known, ignored: {names}",
+    "invalid_options": "[agentcake] options with a value of the wrong kind, defaults kept: {names}",
+    "no_response": "[agentcake] cakeNext(request, response) needs the response to add to, such as NextResponse.next(): none was given, so no token is sent"
+  }
+}

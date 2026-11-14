@@ -1,0 +1,19 @@
+# AgentCake: the recommended Apache access log for `agentcake logs import` (SERVER.md, "Server logs").
+#
+# It adds what Apache's combined format leaves out: the time in milliseconds, the Host header (checking a Web Bot Auth
+# signature over @authority needs it), Accept-Language, the Sec-Fetch-* headers, Sec-CH-UA and the three Web Bot Auth
+# headers (Signature-Agent, Signature-Input, Signature). AgentCake finds the format by itself, or takes
+# `--format apache-agentcake`. The log stays yours: AgentCake reads it where it is, never copies it, and keeps nothing
+# of a line that matches no visit. Like any access log it holds visitors' addresses: rotate it as you rotate the others.
+
+# mod_log_config, in the server configuration or in your site's <VirtualHost>:
+LogFormat "%a [%{msec}t] \"%r\" %>s \"%{Host}i\" \"%{User-Agent}i\" \"%{Accept-Language}i\" \"%{Sec-Fetch-Site}i\" \"%{Sec-Fetch-Mode}i\" \"%{Sec-Fetch-Dest}i\" \"%{Sec-Fetch-User}i\" \"%{Sec-CH-UA}i\" \"%{Signature-Agent}i\" \"%{Signature-Input}i\" \"%{Signature}i\"" agentcake
+CustomLog "${APACHE_LOG_DIR}/agentcake.log" agentcake
+
+# %a has to be the visitor's address, the same one your load balancer sends AgentCake as its client IP header.
+# Behind a CDN or another proxy, set it with mod_remoteip first, for example:
+#   RemoteIPHeader       X-Forwarded-For
+#   RemoteIPTrustedProxy 192.0.2.0/24
+#
+# Then, on this machine, every five minutes (cron), to the AgentCake server's public listener:
+#   agentcake logs import /var/log/apache2/agentcake.log --since 10m --to http://192.0.2.10:8080/cake

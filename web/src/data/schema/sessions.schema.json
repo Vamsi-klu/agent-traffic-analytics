@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "sessions.schema.json",
+  "title": "SessionsPage",
+  "description": "GET /api/sessions?verdict=&turns=&evidence=&agent=&range=&cursor= : one page of the session list, newest first.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["counts", "total", "agent_names", "results", "next", "page_size"],
+  "properties": {
+    "counts": { "$ref": "common.schema.json#/$defs/SessionCounts" },
+    "total": { "$ref": "common.schema.json#/$defs/Count" },
+    "agent_names": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/Text" } },
+    "results": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/SessionSummary" } },
+    "next": { "type": ["string", "null"], "minLength": 1 },
+    "page_size": { "type": "integer", "minimum": 1 }
+  }
+}

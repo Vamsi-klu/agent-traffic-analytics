@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "setup.schema.json",
+  "title": "Setup",
+  "description": "GET /api/setup : the home page's ways to connect a website (from `agentcake sentence` and `setup --print`), its example preview, and what has been recorded so far.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["sentence", "terminal", "server", "example", "recorded"],
+  "properties": {
+    "sentence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["en", "zh"],
+      "properties": {
+        "en": { "$ref": "common.schema.json#/$defs/Text" },
+        "zh": { "$ref": "common.schema.json#/$defs/Text" }
+      }
+    },
+    "terminal": { "$ref": "common.schema.json#/$defs/Text" },
+    "server": { "$ref": "common.schema.json#/$defs/Text" },
+    "example": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sessions", "timeline"],
+      "properties": {
+        "sessions": { "type": "array", "minItems": 1, "items": { "$ref": "common.schema.json#/$defs/SessionSummary" } },
+        "timeline": { "$ref": "common.schema.json#/$defs/Timeline" }
+      }
+    },
+    "recorded": {
+      "description": "Sessions the lists show, at any time, and how many of them are human + agent.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sessions", "agent"],
+      "properties": {
+        "sessions": { "$ref": "common.schema.json#/$defs/Count" },
+        "agent": { "$ref": "common.schema.json#/$defs/Count" }
+      }
+    }
+  }
+}

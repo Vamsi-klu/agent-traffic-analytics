@@ -1,0 +1,61 @@
+{
+  "about": "What tools/blockers/check.py and live.py check against: the default filter lists of the content blockers most visitors run, read from each blocker's own catalog at check time (the lists change daily, so a release is checked against the current ones; the report records each file's address and sha256), the matcher, pinned by hash, and what AgentCake serves only for old pages.",
+  "blockers": {
+    "uBlock Origin": {
+      "catalog": "https://raw.githubusercontent.com/gorhill/uBlock/master/assets/assets.json",
+      "kind": "ubo-assets",
+      "why": "uBO's lists on by default: assets.json entries of content 'filters' without 'off'; uBO filters every request, first party too"
+    },
+    "Brave": {
+      "catalog": "https://raw.githubusercontent.com/brave/adblock-resources/master/filter_lists/list_catalog.json",
+      "kind": "brave-catalog",
+      "why": "Brave's lists on by default (default_enabled) on the desktop; in its default Standard mode a first-party request is checked only against the lists without first_party_protections, in Aggressive mode against all of them (github.com/brave/brave-browser/wiki/Blocking-goals-and-policy)"
+    },
+    "AdGuard": {
+      "lists": {
+        "AdGuard Base": "https://filters.adtidy.org/extension/ublock/filters/2.txt",
+        "AdGuard Tracking Protection": "https://filters.adtidy.org/extension/ublock/filters/3.txt",
+        "AdGuard URL Tracking": "https://filters.adtidy.org/extension/ublock/filters/17.txt"
+      },
+      "kind": "fixed",
+      "why": "AdGuard's own ad and tracking lists, in the uBO syntax builds; AdGuard filters first-party requests too"
+    }
+  },
+  "brave_platforms": ["DESKTOP"],
+  "matcher": {
+    "package": "adblock",
+    "version": "0.6.0",
+    "licence": "MIT OR Apache-2.0",
+    "source": "https://github.com/ArniDagur/python-adblock (Python bindings of Brave's adblock-rust); installed into a throwaway venv, never into AgentCake",
+    "sha256": [
+      "4d0493e410298ef3d7bc60b303ba87a03dd09623b950b50a39351c7810678906",
+      "a3d42afa8f4bb46376bbd2e12b670b1fdf4e13b1842b1e262b40fa2c786e18fa",
+      "d008b53101d3e10148b66039b5df9e1ff821b8e3803480148542d614b7783abf",
+      "93b40157aeab45364df39b55d947c542a803942650c43a3830799b1e89bd3215",
+      "f54ee39fa20bb529dc10cbd7eef4b0046eb684c2b7bc7dd6398814892e581c82",
+      "4f750dede164f19a0915b45c1238bc7f56ce388f1b1b1bd2ad01779720000565",
+      "58074d280edeb2fe53228befff42152e8f71fd7a6b7d6ff048788bba93b88729"
+    ]
+  },
+  "legacy": {
+    "/rrweb-record.min.js": "cake 0.3.x's recorder as a file of its own, served only for pages that still have 0.3.x's two tags (the page script has rrweb inside); EasyPrivacy blocks it by its name (/rrweb-record.min.js), which SERVER.md says"
+  },
+  "not_from_browsers": {
+    "/healthz": "the load balancer's health check",
+    "/edge": "the log import, sent from the web server's machine"
+  },
+  "site": {
+    "page_host": "example.com",
+    "why": "SERVER.md's example site: the page and AgentCake's path on the same host, as its load balancer rules make them"
+  },
+  "live": {
+    "extension_releases": "https://api.github.com/repos/uBlockOrigin/uBOL-home/releases/latest",
+    "extension_asset": "chromium.zip",
+    "why": "uBO Lite, the uBlock Origin that Chrome runs (Manifest V3), with its default rulesets, in a fresh temporary profile",
+    "canaries": ["/rrweb-record.min.js", "/beacon.js"],
+    "canaries_why": "paths EasyPrivacy blocks by name on any site: one of them blocked shows the blocker is filtering",
+    "settle_ms": 3000,
+    "linger_ms": 3500,
+    "start_wait_s": 20
+  }
+}

@@ -1,0 +1,271 @@
+{
+  "session": {
+    "id": "2b9e-c4",
+    "verdict": "human",
+    "evidence": null,
+    "agent_turns": null,
+    "agent": null,
+    "certainty": null,
+    "when": "Yesterday 18:11",
+    "duration_ms": 167000,
+    "pages": 5,
+    "share": {
+      "human": 100,
+      "agent": 0,
+      "unsure": 0
+    }
+  },
+  "title": "A human, the whole way",
+  "summary": "A human acted from 0:00 to 2:38. The Behavior layer supports the verdict with 98% confidence.",
+  "percent": 98,
+  "timeline": {
+    "duration_ms": 167000,
+    "segments": [
+      {
+        "who": "human",
+        "start_ms": 0,
+        "end_ms": 158650
+      },
+      {
+        "who": "unsure",
+        "start_ms": 158650,
+        "end_ms": 167000
+      }
+    ],
+    "handoffs": []
+  },
+  "pages": [
+    {
+      "path": "/demo",
+      "at_ms": 0,
+      "duration_ms": 32100,
+      "actions": 2,
+      "who": "human"
+    },
+    {
+      "path": "/demo/product?id=linen-shirt",
+      "at_ms": 32100,
+      "duration_ms": 29100,
+      "actions": 1,
+      "who": "human"
+    },
+    {
+      "path": "/demo/cart",
+      "at_ms": 61200,
+      "duration_ms": 13700,
+      "actions": 1,
+      "who": "human"
+    },
+    {
+      "path": "/demo/checkout",
+      "at_ms": 74900,
+      "duration_ms": 76900,
+      "actions": 2,
+      "who": "human"
+    },
+    {
+      "path": "/demo/done",
+      "at_ms": 151800,
+      "duration_ms": 15200,
+      "actions": 0,
+      "who": null
+    }
+  ],
+  "layers": [
+    {
+      "layer": "name",
+      "state": "no_hit",
+      "reasons": [
+        {
+          "kind": "user_agent",
+          "tone": "none",
+          "text": "The User-Agent is plain Chrome on macOS. No agent name in it.",
+          "detail": null
+        }
+      ],
+      "percent": null,
+      "leans": null
+    },
+    {
+      "layer": "verify",
+      "state": "off",
+      "reasons": [
+        {
+          "kind": "server",
+          "tone": "none",
+          "text": "Local mode: every visit comes from 127.0.0.1, so there's no verification layer and names are self-reported only.",
+          "detail": null
+        }
+      ],
+      "percent": null,
+      "leans": null
+    },
+    {
+      "layer": "environment",
+      "state": "no_hit",
+      "reasons": [
+        {
+          "kind": "browser",
+          "tone": "none",
+          "text": "No webdriver, real GPU, normal screen. Looks like a human's own Chrome.",
+          "detail": null
+        }
+      ],
+      "percent": null,
+      "leans": null
+    },
+    {
+      "layer": "behavior",
+      "state": "human",
+      "reasons": [
+        {
+          "kind": "motion",
+          "tone": "human",
+          "text": "Curved mouse paths and uneven scrolling all the way through.",
+          "detail": null
+        },
+        {
+          "kind": "keys",
+          "tone": "human",
+          "text": "Typing at an uneven pace, with one key deleted and typed again.",
+          "detail": null
+        },
+        {
+          "kind": "model",
+          "tone": "none",
+          "text": "The behavior model judged the session a human's (95% of the actions).",
+          "detail": null
+        }
+      ],
+      "percent": 98,
+      "leans": "human"
+    }
+  ],
+  "actions": [
+    {
+      "at_ms": 6200,
+      "who": "human",
+      "what": "Scroll",
+      "page": "/demo"
+    },
+    {
+      "at_ms": 31400,
+      "who": "human",
+      "what": "Click “Linen Shirt”",
+      "page": "/demo"
+    },
+    {
+      "at_ms": 58900,
+      "who": "human",
+      "what": "Click “Add to cart”",
+      "page": "/demo/product?id=linen-shirt"
+    },
+    {
+      "at_ms": 74300,
+      "who": "human",
+      "what": "Click “Checkout”",
+      "page": "/demo/cart"
+    },
+    {
+      "at_ms": 102800,
+      "who": "human",
+      "what": "Type in “Email” (uneven pace)",
+      "page": "/demo/checkout"
+    },
+    {
+      "at_ms": 151200,
+      "who": "human",
+      "what": "Click “Place order”",
+      "page": "/demo/checkout"
+    }
+  ],
+  "replay": {
+    "start_ms": 0,
+    "start_url": "http://127.0.0.1:7878/demo",
+    "epoch_ms": 1794426660000,
+    "handoff_lead_ms": 3000,
+    "chunks": [],
+    "missing": "freed"
+  },
+  "server": {
+    "pages": [
+      {
+        "at_ms": 0,
+        "path": "/demo",
+        "fetch": {
+          "site": "none",
+          "mode": "navigate",
+          "dest": "document",
+          "user": "?1"
+        },
+        "signature": null,
+        "same_network": true,
+        "same_user_agent": true,
+        "same_language": true,
+        "reuses": 0
+      },
+      {
+        "at_ms": 31650,
+        "path": "/demo/product",
+        "fetch": {
+          "site": "same-origin",
+          "mode": "navigate",
+          "dest": "document",
+          "user": "?1"
+        },
+        "signature": null,
+        "same_network": true,
+        "same_user_agent": true,
+        "same_language": true,
+        "reuses": 1
+      },
+      {
+        "at_ms": 59400,
+        "path": "/demo/cart",
+        "fetch": {
+          "site": "same-origin",
+          "mode": "navigate",
+          "dest": "document",
+          "user": "?1"
+        },
+        "signature": null,
+        "same_network": true,
+        "same_user_agent": true,
+        "same_language": true,
+        "reuses": 0
+      },
+      {
+        "at_ms": 74550,
+        "path": "/demo/checkout",
+        "fetch": {
+          "site": "same-origin",
+          "mode": "navigate",
+          "dest": "document",
+          "user": "?1"
+        },
+        "signature": null,
+        "same_network": true,
+        "same_user_agent": true,
+        "same_language": true,
+        "reuses": 0
+      },
+      {
+        "at_ms": 151500,
+        "path": "/demo/done",
+        "fetch": {
+          "site": "same-origin",
+          "mode": "navigate",
+          "dest": "document",
+          "user": "?1"
+        },
+        "signature": null,
+        "same_network": true,
+        "same_user_agent": true,
+        "same_language": true,
+        "reuses": 0
+      }
+    ],
+    "network": null,
+    "note": null
+  }
+}

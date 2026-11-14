@@ -1,0 +1,5 @@
+{
+  "_about": "Copy to eval/sources.json (git ignores it) or to a folder outside the repository, and replace each <...> with this computer's path. Read by agentcake eval; see eval/README.md.",
+  "cake_home": "<the CAKE_HOME whose sessions eval/truth_goal.jsonl lists>",
+  "truth_goal": "<your list of labelled sessions, when it is not eval/truth_goal.jsonl>"
+}

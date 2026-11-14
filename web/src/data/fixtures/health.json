@@ -1,0 +1,11 @@
+{
+  "ok": true,
+  "version": "0.3.4",
+  "home": "~/.cake",
+  "site_key": "<your-site-key>",
+  "sessions": 150,
+  "real_sessions": 150,
+  "selfcheck_visits": 0,
+  "space": { "used": 3328599654, "budget": 10737418240, "pct": 31.0, "days_left": 120.0, "warn": false, "full": false, "freed": 0, "auto_free": true,
+             "disk": { "total": 494384795648, "free": 171798691840, "min_free": 10737418240, "low": false }, "replays_stopped": null }
+}

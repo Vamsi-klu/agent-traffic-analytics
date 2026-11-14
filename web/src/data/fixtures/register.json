@@ -1,0 +1,11 @@
+{
+  "registered": true,
+  "sent": {
+    "body": "{\n  \"email\": \"owner@example.com\",\n  \"company\": \"Example Shop\",\n  \"product_updates\": false,\n  \"consent_version\": \"2026-11-13\"\n}",
+    "when": "Yesterday 09:30"
+  },
+  "email_pattern": "[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?(?:\\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)+",
+  "email_max_chars": 254,
+  "company_max_chars": 200,
+  "delete_contact": "admin@tartini.ai"
+}

@@ -1,0 +1,247 @@
+{
+  "$comment": "Where Agent Cake's name and verification lists come from and how they are built (S3.1, D23). tools/build_lists.py (when a release is made) and `agentcake lists update` (only when someone runs it) fetch every source below and write names.json, ip_ranges.json, signers.json and keys.json; Agent Cake never fetches anything while it runs. This file and kinds.json are edited by hand; the four generated files are not. Every exclusion, correction and addition below says why.",
+  "fetch": {
+    "timeout_s": 30,
+    "retries": 1,
+    "max_bytes": 33554432,
+    "user_agent": "agentcake-lists"
+  },
+  "update": {
+    "$comment": "`agentcake lists update` writes <CAKE_HOME>/<user_dir>/<date>/. Lists older than max_age_days are reported as stale (GOAL I4) by status(), for doctor and the settings page.",
+    "user_dir": "lists",
+    "max_age_days": 30
+  },
+  "github": {
+    "commit_api": "https://api.github.com/repos/{repo}/commits/{ref}",
+    "raw": "https://raw.githubusercontent.com/{repo}/{commit}/{path}",
+    "tree": "https://github.com/{repo}/tree/{commit}"
+  },
+  "repos": {
+    "botscent": {
+      "repo": "nalinbhardwaj/botscent",
+      "ref": "main",
+      "license": "MIT",
+      "license_file": "LICENSE",
+      "license_marker": "MIT License",
+      "files": {
+        "tokens": "registry/tokens.json",
+        "names": "registry/names.json",
+        "page": "registry/page.json",
+        "signers": "registry/signers.json",
+        "keys": "registry/keys.json"
+      }
+    },
+    "posthog": {
+      "repo": "PostHog/posthog",
+      "ref": "master",
+      "license": "MIT (everything outside ee/)",
+      "license_file": "LICENSE",
+      "license_marker": "\"MIT Expat\" license",
+      "files": {
+        "bot_definitions": "products/web_analytics/backend/hogql_queries/bot_definitions.py"
+      },
+      "not_under": "ee/"
+    },
+    "ai-robots-txt": {
+      "repo": "ai-robots-txt/ai.robots.txt",
+      "ref": "main",
+      "license": "MIT",
+      "license_file": "LICENSE",
+      "license_marker": "MIT License",
+      "files": {
+        "robots": "robots.json"
+      }
+    }
+  },
+  "matching": {
+    "$comment": "How a User-Agent pattern matches. token/versioned/exact are botscent's contract section 6 (case-sensitive; a token is bounded by these characters, a versioned token must be followed by '/'). PostHog's patterns are RE2 regexes found anywhere in the value; cake reads a plain one as 'word' (not right after a letter or digit, so 'oast' does not match 'Toast') and puts the same guard in front of a real regex.",
+    "token_before": " \t;(,+",
+    "token_after": "/ \t;),",
+    "regex_guard": "(?<![A-Za-z0-9])"
+  },
+  "names": {
+    "precedence": ["cake", "botscent", "posthog", "ai-robots-txt"],
+    "cake": [
+      {
+        "id": "claude-agent",
+        "name": "Claude-Agent",
+        "operator": "Anthropic",
+        "kind": "cloud-agent",
+        "evidence": "unverified",
+        "patterns": [{"match": "token", "text": "Claude-Agent"}],
+        "note": "Anthropic's hosted browser. The User-Agent form 'compatible; Claude-Agent/1.0' is second-hand (notes 13, sig-109) and botscent does not list it; Anthropic's own SAIL file names the service Claude-Agent and publishes its addresses (ip_ranges: anthropic-claude-agent)."
+      },
+      {
+        "id": "grokagent",
+        "name": "GrokAgent",
+        "operator": "xAI",
+        "kind": "cloud-agent",
+        "evidence": "unverified",
+        "patterns": [{"match": "versioned", "text": "GrokAgent"}],
+        "note": "xAI's Grok cloud computer. 'GrokAgent/1.0 (u:...)' at the end of the User-Agent comes from one second-hand source (notes 13, sig-108); neither botscent nor PostHog lists it."
+      }
+    ],
+    "aliases": {
+      "$comment": "A name another source writes differently but means the same product: source text -> list id.",
+      "ChatGPT Agent": "chatgpt",
+      "NovaAct": "agent-novaact",
+      "Grok Bot": "grok-bot"
+    },
+    "overrides": {
+      "$comment": "Decisions applied last, by list id: a display name a source has out of date (name), and where the sources disagree on whether a name works for a human (D17: an agent works for a human; only a certain non-agent program is a bot). Rule used: when the lists disagree, the name is an agent unless the operator's own naming or documentation shows it is a crawler (for example a separate -User fetcher, as ChatGPT-User, Claude-User and Perplexity-User have).",
+      "claude-chrome": {"name": "Claude in Chrome", "reason": "Anthropic's name for its browser extension; botscent still lists it under its earlier name, Claude for Chrome."},
+      "google-agent": {"kind": "cloud-agent", "reason": "Google's documentation: used by agents hosted on Google infrastructure to act on a user's request (PostHog files it as an AI crawler)."},
+      "duckassistbot": {"kind": "ai-assistant", "reason": "Fetches pages in real time to answer a human's question (DuckDuckGo); PostHog lists it as an AI assistant, botscent as a crawler, so it is not a certain non-agent program (D17)."},
+      "cohere-ai": {"kind": "ai-assistant", "reason": "ai.robots.txt: retrieves data for responses to user-initiated prompts; Cohere's training crawler is the separate cohere-training-data-crawler."},
+      "phindbot": {"kind": "ai-assistant", "reason": "Phind answers a developer's question by fetching pages and documents no separate crawler, so PostHog's 'search crawler' is not certain (D17); ai.robots.txt lists it as an AI assistant."},
+      "mozilla-tabstack": {"kind": "ai-assistant", "reason": "Mozilla's browsing API that fetches pages when an AI agent asks for them (PostHog: AI assistant; ai.robots.txt: data provider)."},
+      "lightpanda": {"kind": "automated-browser", "reason": "a headless browser engine anyone runs, as PostHog files it; ai.robots.txt's 'AI data scraper' describes one use of it."},
+      "scrapy": {"kind": "http-client", "reason": "a crawling framework anyone runs, as botscent and PostHog file it; ai.robots.txt's 'AI data scraper' describes one use of it."},
+      "linerbot": {"kind": "search-crawler", "reason": "Liner fetches for a human as Liner-User (listed apart); LinerBot is its search crawler."},
+      "meta-webindexer": {"kind": "search-crawler", "reason": "Meta documents Meta-WebIndexer as the crawler that indexes pages for Meta AI search; botscent and PostHog agree."},
+      "amazon-qbusiness": {"kind": "ai-crawler", "reason": "AWS documents amazon-QBusiness as the Q Business web crawler connector that indexes sites for an organisation."}
+    },
+    "botscent": {
+      "kinds": {
+        "computer-use-agent": "cloud-agent",
+        "fetcher": "ai-assistant",
+        "crawler": "search-crawler",
+        "previewer": "link-preview",
+        "automation": "automated-browser",
+        "client": "http-client"
+      },
+      "ids": [
+        {"kind": "ai-desktop-app", "ids": ["cursor-browser", "codex-browser"], "reason": "the in-app browser of a desktop AI app"},
+        {"kind": "ai-browser-extension", "ids": ["chatgpt-chrome", "claude-chrome"], "reason": "an AI extension inside the human's own browser"},
+        {"kind": "http-client", "ids": ["scrapy"], "reason": "a crawling framework anyone runs, not one operator's crawler"},
+        {"kind": "ai-crawler", "ids": ["gptbot", "claudebot", "ccbot", "mistralai-training", "meta-externalagent", "google-cloudvertexbot", "googleother", "googleother-image", "googleother-video", "amazonbot"], "reason": "collects pages for AI training or AI products, not for a search index"},
+        {"kind": "seo-audit", "ids": ["ahrefsbot", "ahrefssiteaudit"], "reason": "SEO crawler and site audit"},
+        {"kind": "monitoring", "ids": ["google-safety"], "reason": "Google's abuse and malware checks"},
+        {"kind": "service-fetcher", "ids": ["itms", "apis-google", "google-cws", "feedfetcher-google", "google-pinpoint", "googleproducer", "google-read-aloud", "google-site-verification"], "reason": "a service fetching feeds, notifications, imports or verification files: a program, not an AI working for someone"},
+        {"kind": "link-preview", "ids": ["slackbot"], "reason": "Slack's fetcher for links posted in Slack"}
+      ]
+    },
+    "posthog": {
+      "variable": "BOT_DEFINITIONS",
+      "constructor": "BotDefinition",
+      "fields": ["name", "category", "traffic_type", "operator", "documentation_url", "description"],
+      "kinds": {
+        "AI Agent/ai_assistant": "ai-assistant",
+        "AI Agent/ai_crawler": "ai-crawler",
+        "AI Agent/ai_search": "search-crawler",
+        "Automation/headless_browser": "automated-browser",
+        "Automation/http_client": "http-client",
+        "Bot/search_crawler": "search-crawler",
+        "Bot/seo_crawler": "seo-audit",
+        "Bot/social_crawler": "link-preview",
+        "Bot/monitoring": "monitoring",
+        "Bot/http_client": "service-fetcher"
+      },
+      "patterns": {
+        "$comment": "Corrections to single PostHog patterns, keyed by the pattern exactly as PostHog writes it.",
+        "Claude/.*Electron": {"kind": "ai-desktop-app", "reason": "Claude Desktop's built-in browser (GOAL section 8)"},
+        "ChatGPT/.*Electron": {"kind": "ai-desktop-app", "reason": "ChatGPT Desktop's built-in browser (GOAL section 8)"},
+        "desktop\\.hog\\.dev": {"kind": "ai-desktop-app", "reason": "PostHog's desktop AI app"},
+        "agent\\.hog\\.dev": {"kind": "ai-desktop-app", "reason": "PostHog's desktop AI app"},
+        "cloud\\.hog\\.dev": {"kind": "cloud-agent", "reason": "PostHog's AI app running in the cloud"},
+        "GoogleAgent-Mariner": {"kind": "cloud-agent", "reason": "Google's browsing agent acting for a user"},
+        "Amazon-Bedrock-AgentCore-Browser": {"kind": "cloud-agent", "reason": "AWS's hosted browser for AI agents"},
+        "ModelContextProtocol": {"kind": "ai-assistant", "reason": "the MCP fetch tool an AI assistant calls for its user"},
+        "CookieHubScan": {"kind": "monitoring", "reason": "a cookie-compliance scanner, like the Cookiebot and CookieScript checks PostHog files as monitoring"},
+        "OneTrust": {"kind": "monitoring", "reason": "a cookie-compliance scanner, like Cookiebot"},
+        "GoogleDocs": {"kind": "service-fetcher", "reason": "Google Docs fetching a link or image for a document"},
+        "Pinterest": {"patterns": [{"match": "token", "text": "Pinterestbot"}, {"match": "regex", "text": "^Pinterest/0\\."}], "reason": "Pinterest's in-app browser ends its User-Agent with [Pinterest/iOS] or [Pinterest/Android]: a human, so only the crawler's own forms are matched"},
+        "WhatsApp": {"patterns": [{"match": "regex", "text": "^WhatsApp/"}], "reason": "only the link-preview fetcher's User-Agent starts with WhatsApp/; an in-app browser starts with Mozilla/5.0"},
+        "Viber": {"patterns": [{"match": "regex", "text": "^Viber"}], "reason": "only the link-preview fetcher's User-Agent starts with Viber; an in-app browser starts with Mozilla/5.0"}
+      },
+      "exclude": {
+        "Amazon CloudFront": "CloudFront sends this User-Agent on every request it forwards when a site does not pass the visitor's own through: naming it would turn human visits into a Bot",
+        "Chrome Privacy Preserving Prefetch Proxy": "Chrome prefetching for a human's browser; prefetch and prerender are left out before naming (S3.4)"
+      },
+      "hints": {
+        "$comment": "PostHog patterns that recognise a malformed or forged User-Agent rather than name a product. They never name anyone; ua_hints() reports them as weak signals.",
+        "Mozlila/": "mozlila-typo-ua",
+        "\\) AppleWebKit/537\\.36 Chrome/": "malformed-chrome-ua",
+        "Chrome/1\\d\\d.*Edge/1[2-8]\\.": "spoofed-edge-ua",
+        "Safari/537\\.3$": "truncated-webkit-ua",
+        "(^\\s|\\s$)": "whitespace-padded-ua",
+        "^Mozilla/5\\.0$": "bare-mozilla-ua",
+        "Chrome/\\d+\\.\\d+\\.\\d+\\.\\d{4,} (Mobile )?Safari/537\\.36$": "impossible-chrome-version"
+      }
+    },
+    "ai-robots-txt": {
+      "functions": {
+        "AI Agents": "cloud-agent",
+        "AI Assistants": "ai-assistant",
+        "AI Coding Agents": "ai-coding-tool",
+        "AI Search Crawlers": "search-crawler",
+        "AI Data Scrapers": "ai-crawler",
+        "AI Data Providers": "ai-crawler",
+        "Undocumented AI Agents": null
+      },
+      "free_text": {
+        "$comment": "Older entries describe their function in free text. Words that mean the fetch is made for a human's request make it an assistant; words about training, scraping, crawling or indexing make it an AI crawler; anything else is skipped.",
+        "agent_words": ["user-initiated", "user queries", "user prompts", "on behalf", "takes action"],
+        "agent_kind": "ai-assistant",
+        "crawler_words": ["train", "scrap", "crawl", "index", "dataset", "collects", "data collection", "data is sold", "extracts data", "llm"],
+        "crawler_kind": "ai-crawler"
+      },
+      "unknown_operators": ["Unclear at this time.", "Not applicable.", "Unknown"],
+      "version_suffix": "[ /][0-9][0-9.]*$",
+      "min_length": 4,
+      "exclude": {
+        "Code": "VS Code's built-in browser sends Code/<version>",
+        "Codex": "botscent names the Codex in-app browser from page rules; the bare word is too common to name it from a User-Agent",
+        "Muse": "botscent names Muse from page rules; the bare word is too common",
+        "Instinct": "botscent names Instinct from page rules; the bare word is too common",
+        "Spider": "a common word",
+        "Operator": "a common word",
+        "OpenAI": "an operator, not a product",
+        "__usage_ai-training": "a robots.txt policy token, never sent as a User-Agent"
+      }
+    }
+  },
+  "ip_ranges": {
+    "$comment": "Operators' own published address lists, looked up in this order: an agent's or bot's own range first, then a privacy relay, then a CDN, then a cloud, so an address inside both a crawler range and a cloud is named after the crawler. 'verifies' lists the names a range can confirm. Labels of the eleven 0.3.3 ranges are kept as they were. Floors are PostHog's: a published agent or bot range wider than this is refused as an upstream mistake.",
+    "floors": {"v4": 16, "v6": 32, "kinds": ["agent", "bot"]},
+    "published_fields": {"prefixes": "creationTime", "aws": "createDate", "oracle": "last_updated_timestamp", "sail": "modified"},
+    "ranges": [
+      {"id": "openai-chatgpt-user", "label": "OpenAI ChatGPT-User", "kind": "agent", "operator": "OpenAI", "format": "prefixes", "urls": ["https://openai.com/chatgpt-user.json"], "verifies": ["chatgpt-user"]},
+      {"id": "openai-searchbot", "label": "OpenAI OAI-SearchBot", "kind": "bot", "operator": "OpenAI", "format": "prefixes", "urls": ["https://openai.com/searchbot.json"], "verifies": ["oai-searchbot"]},
+      {"id": "openai-gptbot", "label": "OpenAI GPTBot", "kind": "bot", "operator": "OpenAI", "format": "prefixes", "urls": ["https://openai.com/gptbot.json"], "verifies": ["gptbot"]},
+      {"id": "perplexity-user", "label": "Perplexity-User", "kind": "agent", "operator": "Perplexity", "format": "prefixes", "urls": ["https://www.perplexity.ai/perplexity-user.json"], "verifies": ["perplexity-user"]},
+      {"id": "perplexitybot", "label": "PerplexityBot", "kind": "bot", "operator": "Perplexity", "format": "prefixes", "urls": ["https://www.perplexity.ai/perplexitybot.json"], "verifies": ["perplexitybot"]},
+      {"id": "anthropic-claude-agent", "label": "Anthropic Claude-Agent", "kind": "agent", "operator": "Anthropic", "format": "sail", "service": "Claude-Agent", "urls": ["https://claude.com/.well-known/sail"], "verifies": ["claude-agent"]},
+      {"id": "google-user-triggered-agents", "label": "Google user-triggered agents", "kind": "agent", "operator": "Google", "format": "prefixes", "urls": ["https://developers.google.com/static/crawling/ipranges/user-triggered-agents.json"], "verifies": ["google-agent"]},
+      {"id": "google-common-crawlers", "label": "Google common crawlers", "kind": "bot", "operator": "Google", "format": "prefixes", "urls": ["https://developers.google.com/static/crawling/ipranges/common-crawlers.json"], "verifies": ["googlebot", "googlebot-image", "googlebot-video", "storebot-google", "google-inspectiontool", "googleother", "googleother-image", "googleother-video"]},
+      {"id": "google-special-crawlers", "label": "Google special-case crawlers", "kind": "bot", "operator": "Google", "format": "prefixes", "urls": ["https://developers.google.com/static/crawling/ipranges/special-crawlers.json"], "verifies": ["apis-google", "adsbot-google", "adsbot-google-mobile", "google-safety", "mediapartners-google"]},
+      {"id": "google-user-triggered-fetchers", "label": "Google user-triggered fetchers", "kind": "bot", "operator": "Google", "format": "prefixes", "urls": ["https://developers.google.com/static/crawling/ipranges/user-triggered-fetchers-google.json"], "verifies": ["google-cws", "feedfetcher-google", "google-gemininotebook", "google-notebooklm", "googlemessages", "google-pinpoint", "googleproducer", "google-read-aloud", "google-site-verification"]},
+      {"id": "bingbot", "label": "Bingbot", "kind": "bot", "operator": "Microsoft", "format": "prefixes", "urls": ["https://www.bing.com/toolbox/bingbot.json"], "verifies": ["bingbot"]},
+      {"id": "applebot", "label": "Applebot", "kind": "bot", "operator": "Apple", "format": "prefixes", "urls": ["https://search.developer.apple.com/applebot.json"], "verifies": ["applebot"]},
+      {"id": "duckduckbot", "label": "DuckDuckBot", "kind": "bot", "operator": "DuckDuckGo", "format": "prefixes", "urls": ["https://duckduckgo.com/duckduckbot.json"], "verifies": ["duckduckbot"]},
+      {"id": "ahrefs", "label": "Ahrefs", "kind": "bot", "operator": "Ahrefs", "format": "prefixes", "urls": ["https://api.ahrefs.com/v3/public/crawler-ip-ranges"], "verifies": ["ahrefsbot", "ahrefssiteaudit"]},
+      {"id": "icloud-private-relay", "label": "iCloud Private Relay", "kind": "relay", "operator": "Apple", "format": "csv-first-column", "urls": ["https://mask-api.icloud.com/egress-ip-ranges.csv"], "verifies": []},
+      {"id": "cloudflare", "label": "Cloudflare", "kind": "cdn", "operator": "Cloudflare", "format": "lines", "urls": ["https://www.cloudflare.com/ips-v4", "https://www.cloudflare.com/ips-v6"], "verifies": []},
+      {"id": "google-cloud", "label": "Google Cloud", "kind": "cloud", "operator": "Google", "format": "prefixes", "urls": ["https://www.gstatic.com/ipranges/cloud.json"], "verifies": []},
+      {"id": "aws", "label": "AWS", "kind": "cloud", "operator": "Amazon", "format": "aws", "urls": ["https://ip-ranges.amazonaws.com/ip-ranges.json"], "verifies": []},
+      {"id": "oracle-cloud", "label": "Oracle Cloud", "kind": "cloud", "operator": "Oracle", "format": "oracle", "urls": ["https://docs.oracle.com/en-us/iaas/tools/public_ip_ranges.json"], "verifies": []},
+      {"id": "digitalocean", "label": "DigitalOcean", "kind": "cloud", "operator": "DigitalOcean", "format": "csv-first-column", "urls": ["https://digitalocean.com/geo/google.csv"], "verifies": []}
+    ]
+  },
+  "signers": {
+    "$comment": "Web Bot Auth signers: botscent's signers.json plus the ones below, each host's key directory fetched and bundled. Keys are kept per signer (draft-meunier-web-bot-auth-architecture-01 section 5.4: never look a key up by keyid alone). The directory's response is stored with its signature headers and body (section 5.5.3, appendix B), so the binding of the keys to the host can be checked later. An expiry that only rolls forward (every fetch answers 'now plus N days') is bundled as rolling_expiry_s, not as exp, like botscent's key watch.",
+    "directory": "https://{host}/.well-known/http-message-signatures-directory",
+    "accept": "application/http-message-signatures-directory+json, application/json",
+    "response_headers": ["content-type", "content-digest", "signature", "signature-input"],
+    "key_fields": ["kty", "crv", "x", "kid", "nbf", "exp"],
+    "rolling_tolerance_s": 600,
+    "extra": {
+      "agent.bot.goog": {"name": "google-agent", "note": "Google's documentation for Google-Agent: Google is experimenting with Web Bot Auth using the https://agent.bot.goog identity."},
+      "muse.ai": {"name": "muse", "note": "Meta's Muse. Meta's announcement (about.fb.com/news/2026/09/introducing-muse-personal-ai-agent/) gives muse.ai as Muse's site; the domain is served from Meta's network and its directory response is signed with the keys it lists (checked 2026-11-13). Meta has not documented Muse's signing: DataDome reports Muse signing as https://muse.ai since 2026-11-07, and Cloudflare Radar lists this directory for Muse. Meta's other directory, www.meta.com, is not bundled: DataDome saw both Muse and Meta-WebIndexer sign with it (most likely Meta-WebIndexer now), so a signature from it names no single product, and naming the wrong one is worse than naming none. It stays out until Meta documents what signs with it."}
+    },
+    "signing": {
+      "$comment": "Signers reported to have stopped signing requests, which their key directory cannot show. The note is copied onto the signer in signers.json; its keys stay bundled, so its signatures verify again if it signs again. Each note says when, where it comes from and how sure that is.",
+      "cursorusercontent.com": {"state": "stopped", "since": "2026-10", "checked": "2026-11-13", "evidence": "unverified", "note": "Grok Bot's requests arrive unsigned since October 2026: botscent's own benchmark (commit 8ad85181, 2026-10-01: unsigned since 1 October), Fingerprint (around 2026-10-09) and Verisoul (mid-October, updated 2026-11-03). xAI's Grok Bot page (x.ai/bot) says nothing about signing either way. The directory still publishes the same key (valid until 2027-08), checked 2026-11-13."}
+    }
+  }
+}

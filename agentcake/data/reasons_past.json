@@ -1,0 +1,387 @@
+{
+ "$comment": "Every wording a reason had before verdicts kept their facts (tools/reasons_past.py collects them from the commits without 30ee5f1; newest first). agentcake/detect/reasons_past.py matches a kept sentence against these to read its facts back, so that it is worded anew. Not interface text: never shown.",
+ "reasons": {
+  "exclude.prefetch": [
+   "Page {page} was requested as a {purpose}: its server half doesn't count.",
+   "Page {page} was requested as a {purpose}: its server half is not used."
+  ],
+  "exclude.never-shown": [
+   "Page {page} was prerendered and never shown, so it doesn't count.",
+   "Page {page} was prerendered and never shown: it is left out."
+  ],
+  "exclude.all": [
+   "Every page was prerendered and never shown: not a visit."
+  ],
+  "name.ua": [
+   "The User-Agent of {half} declares {name} ({kind_label})."
+  ],
+  "name.ua-generic": [
+   "The User-Agent of {half} names {name}, a tool anyone can run: it names no agent product."
+  ],
+  "name.ua-conflict": [
+   "The User-Agent of {half} declares several names at once, {names}, so none of them counts.",
+   "The User-Agent of {half} declares several names at once ({names}): none of them is used."
+  ],
+  "name.ua-hint": [
+   "The User-Agent has the shape of a forged or malformed one, {hint}: a weak signal.",
+   "The User-Agent has the shape of a forged or malformed one ({hint}): a weak signal."
+  ],
+  "name.platform": [
+   "navigator.platform is \"{platform}\", which {name} reports."
+  ],
+  "name.signer": [
+   "Signature-Agent on {half} names {signer}, the signer of {name}."
+  ],
+  "name.unknown-signer": [
+   "Signature-Agent on {half} names {signer}, which isn't among the signers that come with this release.",
+   "Signature-Agent on {half} names {signer}, which is not among the signers that come with this release."
+  ],
+  "name.disagree": [
+   "The declared names, {names}, disagree, so the visit gets no name.",
+   "The declared names disagree ({names}): no name is given."
+  ],
+  "name.signer-mismatch": [
+   "Signature-Agent names {claimed}, but the signature belongs to {signer}."
+  ],
+  "name.outranked": [
+   "{other} ({other_method}) gives way to {name} ({method}), which comes first."
+  ],
+  "name.from-trace": [
+   "This trace belongs to {name}: likely {name}, since a trace can change when the product updates."
+  ],
+  "name.tool": [
+   "The automation tool is {name}, from {method}."
+  ],
+  "verify.signature": [
+   "{detail}"
+  ],
+  "verify.signature-forged": [
+   "{detail} It claims to be {name}: impersonation, so the visit gets no name.",
+   "{detail} It claims to be {name}: impersonation, so no name is given."
+  ],
+  "verify.signature-proxy": [
+   "{detail} The signature covers {components}, which a proxy in front of the site may rewrite: couldn't verify, not impersonation.",
+   "{detail} The signature covers {components}, which a proxy in front of the site may rewrite: could not verify, not impersonation."
+  ],
+  "verify.ip-range": [
+   "The address is in {range}, which {operator} publishes for {name}: verified."
+  ],
+  "verify.ip-agent-range": [
+   "The address is in {range}, which {operator} publishes for its agents."
+  ],
+  "verify.ip-bot-range": [
+   "The address is in {range}, which {operator} publishes for its crawlers, but nothing declares a name."
+  ],
+  "verify.ip-mismatch": [
+   "It says it's {name}, but the address isn't in the ranges {operator} publishes for it: impersonation, so the visit gets no name.",
+   "It says it is {name}, but the address is not in the ranges {operator} publishes for it: impersonation, so no name is given."
+  ],
+  "verify.rdns": [
+   "Reverse DNS confirms {name}: verified."
+  ],
+  "verify.rdns-mismatch": [
+   "It says it's {name}, but reverse DNS doesn't confirm it: impersonation, so the visit gets no name.",
+   "It says it is {name}, but reverse DNS does not confirm it: impersonation, so no name is given."
+  ],
+  "verify.no-range": [
+   "{name} publishes no address range or key that {product} can check: self-reported only."
+  ],
+  "verify.local": [
+   "Local mode: every visit comes from 127.0.0.1, so there's no verification layer and names are self-reported only.",
+   "Local mode: every visit comes from 127.0.0.1, so there is no verification layer and names are self-reported only."
+  ],
+  "verify.no-address": [
+   "No visitor address was available, so the check against the published ranges didn't run: names are self-reported only.",
+   "No visitor address was available, so the published ranges were not checked: names are self-reported only."
+  ],
+  "env.automated": [
+   "Automated browser: it may be an AI tool working for a human, or a script."
+  ],
+  "env.cloud-browser": [
+   "A cloud browser that doesn't say who runs it",
+   "A cloud browser that does not say who runs it."
+  ],
+  "env.extension-unnamed": [
+   "An extension acted on this page, but nothing says which one."
+  ],
+  "env.soft-alone": [
+   "There's only soft environment evidence, such as DevTools or privacy tools, which a human's browser can also show, and that isn't enough on its own.",
+   "Only soft environment evidence, which a human's browser can also show (DevTools, privacy tools): not enough on its own."
+  ],
+  "behavior.agent": [
+   "The behavior model judged the session an agent's: {basis}.",
+   "The behavior model judged the session an agent's ({agent_pct}% of the actions)."
+  ],
+  "behavior.human": [
+   "The behavior model judged the session a human's, with {human_pct}% of the action segments.",
+   "The behavior model judged the session a human's ({human_pct}% of the action segments).",
+   "The behavior model judged the session a human's ({human_pct}% of the actions)."
+  ],
+  "behavior.one-kind": [
+   "Only one kind of behavior looks like an agent's: {kind}. The behavior model needs two independent kinds before it judges a session an agent's."
+  ],
+  "behavior.unsure": [
+   "The behavior model couldn't tell a human from an agent, with {unsure_pct}% of the action segments unsure.",
+   "The behavior model could not tell a human from an agent ({unsure_pct}% of the action segments unsure).",
+   "The behavior model could not tell a human from an agent ({unsure_pct}% of the actions unsure)."
+  ],
+  "behavior.indicator": [
+   "{words}: the actions in that time are the agent's."
+  ],
+  "behavior.handoff": [
+   "The {to} took over from the {from} {at} s into the session."
+  ],
+  "behavior.short-run": [
+   "A {who} run of {n} actions in {span} s is too short to count as a {who} taking part."
+  ],
+  "behavior.overruled": [
+   "The behavior model saw a human, but behavior doesn't overturn automation traces.",
+   "The behavior model saw a human, but behavior does not overturn automation traces."
+  ],
+  "behavior.assistive": [
+   "Keyboard navigation without a pointer, as assistive tools do: the behavior model's agent judgment isn't trusted.",
+   "Keyboard navigation without a pointer, as assistive tools do: the behavior model's agent judgment is not trusted.",
+   "Keyboard navigation without a pointer, as assistive tools do: the behavior model's agent judgement is not trusted."
+  ],
+  "behavior.local-agent": [
+   "There's no agent trace in the page or the browser, only behavior, so it's possibly an agent on the visitor's own computer.",
+   "No agent trace in the page or the browser, only behavior: possibly an agent on the visitor's own computer."
+  ],
+  "behavior.too-little-data": [
+   "There are too few actions for the behavior model, {n} of the {min} it needs, so it doesn't judge the session.",
+   "Too few actions for the behavior model ({n} of the {min} it needs): not judged."
+  ],
+  "behavior.touch": [
+   "A phone or tablet: the behavior model isn't used.",
+   "A phone or tablet: the behavior model is not used."
+  ],
+  "behavior.not-run-bot": [
+   "A listed bot, known by name: the behavior model doesn't run.",
+   "A listed bot, known by name: the behavior model is not run."
+  ],
+  "crawler.like": [
+   "Looks like a crawler: {signals}. A weak signal: it changes nothing."
+  ],
+  "weak.timezone-country": [
+   "The browser's time zone, {tz}, isn't one used in {country}, the country of its address. A weak signal: it changes nothing.",
+   "The browser's time zone ({tz}) is not one used in the country of its address ({country}). A weak signal: it changes nothing."
+  ],
+  "weak.language-country": [
+   "None of the browser's languages, {languages}, names {country}, the country of its address. A weak signal: it changes nothing.",
+   "None of the browser's languages ({languages}) names the country of its address ({country}). A weak signal: it changes nothing."
+  ],
+  "weak.same-address": [
+   "{n} sessions came from this address within {hours} h. A weak signal: it changes nothing."
+  ],
+  "weak.header-order": [
+   "The User-Agent says {browser}, but cake.js's requests list their headers in an order {browser} doesn't use: {order}. A weak signal: it changes nothing.",
+   "The User-Agent says {browser}, but cake.js's requests list their headers in an order {browser} does not use ({order}). A weak signal: it changes nothing."
+  ],
+  "weak.display-change": [
+   "The screen changed during the session: color depth {depths}, size {sizes}. A weak signal: it changes nothing.",
+   "The screen changed during the session (color depth {depths}; size {sizes}). A weak signal: it changes nothing."
+  ],
+  "weak.window-jump": [
+   "The window jumped {px} px across the screen without changing its size. A weak signal: it changes nothing."
+  ],
+  "weak.rhythm-pauses": [
+   "{pct}% of the steps came after at least {seconds} s without any input, as when an AI looks at the page before it acts. A weak signal: it changes nothing."
+  ],
+  "weak.rhythm-no-pause": [
+   "{pct}% of the steps came right after the previous one, as a script runs them. A weak signal: it changes nothing."
+  ]
+ },
+ "halves": {
+  "page": [
+   "the page"
+  ],
+  "collector": [
+   "cake.js's requests"
+  ],
+  "server": [
+   "the page request"
+  ]
+ },
+ "methods": {
+  "signature": [
+   "a verified signature"
+  ],
+  "ip": [
+   "its published address range"
+  ],
+  "rdns": [
+   "reverse DNS"
+  ],
+  "product-rule": [
+   "the product's page rule"
+  ],
+  "declared": [
+   "what it declares about itself"
+  ],
+  "extension-trace": [
+   "the extension's own trace"
+  ],
+  "automation-trace": [
+   "the tool's own trace in the page"
+  ]
+ },
+ "behavior_basis": {
+  "rules": [
+   "{agent_pct}% of the action segments look like an agent's"
+  ],
+  "active_move_rate": [
+   "the pointer moves too seldom for a hand"
+  ],
+  "teleport_clicks": [
+   "clicks come right after the pointer jumps"
+  ]
+ },
+ "crawler_signals": {
+  "datacenter": [
+   "a datacenter address"
+  ],
+  "fixed_interval_visits": [
+   "comes back every {every}"
+  ],
+  "fixed_interval_pages": [
+   "loads a page every {every}"
+  ],
+  "many_pages": [
+   "{pages} pages in a row"
+  ],
+  "fixed_interval": [
+   "loads at fixed intervals"
+  ]
+ },
+ "durations": {
+  "seconds": [
+   "{n} s"
+  ],
+  "minutes": [
+   "{n} min"
+  ]
+ },
+ "markers": {
+  "claude-chrome.working": [
+   "Claude in Chrome's “working” indicator was on {span}"
+  ],
+  "claude-chrome.waiting": [
+   "Claude in Chrome waited for the human's input {span}",
+   "Claude in Chrome asked for the visitor's input {span}"
+  ],
+  "claude-chrome.bottom": [
+   "Claude in Chrome's stop button or tab pill was shown {span}",
+   "Claude in Chrome's Stop button or tab pill was shown {span}"
+  ],
+  "claude-chrome.page-dom": [
+   "Claude in Chrome's indicator from an older version was on the page {span}",
+   "Claude in Chrome's indicator (an older version) was on the page {span}"
+  ],
+  "claude-chrome.styles": [
+   "Claude in Chrome's style sheet from an older version was on the page {span}",
+   "Claude in Chrome's style sheet (an older version) was on the page {span}"
+  ],
+  "comet.overlay": [
+   "Comet's agent overlay was on the page {span}"
+  ],
+  "chatgpt-chrome.badge": [
+   "ChatGPT for Chrome's activity badge was on the page's icon {span}"
+  ],
+  "fellou.highlight": [
+   "Fellou's highlight was on the page {span}"
+  ],
+  "browser-use.highlight": [
+   "Browser Use's highlight was on the page {span}"
+  ],
+  "stagehand.overlay": [
+   "Stagehand's cursor overlay was on the page {span}"
+  ],
+  "skyvern.overlay": [
+   "Skyvern's boxes were on the page {span}"
+  ],
+  "claude-chrome.recorder": [
+   "Claude in Chrome's indicator (the recorder's check) was on {span}"
+  ],
+  "skyvern.ids": [
+   "Skyvern's element ids were on the page {span}"
+  ]
+ },
+ "spans": {
+  "closed": [
+   "{from}–{to}"
+  ],
+  "open": [
+   "from {from}"
+  ]
+ },
+ "webbotauth": {
+  "verified": [
+   "Web Bot Auth signature verified: {signer} signed this request with key {keyid}.",
+   "Web Bot Auth signature verified: {signer} signed this request (key {keyid})."
+  ],
+  "verified-by-key": [
+   "Web Bot Auth signature verified with key {keyid}, which {signer} publishes; the request doesn't name its signer in a signed Signature-Agent.",
+   "Web Bot Auth signature verified with key {keyid}, which {signer} publishes; the request does not name its signer in a signed Signature-Agent."
+  ],
+  "bad-signature": [
+   "The Web Bot Auth signature of {signer}, with key {keyid}, doesn't verify: the signed parts of the request were changed, or the signature is forged.",
+   "Web Bot Auth signature of {signer} (key {keyid}) does not verify: the signed parts of the request were changed, or the signature is forged."
+  ],
+  "unsupported-algorithm": [
+   "The signature uses {alg}, which isn't verified here: self-reported only.",
+   "The signature uses {alg}, which Agent Cake does not verify: self-reported only."
+  ],
+  "unsupported-key": [
+   "Key {keyid} of {signer} isn't an Ed25519 key, the only kind verified here: self-reported only.",
+   "Key {keyid} of {signer} is not an Ed25519 key, the only kind verified here: self-reported only.",
+   "Key {keyid} of {signer} is not an Ed25519 key, the only kind Agent Cake verifies: self-reported only."
+  ],
+  "incomplete": [
+   "The signature lacks {missing}, which Web Bot Auth requires: self-reported only."
+  ],
+  "unknown-signer": [
+   "{signer} isn't among the signers whose keys come with this release: self-reported only.",
+   "{signer} is not among the signers whose keys come with this release: self-reported only."
+  ],
+  "key-missing": [
+   "Key {keyid} isn't among the keys of {signer} that come with this release, and it may be newer: self-reported only.",
+   "Key {keyid} is not among the keys of {signer} that come with this release (it may be newer): self-reported only."
+  ],
+  "key-shared": [
+   "Key {keyid} is published by several signers ({signers}): self-reported only."
+  ],
+  "test-key": [
+   "Key {keyid} is {why}: self-reported only."
+  ],
+  "key-not-yet-valid": [
+   "Key {keyid} of {signer} wasn't yet valid when the signature was made: self-reported only.",
+   "Key {keyid} of {signer} was not yet valid when the signature was made: self-reported only."
+  ],
+  "key-expired": [
+   "Key {keyid} of {signer} had expired when the signature was made: self-reported only."
+  ],
+  "not-yet-valid": [
+   "The signature was made {seconds} s in the future by this computer's clock: self-reported only."
+  ],
+  "expired": [
+   "The signature expired {seconds} s ago: self-reported only."
+  ],
+  "too-old": [
+   "The signature was made {seconds} s ago, more than the {max_age_s} s allowed: self-reported only."
+  ],
+  "no-signature-value": [
+   "Signature-Input names signature {label}, but the Signature field has no value for it: self-reported only."
+  ],
+  "unrebuildable": [
+   "What {signer} signed can't be rebuilt from this request, so it's self-reported only: {detail}.",
+   "What {signer} signed cannot be rebuilt from this request ({detail}): self-reported only."
+  ],
+  "claim-only": [
+   "Signature-Agent names {claimed}, but the request carries no Web Bot Auth signature: self-reported only."
+  ],
+  "unsigned": [
+   "No Web Bot Auth signature",
+   "No Web Bot Auth signature."
+  ]
+ }
+}

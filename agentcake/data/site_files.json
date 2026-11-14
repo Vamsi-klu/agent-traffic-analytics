@@ -1,0 +1,11 @@
+{
+  "about": "Which files setup --print --site and doctor look at in a website's code folder: never inside skip_dirs (installed packages, build output, virtual environments, WordPress's own code); pages are the files ending in page_suffixes (a static site's), templates those ending in script_suffixes (where the cake.js line can be); a template that holds a page's </head> is looked for only among head_suffixes (markup and template files, never a plain .js or .ts file, which in a site's folder is more often a browser library than a page). Which framework a folder uses is data/frameworks.json. edge_folder: the folder of the sites' middleware (node, python, php, wordpress), inside the package in a release (agentcake/edge, S6.4: the wheel, the .pyz and the unpacked package) and beside it in a checkout; $CAKE_EDGE_DIR names another one.",
+  "skip_dirs": ["node_modules", ".git", ".next", "dist", "build", ".venv", "venv", "__pycache__", "vendor", "wp-admin", "wp-includes"],
+  "page_suffixes": [".html"],
+  "script_suffixes": [".html", ".htm", ".tsx", ".jsx", ".js", ".ts", ".vue", ".svelte", ".astro", ".php", ".erb",
+                      ".ejs", ".hbs", ".handlebars", ".njk", ".jinja", ".jinja2", ".j2", ".twig", ".mustache", ".liquid"],
+  "head_suffixes": [".html", ".htm", ".ejs", ".hbs", ".handlebars", ".njk", ".jinja", ".jinja2", ".j2", ".twig", ".mustache",
+                    ".liquid", ".php", ".erb", ".astro", ".vue", ".svelte", ".jsx", ".tsx"],
+  "head_end": "</head>",
+  "edge_folder": "edge"
+}

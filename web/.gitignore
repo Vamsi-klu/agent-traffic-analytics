@@ -1,0 +1,6 @@
+node_modules/
+dist/
+visual/actual/
+visual/diff/
+visual/shots/
+*.tsbuildinfo
