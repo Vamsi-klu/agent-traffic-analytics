@@ -1,4 +1,4 @@
-"""GET and POST /api/register (S5.8, D32): agentcake/api/registration.py.
+"""GET and POST /api/register: agentcake/api/registration.py.
 
     python3 -I -m unittest discover -s tests -p test_api_registration.py -v      (from the AgentCake folder)
 

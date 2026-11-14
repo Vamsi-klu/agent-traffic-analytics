@@ -1,8 +1,8 @@
-// Agent Cake page script, part: the environment of a page view and the globals automation leaves (plan step S1.3),
+// Agent Cake page script, part: the environment of a page view and the globals automation leaves,
 // stream "x".
 //
 // Ported from the research lab's env.js (our research code, 11/11;
-// our own code): raw values only, cake judges later, field names as the lab's (cake's environment rules, S3.3, read
+// our own code): raw values only, cake judges later, field names as the lab's (cake's environment rules read
 // them). The table of distinctive globals is BotD's (MIT, in cakejs.json env.distinctive_globals); the error-stack
 // read is BotD's errorTrace idea. The two CDP-binding scans (exposed_installed, unnamed_native_globals) follow ideas of
 // rebrowser-bot-detector, in our own code (see automation.js for why none of its code is used).

@@ -1,7 +1,7 @@
 {
-  "$comment": "Agent Cake's environment layer (S3.3): each rule reads one trace of automation, of a named agent product, of a cloud machine or of an extension acting on the page. agentcake/detect/env_rules.py evaluates `match` (grammar in its docstring) against the signals env_signals.py builds; a hit carries id, layer, kind, half, strength, grade and the value that matched. `scope`: page = on each page view, landing = the first page view only, session = the session as a whole. `botscent`: the botscent page-half reasons a rule stands for, so the two can be compared on recorded sessions. `names`: the agent product or automation tool a rule names; `suggests`: a name a rule hints at without proving it. `enabled`: the default; the user's config can switch any rule. `date`: when the evidence was taken; product rules follow one product's build and must be re-checked when it changes. Rule definitions and collision notes taken from botscent 1.2.0 and BotD 2.0.0 (both MIT) are credited in source_refs and THIRD_PARTY.md.",
+  "$comment": "Agent Cake's environment layer: each rule reads one trace of automation, of a named agent product, of a cloud machine or of an extension acting on the page. agentcake/detect/env_rules.py evaluates `match` (grammar in its docstring) against the signals env_signals.py builds; a hit carries id, layer, kind, half, strength, grade and the value that matched. `scope`: page = on each page view, landing = the first page view only, session = the session as a whole. `botscent`: the botscent page-half reasons a rule stands for, so the two can be compared on recorded sessions. `names`: the agent product or automation tool a rule names; `suggests`: a name a rule hints at without proving it. `enabled`: the default; the user's config can switch any rule. `date`: when the evidence was taken; product rules follow one product's build and must be re-checked when it changes. Rule definitions and collision notes taken from botscent 1.2.0 and BotD 2.0.0 (both MIT) are credited in source_refs and THIRD_PARTY.md.",
   "version": 1,
-  "updated": "2026-11-12",
+  "updated": "2026-11-14",
   "legend": {
     "kinds": {
       "automation": "A trace of an automation driver, or of the flags it launches the browser with: an automated browser.",
@@ -32,7 +32,7 @@
     "BotD": "fingerprintjs/BotD 2.0.0 (npm build botd.esm.js; repository commit 193c471a), MIT: its detectors",
     "rebrowser": "rebrowser/rebrowser-bot-detector commit 55fa59b, README test descriptions; package.json says MIT but the repository has no LICENSE file, so only its published detection ideas are used, none of its code",
     "audit": "Agent Cake's signal audit of 2026-11-12 (119 signals, ids sig-NNN; ours)",
-    "lab": "Agent Cake's lab recordings of 2026-11-09 and 2026-11-11 (ours: env.js, raw.js, bs.js and the lab server's request log)",
+    "lab": "Agent Cake's lab recordings of 2026-11-09 and 2026-11-11 (ours: env.js, raw.js, bs.js and the lab server's request log)", "runs": "Agent Cake's own runs of agent products and of automation made to look human, on its test shop, 2026-11-13 and 2026-11-14 (ours; measured with agentcake eval)",
     "agent_markers": "Agent Cake's table of agent products' marks, agentcake/data/agent_markers.json (ours; its own source_refs say where each mark comes from), read by env_signals into each page's markers"
   },
   "signals": {
@@ -322,7 +322,7 @@
       "detail": "The page runs inside an Electron app's built-in browser.",
       "match": {"any": [{"path": "env.userAgent", "regex": "Electron/[0-9.]+"}, {"path": "botd.detections.detectProcess.bot", "eq": true}]},
       "grade": "source", "date": "2026-11-09",
-      "evidence": "BotD detectProcess, detectUserAgent and detectAppVersion. Desktop AI apps with their own browser are named by the name layer's user-agent list (S3.1); this only says an app's browser was used.",
+      "evidence": "BotD detectProcess, detectUserAgent and detectAppVersion. Desktop AI apps with their own browser are named by the name layer's user-agent list; this only says an app's browser was used.",
       "sources": ["BotD:detectProcess", "BotD:detectUserAgent", "BotD:detectAppVersion"],
       "collisions": "People read web pages inside many desktop apps built on Electron."
     },
@@ -486,6 +486,32 @@
       "collisions": "User-agent switcher extensions."
     },
     {
+      "id": "env.spoof.system-font-names", "layer": "env", "kind": "spoofing", "half": "page", "scope": "page", "strength": "soft", "enabled": true,
+      "title": "The browser appears to run on a Mac but reports another operating system.",
+      "detail": "The user agent and navigator.platform name Windows, Linux, or Android, but -apple-system or BlinkMacSystemFont resolves. Browsers map these names only on Apple's systems unless the system aliases them, as fontconfig can on Linux.",
+      "match": {"path": "auto.systemFontNames", "eq": "disagree"},
+      "report": ["auto.systemFontNames", "env.userAgent", "env.platform"],
+      "grade": "measured", "date": "2026-11-14",
+      "evidence": "Our test page on this Mac, 2026-11-14: Camoufox claiming Linux or Windows resolves -apple-system (3 of 3), fingerprint-suite (Chromium with a generated Windows or Linux fingerprint) resolves BlinkMacSystemFont (4 of 4); the same Mac's Chrome and Camoufox claiming macOS agree. Both tools bring the claimed system's fonts, voices and graphics limits, so only these names give the Mac away. Engines map them only on Apple's systems, unless the system gives the name an alias (fontconfig can on Linux). Not yet measured on real visitors.",
+      "sources": ["runs"],
+      "collisions": "On a Mac, a user-agent switcher that also changes navigator.platform, and a developer tool's device emulation (a phone's user agent on a Mac). On Linux, a fontconfig alias for -apple-system or BlinkMacSystemFont, which some developers set so that font stacks starting with Apple's names look right."
+    },
+    {
+      "id": "env.spoof.request-os-mismatch", "layer": "env", "kind": "spoofing", "half": "collector", "scope": "session", "strength": "soft", "enabled": true,
+      "title": "Requests from this visit report different operating systems.",
+      "detail": "In this visit, cake.js's User-Agent headers name different operating systems, such as macOS and Windows. A browser sends the same one with every request; automation that changes it can miss some.",
+      "match": {"any": [
+        {"all": [{"some": "collect.headers.user-agent.values", "where": {"regex": "Windows NT"}}, {"some": "collect.headers.user-agent.values", "where": {"regex": "Macintosh|iPhone|iPad"}}]},
+        {"all": [{"some": "collect.headers.user-agent.values", "where": {"regex": "Windows NT"}}, {"some": "collect.headers.user-agent.values", "where": {"regex": "X11|Linux|Android|CrOS"}}]},
+        {"all": [{"some": "collect.headers.user-agent.values", "where": {"regex": "Macintosh|iPhone|iPad"}}, {"some": "collect.headers.user-agent.values", "where": {"regex": "X11|Linux|Android|CrOS"}}]}
+      ]},
+      "report": ["collect.headers.user-agent.values"],
+      "grade": "measured", "date": "2026-11-14",
+      "evidence": "Our runs of 2026-11-14: every session of fingerprint-suite (20; Playwright with generated Windows or Linux fingerprints) and of Puppeteer's page.setUserAgent (10). The batches cake.js sends with sendBeacon as a page is left carry the browser's own User-Agent (macOS), the other requests the changed one. None of the other 151 automated sessions (Camoufox changes the User-Agent inside the browser, for every request) and none of the recorder's 11 people.",
+      "sources": ["runs"],
+      "collisions": "An extension or proxy that rewrites the User-Agent of only some requests. Versions are not compared (a browser updated across a restart), and switching a phone or tablet to the desktop site stays within one family (iPhone, iPad and Mac; Android, Linux and ChromeOS), so neither counts."
+    },
+    {
       "id": "env.spoof.empty-brands-desktop-chrome", "layer": "env", "kind": "spoofing", "half": "page", "scope": "page", "strength": "hard", "enabled": true,
       "title": "Desktop Chrome leaves out its browser brand information.",
       "detail": "The brand list is empty on desktop Chrome, as it can be after Puppeteer's setUserAgent.",
@@ -543,7 +569,7 @@
       "match": {"path": "botscent.reasons", "contains": "grok.cloud-computer.environment"},
       "names": "grok-bot",
       "grade": "project-claim", "date": "2026-10-04",
-      "evidence": "botscent: Grok Bot 67 of 67 documents with all six signs (28 September to 3 October), 0 of 90 human documents, 0 of 210 other agents' documents. Not measured by us yet (GOAL T16).",
+      "evidence": "botscent: Grok Bot 67 of 67 documents with all six signs (28 September to 3 October), 0 of 90 human documents, 0 of 210 other agents' documents. Not measured by us yet.",
       "sources": ["botscent:grok.cloud-computer.environment", "audit:sig-103", "audit:sig-030", "audit:sig-031", "audit:sig-104"],
       "botscent": ["grok.cloud-computer.environment"],
       "collisions": "A person working inside Grok Bot's own computer is named grok-bot by design. A stock Ubuntu cloud desktop holds 3 of the 6 signs and no SwiftShader. Another product on the same machine image would be named grok-bot."
@@ -636,7 +662,7 @@
       "match": {"all": [{"path": "env.platform", "regex": "^Linux"}, {"path": "env.webgl.renderer", "regex": "llvmpipe|softpipe"}]},
       "report": ["env.webgl.renderer"],
       "grade": "inferred", "date": "2026-11-12",
-      "evidence": "Software rendering is a cloud-machine sign (audit sig-027 lists llvmpipe); no measurement.",
+      "evidence": "Software rendering is a cloud-machine sign (our signal audit lists llvmpipe); no measurement.",
       "sources": ["audit:sig-027"],
       "collisions": "People on Linux virtual machines or remote desktops without a GPU."
     },
@@ -647,9 +673,9 @@
       "match": {"some": "collect.ip_classes", "where": {"in": ["cloud", "cdn"]}},
       "report": ["collect.ip_classes"],
       "grade": "measured", "date": "2026-11-11",
-      "evidence": "tartini.ai 2026-11-10 and 2026-11-11: Muse came from Cloudflare's network both times. Needs cake on a server (S2.3's network facts); local mode only sees 127.0.0.1.",
+      "evidence": "tartini.ai 2026-11-10 and 2026-11-11: Muse came from Cloudflare's network both times. Needs cake on a server (its network facts); local mode only sees 127.0.0.1.",
       "sources": ["audit:sig-010", "audit:sig-107"],
-      "collisions": "VPN and Cloudflare WARP users, and people browsing from a company cloud desktop. A datacenter IP never makes a Bot on its own (D17)."
+      "collisions": "VPN and Cloudflare WARP users, and people browsing from a company cloud desktop. A datacenter IP never makes a Bot on its own."
     },
     {
       "id": "env.ext.closed-shadow-host", "layer": "env", "kind": "extension", "half": "page", "scope": "page", "strength": "soft", "enabled": true,
@@ -743,7 +769,7 @@
       "match": {"path": "ext_probe.found", "nonempty": true},
       "report": ["ext_probe.found"],
       "grade": "source", "date": "2026-11-12",
-      "evidence": "Audit sig-098. Off by default: probing which extensions a visitor has installed is a device fingerprint (visitors in Europe must consent first), and installed is not in use. The list of extensions to probe is not defined yet.",
+      "evidence": "From our signal audit. Off by default: probing which extensions a visitor has installed is a device fingerprint (visitors in Europe must consent first), and installed is not in use. The list of extensions to probe is not defined yet.",
       "sources": ["audit:sig-098"],
       "collisions": "Says the extension is installed, not that it acted: a person with the extension installed matches on every page."
     }

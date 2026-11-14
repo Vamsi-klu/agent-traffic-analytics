@@ -1,4 +1,4 @@
-"""The report of the last log import (S4.4), for doctor (doctor_logs.py) and the settings page (S5.5).
+"""The report of the last log import, for doctor (doctor_logs.py) and the settings page.
 
 update(con, envelope, counts, now_ms) adds one /edge request's counts (log_match.COUNTS) to the report of its import
 run, which the database's settings table keeps under "log_import": the run's id, the log format, the recommended
@@ -7,7 +7,7 @@ and the counts summed over the run. A request of another run starts a new report
 commits. last(con) reads the report.
 
 stored_report() reads the same report straight from cake.db without writing to it, for doctor (doctor_logs.py, whose
-line says how the last import went and which recommended headers the log lacks) and the settings page (S5.5); None
+line says how the last import went and which recommended headers the log lacks) and the settings page; None
 when there is no database, no settings table yet, or no import.
 """
 import json

@@ -1,6 +1,6 @@
-"""Which agent or bot a session is (S3.5): its name and how sure, or its category when no product can be named.
+"""Which agent or bot a session is: its name and how sure, or its category when no product can be named.
 
-Name priority (D5; research note 13 section 5), highest first:
+Name priority, highest first:
   1 verified: a Web Bot Auth signature checked with the signer's key, the operator's published range, reverse DNS;
   2 a page product rule (env_rules.json, kind product: Muse, Grok Bot, Codex, Cursor, Cloudflare Browser Run, ...);
   3 a self-reported name: the User-Agent, navigator.platform or Signature-Agent, when they agree;
@@ -10,12 +10,12 @@ Name priority (D5; research note 13 section 5), highest first:
   6 no product, a category: infrastructure (an operator's published agent range), automated (Automated browser),
     extension (an extension drove the page), cloud_browser (a cloud computer that does not say who runs it) or
     local_agent (behaviour alone: possibly an agent on the visitor's own computer). A category says where the agent
-    runs, which its reason tells; it never names it: the interface calls the agent Unnamed (D39).
+    runs, which its reason tells; it never names it: the interface calls the agent Unnamed.
 The highest level that names a product wins, with the certainty verdict.json "attribution" gives that level (a verified
 name is certain; a rule or a trace goes stale when its product changes, so it is likely). A lower level pointing to
-another product is listed as outranked; a level whose evidence names several products names none. A Bot (D17) keeps
+another product is listed as outranked; a level whose evidence names several products names none. A Bot keeps
 the list entry that made it one. Products without a trace of their own (browser-use, Playwright MCP and Stagehand
-drive Playwright or the DevTools protocol, research note 3) stay unnamed: a name is never guessed.
+drive Playwright or the DevTools protocol) stay unnamed: a name is never guessed.
 
     strong_name(identity, hits, lists_) -> entry or None   levels 1 to 3, which the class depends on (verdict.py)
     attribute(identity, cls, row, traces, automation, lists_, settings=None) -> Attribution

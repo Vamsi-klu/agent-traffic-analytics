@@ -1,6 +1,6 @@
 // Sessions: everything by default, a pinned Agent filter, highlighted agent rows, muted bots (DESIGN.md §6.1).
 // Data: /api/sessions, one page at a time; the filters live in the URL (like PostHog 1.0's event list). The verdict
-// filter is All and D39's four verdicts; under Agent, a second row splits it into Agent only and Human + agent (named
+// filter is All and the four verdicts; under Agent, a second row splits it into Agent only and Human + agent (named
 // as src/lib/taxonomy.ts names them), which combines with the agent's name (the dashboard links to each name).
 import { useState } from "react"
 import { Pin } from "lucide-react"

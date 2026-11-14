@@ -1,4 +1,4 @@
-"""Made-up sessions for the tests whose point is not who recorded them (plan step S9.8: the behaviour lab's recordings
+"""Made-up sessions for the tests whose point is not who recorded them (the behaviour lab's recordings
 are not published). Nobody recorded these: they are written by rule, in
 the raw-event format cake.js sends in its "r" stream (docs/collect-format.md) and in rrweb's events, the way an
 automated browser drives a page through the DevTools protocol: one mouse move straight onto the middle of each target,

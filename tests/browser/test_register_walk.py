@@ -1,4 +1,4 @@
-"""The registration card end to end (plan step S5.8, D32): register_walk.mjs in Chromium against a real AgentCake.
+"""The registration card end to end: register_walk.mjs in Chromium against a real AgentCake.
 
 AgentCake runs here on a free port of this computer, with the built local pages (web/dist) and register_url pointing at
 a stand-in receiver (tests/receiver.py). Pressing "Register & Continue" makes one request, which carries exactly the

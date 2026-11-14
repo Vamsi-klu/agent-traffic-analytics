@@ -1,4 +1,4 @@
-// The replay of one session for React (S5.4): a ReplayEngine (./replay-engine.ts) on the element `mount` is given, and
+// The replay of one session for React: a ReplayEngine (./replay-engine.ts) on the element `mount` is given, and
 // what the stage, the controls and the timeline show. The page passes how to fetch a chunk (only pages call the API)
 // and the cursor's label for each actor.
 import { useEffect, useRef, useState } from "react"

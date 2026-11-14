@@ -1,9 +1,9 @@
-"""The tables and measurements of `agentcake eval` (plan step S3.9): each one on data whose answer is known.
+"""The tables and measurements of `agentcake eval`: each one on data whose answer is known.
 
     python3 -I -m unittest discover -s tests -p test_eval_tables.py -v
 
 Real data of this repository (the lab's 26 sessions with their signals, the lab's 57 signal recordings, two real
-cake.js uploads, GOAL A7's ten User-Agents) and made-up sessions (tests/verdict_cases.py) for what has no real data
+cake.js uploads, threshold A7's ten User-Agents) and made-up sessions (tests/verdict_cases.py) for what has no real data
 here yet: T22's groups, take-overs with known hand-offs, the half and layer filters, PostHog's mixed replays.
 """
 import os
@@ -21,8 +21,8 @@ for folder in (REPO, TESTS):
 import verdict_cases as vc  # noqa: E402
 from test_lists import A7  # noqa: E402
 from agentcake import datafiles  # noqa: E402
-from agentcake.evaluation import (bots, datasets, evidence as evidence_builder, humans, measures, sessions, sources,
-                                  takeovers)
+from agentcake.evaluation import (bots, datasets, evidence as evidence_builder, gate, humans, measures, report,
+                                  sessions, sources, takeovers)
 
 FIXTURES = os.path.join(REPO, "tests", "fixtures")
 SETTINGS = datafiles.load("data/eval.json")
@@ -85,13 +85,24 @@ class Takeovers(unittest.TestCase):
         handoff = {"t": vc.T0 + 5 * vc.S, "from": "agent", "to": "human", "after": vc.T0 + 4 * vc.S}
         result["timeline"].update(actions=actions, handoffs=[handoff])
         built = dict(vc.evidence(mode="local", behavior_result=result), env=None)
-        return takeovers.session_row(built, lambda t: self.TRUTH[int((t - vc.T0) / vc.S)], [vc.T0 + 5 * vc.S], 3)
+        return takeovers.session_row(built, lambda t: self.TRUTH[int((t - vc.T0) / vc.S)],
+                                     [(vc.T0 + 5 * vc.S, "agent", "human")], 3)
 
     def test_a_mixed_session_shows_what_the_timeline_found(self):
         row = self.row(vc.AGENT_RUN, vc.HUMAN_RUN)
         self.assertEqual(row["class"], "mixed")
         for view in ("model", "verdict"):
             self.assertEqual((row[view]["accuracy_decided"], row[view]["handoff_errors_s"]), (1.0, [0.0]), view)
+
+    def test_a_hand_off_the_timeline_found_the_other_way_round_is_missed(self):
+        result = vc.behavior("agent", vc.AGENT_RUN, vc.HUMAN_RUN)
+        result["timeline"].update(actions=[{"t": vc.T0 + i * vc.S, "who": who} for i, who in enumerate(self.TRUTH)],
+                                  handoffs=[{"t": vc.T0 + 5 * vc.S, "from": "human", "to": "agent",
+                                             "after": vc.T0 + 4 * vc.S}])
+        built = dict(vc.evidence(mode="local", behavior_result=result), env=None)
+        row = takeovers.session_row(built, lambda t: self.TRUTH[int((t - vc.T0) / vc.S)],
+                                    [(vc.T0 + 5 * vc.S, "agent", "human")], 3)
+        self.assertEqual(row["model"]["handoff_errors_s"], [None], "right moment, wrong direction: not found")
 
     def test_an_agent_session_gives_every_action_to_the_agent_and_has_no_hand_off(self):
         row = self.row(vc.AGENT_RUN)
@@ -100,13 +111,72 @@ class Takeovers(unittest.TestCase):
         self.assertEqual((row["verdict"]["accuracy_decided"], row["verdict"]["handoff_errors_s"]), (0.5, [None]))
         self.assertEqual(row["verdict"]["share_error_pp"], 50.0)
 
+    @staticmethod
+    def judged(cls, errors, extra=0):
+        """A scored session of the product view: its class and the errors of its true hand-offs (None: missed)."""
+        return {"class": cls, "model": None, "verdict": {"n": 4, "accuracy_decided": 1.0, "share_error_pp": 0.0,
+                                                         "handoff_errors_s": errors, "handoffs_extra": extra}}
+
+    @staticmethod
+    def a5(rows, source="x"):
+        return next(m for m in measures._takeover(source, rows, 3) if m["threshold"] == "A5")
+
+    @staticmethod
+    def a5_verdict(rows):
+        thresholds = gate.load(os.path.join(REPO, "eval", "thresholds.json"))
+        verdicts = gate.judge(thresholds, measures._takeover("recording_splices", rows, 3))
+        return next(v for v in verdicts if v["id"] == "A5"), "\n".join(report.markdown_gate(verdicts))
+
     def test_a_missed_hand_off_leaves_the_largest_error_unknown(self):
-        rows = [{"class": "human", "model": None, "verdict": {"n": 4, "accuracy_decided": 1.0, "share_error_pp": 0.0,
-                                                             "handoff_errors_s": [1.0, None], "handoffs_extra": 0}}]
-        summary = takeovers.summary(rows, "verdict", 3)
+        summary = takeovers.summary([self.judged("human", [1.0, None])], "verdict", 3)
         self.assertEqual((summary["handoffs_missed"], summary["largest_handoff_error_s"]), (1, None))
-        a5 = [m for m in measures._takeover("x", rows, 3) if m["threshold"] == "A5"][0]
-        self.assertEqual((a5["value"], a5["n"], a5["details"]["missed"]), (None, 2, 1))
+
+    def test_the_sessions_judged_human_plus_agent_are_counted_with_their_own_hand_off_errors(self):
+        rows = [self.judged("mixed", [1.0, 5.0]), self.judged("human", [None])]
+        summary = takeovers.summary(rows, "verdict", 3)
+        self.assertEqual(summary["mixed_found"], {"count": 1, "n": 2})
+        in_mixed = summary["in_mixed"]
+        self.assertEqual((in_mixed["handoffs_true"], in_mixed["handoffs_missed"], in_mixed["handoffs_within_limit"],
+                          in_mixed["largest_handoff_error_s"], in_mixed["handoff_error_median_s"]),
+                         (2, 0, 0.5, 5.0, 3.0))
+
+    def test_a5_is_the_median_error_over_the_sessions_judged_human_plus_agent(self):
+        a5 = self.a5([self.judged("mixed", [1.0, 5.0]), self.judged("human", [None])])
+        self.assertEqual((a5["value"], a5["n"], a5["details"]["missed"]), (3.0, 2, 0),
+                         "the session judged Human has no hand-off: it is left out of A5")
+        self.assertEqual(a5["details"]["mixed_found"], {"count": 1, "n": 2})
+        self.assertEqual(a5["details"]["every_handoff"],
+                         {"true": 3, "missed": 1, "within_limit": 1 / 3, "largest_found": 5.0, "extra": 0})
+
+    def test_a_missed_hand_off_counts_as_over_the_limit(self):
+        self.assertEqual(self.a5([self.judged("mixed", [1.0, 2.0, None])])["value"], 2.0,
+                         "the miss is the largest error, not left out (that would give 1.5)")
+        self.assertIsNone(self.a5([self.judged("mixed", [1.0, None])])["value"],
+                          "half missed: the median lies over any limit")
+
+    def test_more_than_half_missed_in_the_sessions_judged_human_plus_agent_fails(self):
+        rows = [self.judged("mixed", [0.0, None]), self.judged("mixed", [None]), self.judged("human", [None])]
+        a5, text = self.a5_verdict(rows)
+        self.assertEqual((a5["status"], a5["gated"][0]["value"], a5["gated"][0]["n"]), ("fail", None, 3))
+        self.assertIn("recording_splices: over the limit (n=3; missed 2, within the limit 33.3%, largest found 0 s) "
+                      "**FAIL**", text)
+
+    def test_no_true_hand_off_in_the_sessions_judged_human_plus_agent_is_no_samples(self):
+        a5, text = self.a5_verdict([self.judged("human", [None, None]), self.judged("agent", [None])])
+        self.assertEqual((a5["status"], a5["gated"][0]["status"], a5["gated"][0]["n"]), ("no_data", "no_data", 0),
+                         "no sample is not a pass")
+        self.assertIn("| A5 | ≤ 3 seconds | no data | recording_splices: no samples;", text)
+        self.assertIn("| A5 (reference) | — | not judged | recording_splices: found 0/3 (missed 3), within the limit "
+                      "0.0%, largest found — s, extra 0 |", text)
+
+    def test_the_gate_table_shows_every_true_hand_off_under_a5_without_judging_it(self):
+        a5, text = self.a5_verdict([self.judged("mixed", [1.0, 5.0]), self.judged("human", [None])])
+        self.assertEqual(a5["status"], "pass", "the median over the session judged Human + agent is 3 s")
+        self.assertIn("| A5 | ≤ 3 seconds | pass | recording_splices: 3 (n=2; missed 0, within the limit 50.0%, "
+                      "largest found 5 s) pass;", text)
+        self.assertIn("| A5 (reference) | — | not judged | recording_splices: found 2/3 (missed 1), within the limit "
+                      "33.3%, largest found 5 s, extra 0 | — |", text)
+        self.assertIn("| A5 (reference) | — | not judged | recording_splices: 50.0% (1/2) | — |", text)
 
     def test_verdict_who(self):
         self.assertEqual([takeovers.verdict_who(w, "agent") for w in ("human", "unsure")], ["agent", "unsure"])

@@ -1,4 +1,4 @@
-"""What must never be in a release (S6.4), looked for in every file of every release file before they are kept.
+"""What must never be in a release, looked for in every file of every release file before they are kept.
 
 - names: compiled Python (__pycache__, .pyc), node_modules, .git, .DS_Store (release.json "package_files");
 - contents: this computer's paths (the home folder, the repository, the build folder) and the git user's name and

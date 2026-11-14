@@ -12,7 +12,7 @@ Supported: the derived components @method, @target-uri, @authority, @scheme, @re
 sf and bs field parameters, trailers (tr), and req and @status, which only apply to responses.
 
 Input: a Request and the parsed Inner List of one Signature-Input member. Output: the signature base (str).
-Part of S3.2, used by agentcake.detect.webbotauth. Written from RFC 9421; @query-param follows the
+Part of Web Bot Auth verification, used by agentcake.detect.webbotauth. Written from RFC 9421; @query-param follows the
 application/x-www-form-urlencoded rules of the WHATWG URL Standard that RFC 9421 section 2.2.8 points to.
 """
 import re

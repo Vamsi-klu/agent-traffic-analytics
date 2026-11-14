@@ -1,4 +1,4 @@
-"""Who a session says it is, and whether that holds (agentcake.detect.verdict_identity, plan step S3.4).
+"""Who a session says it is, and whether that holds (agentcake.detect.verdict_identity).
 
     python3 -I -m unittest discover -s tests -v      (from the repository root)
 
@@ -6,7 +6,7 @@ The name layer reads the User-Agent of each half, navigator.platform and Signatu
 a tool anyone can run (HeadlessChrome, curl) names no product, and names that disagree name none. The verification
 layer: a verified signature or the operator's published range verifies; a name that a range could verify, seen from
 outside it, is impersonation, and so is a signature that does not verify, unless it covers what a proxy may rewrite;
-a missing or expired key, local mode or no address leave the name self-reported (D23).
+a missing or expired key, local mode or no address leave the name self-reported.
 """
 import dataclasses, os, sys, unittest
 

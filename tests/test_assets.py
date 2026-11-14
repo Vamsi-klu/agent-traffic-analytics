@@ -1,9 +1,9 @@
-"""The compiled local pages, served by agentcake/assets.py (S5.1).
+"""The compiled local pages, served by agentcake/assets.py.
 
     python3 -I -m unittest discover -s tests -p test_assets.py -v      (from the Agent Cake folder)
 
 / is the build's index.html, asked for again each time; the other files of the build are served by their suffix, the
-content-named ones under assets/ kept by the browser, and the favicon at /favicon.ico, where browsers ask for it (S5.2). A path outside the build, or a suffix cake does not serve, is
+content-named ones under assets/ kept by the browser, and the favicon at /favicon.ico, where browsers ask for it. A path outside the build, or a suffix cake does not serve, is
 404. Without a build, / says how to make one (503). The pages are found through paths.web_folder (tests/test_paths.py).
 """
 import os

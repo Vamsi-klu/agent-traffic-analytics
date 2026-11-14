@@ -1,7 +1,7 @@
-// Dashboard: the Agent block first, then regular numbers, how long sessions last (D30), charts, pages, all latest
-// sessions, the disk, what cake records and the session categories (DESIGN.md §1.1, D39). One AgentCake is one
-// project, its website (D40): no source filter. Until the first session it shows how to connect the website, the home
-// page's onboarding (D37, as PostHog 1.0's dashboard showed its setup over the page until the first event). Data:
+// Dashboard: the Agent block first, then regular numbers, how long sessions last, charts, pages, all latest
+// sessions, the disk, what cake records and the session categories (DESIGN.md §1.1). One AgentCake is one
+// project, its website: no source filter. Until the first session it shows how to connect the website, the home
+// page's onboarding (as PostHog 1.0's dashboard showed its setup over the page until the first event). Data:
 // /api/setup (is anything recorded, and was there ever an Agent session), then /api/overview filtered by date range
 // (kept in the URL, like PostHog 1.0's filters).
 import { useState, type ReactNode } from "react"
@@ -146,7 +146,7 @@ function DashboardBody({ o, agentEver }: { o: Overview; agentEver: boolean }) {
   )
 }
 
-/** D30: how long sessions last, one cell per kind of visitor (a Human + agent session counts only under Human + agent). */
+/** How long sessions last, one cell per kind of visitor (a Human + agent session counts only under Human + agent). */
 function AverageLength({ o }: { o: Overview }) {
   const { ms, about } = o.average_length
   const { agent_only: AgentOnlyIcon, human_agent: HumanAgentIcon } = TURNS_ICON

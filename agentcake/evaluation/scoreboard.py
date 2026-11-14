@@ -1,9 +1,9 @@
-"""The behaviour layer's scoreboard, reported the way the industry reports (plan step S3.7, decision D36).
+"""The behaviour layer's scoreboard, reported the way the industry reports.
 
     build(rows, takeover_rows, settings, limit_s) -> {"agents", "humans", "pooled_humans", "precision", "sites",
                                                       "mixed"}
 
-What it reports, after Akamai's research prototype and AgentShield (research note 21, sections 4 and 5):
+What it reports, after Akamai's research prototype and AgentShield:
 - agents: per data set and agent product, how many sessions there were, how many had enough actions to judge
   (the evaluable share; the rest is "too little data"), and how many of those the behaviour model called an agent
   (recall on the evaluable ones, and on all of them, which is what a site sees), beside what the four layers called
@@ -11,7 +11,7 @@ What it reports, after Akamai's research prototype and AgentShield (research not
 - humans: per data set and group, the sessions the behaviour model called an agent (false positives), and what the
   four layers called agent or mixed; every rate with its exact 95% interval (stats.clopper_pearson).
 - pooled_humans: the human data sets added up, one pool per recording kind (raw cake.js events, or rrweb only),
-  without weak answers (the site owner's presumed humans in S9.2's PostHog set, listed in humans on their own).
+  without weak answers (the site owner's presumed humans in the PostHog training set, listed in humans on their own).
 - precision: for each agent product, the share of sessions called agent that would be agents if agents were 1% or
   5% of all sessions, with the human false positive rate of the same recording kind, as measured and at its upper
   bound.

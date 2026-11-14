@@ -1,4 +1,4 @@
-"""The commit a release is built from (S6.4): which one, its time, and a clean copy of it to build in.
+"""The commit a release is built from: which one, its time, and a clean copy of it to build in.
 
 A release is built from a commit, never from the working tree: export() writes the commit's files (`git archive`)
 into an empty folder, so nothing that is not committed (an edited file, a local node_modules, __pycache__, a stray

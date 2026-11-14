@@ -12,7 +12,7 @@ types that RFC 9651 added later (RFC 9421 does not use them): such values fail t
 Values: Integer -> int, Decimal -> decimal.Decimal, String -> str, Token -> Token (a str), Byte Sequence -> bytes,
 Boolean -> bool. Dictionaries and Parameters are dicts that keep the order of the field. Errors raise ParseError.
 
-Part of S3.2 (used by agentcake.detect.webbotauth). The recursive-descent layout follows botscent's
+Part of Web Bot Auth verification (used by agentcake.detect.webbotauth). The recursive-descent layout follows botscent's
 src/server/sfv.ts (MIT, commit 7f948003); the code is written anew from RFC 8941.
 """
 import base64

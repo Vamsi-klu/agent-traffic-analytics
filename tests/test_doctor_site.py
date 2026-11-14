@@ -1,4 +1,4 @@
-"""`agentcake doctor --dir <site>`, the lines about the website's files (S6.1): agentcake/doctor_site.py.
+"""`agentcake doctor --dir <site>`, the lines about the website's files: agentcake/doctor_site.py.
 
     python3 -I -m unittest discover -s tests -p test_doctor_site.py -v      (from the Agent Cake folder)
 

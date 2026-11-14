@@ -1,4 +1,4 @@
-"""Unit conversions (S1.2). They are fixed by definition, so they are written here as numbers, once."""
+"""Unit conversions. They are fixed by definition, so they are written here as numbers, once."""
 
 MS_PER_S = 1000  # protocol: 1 s = 1000 ms
 S_PER_MIN = 60  # protocol: 1 min = 60 s

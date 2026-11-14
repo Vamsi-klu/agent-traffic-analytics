@@ -1,9 +1,9 @@
-"""The gate of `agentcake eval` (plan step S3.9): how measurements become pass, fail or no data, and the exit code.
+"""The gate of `agentcake eval`: how measurements become pass, fail or no data, and the exit code.
 
     python3 -I -m unittest discover -s tests -p test_eval_gate.py -v
 
 The first half feeds gate.judge() made-up measurements. The second runs the whole command (agentcake.cli) on
-made-up data: GOAL A7's ten User-Agents with their right answers pass, the same list with one wrong answer fails, and
+made-up data: threshold A7's ten User-Agents with their right answers pass, the same list with one wrong answer fails, and
 a threshold whose data is not there has no data, which is not a pass; the network is refused throughout.
 """
 import copy
@@ -145,7 +145,7 @@ class Command(unittest.TestCase):
     def test_one_wrong_answer_fails_the_gate(self):
         with open(NAMED, encoding="utf-8") as f:
             cases = json.load(f)
-        cases["cases"][3]["class"] = "agent"  # Googlebot is a Bot (D17): this answer is wrong on purpose
+        cases["cases"][3]["class"] = "agent"  # Googlebot is a Bot: this answer is wrong on purpose
         code, out, _ = self.run_eval("--thresholds", self.only_a7, "--named", self.write("named.json", cases))
         self.assertEqual(code, 1)
         self.assertIn("**FAIL**", out)
@@ -153,8 +153,8 @@ class Command(unittest.TestCase):
     def test_a_threshold_without_its_data_keeps_the_gate_shut(self):
         code, out, _ = self.run_eval("--thresholds", self.with_a1, "--named", NAMED)
         self.assertEqual(code, 1)
-        # the GOAL column quotes the plan's GOAL cell word for word, written in Chinese
-        self.assertIn("| A1 | ≤ 5%（10–13 个样本时就是 0 个） | no data |", out)
+        # the goal column says the threshold in words
+        self.assertIn("| A1 | ≤ 5% (with 10–13 samples, that is 0) | no data |", out)
 
     def test_without_gate_the_report_exits_zero(self):
         missing = os.path.join(self.folder, "none")

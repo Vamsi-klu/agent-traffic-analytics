@@ -1,4 +1,4 @@
-// Types for @agentcake/edge/hono (hono.js). Hono's own types are not imported: this package depends on nothing. Step S4.1.
+// Types for @agentcake/edge/hono (hono.js). Hono's own types are not imported: this package depends on nothing.
 import type { CakeOptions } from "./index"
 
 /** The part of Hono's Context the middleware uses. */

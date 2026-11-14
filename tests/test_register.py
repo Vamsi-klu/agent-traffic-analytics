@@ -1,4 +1,4 @@
-"""Registering with Tartini AI (S5.8, D32): agentcake/register.py.
+"""Registering with Tartini AI: agentcake/register.py.
 
     python3 -I -m unittest discover -s tests -p test_register.py -v      (from the AgentCake folder)
 

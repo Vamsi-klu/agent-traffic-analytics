@@ -1,5 +1,5 @@
-"""Agent Cake's disk rules on the chunk storage (S2.5): cake 0.3.4's eight space tests, rewritten for replays kept as
-chunks without loosening any of their assertions, and the rules S2.5 adds.
+"""Agent Cake's disk rules on the chunk storage: cake 0.3.4's eight space tests, rewritten for replays kept as
+chunks without loosening any of their assertions, and the rules 0.4.0 adds.
 
     python3 -I -m unittest discover -s tests -p test_space.py -v      (from the Agent Cake folder)
 
@@ -74,7 +74,7 @@ class Space(unittest.TestCase):
         self.assertEqual(c["retention_days"], 0)
         self.assertTrue(c["auto_free"])
         self.assertEqual(c["budget_mb"], 10240)
-        self.assertEqual(c["disk_min_free_mb"], 10240, "K2: below 10 GB of free disk the oldest replays make room")
+        self.assertEqual(c["disk_min_free_mb"], 10240, "below 10 GB of free disk the oldest replays make room")
         everything = {sid: recorded(self.con, sid) for (sid,) in self.con.execute("SELECT id FROM sessions").fetchall()}
         self.cake.prune(self.con, c["retention_days"])
         self.assertEqual(self.con.execute("SELECT COUNT(*) FROM sessions").fetchone()[0], 11, "nothing deleted by age by default")
@@ -120,7 +120,7 @@ class Space(unittest.TestCase):
         self.assertTrue(st["warn"])
         self.assertFalse(st["full"])
         self.assertIsNotNone(st["days_left"])
-        # the settings page draws the meter from /api/settings (S5.1): past the warning share, with days until full
+        # the settings page draws the meter from /api/settings: past the warning share, with days until full
         self.con.commit()
         for budget_mb, warns in ((c["budget_mb"], True), (self.used * 10 / MB, False)):
             config.save_user(budget_mb=budget_mb)
@@ -212,7 +212,7 @@ class Space(unittest.TestCase):
         self.assertFalse(os.path.exists(os.path.join(replay_chunks.replay_dir(), replay_chunks.file_for(old))))
 
     def test_a_nearly_full_disk_with_auto_free_off_stops_new_replays_and_frees_nothing(self):
-        # K2 (11/12): with auto_free on the oldest replays make room instead (tests/test_space_disk.py)
+        # with auto_free on the oldest replays make room instead (tests/test_space_disk.py)
         c = dict(self.cake.load_cfg(), budget_mb=self.used * 0.8 / MB)  # the budget is full as well
         floor = c["disk_min_free_mb"] * MB
         self.assertFalse(space.room_for_replay(self.con, dict(c, auto_free=False), self.now, usage=disk_with(floor - 1)))
@@ -227,7 +227,7 @@ class Space(unittest.TestCase):
         self.assertEqual(low["disk"], {"total": 2 * (floor - 1), "free": floor - 1, "min_free": floor, "low": True})
         self.assertEqual(low["replays_stopped"], "disk")
         freeing = space.space_status(self.con, c, self.now, usage=disk_with(floor - 1))
-        self.assertIsNone(freeing["replays_stopped"], "K2: with auto_free on the oldest replays make room")
+        self.assertIsNone(freeing["replays_stopped"], "with auto_free on the oldest replays make room")
         self.assertIsNone(space.space_status(self.con, c, self.now, usage=ROOMY)["replays_stopped"], "it frees first")
         self.assertEqual(space.space_status(self.con, dict(c, auto_free=False), self.now, usage=ROOMY)["replays_stopped"], "budget")
         self.cake.free_space(self.con, self.tiny(), self.now)
@@ -284,7 +284,7 @@ class FullOverHttp(unittest.TestCase):
             con.close()
 
     def replay_events(self, sid):
-        """The rrweb events collect kept for a visit: since S2.1 in chunks, no longer in the events table."""
+        """The rrweb events collect kept for a visit: since 0.4.0 in chunks, no longer in the events table."""
         con = self.cake.db(); v = streams.event_count(con, sid, "rrweb"); con.close(); return v
 
     def test_auto_free_on_makes_room_from_the_person_only_replay(self):
@@ -304,7 +304,7 @@ class FullOverHttp(unittest.TestCase):
         self.assertEqual(self.replay("oldhuman"), 200, "nothing removed")
 
     def test_a_nearly_full_disk_with_auto_free_off_keeps_the_visit_but_no_new_replay(self):
-        # K2 (11/12): with auto_free on the new replay is stored (tests/test_space_disk.py, FloorOverHttp)
+        # with auto_free on the new replay is stored (tests/test_space_disk.py, FloorOverHttp)
         self.set_cfg(auto_free=False)
         floor = self.cake.load_cfg()["disk_min_free_mb"] * MB  # the budget has room
         with mock.patch("shutil.disk_usage", disk_with(floor - 1)):
@@ -315,7 +315,7 @@ class FullOverHttp(unittest.TestCase):
         self.assertEqual(self.replay("oldhuman"), 200, "nothing removed")
 
     def test_health_reports_the_disk(self):
-        self.set_cfg(auto_free=False)  # K2: stopped only with auto_free off or nothing left to free
+        self.set_cfg(auto_free=False)  # stopped only with auto_free off or nothing left to free
         floor = self.cake.load_cfg()["disk_min_free_mb"] * MB
         with mock.patch("shutil.disk_usage", disk_with(floor - 1)):
             with urllib.request.urlopen(self.base + "/api/health", timeout=5) as r:

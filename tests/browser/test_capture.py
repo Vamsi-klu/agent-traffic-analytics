@@ -1,4 +1,4 @@
-"""cake.js in a real browser (plan step S1.3): everything a visit does reaches /collect.
+"""cake.js in a real browser: everything a visit does reaches /collect.
 
 Chromium, driven by tests/browser/drive.mjs, visits the test site's shop (tests/site) through the stand-in collector: Playwright's direct
 clicks and fills 3 times, a humanlike visitor (curved mouse paths, pauses, wheel, typing) 3 times, and 4 visits of 24

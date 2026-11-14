@@ -5,7 +5,7 @@ github.com/libcaptcha/motion-attestation (MIT, Copyright (c) 2026 libcaptcha), c
 Chromium and LibreWolf, desktop and touch. Upstream keeps them as real captures only ("never add a generated human").
 tests/fixtures/motion_attestation/humans.json holds each capture twice: as upstream wrote it (`upstream`, unchanged)
 and converted to the records cake.js sends in its `r` stream (`raw`, docs/collect-format.md), so the behaviour layer
-reads them like any recorded visit. Used by tests/test_motion_attestation.py (job borrow-rules, plan decision D33).
+reads them like any recorded visit. Used by tests/test_motion_attestation.py.
 
 Upstream's collector (src/collector.js at that commit) records less than cake.js, and the converted records hold only
 what it recorded:

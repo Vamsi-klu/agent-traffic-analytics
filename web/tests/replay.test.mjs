@@ -1,4 +1,4 @@
-// The replay page (S5.4) in Chromium, against the built app and the recorded samples: the player reads a chunk only
+// The replay page in Chromium, against the built app and the recorded samples: the player reads a chunk only
 // when it needs it, "Jump to hand-off" lands the API's lead before a hand-off, the cursor carries the name of who acts,
 // the timeline's segments sit where the segments say, a replay recorded without its page says so while it has none,
 // a chunk that fails can be tried again, and nothing is asked of any other address. Usage: node --test tests/   (npm test)

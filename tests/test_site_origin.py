@@ -1,9 +1,9 @@
-"""Where an upload came from (S2.1): agentcake/site_origin.py.
+"""Where an upload came from: agentcake/site_origin.py.
 
     python3 -I -m unittest discover -s tests -p test_site_origin.py -v      (from the Agent Cake folder)
 
 The website (site_domain and its subdomains; on the local listener also a dev server on this computer) or another site,
-read from the Origin header, else the Referer, else the batch's own URL. There is no demo shop any more (D37): a page
+read from the Origin header, else the Referer, else the batch's own URL. There is no demo shop any more: a page
 under /demo on AgentCake's own port is a page like any other.
 """
 import http.client

@@ -1,4 +1,4 @@
-"""How `doctor` says its checks (S1.1, S6.1): one line each, then one line for the whole.
+"""How `doctor` says its checks: one line each, then one line for the whole.
 
 A check is (name, verdict, info). verdict True passes and False fails, as since 0.3.x; WARN works but needs attention
 (lists past their age, another `agentcake` first on PATH); SKIP was not checked here (a sandbox in the way, the server

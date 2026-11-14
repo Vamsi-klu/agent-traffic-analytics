@@ -10,7 +10,7 @@
  * License URI:       https://opensource.org/license/mit
  * Text Domain:       agentcake
  *
- * The AgentCake WordPress plugin (step S4.3). It wraps the PHP site middleware (cake_edge.php, cake_edge_format.php and
+ * The AgentCake WordPress plugin. It wraps the PHP site middleware (cake_edge.php, cake_edge_format.php and
  * cake_edge.json, the same files as edge/php) with WordPress's own hooks and nothing else:
  *
  *   send_headers   sets the page's token in Server-Timing (Edge::sendHeader), before WordPress sends the page;

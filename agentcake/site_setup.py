@@ -1,8 +1,8 @@
-"""Setting Agent Cake up, printed for a coding agent to follow (S1.1, S6.1): `setup --print`, `setup --print --site`,
+"""Setting Agent Cake up, printed for a coding agent to follow: `setup --print`, `setup --print --site`,
 `snippet`, `sentence`.
 
 setup_print_local() prints what to tell the user after install (the self-check, the local page, registering, and
-connecting their website from that page: D37, there is no demo shop).
+connecting their website from that page: there is no demo shop).
 setup_print_site(folder) reads the website's code (site_code.py) and prints the exact edits for its framework
 (data/frameworks.json): the cake.js line and the files it goes in; the server half's middleware from this
 installation's edge folder (the file that makes the app, the files to copy, where its secret comes from); how to check
@@ -62,8 +62,8 @@ def plugin_address(c):
 
 def edge_dir():
     """This installation's edge folder (the sites' middleware: node, python, php, wordpress), the way paths.web_dir()
-    finds the local pages: $CAKE_EDGE_DIR when it is set; else the folder a release carries inside the package (S6.4:
-    the wheel, the .pyz and the unpacked package all have agentcake/edge); else the one beside the package, as a
+    finds the local pages: $CAKE_EDGE_DIR when it is set; else the folder a release carries inside the package (the
+    wheel, the .pyz and the unpacked package all have agentcake/edge); else the one beside the package, as a
     checkout has it. None when there is none. The folder's name is data/site_files.json's edge_folder."""
     if os.environ.get(EDGE_DIR_ENV):
         return os.path.abspath(os.path.expanduser(os.environ[EDGE_DIR_ENV]))

@@ -1,4 +1,4 @@
-"""What every /api view answers with (S5.1): JSON, an error body, and the check that the local page itself asks.
+"""What every /api view answers with: JSON, an error body, and the check that the local page itself asks.
 
     view(handler)                 wraps a view: refuses a request from anywhere but this computer's own pages, and
                                   answers a Refused raised by a check

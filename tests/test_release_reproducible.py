@@ -1,4 +1,4 @@
-"""tools/releasing/reproducible.py (plan step S6.4): the same entries and time give the same zip and tar.gz bytes, and
+"""tools/releasing/reproducible.py: the same entries and time give the same zip and tar.gz bytes, and
 every entry carries the given time, its mode and no owner.
 
     python3 -I -m unittest discover -s tests -v      (from the repository root)

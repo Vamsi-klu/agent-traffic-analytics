@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check that Agent Cake's code imports nothing but the Python standard library and agentcake (S1.1; G13).
+"""Check that Agent Cake's code imports nothing but the Python standard library and agentcake.
 
     python3 tools/check_imports.py [folder]      (default: agentcake/ next to tools/; e.g. tools to check the tools)
 

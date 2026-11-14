@@ -1,5 +1,5 @@
 // rrweb-player 2.0.0-alpha.18 (MIT, THIRD_PARTY.md), loaded at run time from the two files cake serves under /static/
-// (agentcake/assets.py): the pages bundle no copy of it and add no npm dependency (S5.4), and every replay opened in a
+// (agentcake/assets.py): the pages bundle no copy of it and add no npm dependency, and every replay opened in a
 // visit shares one load. The script is rrweb-player's UMD build, which puts `rrwebPlayer` on window. Only what the
 // replay page uses is typed here; rrweb's own docs cover the rest (github.com/rrweb-io/rrweb, packages/rrweb-player).
 import type { ReplayEvent } from "@/data/types"

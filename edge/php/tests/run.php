@@ -1,6 +1,6 @@
 <?php
 /**
- * The PHP site middleware's tests (step S4.3), with a runner of their own: a site's PHP and WordPress Playground have no
+ * The PHP site middleware's tests, with a runner of their own: a site's PHP and WordPress Playground have no
  * PHPUnit, and the middleware has no dependencies, so neither do its tests.
  *
  *     php edge/php/tests/run.php          (PHP 7.4 or newer, from the AgentCake folder or anywhere else)

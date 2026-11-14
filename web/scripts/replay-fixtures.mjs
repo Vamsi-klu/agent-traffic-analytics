@@ -1,5 +1,5 @@
-// Records the sample sessions' replays (S5.4): real rrweb events, recorded by cake.js in the test site's shop (tests/site,
-// the demo shop until D37), read back from
+// Records the sample sessions' replays: real rrweb events, recorded by cake.js in the test site's shop (tests/site,
+// the demo shop until 0.4.0), read back from
 // Agent Cake's database, written as the sample answers of GET /api/session/<id>/replay?chunk=<n>.
 //
 //   cd web && node scripts/replay-fixtures.mjs        (about three minutes: the walks take as long as the sessions)
@@ -14,7 +14,7 @@
 //   the session's sample (fixtures/session.json or fixtures/session/<id>.json): replay (epoch_ms, chunks, start_url),
 //                                            actions (what the walk did) and server.pages; the rest is hand-written.
 // The scratch cake's and the test site's addresses become the default one, its site key a placeholder, and the demo checkout's sample card
-// number the wording S5.6 gives it; the files the recorded stylesheets ask for (the shop's fonts, S5.6) become
+// number the wording the shop's checkout gives it; the files the recorded stylesheets ask for (the shop's fonts) become
 // root-relative, so a sample replays them from whichever server shows it (the dev, screenshot and test servers serve
 // /demo/ as cake does) and never asks an address of this computer; then every file is checked for what must never be
 // there (what was typed, card numbers, the scratch folder, port and key). Playwright and Chromium: as scripts/shots.mjs
@@ -34,7 +34,7 @@ const web = path.join(here, ".."), repo = path.join(web, "..")
 const fixtures = path.join(web, "src", "data", "fixtures")
 const readJson = (file) => JSON.parse(readFileSync(file, "utf8"))
 const LOOPBACK = "127.0.0.1" // protocol: the local page only ever listens on the loopback address
-const CARD_HINT = ["Any made-up number works, e.g. 4242 4242 4242 4242.", "Any made-up card number works."] // S5.6's wording
+const CARD_HINT = ["Any made-up number works, e.g. 4242 4242 4242 4242.", "Any made-up card number works."] // the shop's wording
 const POLL_MS = 500, SETTLE_POLLS = 3, START_TIMEOUT_MS = 15000
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 

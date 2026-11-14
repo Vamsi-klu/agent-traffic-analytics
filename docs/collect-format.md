@@ -1,7 +1,7 @@
 # cake.js upload format, version 1
 
 What AgentCake's page script (`cake.js`) sends to AgentCake's `/collect`: the request, the batch, and every record in
-it. The collector (plan step S2.1) is built from this document. The script that produces it is built by
+it. The collector is built from this document. The script that produces it is built by
 `agentcake/build_js.py` from `agentcake/static/src/`; every number named here is a key of `agentcake/data/cakejs.json`
 (`script` object), shown as `CFG.<key>` with its default.
 
@@ -23,7 +23,7 @@ collector still stores the replay of a version 1 batch, as long as it reads the 
 
 The collector must accept both a plain and a gzip body, limit the body as sent (AgentCake's per-POST limit,
 `defaults.json`) and the decompressed size (at least `CFG.batch.max_record_bytes` plus a few kilobytes, since one record
-can be that big). AgentCake's collector (plan step S2.1, `agentcake/collect.py`) lets a gzip body unzip to
+can be that big). AgentCake's collector (`agentcake/collect.py`) lets a gzip body unzip to
 `local_max_body_bytes` (10,000,000), counts every upload it refuses by reason, and also takes a batch of cake 0.3.4's
 script (no `v`, `pv` or `seq`; kept without the check below).
 
@@ -99,7 +99,7 @@ Every record has `t` and `ty`.
 | `auto` | with `env` | `globalsAtLoad` (automation globals: BotD's distinctive properties found as `botdprop_<kind>`, `selenium_cdc`, `playwright_globals`, `puppeteer_globals`, `exposed_installed` (functions marked by Playwright's `exposeFunction`), `unnamed_native_globals` (nameless native functions, as CDP bindings leave them)), `errorStack` (a stack trace made in cake.js), `docInterception` (the navigation entry's `nextHopProtocol`, `transferSize`, `deliveryType`, `workerStart`, and `intercepted`: no network hop, no service worker, yet bytes transferred). |
 | `frames` | once per visit, when the browser is idle, on the first page view that gets that far (`cake_frames` in `sessionStorage` remembers it) | `iframeSharesRealm` (a fresh hidden frame's `Navigator` is this window's); `ipcFlooding`: of `CFG.env.frame_history_writes` (300) history writes in that frame, how many went through (`applied`), the error that stopped them (`error`) and whether all 300 did (`all300`: Chrome's IPC flooding protection is off, as Puppeteer and Playwright launch it); the writes go in bursts of `CFG.env.frame_burst_writes` every `frame_burst_gap_ms`, `longest_burst_ms` is the longest burst. |
 | `cdp` | after the CDP probe (up to `CFG.env.cdp_rounds` rounds, `CFG.env.cdp_round_ms` apart, stopping at the first sign) | `runtimeEnableLeak`: `rounds`; per logged error, how often `Error.prepareStackTrace` ran for it (`prepareStackTraceCount`), its `name` was read (`nameGetterCount`) and its `stack` was read (`stackLookupCount`); `firstHitRound` (null when never). Chromium 1228 driven by Playwright: 1 formatting and 2 name reads per round. |
-| `probes` | when every asynchronous probe has answered (each within `CFG.probes.timeout_ms`), or at exit with what has | `permissions` (notification permission vs Permissions API), `workerConsistency` (navigator facts in a worker that differ), `nativeTampering` (getters and methods that are not native any more), `uaFullVersion` (high-entropy client hints), `mediaDevices` (device count per kind, no labels), `fonts` (installed or not, for `CFG.probes.fonts`), `pending` (probes that had not answered). A probe that failed has `{error}`. |
+| `probes` | when every asynchronous probe has answered (each within `CFG.probes.timeout_ms`), or at exit with what has | `permissions` (notification permission vs Permissions API), `workerConsistency` (navigator facts in a worker that differ), `nativeTampering` (getters and methods that are not native any more), `uaFullVersion` (high-entropy client hints), `mediaDevices` (device count per kind, no labels), `fonts` (installed or not, for `CFG.probes.fonts`), `systemFontNames` (`disagree`, `agree` or `unknown`: whether the browser maps a system font name only Apple's systems map while its user agent and platform name another system; only this answer is sent), `pending` (probes that had not answered). A probe that failed has `{error}`. |
 | `botd` | when BotD has run | `result` (`{bot, botKind}`), `detections` (per detector), or `error`. |
 | `botscent` | when botscent starts, when its verdict changes, after `CFG.botscent.sample_ms` and at exit | `why` (`start`, `change`, `later`, `exit`), `type` (`human` or `agent`), `agent` (name or null), `reasons`, `probes` (per-probe status), `transport`, `ver`. |
 | `globals` | at exit | `globalsAtEnd` (the same scan again: frameworks add theirs late); when the site owner turned on `hook_dom`: `hookHits` (page DOM lookups with an automation framework's frames on the call stack: `fn`, `arg`, `t`, `pptr`, `utilityScript`, `puppeteerEval`, `stack`) and `lookups` (`total` lookups, `checked` of them). |
@@ -114,7 +114,7 @@ Every record has `t` and `ty`.
 
 Some agent products draw on the page while they work: Claude in Chrome a "working" tag and a Stop button, Comet a stop
 button, Browser Use a box around each action. When such a mark appears and goes away tells AgentCake when the agent's
-turn began and ended, so where a person may have taken over (plan steps S3.3, S3.7; GOAL A5). cake.js watches the marks
+turn began and ended, so where a person may have taken over (threshold A5). cake.js watches the marks
 of the mark table, `agentcake/data/agent_markers.json` (its `page` part is `CFG.markers`; the rest says what each mark
 is, where it comes from, its grade and date, and the words of a reason). Products redraw their marks with new versions,
 so the table is a data file of its own, updated without code changes. A mark is found:
@@ -149,8 +149,8 @@ record carries what the watch cost on each page view.
 
 ### The research lab's field names
 
-cake.js keeps the field names of the research lab's scripts, so what was built on lab data (the environment rules, plan
-step S3.3; the behaviour features, S3.6) reads AgentCake's data without renaming. Where the lab sent one report,
+cake.js keeps the field names of the research lab's scripts, so what was built on lab data (the environment rules and
+the behaviour features) reads AgentCake's data without renaming. Where the lab sent one report,
 AgentCake sends separate records; joining them per page view gives the lab's layout back:
 
 | Lab (`env.js` / `raw.js` / `bs.js`) | cake.js version 1 |
@@ -173,11 +173,11 @@ AgentCake sends separate records; joining them per page view gives the lab's lay
 ## Server-half token
 
 The response that opened the page may carry `Server-Timing: cake;desc="<token>"` (set by the AgentCake middleware on
-the site's server; format `c1.<base64url JSON>.<HMAC>`, plan step S4.1).
+the site's server; format `c1.<base64url JSON>.<HMAC>`).
 cake.js reads it from the navigation entry (`performance.getEntriesByType('navigation')[0].serverTiming`, entry name
 `CFG.token.entry`) and sends it as `st` with every batch of that page until AgentCake answers 2xx to a batch carrying
-it. cake.js never looks inside it. The collector verifies it and keeps it once per token id (0.3.3 `take_token`; plan
-step S4.2). A page the browser shows from its cache carries the token stored with it (after a 304, the 304's own new
+it. cake.js never looks inside it. The collector verifies it and keeps it once per token id (0.3.3 `take_token`).
+A page the browser shows from its cache carries the token stored with it (after a 304, the 304's own new
 one; going back to a stored page, that page's earlier one), so the same token can come from several page views of a
 visit: the first keeps it, another page view of the same visit is a reuse (no second server half), another visit is a
 replay. The answer says what happened, as `X-Cake-Token: ok | dup | reuse | replay | stale | bad | off`; it is always a
@@ -237,14 +237,14 @@ frame-check mark are removed from `sessionStorage`. An upload already on its way
 dropped, not parked, so a later `start()` sends nothing from before the refusal. Consent code that may run before cake.js has loaded can queue the
 calls: `window.cake = window.cake || []; window.cake.push('start')` (or `'stop'`). Nothing is sent to say a visitor
 refused (that would be a request after the refusal), so the collector keeps what came before; deleting it is the site
-owner's call (`agentcake delete`, plan step S6.5).
+owner's call (`agentcake delete`).
 
 ## What a batch never holds
 
 Which key was pressed (only its class), what was typed (only the input type and the field's length; rrweb masks every
 input and editable text), anything typed into or shown in a private element, cookies (cake.js reads none and uploads
-omit credentials) and the visitor's IP address (the collector sees it on the request; plan step S2.3 decides what is
-kept). `tests/test_privacy_recording.py` checks this in Chromium with a canary string and a card number typed into every
+omit credentials) and the visitor's IP address (the collector sees it on the request, works out its network facts and never
+keeps the address itself). `tests/test_privacy_recording.py` checks this in Chromium with a canary string and a card number typed into every
 kind of field. `PRIVACY.md` says the same for site owners.
 
 ## Versions

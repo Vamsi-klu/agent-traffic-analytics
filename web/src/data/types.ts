@@ -1,4 +1,4 @@
-// The JSON contract between cake's Python server and these pages (S5.1): one response type per endpoint of /api.
+// The JSON contract between cake's Python server and these pages: one response type per endpoint of /api.
 // Each endpoint also has a JSON Schema in ./schema/ (the Python tests check cake's answers against it) and a sample
 // answer in ./fixtures/ (served only by the screenshot and dev servers, never built into the release). `npm run
 // check:ui` checks that every sample matches both its schema and its type here. web/README.md lists the endpoints.
@@ -8,12 +8,12 @@
 // - Times inside a session are whole milliseconds from its start (`*_ms`); the pages format them ("1:36", "1m 36s").
 // - Wall-clock times and days come formatted by the server in the owner's timezone ("Today 09:12", "Thu").
 // - A session's shares are whole percents of its actions; counts are whole numbers; sizes are bytes or MB as named.
-// - Text meant for the page (titles, reasons, the coverage table) comes in English, ready to show (D21).
+// - Text meant for the page (titles, reasons, the coverage table) comes in English, ready to show.
 // - Any status other than 2xx carries an ApiErrorBody.
 
 // ---------------------------------------------------------------- shared
 
-/** Who acted in a session, one verdict each (D39, DESIGN.md §3.1): a session cake can't tell counts as human, with
+/** Who acted in a session, one verdict each (DESIGN.md §3.1): a session cake can't tell counts as human, with
  *  evidence "thin" (its reasons say why). */
 export type Verdict = "human" | "agent" | "bot"
 /** A Human session cake couldn't tell (too few actions, a phone or tablet, evidence too weak or pointing both ways). */
@@ -22,7 +22,7 @@ export type Evidence = "thin"
 export type Actor = "human" | "agent" | "unsure"
 /** An Agent session from start to finish, or a human and an agent taking turns (hand-off points on its timeline). */
 export type AgentTurns = "agent_only" | "human_agent"
-/** How sure an agent's or a bot's name is (D39): verified by a signature or a published address range; likely from
+/** How sure an agent's or a bot's name is: verified by a signature or a published address range; likely from
  *  the name it gives or the product's own traces; possible from its behavior alone. */
 export type Certainty = "verified" | "likely" | "possible"
 /** The date filter of the dashboard and the session list. */
@@ -81,7 +81,7 @@ export type AgentCount = { name: string | null; sessions: number }
 export type PageVisits = { path: string; agent: number; human: number }
 
 /** What cake records and how it decides (dashboard bottom, the Bots "?"). Comes from agentcake/data/coverage.en.json
- *  and judging.en.json (S3.4, S5.3), so the pages never carry this wording. The names of the categories themselves
+ *  and judging.en.json, so the pages never carry this wording. The names of the categories themselves
  *  are judging.en.json's too, read when the pages are built (src/lib/taxonomy.ts). */
 export type Coverage = {
   title: string
@@ -102,22 +102,22 @@ export type Overview = {
   latest: SessionSummary[]
   /** The newest Agent sessions, newest first (the top block). */
   latest_agent: SessionSummary[]
-  /** How long sessions last on average (D30). */
+  /** How long sessions last on average. */
   average_length: AverageLength
-  /** The disk budget and what cake's data uses of it, whatever the filters: the dashboard's Disk bar (S5.3). */
+  /** The disk budget and what cake's data uses of it, whatever the filters: the dashboard's Disk bar. */
   storage: Storage
   coverage: Coverage
 }
 
 /** The settings page's disk numbers in one place (Settings.storage, budget_mb, auto_free): the dashboard warns from
  *  warn_at_pct, and says what happens when the budget is full by auto_free; disk and replays_stopped say why new
- *  replays stop while the disk is below its floor (K2, D34). */
+ *  replays stop while the disk is below its floor. */
 export type Storage = {
   used_bytes: number; budget_mb: number; warn_at_pct: number; days_left: number | null; auto_free: boolean
   disk: Disk; replays_stopped: ReplaysStopped
 }
 
-/** D30: the average length of a session, from its first to its last recorded action (a page opened, or the visitor's
+/** The average length of a session, from its first to its last recorded action (a page opened, or the visitor's
  *  pointer, keys, wheel or touch), so a tab left open afterwards adds nothing. */
 export type AverageLength = {
   /** Milliseconds by who visited: Human, Agent only and Human + agent; null when the range has no such session. */
@@ -162,7 +162,7 @@ export type LayerReasons = { layer: LayerId; state: LayerState; reasons: Reason[
 /** One action in "Every action": what, never what was typed (inputs are masked), and the page it was taken on. */
 export type Action = { at_ms: number; who: Actor; what: string; page: string }
 /** One page of a session, in the order the pages opened: the first is where the visit came in, the last where it left
- *  (S5.4). A single-page app's new address is a new page. */
+ * . A single-page app's new address is a new page. */
 export type SessionPage = {
   /** Path and query, as cake keeps them. */
   path: string
@@ -171,7 +171,7 @@ export type SessionPage = {
   duration_ms: number
   /** The visitor's actions on the page: "Every action" without its Open rows. */
   actions: number
-  /** Who acted on the page, named as the session categories name it (D39): a human only, an agent only, a human and an
+  /** Who acted on the page, named as the session categories name it: a human only, an agent only, a human and an
    *  agent (Human + agent), or unknown when all its actions are; a page without actions takes who acted when it
    *  opened. */
   /** Who acted on it; null when no one did (a page without actions). */
@@ -181,7 +181,7 @@ export type SessionPage = {
  *  verdict, timeline and server half stay), some events not stored while the disk budget was full, or nothing to
  *  replay (the visit sent no page events). */
 export type ReplayMissing = "freed" | "dropped" | "none"
-/** The replay's chunks (S2.2: one per 10 seconds of activity), read one at a time from …/replay?chunk=<n>: the player
+/** The replay's chunks (one per 10 seconds of activity), read one at a time from …/replay?chunk=<n>: the player
  *  reads the chunk it plays and the one after it, and the chunks before a moment it jumps to. */
 export type ReplayInfo = {
   /** Where the player starts, and the address of the page at that moment. */
@@ -209,11 +209,11 @@ export type ServerPage = {
   /** Whether the request came from the network cake.js's uploads came from; null when cake can't tell. */
   same_network: boolean | null
   /** Whether cake.js's uploads sent the page request's User-Agent, and its Accept-Language; null when either side
-   *  didn't say (S4.2). */
+   *  didn't say. */
   same_user_agent: boolean | null
   same_language: boolean | null
   /** How many more page views of the visit brought this page's token again: the browser showed them a stored copy
-   *  (after a 304, or going back), so they have no server half of their own (S4.2). */
+   *  (after a 304, or going back), so they have no server half of their own. */
   reuses: number
 }
 /** The network cake.js's uploads came from, as the load balancer saw it (server mode); never the address itself. */
@@ -261,7 +261,7 @@ export type Connection = "receiving" | "waiting" | "not_connected"
 export type Route = "this_computer" | "server"
 /** The four layers that judge, and whether each runs here (verify only in server mode). Not settings. */
 export type Layers = Record<LayerId, boolean>
-/** The last log import of the site's web server (S4.4): when, the log's format, and the recommended request headers its
+/** The last log import of the site's web server: when, the log's format, and the recommended request headers its
  *  log lacks or leaves empty on every page request. */
 export type LogImport = { last: string; format: string; missing: string[]; empty: string[] }
 
@@ -278,10 +278,10 @@ export type Settings = {
   /** missing: request headers that none of the site's latest page requests brought its server (something in front of
    *  the server removes them); logs: the last log import, null before the first. */
   server_half: { missing: string[]; logs: LogImport | null }
-  /** How often the open page asks for sources and last_seen again (I3: "connected" within 10 seconds). */
+  /** How often the open page asks for sources and last_seen again ("connected" within 10 seconds). */
   refresh_ms: number
   /** The agent and network lists in use (they come with each release): their date, how old they are, whether that is
-   *  past I4, and the command that downloads newer ones. */
+   *  past max_age_days, and the command that downloads newer ones. */
   lists: { built: string; age_days: number; max_age_days: number; stale: boolean; update_command: string }
   /** 0 keeps everything. */
   retention_days: number
@@ -323,13 +323,13 @@ export type Setup = {
   /** Shown as "example data" until real sessions arrive. */
   example: { sessions: SessionSummary[]; timeline: Timeline }
   /** Sessions the lists show, at any time, and how many are Agent sessions: until the first session, the home page and
-   *  the dashboard show how to connect the website (D37, D40, like PostHog 1.0's overlay before the first event). */
+   *  the dashboard show how to connect the website (like PostHog 1.0's overlay before the first event). */
   recorded: { sessions: number; agent: number }
 }
 
 // ---------------------------------------------------------------- GET and POST /api/register
 
-/** Whether this data folder has registered with Tartini AI (D32): until it has, the pages show the registration card
+/** Whether this data folder has registered with Tartini AI: until it has, the pages show the registration card
  *  before anything else. Also the answer to a POST that was sent. */
 export type Registration = {
   registered: boolean
@@ -367,11 +367,11 @@ export type Health = {
   }
 }
 
-/** The disk that holds the data (S2.5): bytes, and whether its free space is below the floor (disk_min_free_mb, K2). */
+/** The disk that holds the data: bytes, and whether its free space is below the floor (disk_min_free_mb). */
 export type Disk = { total: number; free: number; min_free: number; low: boolean }
 
 /** Why new replays are not being stored, if they aren't: below the disk's floor with "free space for me" off; below
- *  it while other files fill the disk, so deleting every old replay would not make room and none was deleted (D34);
+ *  it while other files fill the disk, so deleting every old replay would not make room and none was deleted;
  *  the disk budget is full. */
 export type ReplaysStopped = "disk" | "disk_full_other" | "budget" | null
 

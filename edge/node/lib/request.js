@@ -10,7 +10,7 @@
  * null unless the runtime hands over the raw lines (Hono on Node does). The path is the request target's path as sent,
  * without the query: no URL parsing, since runtimes' URL parsers resolve odd paths differently (Node's leaves
  * "/a/.env/.." as it is and resolves "/a/b/..") and a browser sends its paths resolved already. One view over many
- * request shapes is botscent's idea (src/server/request.ts, MIT, 7f948003); this file is written for cake. Step S4.1.
+ * request shapes is botscent's idea (src/server/request.ts, MIT, 7f948003); this file is written for cake.
  */
 const ABSOLUTE_FORM = /^[a-z][a-z0-9+.-]*:\/\/[^/?#]*/i // "https://shop.example" before the path of a full URL
 const EDGE_WHITESPACE = /^[\t\n\r ]+|[\t\n\r ]+$/g

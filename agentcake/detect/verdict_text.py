@@ -1,9 +1,9 @@
-"""The words of a verdict (S3.4): each reason's layer, evidence grade, tone, facts and words, and what each class means.
+"""The words of a verdict: each reason's layer, evidence grade, tone, facts and words, and what each class means.
 
-Reasons come from agentcake/data/reasons.json, the meaning of each class (the dashboard's "how cake judges", S5.3)
+Reasons come from agentcake/data/reasons.json, the meaning of each class (the dashboard's "how cake judges")
 from agentcake/data/judging.en.json; both ship with the release and are read once per process. A reason keeps the
 facts it was given, and is put into words each time it is shown (words()): a session judged before the wording
-changed reads in today's words (D34: the words are display, the facts are what is kept). Its words are two: text, a
+changed reads in today's words (the words are display, the facts are what is kept). Its words are two: text, a
 sentence that says what it means, and detail, what was seen (the technical evidence), None when it has none. An
 environment rule's hit is worded by the rule (its title and detail in env_rules.json), a Web Bot Auth result by
 webbotauth.json, an agent product's indicator by agent_markers.json. A reason kept before facts were kept gets its
@@ -30,18 +30,20 @@ with it:
                       (a gap in seconds, said as reasons.json "durations")
     marker            an agent product's mark, with from_ms and to_ms (from the visit's start; to_ms None: still
                       there at the end): {marker} its text and {marker_detail} its detail (agent_markers.json)
+    until_ms          until when an indicator decided who acted, before its tail (timeline.py), in ms from the
+                      visit's start: {until} said as the player writes a moment
     at                a hand-off's moment, in whole seconds from the visit's start: said as the player writes a moment
                       (markers.clock, "0:47")
 
 A reason that says a moment (MOMENTS: a hand-off, an indicator's span) also keeps it in its value, in epoch ms on the
 events' clock. Given the replay's start (origin: the session's first recorded event, from which the player, the
 timeline and every list of the session page count), words() says those moments from it, so that a reason and the
-timeline beside it name the same moment the same way (D34; PostHog's replay counts its player, its list and its events
+timeline beside it name the same moment the same way (PostHog's replay counts its player, its list and its events
 from the recording's start); without one, from the visit's start the facts keep.
     signature         a Web Bot Auth result (webbotauth.as_facts()): {signature} its reason and {signature_detail}
                       its detail (webbotauth.json)
 
-source is where the evidence was read (G6): "page" (cake.js in the visitor's page), "collector" (cake's own collect
+source is where the evidence was read: "page" (cake.js in the visitor's page), "collector" (cake's own collect
 endpoint, which also sees the visitor's address) or "server" (the site's server half), or None for a conclusion.
 tone is how the interface marks a reason: "agent", "human" or "none" (a fact for neither).
 """
@@ -60,7 +62,8 @@ AGENT_TONE, NO_TONE = "agent", "none"
 PRODUCT_FACT = "product"
 RULES_BASIS, RULES_ONE, RULES_UNNAMED = "rules", "rules_one", "rules_unnamed"  # behavior_basis: kinds, one kind, none
 # The facts that say a reason's moments, in the order its value keeps them (epoch ms on the events' clock, verdict.py)
-MOMENTS = {"behavior.handoff": ("at",), "behavior.indicator": ("from_ms", "to_ms")}
+MOMENTS = {"behavior.handoff": ("at",), "behavior.indicator": ("from_ms", "to_ms"),
+           "behavior.indicator-tail": ("from_ms", "to_ms", "until_ms")}
 SECONDS_FACTS = frozenset({"at"})  # moment facts kept in whole seconds from the visit's start (the others in ms)
 
 
@@ -190,6 +193,8 @@ def _phrases(facts):
     if "marker" in facts:
         for key, field in (("marker", "text"), ("marker_detail", "detail")):
             said[key] = markers.words(facts["marker"], facts.get("from_ms"), facts.get("to_ms"), field)
+    if isinstance(facts.get("until_ms"), (int, float)):
+        said["until"] = markers.clock(facts["until_ms"])  # until when an indicator decided (its tail: timeline.py)
     if "signature" in facts:
         said["signature"], said["signature_detail"] = webbotauth.words(facts["signature"] or {})
     if isinstance(facts.get("at"), (int, float)):

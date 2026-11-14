@@ -7,7 +7,7 @@
  * so both paths share one format. Reading is strict, the way cake's verifier reads: one prefix, three parts, base64url
  * without padding, the MAC compared in its one spelling (spare bits zero), and a payload that is a JSON object with this
  * version, an id and a time in milliseconds. The format is the one tartini.ai's cake-server-timing.js and cake 0.3.3 used
- * (toast_mvp branch cake-tartini, 01eafdb7); the shared vectors (tests/vectors/edge_token.json) pin it. Step S4.1.
+ * (toast_mvp branch cake-tartini, 01eafdb7); the shared vectors (tests/vectors/edge_token.json) pin it.
  */
 const BASE64URL = /^[A-Za-z0-9_-]+$/
 const encoder = new TextEncoder()

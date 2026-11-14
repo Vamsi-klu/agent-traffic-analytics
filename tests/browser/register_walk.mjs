@@ -1,4 +1,4 @@
-// The registration card end to end (S5.8, D32), driven by tests/browser/test_register_walk.py: a real AgentCake with
+// The registration card end to end, driven by tests/browser/test_register_walk.py: a real AgentCake with
 // the built local pages, opened in Chromium. Usage: node register_walk.mjs --base <AgentCake's local page> --out <dir>
 //   --scenario sent      fill the card, open "See what's sent", note its text, press "Register & Continue", wait for
 //                        the pages (the home page's onboarding)

@@ -13,6 +13,11 @@ DASH = "—"
 VIEWS = (("verdict", "product view (four-layer class decides each action)"), ("model", "model view (timeline)"))
 PRECISION_COLUMNS = ("data set / product", "recall", "humans")
 STATUS = {"pass": "pass", "fail": "**FAIL**", "no_data": "no data", "elsewhere": "measured elsewhere"}
+NOT_JUDGED = "not judged"
+EVERY_HANDOFF = ("every true hand-off, whatever its session was judged: found (missed), share within the limit, "
+                 "largest error found, extra hand-offs marked")
+MIXED_FOUND = "mixed sessions judged Human + agent / mixed sessions"
+OVER_THE_LIMIT = "over the limit"  # a median that is a missed hand-off
 
 
 def markdown(results, verdicts, where, notes, limit_s):
@@ -40,19 +45,20 @@ def _measurement(m, unit):
     if "count" in m:
         return f"{m['source']}: {_number(m['value'], unit)} ({m['count']}/{m['n']})"
     details = m.get("details") or {}
-    extra = ""
-    if "missed" in details:
+    value, extra = _number(m["value"]), ""
+    if "every_handoff" in details:
+        value = OVER_THE_LIMIT if m["value"] is None else value
         extra = (f"; missed {details['missed']}, within the limit {_number(details['within_limit'], 'share')}, "
-                 f"found: median {_number(details['median'])} s")
+                 f"largest found {_number(details['largest_found'])} s")
     elif "largest" in details:
         extra = f"; largest {_number(details['largest'])}"
-    return f"{m['source']}: {_number(m['value'])} (n={m['n']}{extra})"
+    return f"{m['source']}: {value} (n={m['n']}{extra})"
 
 
 def markdown_gate(verdicts):
     """The gate's table: each threshold, its status, the gated values and the reference ones."""
     lines = ["## Gate (eval/thresholds.json)", "",
-             "| # | GOAL | status | gated: value (samples) | reference only | measured as |",
+             "| # | goal | status | gated value (samples) | reference only | measurement |",
              "|---|---|---|---|---|---|"]
     for v in verdicts:
         gated = "; ".join(_measurement(m, v["unit"]) + (f" {STATUS[m['status']]}" if m["n"] else "")
@@ -63,7 +69,39 @@ def markdown_gate(verdicts):
         reference = "; ".join(_measurement(m, v["unit"]) for m in v["reference"] if m["n"]) or DASH
         where = v["measured_by"] if v["status"] == "elsewhere" else v["statistic"]
         lines.append(f"| {v['id']} | {v['goal']} | {STATUS[v['status']]} | {gated} | {reference} | {where} |")
+        lines += _beside_handoffs(v)
     return lines + [""]
+
+
+def _beside_handoffs(v):
+    """Two rows under the hand-off threshold, never judged: every true hand-off, whatever its session was judged, and
+    how many of the mixed sessions were judged Human + agent; each data set where it stands, gated or reference.
+    Nothing for a threshold whose measurements do not carry them."""
+    if not any("every_handoff" in (m.get("details") or {}) for m in v["gated"] + v["reference"]):
+        return []
+    lines = []
+    for cell, about in ((_every_handoff, EVERY_HANDOFF), (_mixed_found, MIXED_FOUND)):
+        gated, reference = (_cells(v[part], cell) for part in ("gated", "reference"))
+        lines.append(f"| {v['id']} (reference) | {DASH} | {NOT_JUDGED} | {gated} | {reference} | {about} |")
+    return lines
+
+
+def _cells(measurements, cell):
+    return "; ".join(f"{m['source']}: {cell(m['details'])}" for m in measurements
+                     if "every_handoff" in (m.get("details") or {})) or DASH
+
+
+def _every_handoff(details):
+    every = details["every_handoff"]
+    return (f"found {every['true'] - every['missed']}/{every['true']} (missed {every['missed']}), within the limit "
+            f"{_number(every['within_limit'], 'share')}, largest found {_number(every['largest_found'])} s, "
+            f"extra {every['extra']}")
+
+
+def _mixed_found(details):
+    judged = details["mixed_found"]
+    share = judged["count"] / judged["n"] if judged["n"] else None
+    return f"{_number(share, 'share')} ({judged['count']}/{judged['n']})"
 
 
 def _sources(where, notes, results):
@@ -94,7 +132,7 @@ def _rate(rate, bound="both"):
 
 def _scoreboard(board, limit_s):
     """The behaviour layer reported the industry's way (scoreboard.py): agents, humans, precision, sites, mixed."""
-    lines = ["## Scoreboard: the behaviour layer, reported the industry's way (D36)", "",
+    lines = ["## Behaviour layer scoreboard (industry-standard metrics)", "",
              "Every rate with its exact 95% interval (Clopper–Pearson); for a false positive rate, its upper end. "
              "Evaluable: enough actions to judge (the rest is too little data). Recall and false positives are the "
              "behaviour model's own verdict on the evaluable sessions; recall on all sessions is what a site sees; "
@@ -143,7 +181,7 @@ def _scoreboard(board, limit_s):
 def _heldout(fits):
     """Thresholds set from data (heldout.py): the packaged value, the one people's data gives, and each site judged
     with the threshold fitted without it."""
-    lines = ["## Thresholds set from data, held out (D36)", "",
+    lines = ["## Held-out check of fitted thresholds", "",
              "Each threshold is fitted from people alone: the value that fires most while firing on at most the "
              "budget of every data set's measured segments. Fitted again without each site, that site's people are "
              "judged with it. Agents are never used in a fit, so every agent product is held out.", ""]
@@ -164,7 +202,7 @@ def _heldout(fits):
 
 def _calibration(table):
     """The percents against the answers (calibration.py): per bin of predicted chance of an agent, the actual share."""
-    lines = ["## Calibration: do the percents mean what they say (D36)", "",
+    lines = ["## Calibration of the percents", "",
              "Chance of an agent against what the sessions were, both classes weighted alike (a percent assumes humans "
              "and agents equally common). Brier: the mean squared gap between chance and answer, 0 perfect, 0.25 a "
              "coin; weighted alike / as counted.", ""]
@@ -213,7 +251,7 @@ def _humans(table):
              f"soft hit: {s['sessions_with_a_strong_hit']}; where soft hits would count (two rules): "
              f"{s['sessions_where_soft_hits_would_count']}; with an agent run long enough for Mixed: "
              f"{s['sessions_with_a_long_agent_run']}; looking like a crawler: {s['sessions_looking_like_a_crawler']}. "
-             f"Weak-signal reasons (S3.8, never a class): {s['weak_reasons'] or 'none'}.",
+             f"Weak-signal reasons, never a class: {s['weak_reasons'] or 'none'}.",
              "", "| session | class | behaviour | actions | environment hits | longest agent run | crawler patterns | "
              "weak reasons |", "|---|---|---|---|---|---|---|---|"]
     for r in table["sessions"]:
@@ -292,7 +330,7 @@ def _baselines(table):
 
 
 def _layers(tables):
-    lines = ["## Each part alone and together (GOAL G7)", ""]
+    lines = ["## Each part alone and together", ""]
     for kind, title in (("by_half", "halves: page = cake.js in the page, collector = the collect endpoint, server = "
                                     "the site's server half"),
                         ("by_layer", "judging layers")):

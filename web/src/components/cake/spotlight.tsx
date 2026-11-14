@@ -17,8 +17,8 @@ function Eyebrow() {
   return <span className="flex items-center gap-2 text-sm font-extrabold text-agent-foreground"><CrumbHead className="size-7" />{WORDS.agentSessions}</span>
 }
 
-/** The top of /api/overview: Agent counts, the change since last week, the split, each agent by name (D39: the user lists
- *  them by name, Unnamed together), and the newest three. */
+/** The top of /api/overview: Agent counts, the change since last week, the split, each agent by name (listed by
+ *  name, Unnamed together), and the newest three. */
 export function Spotlight({ overview }: { overview: Overview }) {
   const { counts, latest_agent: latest } = overview
   const delta = counts.agent - overview.agent_last_week
@@ -72,7 +72,7 @@ export function Spotlight({ overview }: { overview: Overview }) {
   )
 }
 
-/** Sessions are recorded but never yet an Agent one (D37: no demo task or example sessions here; until the first
+/** Sessions are recorded but never yet an Agent one (no demo task or example sessions here; until the first
  *  session at all, the dashboard is the onboarding). */
 export function SpotlightEmpty() {
   return (

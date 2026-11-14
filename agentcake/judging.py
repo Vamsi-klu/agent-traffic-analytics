@@ -1,4 +1,4 @@
-"""When a session is judged, and what is kept of its verdict (S3.4 wiring; cake 0.3.3's lazy judging folded in).
+"""When a session is judged, and what is kept of its verdict (cake 0.3.3's lazy judging folded in).
 
 The moments are schedule.py's, on the sessions row's end_ms (newest data) and judged_ms (latest verdict):
     state(con, session_id) -> schedule.State      collect reads it before it keeps a batch
@@ -10,14 +10,14 @@ The moments are schedule.py's, on the sessions row's end_ms (newest data) and ju
                                                   is stale, or an older judge's
     model_version()                               the version of the judge, which each verdict keeps (see below)
     catch_up(limit=None, now_ms=None)             the dashboard and the sessions list: stale sessions, latest first
-    on_log_lines(session_ids, now_ms)             POST /edge kept web server log lines for these sessions (S4.4):
+    on_log_lines(session_ids, now_ms)             POST /edge kept web server log lines for these sessions:
                                                   judge each now (a log line moves no end_ms, so no moment above
                                                   would come back for it)
     rejudge(con, session_id, now_ms=None)         judge now, in the caller's transaction
 A judgement reads the session's evidence (evidence.py), runs verdict.judge() (a listed Bot and too few actions never
 reach the behaviour model) and writes the sessions row (class, Agent row, name, confidence, reasons and layers as
 JSON, the rest of the verdict, cake 0.3.4's columns space.py reads, and the first and last recorded action that a
-session's length is made of: activity.py, S5.1; and the version of the judge), its segments (who by the verdict, who
+session's length is made of: activity.py; and the version of the judge), its segments (who by the verdict, who
 by the behaviour model) and its labels (every name a layer found). A session whose replay was removed to free space
 keeps the verdict made from it (0.3.4).
 
@@ -46,7 +46,7 @@ from agentcake.units import MS_PER_S, PERCENT
 
 OLD_VERDICTS = {"not_sure": "unsure", "too_little_data": "unsure"}  # 0.3.4's verdict column knew human/agent/unsure
 DETAIL = ("judging", "display_name", "operator", "kind", "name_certainty", "name_method", "category", "verification",
-          "impersonating", "percent")
+          "impersonating", "percent", "handoffs")  # handoffs: the session page marks and tells them (api/session.py)
 MODEL_CODE = ("detect", "judging.py", "evidence.py")  # the judge's code, in the package folder
 MODEL_DATA = "data"  # the data files shipped with it: all of them (the judge reads most, and words some columns)
 OLDER_JUDGE = ("SELECT id FROM sessions WHERE judged_ms > 0 AND model_version IS NOT ? AND replay_freed_ms IS NULL "
@@ -181,7 +181,7 @@ def catch_up(limit=None, now_ms=None, c=None):
 
 
 def on_log_lines(session_ids, now_ms, c=None):
-    """A web server's log lines were kept for these sessions (POST /edge, S4.4): judge each one now, one transaction
+    """A web server's log lines were kept for these sessions (POST /edge): judge each one now, one transaction
     each, so uploads go on between them. A log line tells of a page request in the past and moves no session's
     end_ms: the schedule's interval and its quiet and stale rules, which all wait for newer data, would leave a final
     verdict without it. Returns how many were judged."""
@@ -221,7 +221,7 @@ def rejudge(con, session_id, now_ms=None, c=None):
 
 def _source(result):
     """cake 0.3.4's source column: the name, else Unnamed for an agent, else the verdict, as the interface words them
-    (D39: where an agent runs and what kind it is are reasons, never its name)."""
+    (where an agent runs and what kind it is are reasons, never its name)."""
     words = verdict_text.judging()
     if result["display_name"]:
         return result["display_name"]

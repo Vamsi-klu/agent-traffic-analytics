@@ -1,4 +1,4 @@
-"""The Python site middleware (S4.3): edge/python/cake_edge.py makes the Node middleware's token, from one file.
+"""The Python site middleware: edge/python/cake_edge.py makes the Node middleware's token, from one file.
 
     python3 -I -m unittest discover -s tests -v      (from the cake folder)
 

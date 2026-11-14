@@ -1,11 +1,11 @@
 /*
- * BotD, vendored for Agent Cake's page script (S1.3).
+ * BotD, vendored for Agent Cake's page script.
  * Source: @fingerprintjs/botd 2.0.0 on npm, dist/botd.esm.js (sha256 f438ed251dc7414ece9d4a2b6941441ad9ffae1a1905817f5f0c7366e701dd86);
  * the same 19 sources and detectors as github.com/fingerprintjs/BotD at commit 193c471a (package version 2.0.0).
  * Licence: MIT, Copyright (c) 2025 FingerprintJS, Inc (full text: botd.LICENSE.txt, also bundled into cake.js).
  * Changes from the npm file, and nothing else:
  *   1. removed monitor() and load()'s `monitoring` option: the original sends a usage request to FingerprintJS's
- *      monitoring host on 1 in 1,000 loads; cake.js sends nothing anywhere but to cake (G13);
+ *      monitoring host on 1 in 1,000 loads; cake.js sends nothing anywhere but to cake;
  *   2. removed the trailing `export { ... }` statement: build_js.py concatenates this file into cake.js inside a
  *      function and hands load() to cake's parts directly.
  */

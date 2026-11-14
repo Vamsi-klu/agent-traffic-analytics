@@ -1,4 +1,4 @@
-"""POST /collect (S2.1): agentcake/collect.py with collect_store.py, upload.py and site_origin.py.
+"""POST /collect: agentcake/collect.py with collect_store.py, upload.py and site_origin.py.
 
     python3 -I -m unittest discover -s tests -p test_collect.py -v      (from the Agent Cake folder)
 
@@ -6,7 +6,7 @@ Each test posts uploads to the collect view in its own CAKE_HOME. A batch goes i
 signals) with its page view; a batch sent twice is stored once (s, pv, seq); a cake 0.3.4 batch is still stored; an
 upload from another site is kept and flagged, and the dashboard leaves it out; uploads and records over the limits
 are refused and counted; a full disk budget stops only the replay; the token is taken and linked to its page view;
-the session is judged from its chunks (S3.4's verdict, judging.py) and the replay reads them (/api/session, S5.1). The recorded uploads (the lab's 26 sessions,
+the session is judged from its chunks (the verdict, judging.py) and the replay reads them (/api/session). The recorded uploads (the lab's 26 sessions,
 cake.js itself) are in test_collect_replay.py.
 """
 import gzip
@@ -53,7 +53,7 @@ class CollectCase(unittest.TestCase):
     def setUp(self):
         os.environ["CAKE_HOME"] = tempfile.mkdtemp(prefix="cake-test-")
         os.environ.pop("CAKE_PORT", None)
-        # replays are stored whatever this computer's free disk (K2, disk_min_free_mb, is test_space's)
+        # replays are stored whatever this computer's free disk (disk_min_free_mb, is test_space's)
         config.save_user(site_key=KEY, disk_min_free_mb=0, **self.settings)
         self.con = store.db()
         self.addCleanup(self.con.close)
@@ -224,7 +224,7 @@ class Judged(CollectCase):
         replay = [event for n in range(len(chunks))
                   for event in client.get(f"/api/session/{SID}/replay", chunk=str(n)).body["events"]]
         self.assertEqual(replay, events)
-        # S3.4: collect judged the first upload, the later ones fell inside judge_interval_ms, and opening the replay
+        # collect judged the first upload, the later ones fell inside judge_interval_ms, and opening the replay
         # judged the session again on everything it sent, read from its chunks
         case, raw, rrweb = evidence.session_evidence(self.con, SID)
         self.assertEqual((raw, rrweb), ([], events))

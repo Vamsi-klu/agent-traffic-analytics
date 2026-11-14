@@ -1,4 +1,4 @@
-"""The database: one SQLite file in WAL mode, $CAKE_HOME/cake.db, with the tables of schema.sql (S1.1, S2.2).
+"""The database: one SQLite file in WAL mode, $CAKE_HOME/cake.db, with the tables of schema.sql.
 
 db() opens it. A new database, or one an older cake made, is set up once: write-ahead-log mode (readers do not wait for
 the writer), the tables of schema.sql, the columns newer versions brought, then PRAGMA user_version = SCHEMA_VERSION, a
@@ -6,7 +6,7 @@ fingerprint of schema.sql and ADDED_COLUMNS; a database with that version is ope
 opens the database). Changing schema.sql or ADDED_COLUMNS changes the version by itself. Replays live next to it in
 chunk files (streams.py).
 prune(con, days) deletes whole sessions older than the retention the user chose (by default nothing is deleted by
-age), chunks included (S2.5). setting(), set_setting() and delete_setting() read and write the database's own state
+age), chunks included. setting(), set_setting() and delete_setting() read and write the database's own state
 (the settings table: what `agentcake migrate` did, whether dropped chunks wait for a reclaim, the address salt). LOCK
 lets one writer at a time into the database and the chunk files within this process (collect, the judging before a
 page, the maintenance thread).
@@ -25,22 +25,22 @@ from agentcake.storage_config import ms_from_days, now_ms as clock_ms
 LOCK = threading.Lock()
 SCHEMA = pathlib.Path(paths.SCHEMA_FILE).read_text(encoding="utf-8")
 # Columns newer than a table's first version: {table: ((name, type), ...)}, the same as in schema.sql
-ADDED_COLUMNS = {"sessions": (("origin", "TEXT DEFAULT 'site'"),  # 0.3.2: site or other; 'demo' until D37
+ADDED_COLUMNS = {"sessions": (("origin", "TEXT DEFAULT 'site'"),  # 0.3.2: site or other; 'demo' until 0.4.0
                               ("judged_ms", "INT DEFAULT 0"), ("net", "TEXT"),  # 0.3.3: lazy judging, network facts
                               ("replay_freed_ms", "INT"), ("events_dropped", "INT DEFAULT 0"),  # 0.3.4: space
-                              ("events_refused", "INT DEFAULT 0"),  # S2.1: records over the per-session limit
+                              ("events_refused", "INT DEFAULT 0"),  # records over the per-session limit
                               ("verdict_class", "TEXT"), ("agent_row", "TEXT"), ("agent_name", "TEXT"),
                               ("confidence", "TEXT"), ("reasons", "TEXT"), ("layers", "TEXT"),
-                              ("verdict_detail", "TEXT"),  # S3.4: the four layers' verdict
-                              ("first_action_ms", "INT"), ("last_action_ms", "INT"),  # S5.1: the action span
-                              ("model_version", "TEXT")),  # S3.7: the judge that made the verdict (judging.py)
-                 "requests": (("pv", "TEXT"),),  # S2.3: the page view of the batch a request brought
-                 "srv": (("pv", "TEXT"), ("ua_match", "INT"), ("lang_match", "INT"),  # S4.2: reuse, comparisons
+                              ("verdict_detail", "TEXT"),  # the four layers' verdict
+                              ("first_action_ms", "INT"), ("last_action_ms", "INT"),  # the action span
+                              ("model_version", "TEXT")),  # the judge that made the verdict (judging.py)
+                 "requests": (("pv", "TEXT"),),  # the page view of the batch a request brought
+                 "srv": (("pv", "TEXT"), ("ua_match", "INT"), ("lang_match", "INT"),  # reuse, comparisons
                          ("reuses", "INT DEFAULT 0"))}
 # The tables whose rows belong to a session: every table with a session_id column, as the database has them now.
 SESSION_TABLES = ("SELECT m.name FROM sqlite_master m JOIN pragma_table_info(m.name) p "
                   "WHERE m.type = 'table' AND p.name = 'session_id' ORDER BY m.name")
-RECLAIM_DUE = "reclaim_due_ms"  # settings key (S2.5): chunks were dropped and their file space is not back yet
+RECLAIM_DUE = "reclaim_due_ms"  # settings key: chunks were dropped and their file space is not back yet
 
 
 def schema_version(schema, added_columns):

@@ -1,4 +1,4 @@
-// The project in the top bar (D40): one AgentCake is one project, its website, as PostHog 1.0's team with its app_url.
+// The project in the top bar: one AgentCake is one project, its website, as PostHog 1.0's team with its app_url.
 // Its address opens the site in a new tab; until it is set, a link to where it is set (Settings, "Your website").
 import { ExternalLink, Globe } from "lucide-react"
 import { Link } from "react-router"

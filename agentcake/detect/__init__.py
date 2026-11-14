@@ -1,4 +1,4 @@
-"""Judging who acted in a session: a human or an AI agent, and which agent (plan steps S3.1 to S3.9).
+"""Judging who acted in a session: a human or an AI agent, and which agent.
 
 verdict.py makes one conclusion per session from four layers, each in its own modules:
   name and verification  verdict_identity.py; the bundled lists (lists.py, built by lists_build.py, lists_names.py,

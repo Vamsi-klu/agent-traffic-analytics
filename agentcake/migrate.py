@@ -1,4 +1,4 @@
-"""`agentcake migrate` (S2.2): a cake 0.3.4 database into the new storage, keeping everything 0.3.4 had.
+"""`agentcake migrate`: a cake 0.3.4 database into the new storage, keeping everything 0.3.4 had.
 
 cake 0.3.4 kept every rrweb event of a replay as an uncompressed row of the events table. migrate():
 
@@ -10,7 +10,7 @@ cake 0.3.4 kept every rrweb event of a replay as an uncompressed row of the even
 4. copies each session's replay rows its rrweb chunks do not hold yet, oldest first (rows of the same millisecond in
    the order they were written), into rrweb chunks (streams.append, then seal), and checks them: a session that had
    no chunks reads back as its rows byte for byte; one that had (a visit that went on after the upgrade, which the
-   new collect wrote into chunks, S2.1; or rows 0.3.4 added after an earlier migrate) holds every row once more
+   new collect wrote into chunks; or rows 0.3.4 added after an earlier migrate) holds every row once more
    than before, and no chunk is deleted. A row and its copy are the same time and the same JSON text
    (session_replay.py). A session that fails is rolled back and reported, the others go on; a session whose rows
    are all in its chunks is skipped;

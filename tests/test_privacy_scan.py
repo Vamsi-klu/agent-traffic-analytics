@@ -1,4 +1,4 @@
-"""The privacy scan (GOAL S1, plan step S6.5): tools/privacy_scan.py and tools/privacy/.
+"""The privacy scan: tools/privacy_scan.py and tools/privacy/.
 
     python3 -I -m unittest discover -s tests -p test_privacy_scan.py -v      (from the Agent Cake folder)
 

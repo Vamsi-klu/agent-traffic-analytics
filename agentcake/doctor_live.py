@@ -1,4 +1,4 @@
-"""`doctor`, opening a page of the user's website (S6.1): page_checks(c, url, framework).
+"""`doctor`, opening a page of the user's website: page_checks(c, url, framework).
 
 doctor asks for the page at url (site_url, or doctor --url) the way a browser opens a page typed into its address bar
 (data/doctor.json page_request: Accept and Sec-Fetch-*), with the three Web Bot Auth headers added, holding values that
@@ -6,7 +6,7 @@ say they are a test. Four lines: the page loads cake.js with this site key; its 
 token that this Agent Cake's secret signed, inside the time window tokens count in (edge_token.read_token); the token
 holds the Sec-Fetch values doctor sent; and the signature headers doctor sent reached the site's server. Anything in
 front of the site's server that removes headers (a proxy, a CDN) shows as the headers that did not arrive. A static
-site has no server half, so no token there is a SKIP. A sandbox that forbids the connection is named (GOAL T2).
+site has no server half, so no token there is a SKIP. A sandbox that forbids the connection is named.
 Only this command, and only when told the address, opens the user's site.
 """
 import errno

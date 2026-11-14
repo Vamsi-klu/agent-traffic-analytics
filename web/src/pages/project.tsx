@@ -1,4 +1,4 @@
-// The project around every page (D40): the top bar with the website's address. Read once from /api/settings, as PostHog
+// The project around every page: the top bar with the website's address. Read once from /api/settings, as PostHog
 // 1.0's App read its team's app_url once; the pages that save the domain (the onboarding, Settings) tell it the new one.
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react"
 import { AppShell } from "@/components/cake/app-shell"

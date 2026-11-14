@@ -1,9 +1,9 @@
-"""Each stylesheet stored once (S2.2): the CSS rrweb copies into its snapshots, kept once per hash.
+"""Each stylesheet stored once: the CSS rrweb copies into its snapshots, kept once per hash.
 
 rrweb inlines a page's stylesheets into every full snapshot (`_cssText` of a <link> or <style>, and the text of a
-<style> marked isStyle), which is most of a snapshot (note 5: snapshots are 56-100% of a replay), and every visit to
-a site sends the same text again. Measured on note 5's public-site recordings: 43% less disk over three visits per
-site, 87% for a repeat visit of github.com (S2.2's measurement).
+<style> marked isStyle), which is most of a snapshot (measured: snapshots are 56-100% of a replay), and every visit to
+a site sends the same text again. Measured on recordings of public sites: 43% less disk over three visits per
+site, 87% for a repeat visit of github.com.
 
 cut_styles(con, text, now_ms) works on an event's JSON text, never re-serialising it: each stylesheet string of at
 least css_min_length characters is found as it is written in the text, its inside is stored in the styles table

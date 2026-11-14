@@ -1,4 +1,4 @@
-"""GET and POST /api/settings: what the settings page shows and changes (S5.1; S5.5 draws it and adds what it needs).
+"""GET and POST /api/settings: what the settings page shows and changes.
 
 GET answers Settings (web/src/data/types.ts):
     site_domain, site_key   the website's domain (as PostHog 1.0's setup page asked for its app_url) and the key its
@@ -7,15 +7,15 @@ GET answers Settings (web/src/data/types.ts):
     sources, last_seen, route, server_half    where visits come from and when each source last sent something, where
                    the website's visits arrive, which headers the site's server never got and the last log import
                    (sources.py)
-    refresh_ms     how often the open page asks again where visits come from (I3: data/api.json settings)
-    lists          the date of the agent and network lists in use, how old they are, whether that is past I4 (the
-                   lists come with each release, D23) and the command that updates them (detect/lists.py)
+    refresh_ms     how often the open page asks again where visits come from (data/api.json settings)
+    lists          the date of the agent and network lists in use, how old they are, whether that is past max_age_days (the
+                   lists come with each release) and the command that updates them (detect/lists.py)
     retention_days, budget_mb, auto_free    the settings of these names (defaults.json, then the user's config.json:
                    the names cake 0.3.4 used); retention_choices from defaults.json, budget_choices_mb from
                    data/api.json, with the budget in use among them when it was set to another value
     storage        bytes used, the warning share, the days until full at last week's pace, the disk (its free space
-                   against disk_min_free_mb) and why new replays are stopped, if they are (space.space_status, K2);
-                   disk() is these with budget_mb and auto_free, which the dashboard's Disk bar shows too (S5.3);
+                   against disk_min_free_mb) and why new replays are stopped, if they are (space.space_status);
+                   disk() is these with budget_mb and auto_free, which the dashboard's Disk bar shows too;
                    free_to_pct, the share of the budget freeing space brings cake's data down to
                    (auto_free_target_ratio), which the page's description of auto_free states
     hook_dom, hide_selectors    the two settings of the page script, which /cake.js carries (assets.runtime_values)
@@ -91,7 +91,7 @@ def _lists(now_ms):
 
 def disk(con, c):
     """The disk budget and what cake's data uses of it: used_bytes, budget_mb, warn_at_pct, days_left, auto_free; and
-    the disk under it, against disk_min_free_mb, with why new replays are stopped, if they are (K2, D34)."""
+    the disk under it, against disk_min_free_mb, with why new replays are stopped, if they are."""
     space = space_status(con, c)
     return {"used_bytes": space["used"],
             "budget_mb": max(1, round(float(c["budget_mb"]))),  # a test's tiny budget is a fraction of a MB

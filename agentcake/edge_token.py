@@ -1,16 +1,15 @@
-"""The server half's token: made, read, and kept once (0.3.3's verify_token and take_token moved here in S1.1; format
-S4.1; keeping S4.2).
+"""The server half's token: made, read, and kept once (cake 0.3.3's verify_token and take_token, moved here).
 
 A site's server (its middleware, edge/: Node, Python, PHP, the WordPress plugin) sends
 `Server-Timing: cake;desc="c1.<payload>.<mac>"`: base64url JSON, then HMAC-SHA256 with the shared secret
 (edge_secret.py). cake.js forwards it with its batches until collect has answered one of them.
 
 mint() makes a page's token byte for byte as the middleware does for the same request: the format's reference, which the
-shared vectors and the browser tests' test site use (cake answers no page of its own since D37 removed the demo shop).
+shared vectors and the browser tests' test site use (cake answers no page of its own since 0.4.0 removed the demo shop).
 read_token() reads a token by the rules the shared vectors pin (tests/vectors/edge_token.json): strict base64url, the
 MAC in its one spelling, a JSON object with this version, an id and an integer time, then the age window. The format's
 values and the header names are in data/edge.json, the same as the middleware's; the age window is two settings
-(token_max_age_ms, token_max_future_ms in defaults.json, S1.2), and what is kept of a token is in data/sizes.json.
+(token_max_age_ms, token_max_future_ms in defaults.json), and what is kept of a token is in data/sizes.json.
 request_path() and skipped_path() read a request target the middleware's way; the log import reads its lines by them too
 (log_formats.py, logs.py).
 

@@ -10,7 +10,7 @@
  * binding (c.env, as Workers hand bindings over), else the environment variable. On Node (@hono/node-server) the raw
  * request in c.env.incoming keeps the header order. As in botscent's Hono adapter (src/adapters/hono.ts, MIT, 7f948003),
  * Hono's c.res setter copies the old response's headers onto a new one, so c.res is cleared before a copy is set.
- * Step S4.1.
+ *
  */
 const { createCakeEdge } = require("./index")
 const { addressOf } = require("./lib/request")

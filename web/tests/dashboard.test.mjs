@@ -1,5 +1,5 @@
-// The dashboard (S5.3) in Chromium, against the built app and the sample /api/overview and /api/setup: the Agent block
-// with its split and each agent by name (D39), the average session length (D30, one cell per kind of visitor), the Disk bar and its
+// The dashboard in Chromium, against the built app and the sample /api/overview and /api/setup: the Agent block
+// with its split and each agent by name, the average session length (one cell per kind of visitor), the Disk bar and its
 // warning, the top block before the first Agent session, the two page tables, the coverage note and the session
 // categories. Usage: node --test tests/
 import assert from "node:assert/strict"
@@ -20,7 +20,7 @@ const RECORDED = { ...setup, recorded: { sessions: 9, agent: 4 } }
 const NO_AGENTS = { ...overview, counts: { ...overview.counts, agent: 0, agent_only: 0, human_agent: 0 }, latest_agent: [], agents_seen: [] }
 
 /** setupAnswer: /api/setup's answer, by default one with sessions recorded (with nothing recorded the dashboard is the
- *  onboarding, D37). */
+ *  onboarding). */
 async function open({ answer, setupAnswer = RECORDED, width } = {}) {
   const tab = await openTab(app, { width })
   if (answer) await tab.page.route("**/api/overview**", (route) => route.fulfill({ json: answer }))
@@ -41,11 +41,11 @@ test("the Agent block counts Agent sessions, split into Agent only and Human + a
     assert.deepEqual(names, overview.agents_seen.map((a) => `${a.sessions} ${a.name ?? judging.names.unnamed.label}`))
     const named = overview.agents_seen.find((a) => a.name)
     assert.equal(await block.locator(`a[href="#/sessions?filter=agent&agent=${encodeURIComponent(named.name)}"]`).count(), 1)
-    assert.doesNotMatch(text, /AI in a real browser|Automated browser/, "D39: no kinds of agent")
+    assert.doesNotMatch(text, /AI in a real browser|Automated browser/, "no kinds of agent")
   } finally { await tab.close() }
 })
 
-test("the average session length has one cell each for Human, Agent only and Human + agent (D30)", async () => {
+test("the average session length has one cell each for Human, Agent only and Human + agent", async () => {
   const tab = await open()
   try {
     const region = tab.page.getByRole("region", { name: "Average session length" })
@@ -69,7 +69,7 @@ test("a kind of visitor with no session in the range shows a dash, not a length"
   } finally { await tab.close() }
 })
 
-test("the Human number says how many of its sessions are on thin evidence (D39: no Unknown)", async () => {
+test("the Human number says how many of its sessions are on thin evidence (no Unknown)", async () => {
   const tab = await open()
   try {
     const cards = (await tab.page.locator('[data-slot="card"]').allInnerTexts()).map((t) => t.replace(/\s+/g, " "))
@@ -98,7 +98,7 @@ test("the Disk bar shows the use of the budget, and warns from warn_at_pct with 
   }
 })
 
-test("with nothing recorded, the dashboard shows how to connect the website (D37, D40), not a separate block", async () => {
+test("with nothing recorded, the dashboard shows how to connect the website, not a separate block", async () => {
   assert.equal(setup.recorded.sessions, 0)
   const tab = await open({ answer: NO_AGENTS, setupAnswer: setup })
   try {
@@ -114,7 +114,7 @@ test("before the first Agent session the top block says none came yet, without a
     await tab.page.getByText("No agent has visited yet").waitFor({ timeout: WAIT_MS })
     assert.ok(await tab.page.getByText("When an AI agent visits your website, its session shows up here first.").isVisible())
     assert.equal(await tab.page.getByText("Example data", { exact: true }).count(), 0)
-    assert.equal(await tab.page.getByRole("combobox", { name: "Source" }).count(), 0, "D40: no source filter")
+    assert.equal(await tab.page.getByRole("combobox", { name: "Source" }).count(), 0, "no source filter")
   } finally { await tab.close() }
 })
 

@@ -1,4 +1,4 @@
-"""Cut a session's input into segments: fixed windows, or one segment per action (plan step S3.6).
+"""Cut a session's input into segments: fixed windows, or one segment per action.
 
 Part of the behaviour layer. Input: a session's events in the raw-event format of our lab's raw.js (the format
 cake.js sends; rrweb_events.py rebuilds it from rrweb recordings), each a dict with at least "t" (epoch ms) and

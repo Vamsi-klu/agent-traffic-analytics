@@ -1,5 +1,5 @@
-"""Builds signers.json and keys.json (S3.1): the Web Bot Auth signers cake can name, and each one's key directory as
-fetched, for the verification layer (S3.2).
+"""Builds signers.json and keys.json: the Web Bot Auth signers cake can name, and each one's key directory as
+fetched, for the verification layer.
 
     build_signers(recipe, botscent_signers, fetch, previous, now) -> (signers, directories, responses)
 

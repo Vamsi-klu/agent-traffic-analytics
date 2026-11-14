@@ -1,11 +1,11 @@
-"""The "Server half" table of a session (S5.1; S5.4 draws it): what the site's server saw of each page request.
+"""The "Server half" table of a session (the session page draws it): what the site's server saw of each page request.
 
-One row per server-half token the session brought (the srv table, S2.4 and S4.2), in the order the pages were served:
+One row per server-half token the session brought (the srv table), in the order the pages were served:
 when (the token's time, on the site's server's clock, in ms from the session's start, never before it), the path, the
 Sec-Fetch-* headers, a signature's Signature-Agent (the token carries no signature to check, so it is never verified
 here: collect checks the signatures of cake.js's own requests), and how cake.js's uploads compare with the page
 request: the same network, User-Agent and Accept-Language (null when either side did not say), and how many more page
-views brought the same token again because the browser showed them a stored copy (S4.2's reuses). network is what the
+views brought the same token again because the browser showed them a stored copy (reuses). network is what the
 load balancer said about cake.js's uploads (server mode with trust_lb; null on this computer). note says why page
 views have no row, when some have none (api.en.json server_half).
 

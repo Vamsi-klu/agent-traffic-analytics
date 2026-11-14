@@ -1,4 +1,4 @@
-"""Background upkeep of the replay chunks (S2.2): agentcake/maintenance.py.
+"""Background upkeep of the replay chunks: agentcake/maintenance.py.
 
     python3 -I -m unittest discover -s tests -p test_maintenance.py -v      (from the cake folder)
 

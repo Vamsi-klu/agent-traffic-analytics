@@ -7,8 +7,8 @@ them as "27 recorded browser sessions across Chromium, LibreWolf, desktop and to
 only. They hold pointer positions, touch samples, key hold and gap times and scroll positions: no text, no key
 identity, no address and no identifier of a person.
 
-Used by `tests/test_motion_attestation.py` through `tests/motion_attestation.py` (job borrow-rules, plan decision
-D33) as regression data: Agent Cake's behaviour layer must not call any of these people an agent.
+Used by `tests/test_motion_attestation.py` through `tests/motion_attestation.py` as
+regression data: Agent Cake's behaviour layer must not call any of these people an agent.
 
 | File | What it holds |
 |---|---|

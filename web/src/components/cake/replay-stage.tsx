@@ -1,4 +1,4 @@
-// The replay window (DESIGN.md §6): an address bar and the stage rrweb-player draws into (S5.4, lib/use-replay.ts),
+// The replay window (DESIGN.md §6): an address bar and the stage rrweb-player draws into (lib/use-replay.ts),
 // with what the stage shows while the replay loads, when it can't load and when there is no replay; and the controls
 // under it (play, time, speed, Jump to hand-off). The player's frame and cursor take the theme's tokens (index.css,
 // "Replay player"); the cursor carries the name of who acts.

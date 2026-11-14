@@ -1,4 +1,4 @@
-// Tests for check:schemas and the small JSON Schema validator (S5.1): the real contract passes, and each way it can
+// Tests for check:schemas and the small JSON Schema validator: the real contract passes, and each way it can
 // break is caught. Usage: node --test scripts/   (npm test)
 import assert from "node:assert/strict"
 import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"

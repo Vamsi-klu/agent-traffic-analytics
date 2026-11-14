@@ -1,7 +1,7 @@
-// Agent Cake page script, part: the session replay recorder (plan step S1.3), stream "e".
+// Agent Cake page script, part: the session replay recorder, stream "e".
 //
 // rrweb's record (bundled into cake.js unchanged, see THIRD_PARTY.md) with the privacy rules of
-// agentcake/data/privacy.json (plan step S1.4): every input masked (the replay keeps its length), text typed into
+// agentcake/data/privacy.json: every input masked (the replay keeps its length), text typed into
 // editable elements masked, private elements (data-cake-private, passwords, payment card fields, and what the site
 // owner hides in AgentCake's settings) not recorded at all.
 // Each full snapshot is sent as soon as rrweb has emitted it (with the page record and whatever else is buffered), so

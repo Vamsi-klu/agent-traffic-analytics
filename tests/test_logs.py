@@ -1,4 +1,4 @@
-"""`agentcake logs import` and `agentcake logs formats` (S4.4): agentcake/logs.py against a real `agentcake serve`.
+"""`agentcake logs import` and `agentcake logs formats`: agentcake/logs.py against a real `agentcake serve`.
 
     python3 -I -m unittest discover -s tests -p test_logs.py -v      (from the Agent Cake folder)
 

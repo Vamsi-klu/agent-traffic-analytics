@@ -436,8 +436,6 @@ logs. Back up to a snapshot or another disk, not to this one.
   warns). The floor counts everything on the disk, not only AgentCake, so with the sizes above it comes about 3 GB
   (Debian's share) before the budget is full.
 
-<!-- Check after S2.1 merges: collect then writes replay chunks (S2.5 moved the budget and auto_free onto them). -->
-
 ## Backups
 
 - On a cloud server, take disk snapshots (on Google Cloud, a daily snapshot schedule on the boot disk). A snapshot

@@ -1,4 +1,4 @@
-"""The RFC 9421 signature base (agentcake.detect.httpsig, S3.2): component values and the base a verifier rebuilds.
+"""The RFC 9421 signature base (agentcake.detect.httpsig): component values and the base a verifier rebuilds.
 
     python3 -I -m unittest discover -s tests -v      (from the repository root)
 

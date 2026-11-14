@@ -1,4 +1,4 @@
-"""SHA256SUMS (S6.4): one line per release file, as `shasum -a 256` and `sha256sum` write and check them.
+"""SHA256SUMS: one line per release file, as `shasum -a 256` and `sha256sum` write and check them.
 
 A line is the hex sha256, two spaces (the second one says text mode, which is how both tools write it by default) and
 the file name; lines are sorted by name. `shasum -a 256 -c SHA256SUMS` in the download folder checks every file;

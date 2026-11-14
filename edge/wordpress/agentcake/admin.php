@@ -1,6 +1,6 @@
 <?php
 /**
- * The AgentCake plugin's settings page, Settings > AgentCake (step S4.3), made with WordPress's Settings API and
+ * The AgentCake plugin's settings page, Settings > AgentCake, made with WordPress's Settings API and
  * WordPress's own admin markup: AgentCake's address and the site key for the cake.js line, whether to print that line,
  * where the visitor's address comes from, noStore, and whether the server-half secret is set (never its value). Loaded
  * by agentcake.php in wp-admin only. The site key must look like AgentCake's (ck_ and 3 to 40 letters, digits or _).

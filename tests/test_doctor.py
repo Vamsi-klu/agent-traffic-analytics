@@ -1,4 +1,4 @@
-"""`agentcake doctor` (S1.1, S2.2): agentcake/doctor.py's replay storage line and its checks of the user's own website.
+"""`agentcake doctor`: agentcake/doctor.py's replay storage line and its checks of the user's own website.
 
     python3 -I -m unittest discover -s tests -p test_doctor.py -v      (from the cake folder)
 
@@ -6,17 +6,17 @@ The checks of the running server need a running cake and are covered in tests/te
 passes, and so does one not made yet whose nearest existing folder above can be written (doctor before the first
 start), but not one below a file or a read-only folder, and the line says why; a Python without compression.zstd still
 passes but says replays go to zlib; zstd chunks on such a Python fail. A write refused with EPERM or EACCES in a folder
-whose permissions allow it is a sandbox's doing (GOAL T7: Codex's showed replay storage as FAIL and the user was told to
+whose permissions allow it is a sandbox's doing (Codex's sandbox once showed replay storage as FAIL and the user was told to
 look into the storage): that line is a SKIP that says so and asks for doctor in the user's own terminal, also under a
 real macOS sandbox (sandbox-exec, where it can run).
 The website checks (`doctor --dir`) need no server: every page of a static site must load this cake's page script with
 its site key; a page without it is named; a data folder with no site key yet fails the check instead of crashing.
-Reaching Agent Cake (S6.1): nothing listening is "not running, start it"; a connection a sandbox forbids (EPERM, EACCES,
+Reaching Agent Cake: nothing listening is "not running, start it"; a connection a sandbox forbids (EPERM, EACCES,
 ENETUNREACH) is said to be the sandbox's doing, never "not running", and the lines that need the server are skipped.
-The running server's lines, with its answers made up (D37: there is no demo shop to check): the page script line
+The running server's lines, with its answers made up (there is no demo shop to check): the page script line
 passes when /cake.js answers with this installation's site key in it, and a visit has arrived once a self-check or a
 real session has.
-WARN and SKIP lines are printed and do not fail doctor. The other lines S6.1 added have their own test files:
+WARN and SKIP lines are printed and do not fail doctor. The other lines have their own test files:
 test_doctor_machine.py, test_doctor_site.py, test_doctor_live.py.
 """
 import contextlib
@@ -216,7 +216,7 @@ class WebsiteChecks(ScratchHome):
 
 
 class Reach(ScratchHome):
-    """How doctor tells "nothing listens on 127.0.0.1" from "this process may not connect there" (GOAL T2: a sandbox
+    """How doctor tells "nothing listens on 127.0.0.1" from "this process may not connect there" (a sandbox
     without network, such as Codex's workspace-write, fails the connection with EPERM while Agent Cake runs outside)."""
 
     def doctor_output(self):

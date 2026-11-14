@@ -1,11 +1,11 @@
-"""How `agentcake eval` reads the answers of S9.2's PostHog training set (plan step S3.7, D36).
+"""How `agentcake eval` reads the answers of the PostHog training set.
 
     python3 -I -m unittest discover -s tests -v
 
 The training set gives each unit its truth and how it is known (truth_strength), whether it is the site owner's
 (owner), the person it is held out with (holdout) and whether the user has yet to confirm its label (pending). The
 site owner's presumed humans and pending labels are weak answers: listed in their own groups, never pooled or fitted.
-S1.5's dataset, which has none of these fields, is read as before.
+The first local PostHog dataset, which has none of these fields, is read as before.
 """
 import os
 import sys

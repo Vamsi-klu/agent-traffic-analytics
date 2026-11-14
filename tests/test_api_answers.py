@@ -1,4 +1,4 @@
-"""agentcake/api/answers.py (S5.1): who may ask /api, JSON bodies, and the error body every refusal carries.
+"""agentcake/api/answers.py: who may ask /api, JSON bodies, and the error body every refusal carries.
 
     python3 -I -m unittest discover -s tests -p test_api_answers.py -v      (from the Agent Cake folder)
 

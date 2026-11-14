@@ -1,13 +1,13 @@
-"""agentcake/api/visits.py (S5.1): which sessions the pages show, and each one as the lists show it.
+"""agentcake/api/visits.py: which sessions the pages show, and each one as the lists show it.
 
     python3 -I -m unittest discover -s tests -p test_api_visits.py -v      (from the Agent Cake folder)
 
 Sessions are written into a scratch database the way judging.py and collect leave them. Self-checks, other sites'
-uploads and prefetches never count. D39's categories (the verdict with an Agent session's split, and the agent's name
-with how sure it is) come from the four layers' verdict, or from cake 0.3.4's columns for a session judged before S3.4;
+uploads and prefetches never count. The session categories (the verdict with an Agent session's split, and the agent's name
+with how sure it is) come from the four layers' verdict, or from cake 0.3.4's columns for a session judged before 0.4.0;
 the kind of agent stays inside the verdict. The share adds up to 100 and
 counts the actions its page lists (Every action, by who took them), 0 everywhere without one. A row's length is its recording's, the player's: from its first
-recorded event to its last action, replay event or segment, whichever is later (the dashboard's D30 average is another
+recorded event to its last action, replay event or segment, whichever is later (the dashboard's average length is another
 measure); a Human + agent row's segments count from the same start. Its pages are the pages its
 page lists: each page view and each new address within one. Paging is stable while sessions arrive.
 """

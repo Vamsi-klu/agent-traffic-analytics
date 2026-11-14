@@ -2,7 +2,7 @@
 /*
  * node-crypto.js — HMAC-SHA256 and random token ids with Node's crypto module. Synchronous, so the Node mounting adds the
  * token without waiting for anything. Only express.js loads this file: the edge runtime has no node:crypto.
- * Step S4.1.
+ *
  */
 const { createHmac, createSecretKey, randomBytes } = require("node:crypto")
 const { encodeBase64Url } = require("./token")

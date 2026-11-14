@@ -1,4 +1,4 @@
-// Tests for the replay player's files on the dev, preview, screenshot and test servers (S5.4): the two files cake
+// Tests for the replay player's files on the dev, preview, screenshot and test servers: the two files cake
 // serves under /static/, with script and stylesheet types; anything else goes on. Usage: node --test scripts/
 import assert from "node:assert/strict"
 import { createServer } from "node:http"

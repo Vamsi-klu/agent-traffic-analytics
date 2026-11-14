@@ -1,4 +1,4 @@
-"""The sample lists in eval/*.jsonl carry short hashes and counts only (plan S1.5, GOAL privacy rules).
+"""The sample lists in eval/*.jsonl carry short hashes and counts only (no session id, address or account).
 
 Every line of a sample list may only use the fields listed for that list, and no value may look like an email address,
 an IP address, a UUID (PostHog's session, distinct and person ids are UUIDs), a URL or a local path. A new sample list
@@ -17,7 +17,7 @@ REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 EVAL = os.path.join(REPO, "eval")
 
 ALLOWED_FIELDS = {
-    # agentcake eval (S3.9): CAKE_HOME sessions with their answers; stretches are [from_ms, to_ms, who].
+    # agentcake eval: CAKE_HOME sessions with their answers; stretches are [from_ms, to_ms, who].
     "truth_goal.jsonl": {"h", "case", "group", "class", "row", "name", "verification", "crawler", "stretches",
                          "checked"},
 }

@@ -1,6 +1,6 @@
 <?php
 /**
- * Deleting the AgentCake plugin removes its one option, the settings (step S4.3). It keeps nothing else: no table, no
+ * Deleting the AgentCake plugin removes its one option, the settings. It keeps nothing else: no table, no
  * transient, no file. The secret lives in wp-config.php or the environment, which the plugin never writes.
  */
 

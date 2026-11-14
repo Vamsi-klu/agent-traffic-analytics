@@ -1,4 +1,4 @@
-"""Matching log lines to visits (S4.4, GOAL N5): agentcake/log_match.py, fed the way `logs import` feeds it.
+"""Matching log lines to visits: agentcake/log_match.py, fed the way `logs import` feeds it.
 
     python3 -I -m unittest discover -s tests -p test_log_match.py -v      (from the Agent Cake folder)
 
@@ -36,7 +36,7 @@ from log_samples import (FORMAT_OF_SAMPLE, FORMATS, LANGUAGES, LINE_WRITERS, PAG
                          STATIC, UPLOAD, USER_AGENTS, WHOLE_SECONDS, Truth, browser_headers, published_ipv6)
 from test_webbotauth import AGENT  # noqa: E402
 
-N5_MIN = 0.95  # GOAL section 6, N5: log lines matched to their visit by address hash, User-Agent and 30 s
+N5_MIN = 0.95  # threshold N5: log lines matched to their visit by address hash, User-Agent and 30 s
 T0 = 1794500000000  # when the shop's hour begins (epoch ms)
 HOUR_MS = 3_600_000
 IMPORT_AT = T0 + 3 * HOUR_MS

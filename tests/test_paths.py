@@ -1,19 +1,19 @@
-"""paths.launcher() (S1.1, S6.1): the command setup, doctor and the pages tell people to run has to run; and
-paths.web_folder() (S5.1): where the compiled local pages are.
+"""paths.launcher(): the command setup, doctor and the pages tell people to run has to run; and
+paths.web_folder(): where the compiled local pages are.
 
     python3 -I -m unittest discover -s tests -p test_paths.py -v      (from the Agent Cake folder)
 
 From a release folder or a checkout it is bin/agentcake by its full path. From the .pyz it is this Python and the .pyz
-(S6.4 unpacks the package under $CAKE_HOME/pyz/<version>-<n>/ and runs it in the same process, where `agentcake` may be
+(the release's bootstrap unpacks the package under $CAKE_HOME/pyz/<version>-<n>/ and runs it in the same process, where `agentcake` may be
 on no PATH); a background server started from the .pyz is told the .pyz in $AGENTCAKE_PYZ and says the same. A .pyz
-built here the way S6.4's is (a stand-in bootstrap: unpack, then run in the same process) prints that command in
+built here the way a release's is (a stand-in bootstrap: unpack, then run in the same process) prints that command in
 setup --print, and the command runs. From an installed wheel's `agentcake` (pip, pipx, uv), whose bin folder may be on
 no PATH, it is that command by its full path, and the background server is told it in $AGENTCAKE_COMMAND (M4
 clean-up); `python3 -m agentcake` (SERVER.md's alias, docker exec) keeps the bare command name, which is what the alias
 is called. Every run uses a scratch CAKE_HOME and a free port.
 
 The compiled pages are found in three places, in order: $CAKE_WEB_DIR when it is set; else the folder a release
-carries inside the package (agentcake/web/: wheel, .pyz and unpacked release alike, S6.4); else web/dist next to the
+carries inside the package (agentcake/web/: wheel, .pyz and unpacked release alike); else web/dist next to the
 package, as a checkout has it after `npm run build`. Each is checked with a scratch package folder that has the one or
 the other.
 """
@@ -50,7 +50,7 @@ sys.argv[0] = pyz
 sys.path[:] = [entry for entry in sys.path if os.path.abspath(entry) != pyz]
 sys.path.insert(0, target)
 runpy.run_module("agentcake", run_name="__main__", alter_sys=False)
-"""  # what S6.4's bootstrap does (#m3207): unpack, then agentcake/__main__.py in this process, argv[0] still the .pyz
+"""  # what the release's bootstrap does: unpack, then agentcake/__main__.py in this process, argv[0] still the .pyz
 
 
 class Scratch(unittest.TestCase):
@@ -61,7 +61,7 @@ class Scratch(unittest.TestCase):
         self.env.pop(paths.PYZ_ENV, None)
 
     def build_pyz(self):
-        """agentcake.pyz the way S6.4 makes it: the package and a bootstrap that unpacks it and runs it."""
+        """agentcake.pyz the way a release makes it: the package and a bootstrap that unpacks it and runs it."""
         staging = os.path.join(self.scratch, "staging")
         shutil.copytree(os.path.join(ROOT, "agentcake"), os.path.join(staging, "agentcake"),
                         ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
@@ -214,7 +214,7 @@ class WebFolder(unittest.TestCase):
 
 
 class Archive(unittest.TestCase):
-    """paths.archive() (S6.6): the .pyz the package is imported from, when the bootstrap runs a command from the zip
+    """paths.archive(): the .pyz the package is imported from, when the bootstrap runs a command from the zip
     without unpacking it (--version, help), so that the package's files are read from inside it."""
 
     def test_a_package_in_a_folder_is_in_no_archive(self):

@@ -1,4 +1,4 @@
-// Plays one session's replay on the session's own clock (S5.4): rrweb-player (./rrweb-player.ts) fed chunk by chunk
+// Plays one session's replay on the session's own clock: rrweb-player (./rrweb-player.ts) fed chunk by chunk
 // (./chunk-feed.ts). It starts with the chunks the start moment needs plus the next one, reads each next chunk as
 // playback enters the one before it, reads every chunk before a moment it jumps to, and waits (then goes on) if
 // playback ever gets ahead of what has arrived. The cursor carries the name of who acted at that moment (data-who,

@@ -1,8 +1,8 @@
-"""The date ranges of the dashboard and the session list, and wall-clock times in words (S5.1).
+"""The date ranges of the dashboard and the session list, and wall-clock times in words.
 
 A session's wall-clock time is sessions.start_ms: when cake received its first upload, on this computer's clock,
 shown in this computer's timezone (the owner's). A range is today, the last 7 or the last 30 days, each from local
-midnight (data/api.json range_days); no range is every session. The words are api.en.json's "when" (English only, D21:
+midnight (data/api.json range_days); no range is every session. The words are api.en.json's "when" (English only:
 no locale is read).
 
     now_ms()                          this computer's clock (the tests replace it)

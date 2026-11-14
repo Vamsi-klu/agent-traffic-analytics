@@ -1,11 +1,11 @@
-"""The command line, the way people run it (S1.1): start, status, ping, doctor, stop and --version, and the 0.3.x
+"""The command line, the way people run it: start, status, ping, doctor, stop and --version, and the 0.3.x
 entry points (bin/cake, cake.py) that existing installs and older deploy/cake.service files still use. A Python
-older than Agent Cake needs gets a sentence saying so from every entry point (M1 clean-up).
+older than Agent Cake needs gets a sentence saying so from every entry point.
 
     python3 -I -m unittest discover -s tests -v      (from the Agent Cake folder)
 
 Every command runs in its own process against a scratch CAKE_HOME and a free port, never the user's ~/.cake. Each
-command imports its own module when it runs (M4 clean-up): `--version` loads only the settings, the words and the paths,
+command imports its own module when it runs: `--version` loads only the settings, the words and the paths,
 and the commands that need no database load no storage, judging or server.
 """
 import json, os, shutil, socket, subprocess, sys, tempfile, tomllib, unittest
@@ -73,7 +73,7 @@ class Version(unittest.TestCase):
 
 class CommandsImportWhatTheyRun(unittest.TestCase):
     """Every command is a Python process of its own: importing every command's module made each of them, --version
-    too, load the server, the judging and the storage first (M2 clean-up: 0.35 s of a 0.7 s start)."""
+    too, load the server, the judging and the storage first (0.35 s of a 0.7 s start)."""
 
     def setUp(self):
         self.env = scratch_env()
@@ -139,7 +139,7 @@ class Stop(unittest.TestCase):
         self.assertEqual(run(AGENTCAKE, env, "status").returncode, 1)
 
     def test_stop_returns_once_the_cake_has_exited_and_left_its_port(self):
-        """S6.6: stop said "stopped" right after asking, while the server still ran for about half a second, so a
+        """stop used to say "stopped" right after asking, while the server still ran for about half a second, so a
         start straight after could find the port taken."""
         env = scratch_env()
         self.addCleanup(shutil.rmtree, env["CAKE_HOME"], True)

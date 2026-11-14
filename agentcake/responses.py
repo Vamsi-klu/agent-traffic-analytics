@@ -1,4 +1,4 @@
-"""Requests and responses as plain values (S1.1): a view takes a Request and returns a Response.
+"""Requests and responses as plain values: a view takes a Request and returns a Response.
 
 server.py builds the Request from the socket and writes the Response back, so each resource (collect.py, the
 modules of api/, assets.py) is a module of small functions, like PostHog 1.0's posthog/api/<resource>.py.

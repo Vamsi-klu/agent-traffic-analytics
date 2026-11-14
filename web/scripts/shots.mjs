@@ -18,10 +18,10 @@ const here = path.dirname(fileURLToPath(import.meta.url))
 const dist = path.join(here, "..", "dist")
 export const ROUTES = { home: "#/", components: "#/components", dashboard: "#/dashboard", sessions: "#/sessions", "sessions-agent": "#/sessions?filter=agent&turns=human_agent",
   session: "#/sessions/7f3a-c1", "session-freed": "#/sessions/2b9e-c4", settings: "#/settings", register: "#/" }
-/** The pages shot on real data: the fixed test library's answers (S5.3). */
+/** The pages shot on real data: the fixed test library's answers. */
 export const LIBRARY_PAGES = ["dashboard", "sessions"]
 /** Pages shot with some answers swapped for other samples, { page: { url glob: sample } }: the registration card is
- *  what an AgentCake opened for the first time shows (S5.8). */
+ *  what an AgentCake opened for the first time shows. */
 export const PAGE_ANSWERS = { register: { "**/api/register": "register/first-run" } }
 const fixtures = path.join(here, "..", "src", "data", "fixtures")
 

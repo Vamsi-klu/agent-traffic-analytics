@@ -1,4 +1,4 @@
-"""Deleting visits (S6.5; GOAL G12): every trace of a session, so that nothing of it can be found afterwards.
+"""Deleting visits: every trace of a session, so that nothing of it can be found afterwards.
 
 delete_sessions(ids, now_ms) is the one way to delete, run by the process that owns the data folder: the command line
 calls it when cake is not running (delete_command.py), and the running cake calls it for POST /api/delete (api.py),
@@ -14,7 +14,7 @@ maintenance thread wait until it is done. For the given ids it:
    table with a session_id column (store.SESSION_TABLES: a table that keeps a session's rows names that column
    session_id) and the sessions row; in the database's own settings (what `agentcake migrate` recorded) the id
    becomes DELETED_MARK;
-3. gives the space back the S2.2 way: space.reclaim_if_due() runs recompress.reclaim(), which deletes a file nothing
+3. gives the space back the way the chunk files are compacted: space.reclaim_if_due() runs recompress.reclaim(), which deletes a file nothing
    live is in, compacts a mostly dead one and drops the stylesheets no chunk refers to (this hour's file stays; its
    dead bytes are the zeros of step 1);
 4. rewrites the database file (VACUUM) and empties the write-ahead log (wal_checkpoint TRUNCATE). secure_delete does

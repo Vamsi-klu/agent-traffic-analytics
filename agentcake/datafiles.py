@@ -1,11 +1,11 @@
-"""The JSON files that ship inside the package (S1.2): defaults.json and data/*.json.
+"""The JSON files that ship inside the package: defaults.json and data/*.json.
 
 load("data/verdict.json") returns the parsed file, read once per process: these files are part of the release, not of
 the user's data, so they cannot change while cake runs. The user's own settings ($CAKE_HOME/config.json) are read by
 config.py on every use instead.
 
 read(name) is the file's text, from the package's folder, or from inside agentcake.pyz when the package is imported
-from the zip: the .pyz answers --version and help that way, without unpacking into CAKE_HOME (S6.6).
+from the zip: the .pyz answers --version and help that way, without unpacking into CAKE_HOME.
 """
 import functools
 import json

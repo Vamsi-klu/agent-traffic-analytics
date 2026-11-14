@@ -1,4 +1,4 @@
-"""agentcake/evaluation/calibration.py: fitting the behaviour map and checking percents (plan step S3.7, D36).
+"""agentcake/evaluation/calibration.py: fitting the behaviour map and checking percents.
 
     python3 -I -m unittest discover -s tests -v
 """

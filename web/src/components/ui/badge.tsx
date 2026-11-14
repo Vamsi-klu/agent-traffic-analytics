@@ -24,7 +24,7 @@ const badgeVariants = cva(
         agent: "border-line bg-agent-soft text-agent-foreground",
         unknown: "border-line bg-unsure-soft text-unsure-foreground",
         bot: "border-line bg-muted text-faint-foreground",
-        // a Human session cake couldn't tell (D39): beside its Human badge, through <ThinEvidenceTag>
+        // a Human session cake couldn't tell: beside its Human badge, through <ThinEvidenceTag>
         thin: "rounded-md border-dashed border-line bg-unsure-soft text-unsure-foreground font-bold",
         // neutral tag: agent names, sources, "off by default"
         tag: "rounded-md border-border bg-card text-muted-foreground font-bold",

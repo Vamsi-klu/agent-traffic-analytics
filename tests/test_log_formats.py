@@ -1,4 +1,4 @@
-"""Reading web server access logs (S4.4): agentcake/log_formats.py.
+"""Reading web server access logs: agentcake/log_formats.py.
 
     python3 -I -m unittest discover -s tests -p test_log_formats.py -v      (from the Agent Cake folder)
 

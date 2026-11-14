@@ -1,10 +1,10 @@
-"""GET /api/sessions?verdict=&turns=&evidence=&agent=&range=&cursor=: the session list, one page at a time (S5.1; S5.4
-draws it).
+"""GET /api/sessions?verdict=&turns=&evidence=&agent=&range=&cursor=: the session list, one page at a time (the
+session list page draws it).
 
 First the sessions with data newer than their verdict are judged (judging.catch_up); then, newest first, the sessions
-that count (visits.py) with the verdict (visits.VERDICTS, D39; none or "all" is every verdict), of an Agent session's
+that count (visits.py) with the verdict (visits.VERDICTS; none or "all" is every verdict), of an Agent session's
 split `turns` (agent_only or human_agent, which narrows the list to Agent sessions), on thin `evidence` (Human sessions
-cake could not tell, D39), of the agent named exactly as agent_names lists it, in the range. A page holds data/api.json
+cake could not tell), of the agent named exactly as agent_names lists it, in the range. A page holds data/api.json
 page_size sessions; `next` is an opaque cursor for the page after it (the last row's start and id: rows added since do
 not shift the pages), null on the last page; total is how many sessions every filter keeps. counts are under the agent
 and range filters whatever the verdict and split; agent_names (the named agents: an agent no name fits has no name

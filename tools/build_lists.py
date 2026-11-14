@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
-"""Refresh the lists that ship with Agent Cake (S3.1, D23), as PostHog's refresh_bot_ip_ranges.py does for its own.
+"""Refresh the lists that ship with Agent Cake, as PostHog's refresh_bot_ip_ranges.py does for its own.
 
     python3 -I tools/build_lists.py        (from the cake folder; needs the internet)
 
 Fetches every source in agentcake/data/lists/sources.json (botscent, PostHog and ai.robots.txt at their current
 commits, the operators' published address lists, the Web Bot Auth key directories) and rewrites names.json,
-ip_ranges.json, signers.json and keys.json in that folder. Then: read the summary below (disagreements between
-sources and skipped names deserve a decision in sources.json), review the diff, run the tests, update the dates and
-commits in THIRD_PARTY.md, and commit. Nothing is written when any source fails.
+ip_ranges.json, signers.json and keys.json in that folder, with each repository's licence file at that commit
+(<source>.LICENSE.txt, unchanged). Then: read the summary below (disagreements between sources and skipped names
+deserve a decision in sources.json), review the diff, run the tests, update the dates and commits in THIRD_PARTY.md,
+and commit. Nothing is written when any source fails.
 """
 import datetime
 import os

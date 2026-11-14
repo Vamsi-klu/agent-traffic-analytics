@@ -1,18 +1,18 @@
-"""The behaviour model's tables on every dataset with known answers (plan step S3.7; GOAL A1–A5).
+"""The behaviour model's tables on every dataset with known answers (thresholds A1–A5).
 
 Each table function takes loaded data and returns {"rows": one per session, "summary": counts and medians}:
 - lab(sessions): our lab's 26 agent sessions, each judged on its raw events and on its rrweb recording.
-- posthog(units, groups): note 12's units of tartini.ai's PostHog replays (probably human, and agent windows).
-- mixed(replays): note 12's 13 mixed replays, per action: the timeline (0.3.4's judge) and the main model's
+- posthog(units, groups): the units of tartini.ai's PostHog replays (probably human, and agent windows).
+- mixed(replays): the 13 mixed replays among them, per action: the timeline (0.3.4's judge) and the main model's
   segments, truth by the agent windows.
-- recordings(clean_humans): the clean human sessions recorded for S1.5, on raw events and on rrweb (A1).
+- recordings(clean_humans): the clean human sessions we recorded, on raw events and on rrweb (threshold A1).
 The lab sessions and the recordings are datasets.lab_sessions()' and datasets.recordings()', as `agentcake eval`
 reads them.
 - splices(agents, humans, ...): take-over sessions spliced from real agent and human stretches, both per-action
   methods, with hand-off errors.
 
 Rows carry short hashes and lab run names only; agentcake.detect does the judging. Moved from
-the research tools' behaviour_tables.py in S3.9 so that `agentcake eval` and the research tools share it.
+the research tools' behaviour_tables.py so that `agentcake eval` and the research tools share it.
 """
 import collections
 import statistics
@@ -69,7 +69,7 @@ def mixed(replays):
 
 
 def recordings(clean_humans):
-    """clean_humans: datasets.recordings(), the S1.5 recorder's clean human sessions (A1), judged both ways."""
+    """clean_humans: datasets.recordings(), the recorder's clean human sessions (threshold A1), judged both ways."""
     rows = []
     for human in clean_humans:
         rrweb = human["rrweb"]
@@ -123,10 +123,10 @@ def validation_sessions(units, mixed_replays, groups, agent_group):
 
 
 def posthog_group(unit, groups):
-    """Note 12's groups: the unit's own group when the dataset names one, else the kind of agent from the unit's kt
-    or reason; the probably-human group for people. In S9.2's training set the units the user labelled are a group of
+    """The PostHog study's groups: the unit's own group when the dataset names one, else the kind of agent from the unit's kt
+    or reason; the probably-human group for people. In the PostHog training set the units the user labelled are a group of
     their own, and so are the site owner's presumed humans (weak answers: settings "untrusted")."""
-    strength = unit.get("truth_strength")  # S9.2's training set says how each answer is known; S1.5's says not
+    strength = unit.get("truth_strength")  # the training set says how each answer is known; the first dataset not
     if unit.get("pending") and "pending" in groups:  # a label the user has yet to confirm
         return groups["pending"]
     if strength is not None and strength == groups.get("user_strength"):
@@ -134,7 +134,7 @@ def posthog_group(unit, groups):
     if unit["label"] != "agent":
         weak = unit.get("owner") and strength in (groups.get("untrusted") or {}).get("owner_strengths", ())
         return groups["owner_presumed"] if weak else (unit["group"] or unit["label"])
-    if unit.get("group"):  # a dataset that names each agent unit's group (S9.2's PostHog training set) keeps it
+    if unit.get("group"):  # a dataset that names each agent unit's group (the PostHog training set) keeps it
         return unit["group"]
     if unit["reason"] in groups["by_reason"]:
         return groups["by_reason"][unit["reason"]]
@@ -148,15 +148,16 @@ def _splice_row(spliced, raw_input):
     row = {"verdict": result["verdict"], "truth_agent_s": _truth_seconds(truth)}
     if result["verdict"] == "too_little_data":
         return row
-    true_handoffs = [t for t, _, _ in splice.boundaries(truth)]
+    true_handoffs = splice.boundaries(truth)
     actions = [(a, splice.who_at(truth, a["t"])) for a in result["timeline"]["actions"]]
     segments = [(s, splice.who_at(truth, s["act_t"])) for s in result["segments"]]
     segment_runs = timeline.runs([{"t": s["end"], "first": s["act_t"], "start": s["start"], "who": s["who"],
                                    "p": s["p"]} for s in result["segments"]])
     row["every_stretch_has_an_action"] = all(any(start <= a["t"] <= end for a, _ in actions)
                                              for start, end, _ in truth)
-    for method, items, predicted in (("timeline", actions, [h["t"] for h in result["timeline"]["handoffs"]]),
-                                     ("segments", segments, [h["t"] for h in timeline.handoffs(segment_runs)])):
+    for method, items, handoffs in (("timeline", actions, result["timeline"]["handoffs"]),
+                                    ("segments", segments, timeline.handoffs(segment_runs))):
+        predicted = [(h["t"], h["from"], h["to"]) for h in handoffs]
         kept = [(item, who) for item, who in items if who is not None]
         row[method] = scoring.action_scores([item["who"] for item, _ in kept], [who for _, who in kept])
         row[method + "_handoff_errors_s"], row[method + "_handoffs_extra"] = scoring.handoff_errors(

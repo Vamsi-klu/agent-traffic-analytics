@@ -1,40 +1,40 @@
 """The lab's 25 behaviour features of a segment, and their missing variant for recordings without raw input.
 
-Part of the behaviour layer (plan step S3.6). Input: the events of a segment (segment.py) and of its whole session,
+Part of the behaviour layer. Input: the events of a segment (segment.py) and of its whole session,
 in the raw-event format of our lab's raw.js (rrweb_events.py rebuilds it from rrweb recordings). Output: a dict of
 the 25 features in FEATURES order. A feature with nothing to measure is None ("no data"), never 0; the behaviour
-model (S3.7) reads None as "no evidence".
+model reads None as "no evidence".
 
 Ported from our own code with the same definitions and the same arithmetic, so the numbers match exactly:
 the behaviour lab's labcore.py (feats, FEATURES; 2026-11-11), and the missing
-variant from the PostHog study's phcore.py (blank_unobservable; research note 12,
+variant from the PostHog study's phcore.py (blank_unobservable,
 2026-11-12). One change in how, not what: the lab rescanned the whole session for every click and every scroll;
 here those lookups use time indexes built once per session (SessionIndex), so a long session costs O(n log n)
 instead of O(n^2). Parameters come from agentcake/data/features.json ("features", "unobservable").
 
-Job borrow-rules (plan decision D33) narrowed four definitions after other projects' rules, all MIT, ideas and
+Four definitions were narrowed after other projects' rules, all MIT, ideas and
 thresholds only, no code copied: moves_before_click reads only a mouse's clicks (bot-signal's isPointerClick,
 github.com/okasi/bot-signal 25a4e7b0159f, src/behavioral/analysis.ts); input_no_keydown reads only typed text and no
 touch session (agent-detector's insertWithoutKeys, github.com/doubleagent-so/agent-detector a523214c3b67,
 src/behavior/features.ts); screen_eq_client needs two places (bot-signal's cdp-input-coordinate-leak);
 scroll_no_wheel also takes a finger, a held button and a release as the input behind a scroll (agent-detector's
-scroll drivers, src/behavior/scroll.ts and features.ts). Evidence: job borrow-rules.
+scroll drivers, src/behavior/scroll.ts and features.ts).
 
 The features, by group:
 - pointer path (trusted mousemoves): n_move, move_rate (per second), straightness (end-to-end distance / path
   length), speed_cv (spread of the speeds / their mean), jerk_any (1 if the speed ever jumps).
-- clicks: moves_before_click (mousemoves just before; only for clicks a mouse made, mouse_click()), click_center_norm
-  and click_center_px (distance from the centre of the clicked element: 0 in the middle, 1 on a corner; and in
-  pixels), click_lt1px (share under a pixel), hover_before_click (a mouseover on the same element just before),
-  down_up_ms (mousedown to click).
+- clicks: moves_before_click (mousemoves just before; only for clicks a mouse made, mouse_click(), that do not repeat
+  the previous one in place, approached_clicks()), click_center_norm and click_center_px (distance from the centre of
+  the clicked element: 0 in the middle, 1 on a corner; and in pixels), click_lt1px (share under a pixel),
+  hover_before_click (a mouseover on the same element just before), down_up_ms (mousedown to click).
 - pointer hardware: zero_movement_frac (movementX/Y both 0), screen_eq_client (screenX/Y equal clientX/Y, counted
-  only when they are equal at screen_eq_min_positions different places in the session: job borrow-rules B5),
+  only when they are equal at screen_eq_min_positions different places in the session),
   pressure_zero_click (pointerdowns with pressure 0), screen_offset_jump (screen-minus-client offset changed
   between pointer events on a page, which a real mouse does not do while the window stays put).
 - scroll and keys: wheel_n, scroll_no_wheel (scrolls with no wheel or key just before, no finger on the screen or
-  button held down, and no release just before: job borrow-rules B6), keys_n, input_no_keydown
+  button held down, and no release just before), keys_n, input_no_keydown
   (typed text with no keydown just before; only typed text, not a paste, an autofill, a drop or an input method's
-  composition, and not in a session where a finger or a pen gave input: job borrow-rules B4), key_iv_cv (spread of
+  composition, and not in a session where a finger or a pen gave input), key_iv_cv (spread of
   the gaps between keydowns), key_burst (share of gaps too short for a hand).
 - page state and timing: untrusted (events with isTrusted false), no_focus, hidden, pause_before_ms (wait since the
   previous segment ended).
@@ -44,6 +44,7 @@ import math
 import statistics
 
 from agentcake.detect import segment
+from agentcake.detect.clicks import TOUCH_OR_PEN, mouse_click, repeats_in_place
 from agentcake.units import MS_PER_S
 
 FEATURES =("n_move", "move_rate", "moves_before_click", "click_center_norm", "click_center_px", "straightness",
@@ -52,13 +53,10 @@ FEATURES =("n_move", "move_rate", "moves_before_click", "click_center_norm", "cl
             "down_up_ms", "pause_before_ms", "key_burst", "click_lt1px", "pressure_zero_click", "screen_offset_jump")
 
 CORNER = math.hypot(1, 1)  # distance from the centre of a box to a corner, in half-sides
-MOUSE = "mouse"  # protocol: PointerEvent.pointerType of a mouse
-TOUCH_OR_PEN = frozenset({"touch", "pen"})  # protocol: the other PointerEvent.pointerType values
 TOUCH_EVENTS = frozenset({"touchstart", "touchend"})
 POINTER_POSITION_EVENTS = ("mousemove", "click", "mousedown", "pointerdown")
 PRESSES = frozenset({"mousedown", "pointerdown", "touchstart"})  # a button or a finger goes down
 RELEASES = frozenset({"mouseup", "pointerup", "touchend"})  # and comes up again
-KEYBOARD_DETAIL = 0  # protocol: UI Events: a click made with the keyboard (Enter, Space) has detail 0
 
 
 def session_features(events, raw_input=True, params=None):
@@ -94,32 +92,24 @@ def segment_features(seg_events, session_events=None, prev_end=None, params=None
     return _features(seg_events, SessionIndex(session_events or seg_events, p), prev_end, p)
 
 
-def mouse_click(click, press_type=None):
-    """Whether a mouse made this click, so that the pointer's approach to it says something about who clicked (job
-    borrow-rules B3, after bot-signal's isPointerClick and agent-detector's mouse presses, MIT): not the keyboard's
-    (detail 0) and not a finger's or a pen's, by the click's own pointerType or, when the click names none (Safari's
-    click is a MouseEvent), press_type: that of the pointerdown just before it. A click that says neither, as an
-    rrweb recording's, counts as a mouse's."""
-    if click.get("d") == KEYBOARD_DETAIL:
-        return False
-    pointer = click.get("pt")
-    if pointer is None:
-        pointer = press_type
-    return pointer is None or pointer == MOUSE
-
-
 def mouse_clicks(events, params=None):
     """The session's clicks a mouse made (mouse_click()), in time order. params: the "features" section of
     features.json (default: the packaged one)."""
+    return SessionIndex(events, params or segment.load_params()["features"]).mouse_clicks
+
+
+def approached_clicks(events, params=None):
+    """The session's mouse clicks that show an approach of their own, in time order: mouse_clicks() without the ones
+    that repeat the previous click in place (SessionIndex.in_place). params as for mouse_clicks()."""
     index = SessionIndex(events, params or segment.load_params()["features"])
-    return [e for e in index.events if e.get("ty") == "click" and index.mouse_click(e)]
+    return [c for c in index.mouse_clicks if id(c) not in index.in_place]
 
 
 def blank_unobservable(features, names=None):
     """A copy of features with the named ones set to None (missing, not false).
 
     names default to the "unobservable" list of features.json: the 8 features an rrweb-only recording cannot
-    measure (research note 12's missing variant). The thresholds of the model stay as they are.
+    measure (the model's missing-data variant). The thresholds of the model stay as they are.
     """
     blank = dict(features)
     for name in names if names is not None else segment.load_params()["unobservable"]["features"]:
@@ -136,6 +126,11 @@ class SessionIndex:
         self.move_times = _times(events, {"mousemove"})
         presses = [e for e in events if e.get("ty") == "pointerdown"]
         self.press_times, self.press_types = [e["t"] for e in presses], [e.get("pt") for e in presses]
+        self.mouse_clicks = [e for e in events if e.get("ty") == "click" and self.mouse_click(e)]
+        # the mouse clicks that repeat the one before them in place show no approach or aim of their own
+        self.in_place = repeats_in_place([c for c in self.mouse_clicks if c.get("cx") is not None],
+                                         [e for e in events if e.get("ty") == "mousemove" and e.get("cx") is not None],
+                                         params["double_click_box_px"])
         # a finger or a pen gave input somewhere in the session (agent-detector's touchInput)
         self.touch_input = any(e.get("ty") in TOUCH_EVENTS or e.get("pt") in TOUCH_OR_PEN for e in events)
         # the places where the screen and the page positions of a pointer event were the same (bot-signal's
@@ -243,7 +238,7 @@ def _path_features(ev, p):
 def _click_features(ev, index, p):
     moves_before, centre_norm, centre_px, hovered, held = [], [], [], [], []
     for c in (e for e in ev if e["ty"] == "click"):
-        if index.mouse_click(c):
+        if index.mouse_click(c) and id(c) not in index.in_place:  # the pointer on the spot already: no approach
             moves_before.append(index.count_moves(c["t"] - p["before_click_ms"], c["t"]))
         offset = _offset_from_centre(c)
         if offset is not None:

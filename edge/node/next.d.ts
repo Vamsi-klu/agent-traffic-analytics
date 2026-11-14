@@ -1,4 +1,4 @@
-// Types for @agentcake/edge/next (next.js). Step S4.1.
+// Types for @agentcake/edge/next (next.js).
 import type { CakeOptions } from "./index"
 
 export type NextOptions = CakeOptions & {

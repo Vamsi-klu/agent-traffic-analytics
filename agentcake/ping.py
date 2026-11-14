@@ -1,6 +1,6 @@
-"""`ping`: one self-check visit, marked as a test so it never counts as a real visit (S1.1). It asks for the page
-script first, as a page would, then sends one upload of an empty page view of the local page to collect (D37: until
-then the visit went to the demo shop).
+"""`ping`: one self-check visit, marked as a test so it never counts as a real visit. It asks for the page
+script first, as a page would, then sends one upload of an empty page view of the local page to collect (until
+0.4.0 the visit went to the demo shop).
 
 http_get(url, timeout) -> (status or None, text) is the small GET that ping and doctor use against the local server.
 """

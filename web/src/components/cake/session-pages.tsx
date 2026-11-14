@@ -1,4 +1,4 @@
-// The pages of one session, in the order they opened (DESIGN.md §6.4, S5.4): the entry page and the exit page, then a
+// The pages of one session, in the order they opened (DESIGN.md §6.4): the entry page and the exit page, then a
 // row per page with when it opened, the page, how long the visit stayed, who acted there and its actions. With a replay
 // to move, a row moves it to when its page opened and plays from there, as Jump to hand-off does; the row's time is the
 // button keyboards reach. Data: `pages` of /api/session/<id>.

@@ -1,4 +1,4 @@
-"""`agentcake migrate` (S2.2): a cake 0.3.4 database into the new storage, nothing lost.
+"""`agentcake migrate`: a cake 0.3.4 database into the new storage, nothing lost.
 
     python3 -I -m unittest discover -s tests -p test_migrate.py -v      (from the cake folder)
 
@@ -140,7 +140,7 @@ class Migrate(unittest.TestCase):
 
     def test_a_visit_that_went_on_after_the_upgrade_keeps_its_new_events(self):
         """0.3.4 recorded the start of visit1 as rows; after the upgrade, before migrate ran, the new collect wrote
-        the rest of the visit into chunks (S2.1). Migrate copies the rows next to those chunks and deletes nothing."""
+        the rest of the visit into chunks. Migrate copies the rows next to those chunks and deletes nothing."""
         con = store.db()  # the new cake opens the database the new way when it starts
         newer = [(NOW + i * 100, json.dumps({"type": 3, "data": {"n": i}, "timestamp": NOW + i * 100},
                                             separators=(",", ":")), "pv1") for i in range(30)]

@@ -1,4 +1,4 @@
-"""Agent products' marks on the page, and when each was there (S3.3, S3.7; GOAL A5: where a person took over).
+"""Agent products' marks on the page, and when each was there (threshold A5: where a person took over).
 
 agentcake/data/agent_markers.json lists the marks; cake.js watches them (static/src/markers.js) and sends a `marker`
 record when one appears or goes away, and a `markers` record when its watch starts and at exit (docs/collect-format.md).
@@ -12,7 +12,7 @@ This module reads that table, one page view's records and a session's signals:
                                                        `overlay` items as the mark the table's "recorder" names
     turn_spans(signals, table=None) -> [span]          when an agent product said its agent was working: the spans of
                                                        the table's turn_kinds over the session, cut where the page was
-                                                       hidden (S3.7's timeline gives the actions inside to the agent)
+                                                       hidden (the model's timeline gives the actions inside to the agent)
     describe(span, start_ms, table=None) -> str        a span in the table's words, for a reason, e.g.
                                                        "Claude in Chrome's “working” indicator was on 00:42–01:15"
     words(marker, from_ms, to_ms, field="text", table=None) -> str | None
@@ -207,7 +207,10 @@ def _without(start, end, holes):
 
 def turn_spans(signals, table=None):
     """The spans of the table's turn_kinds over a session (env_signals' dict): each page view's, a span still open at
-    its end closed at its last record, and cut where that page was hidden. Sorted by their start."""
+    its end closed at its last record, and cut where that page was hidden. Sorted by their start. Each says whether it
+    ended with its mark going away in sight ("went_off": the page view went on), rather than with its page view or
+    where the page was hidden, when nothing was looked at: only then is its end the agent's turn ending, or the page
+    being left (the timeline tells the two apart by what came next)."""
     table = table or load_table()
     out = []
     for page in signals.get("pages") or []:
@@ -216,7 +219,7 @@ def turn_spans(signals, table=None):
             end = span["to"] if span["to"] is not None else marks.get("until")
             if span["kind"] not in table.turn_kinds or end is None:
                 continue
-            out += [dict(span, **{"from": begin, "to": finish})
+            out += [dict(span, **{"from": begin, "to": finish, "went_off": span["to"] is not None and finish == end})
                     for begin, finish in _without(span["from"], end, marks.get("hidden") or ())]
     return sorted(out, key=lambda span: span["from"])
 

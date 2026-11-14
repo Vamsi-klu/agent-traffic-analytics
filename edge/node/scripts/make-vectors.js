@@ -6,7 +6,7 @@
  *
  * Every vector is made by this package (index.js) from the fixed inputs below, so the same inputs write the same file.
  * Run it only when the token's format changes on purpose; every middleware's tests and cake's then show what changed.
- * The secrets are for tests only. Step S4.1.
+ * The secrets are for tests only.
  */
 const fs = require("node:fs")
 const path = require("node:path")

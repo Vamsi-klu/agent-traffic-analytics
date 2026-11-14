@@ -1,4 +1,4 @@
-"""tools/releasing/scan.py (plan step S6.4): compiled Python, node_modules and this computer's paths are found in a
+"""tools/releasing/scan.py: compiled Python, node_modules and this computer's paths are found in a
 release file and named without their value; a clean release has no problem.
 
     python3 -I -m unittest discover -s tests -v      (from the repository root)

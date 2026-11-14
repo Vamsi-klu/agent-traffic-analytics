@@ -1,4 +1,4 @@
-"""Web server access log formats (S4.4): each described by the web server's own format string, compiled into a parser.
+"""Web server access log formats: each described by the web server's own format string, compiled into a parser.
 
     named(name) -> LogFormat              a format data/logs.json names: the recommended ones, combined, Caddy's JSON
     from_nginx(text) -> LogFormat         a site's own nginx log_format (the string, or the directive pasted whole)

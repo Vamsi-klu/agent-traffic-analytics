@@ -1,8 +1,8 @@
-// check:dist (runs at the end of `npm run build`): the release shows no sample data (S5.1). No session from
+// check:dist (runs at the end of `npm run build`): the release shows no sample data. No session from
 // src/data/fixtures/ (its id, or a sentence of a sample session) appears in any file of dist/, and nothing in dist/
 // comes from the fixtures or schema folders. The fixtures only feed the screenshot and dev servers. The recorded
 // replays (fixtures/replay/) are left out of the marks: they are the recorded shop's own pages (tests/site, the demo shop
-// until D37), whose words are not the interface's.
+// until 0.4.0), whose words are not the interface's.
 // Usage: node scripts/check-dist.mjs   (exit 1 on any problem)
 import { readdirSync, readFileSync, statSync } from "node:fs"
 import path from "node:path"

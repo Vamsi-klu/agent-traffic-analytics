@@ -1,5 +1,5 @@
 {
-  "$comment": "The JSON API's numbers and mappings (S5.1, agentcake/api/). The words of its answers are in api.en.json, the dashboard's coverage note in coverage.en.json, the home page's example in example.json. Times in ms unless the key says otherwise.",
+  "$comment": "The JSON API's numbers and mappings (agentcake/api/). The words of its answers are in api.en.json, the dashboard's coverage note in coverage.en.json, the home page's example in example.json. Times in ms unless the key says otherwise.",
 
   "page_size": 20,
   "latest": 6,
@@ -13,7 +13,7 @@
   "action_merge_ms": 1000,
   "budget_choices_mb": [5120, 10240, 20480, 51200],
 
-  "$verdicts": "D39's verdict (judging.en.json 'verdicts') of each class verdict.py gives and of cake 0.3.4's verdict column (human, agent, unsure): mixed is an Agent session; Not sure and Too little data are Human, marked: evidence 'thin' (the user, 11/13: a session cake can't tell is counted as human, and marked; the reasons say why), as is a session not judged yet. agent_turns splits an Agent session: Agent only, or Human + agent (a human and an agent took turns). certainty: how sure an agent's or a bot's name is, by attribute.py's certainty (verified names are certain). layer_states: a layer's state as the reasons panel shows it (the behavior layer's mixed: Human + agent).",
+  "$verdicts": "The verdict (judging.en.json 'verdicts') of each class verdict.py gives and of cake 0.3.4's verdict column (human, agent, unsure): mixed is an Agent session; Not sure and Too little data are Human, marked: evidence 'thin' (a session cake can't tell is counted as human, and marked; the reasons say why), as is a session not judged yet. agent_turns splits an Agent session: Agent only, or Human + agent (a human and an agent took turns). certainty: how sure an agent's or a bot's name is, by attribute.py's certainty (verified names are certain). layer_states: a layer's state as the reasons panel shows it (the behavior layer's mixed: Human + agent).",
   "verdicts": {"human": "human", "agent": "agent", "mixed": "agent", "bot": "bot", "not_sure": "human",
                "too_little_data": "human", "unsure": "human"},
   "agent_turns": {"agent": "agent_only", "mixed": "human_agent"},
@@ -48,7 +48,7 @@
   },
 
   "summary": {
-    "$comment": "How the session page sums up a verdict (agentcake/api/session.py): who acted when, from the timeline's runs; for a session without runs to tell (a bot, a Human one on thin evidence), the first reason in the verdict's tone, else the first of fallback_layer; a session without reasons gets the rule of its class (judging.en.json; 'classes', by its agent_turns for an Agent session, 'thin' for a Human one on thin evidence, else its verdict, for a verdict from before S3.4). Then the layers whose conclusion is the verdict's ('supports': the layer states that agree with it), each with its percent when the layer shows one.",
+    "$comment": "How the session page sums up a verdict (agentcake/api/session.py): who acted when, from the timeline's runs; for a session without runs to tell (a bot, a Human one on thin evidence), the first reason in the verdict's tone, else the first of fallback_layer; a session without reasons gets the rule of its class (judging.en.json; 'classes', by its agent_turns for an Agent session, 'thin' for a Human one on thin evidence, else its verdict, for a verdict from before 0.4.0). Then the layers whose conclusion is the verdict's ('supports': the layer states that agree with it), each with its percent when the layer shows one.",
     "supports": {"human": ["human"], "agent": ["agent", "human_agent"], "bot": ["bot"]},
     "tones": {"human": "human", "agent": "agent", "bot": "agent"},
     "fallback_layer": "behavior",
@@ -56,16 +56,10 @@
   },
 
   "settings": {
-    "$comment": "The settings page (S5.5). layers: the four layers that judge, which run always and are not settings (verify runs only in server mode, where visits do not all come from 127.0.0.1). refresh_ms: how often the open page asks again where visits come from, so that the first visit shows as connected within I3 (10 s). server_half_tokens: how many of the latest server-half tokens tell which request headers never reached the site's server (none of them had it: something in front of the server removes it). server_half_headers: those headers, by their role in edge.json; a browser sends them on every page request over HTTPS, which Sec-Fetch-User is not (only after a click).",
+    "$comment": "The settings page. layers: the four layers that judge, which run always and are not settings (verify runs only in server mode, where visits do not all come from 127.0.0.1). refresh_ms: how often the open page asks again where visits come from, so that the first visit shows as connected within 10 s. server_half_tokens: how many of the latest server-half tokens tell which request headers never reached the site's server (none of them had it: something in front of the server removes it). server_half_headers: those headers, by their role in edge.json; a browser sends them on every page request over HTTPS, which Sec-Fetch-User is not (only after a click).",
     "layers": {"name": true, "environment": true, "behavior": true},
     "refresh_ms": 5000,
     "server_half_tokens": 200,
     "server_half_headers": {"sec_fetch_site": "s", "sec_fetch_mode": "m", "sec_fetch_dest": "d"}
-  },
-
-  "actions": {
-    "$comment": "Which of the visitor's raw input events make an action of 'Every action' (detect/segment.py's names), and which kind; events of one kind closer together than action_merge_ms are one action (typing a word, one scroll).",
-    "click": "click", "dblclick": "click", "contextmenu": "click", "input": "type", "change": "type",
-    "wheel": "scroll", "scroll": "scroll", "touchstart": "touch"
   }
 }

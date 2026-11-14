@@ -5,7 +5,7 @@
         indicator spans (markers.turn_spans) the behaviour timeline gives to the agent
     behaviour_only(events, raw_input, touch=False, session_start=None) -> evidence
         a recording with events only (PostHog's): no environment, no names; behaviour as the model judges it
-    named_only(user_agent) -> evidence    nothing but a User-Agent, on this computer (GOAL A7)
+    named_only(user_agent) -> evidence    nothing but a User-Agent, on this computer (threshold A7)
     keep(evidence, halves=None, layers=None) -> evidence
         the evidence some halves (page, collector, server) or some judging layers would have had alone
     with_behaviour(evidence, raw, rrweb) -> evidence     the behaviour layer's result added (store.py's sessions)
@@ -43,7 +43,7 @@ def from_signals(signals, raw=None, rrweb=None, mode="local", network=None, visi
 def behaviour_only(events, raw_input, touch=False, session_start=None):
     """A session that recorded nothing but its events: the behaviour layer alone (env None: not recorded).
 
-    The model is called as S3.7's tables call it (model.judge_session on the events as they are), which gives
+    The model is called as the behaviour tables call it (model.judge_session on the events as they are), which gives
     too little data for a phone, a tablet or too few action segments exactly as behavior.run() does.
     """
     result = model.judge_session(events, raw_input=raw_input, touch=touch, session_start=session_start)
@@ -53,7 +53,7 @@ def behaviour_only(events, raw_input, touch=False, session_start=None):
 
 
 def named_only(user_agent):
-    """GOAL A7: a local session whose only evidence is its User-Agent (on every half that reads one)."""
+    """Threshold A7: a local session whose only evidence is its User-Agent (on every half that reads one)."""
     return {"mode": "local", "pages": [], "user_agents": {PAGE: [user_agent], COLLECTOR: [user_agent],
                                                           SERVER: [user_agent]},
             "platform": None, "signatures": {}, "network": None, "rdns": None, "env": None, "touch": False,

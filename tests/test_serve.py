@@ -1,4 +1,4 @@
-"""`agentcake serve` ends cleanly on SIGINT and SIGTERM (S6.1, left by S6.3): agentcake/server.py's serve().
+"""`agentcake serve` ends cleanly on SIGINT and SIGTERM: agentcake/server.py's serve().
 
     python3 -I -m unittest discover -s tests -p test_serve.py -v      (from the Agent Cake folder)
 

@@ -1,4 +1,4 @@
-"""GET /api/session/<id>: one session as its page shows it (S5.1; S5.4 draws it); GET …/replay?chunk=<n>: replay.py.
+"""GET /api/session/<id>: one session as its page shows it; GET …/replay?chunk=<n>: replay.py.
 
 Opening a session judges it first when its verdict is stale or an older judge's (judging.on_open), as opening a
 replay always did. A session that does not exist or does not count (visits.py: a self-check, another site's upload, a
@@ -10,15 +10,17 @@ prefetch) is a 404. SessionDetail:
     percent    how sure cake is of the verdict, 1 to 99 (detect/confidence.py, calibrated: Human that a human acted,
                a Human session on thin evidence too, Agent that an agent did, Bot by how its name was checked); None
                for a session judged before verdicts kept it. It is the page's one word on how sure the verdict is: the
-               summary says no other (D34: one conclusion, one measure, as a bot score is one number)
+               summary says no other (one conclusion, one measure, as a bot score is one number)
     summary    what happened, who and why, in the page's words (summary()): who acted when, turn by turn (the
                timeline's runs, on its clock: a hand-off at the moment the timeline marks it), else the reason that
                decided the verdict (the first in its tone: data/api.json "summary"); then the layers that point to the
-               verdict, each with its own percent as the layer shows it. A session without reasons (judged before S3.4) gets its class's
+               verdict, each with its own percent as the layer shows it. A session without reasons (judged before 0.4.0) gets its class's
                rule from judging.en.json
     timeline   who acted when over the whole recording, in ms from the session's first recorded event (epoch_ms, so
                the replay's events line up; visits.recording): the stored segments, and for a Human + agent session
-               the hand-offs between a human's and an agent's runs as detect/timeline.py marks them; its length
+               the hand-offs the judge marked (detect/handoff.py: the new actor's first action), which judging.py
+               keeps with the verdict, so the marks, the title, the summary and the reasons name the same moments; a
+               verdict kept before that has them from the stored runs, as detect/timeline.py marked them; its length
                reaches the last action, the last replay event or the last segment, whichever is later: the player's
                length, which the session's own duration_ms (the lists') is too
     pages      pages.py: the pages in the order they opened (entry page first, exit page last), on the timeline's clock;
@@ -72,18 +74,20 @@ def _detail(con, session_id, summary):
     runs = con.execute("SELECT t_start, t_end, actor FROM segments WHERE session_id=? ORDER BY t_start",
                        (session_id,)).fetchall()
     verdict, turns, evidence = summary["verdict"], summary["agent_turns"], summary["evidence"]
-    handoffs = behavior_timeline.handoffs([{"who": who, "start": t_start, "end": t_end} for t_start, t_end, who in runs])
     kept = reasons.stored(reasons_json)
     detail = json.loads(detail_json) if detail_json else {}
+    judged = detail.get("handoffs")  # the judge's own hand-offs, kept with its verdict; None: a verdict kept before
+    handoffs = judged if judged is not None else behavior_timeline.handoffs(
+        [{"who": who, "start": t_start, "end": t_end} for t_start, t_end, who in runs])
     whole = None if turns == HUMAN_AGENT else verdict  # a Human + agent session's input outside every segment is unsure
     views = pages.views(con, session_id)
     found = actions.recorded(con, session_id, runs, whole, views)
     visit = pages.Visit(views, found, epoch)
     listed = visit.listed(length)
     layers = reasons.layers(layers_json, reasons_json, epoch, turns == HUMAN_AGENT, verdict)
-    story = Story(epoch, runs if verdict != BOT else [], summary["agent"], layers)
+    story = Story(epoch, runs if verdict != BOT else [], summary["agent"], layers, judged)
     return {"session": dict(summary, duration_ms=length, pages=len(listed), share=actions.share(found)),
-            "title": title(verdict, turns, verdict_class, summary["agent"], runs, evidence),
+            "title": title(verdict, turns, verdict_class, summary["agent"], runs, evidence, judged),
             "summary": verdict_summary(verdict, turns or evidence, detail.get("judging"), kept, story),
             "percent": detail.get("percent"),
             "timeline": {"duration_ms": length, "segments": visits.relative(runs, epoch, length),
@@ -96,15 +100,13 @@ def _detail(con, session_id, summary):
             "server": server_half.table(con, session_id, net, epoch, summary["pages"])}
 
 
-def title(verdict, turns, verdict_class, agent, runs, evidence=None):
+def title(verdict, turns, verdict_class, agent, runs, evidence=None, handoffs=None):
     """Who acted, in one line; turns: an Agent session's split (visits.TURNS), agent: its name or None (Unnamed),
-    evidence: thin for a Human session cake could not tell, whose title says why."""
+    evidence: thin for a Human session cake could not tell, whose title says why; handoffs: the judge's own, when it
+    kept them (told())."""
     words = answers.words()["title"]
     if turns == HUMAN_AGENT:
-        order = []
-        for _, _, who in runs:
-            if who != UNSURE and (not order or order[-1] != who):
-                order.append(who)
+        order = [turn["who"] for turn in told(runs, handoffs)]
         if order:
             return _turns(order, agent, words)
     if evidence:
@@ -130,9 +132,39 @@ def _turns(order, agent, words):
     return said
 
 
+def told(runs, handoffs=None):
+    """The turns the title and the summary tell, [{"who", "start", "end"}], from the stored runs (t_start, t_end,
+    actor): unsure runs skipped, one actor's runs in a row joined. With the judge's own hand-offs (handoffs, which it
+    keeps with its verdict), a turn is told only where a hand-off began it, from that hand-off's moment, the one the
+    timeline marks and the reasons name (the new actor's first action, detect/handoff.py); a turn no hand-off began
+    (its actor only moved the pointer) is left out. Without them (a verdict kept before) every turn is told from its
+    run's start, as the timeline then marks it."""
+    turns = []
+    for t_start, t_end, who in runs:
+        if who == UNSURE:
+            continue
+        if turns and turns[-1]["who"] == who:
+            turns[-1]["end"] = t_end
+        else:
+            turns.append({"who": who, "start": t_start, "end": t_end})
+    if handoffs is None or not turns:
+        return turns
+    out = [turns[0]]
+    for turn in turns[1:]:
+        if turn["who"] == out[-1]["who"]:
+            out[-1]["end"] = turn["end"]
+            continue
+        began = next((h["t"] for h in handoffs
+                      if h["to"] == turn["who"] and out[-1]["start"] < h["t"] <= turn["end"]), None)
+        if began is not None:
+            out.append({"who": turn["who"], "start": began, "end": turn["end"]})
+    return out
+
+
 # What the summary tells beside the verdict: the recording's start (epoch ms), the stored runs (t_start, t_end, actor),
-# the agent's name (None: unnamed) and the layers as the page shows them (reasons.layers).
-Story = namedtuple("Story", "epoch runs agent layers")
+# the agent's name (None: unnamed), the layers as the page shows them (reasons.layers) and the judge's own hand-offs
+# (None: a verdict kept before it kept them).
+Story = namedtuple("Story", "epoch runs agent layers handoffs", defaults=(None,))
 
 
 def verdict_summary(verdict, group, judging_class, kept, story=None):
@@ -161,15 +193,8 @@ def _deciding(verdict, kept):
 
 def _turns_told(verdict, story):
     """Who acted when, turn by turn, on the timeline's clock: the first turn from its start to its end, then each
-    hand-off at the moment the timeline marks it; None when no human or agent run is there to tell."""
-    turns = []
-    for t_start, t_end, who in story.runs:
-        if who == UNSURE:
-            continue
-        if turns and turns[-1]["who"] == who:
-            turns[-1]["end"] = t_end
-        else:
-            turns.append({"who": who, "start": t_start, "end": t_end})
+    hand-off at the moment the timeline marks it (told()); None when no human or agent run is there to tell."""
+    turns = told(story.runs, story.handoffs)
     if not turns or (verdict == HUMAN and any(turn["who"] != HUMAN for turn in turns)):
         return None
     words, seen = answers.words()["summary"], set()

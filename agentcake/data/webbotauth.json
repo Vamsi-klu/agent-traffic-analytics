@@ -1,5 +1,5 @@
 {
-  "$comment": "Web Bot Auth verification (S3.2, agentcake/detect/webbotauth.py): what a signature must carry, how far its times may be from this computer's clock, which keys are never trusted, what one verification may cost, and the text of each reason. Protocol: draft-ietf-webbotauth-httpsig-protocol-01 over RFC 9421. Each setting is described in $doc.",
+  "$comment": "Web Bot Auth verification (agentcake/detect/webbotauth.py): what a signature must carry, how far its times may be from this computer's clock, which keys are never trusted, what one verification may cost, and the text of each reason. Protocol: draft-ietf-webbotauth-httpsig-protocol-01 over RFC 9421. Each setting is described in $doc.",
   "$doc": {
     "tag": "The tag parameter that marks a Web Bot Auth signature (draft -01 section 5.2). Signatures with another tag are not looked at.",
     "algorithms": "alg parameter values Agent Cake verifies. Only Ed25519 is implemented; another alg gives declared, unsupported-algorithm.",
@@ -11,7 +11,7 @@
     "max_age_s": "A signature older than this (from created) is declared, too-old, even when its expires is later. 86400 s follows draft -01 section 5.2 (expires no more than 24 hours after created).",
     "max_signatures": "At most this many Web Bot Auth signatures of one request are checked; each costs one Ed25519 verification.",
     "rejected_key_thumbprints": "Keys never trusted, by JWK thumbprint, with why. Published test keys must not be accepted in production (draft -01 section 6.8). A signature with one of them is declared, test-key.",
-    "verify_budget_ms": "Most a single verification may take in pure Python (GOAL N4, under 50 ms); tests measure the median of 100.",
+    "verify_budget_ms": "Most a single verification may take in pure Python (under 50 ms); tests measure the median of 100.",
     "session_cache_size": "Sessions whose verification result SessionVerifier keeps (least recently used are dropped first).",
     "reasons": "Text for each reason code; {signer}, {keyid}, {label}, {claimed} and the facts of the check are filled in. $missing stands in for a value that is not known.",
     "details": "The technical words of each reason code (what was checked), shown under its reason; the same facts fill them in."

@@ -1,15 +1,15 @@
-"""`doctor`: the self-check a coding agent runs after installing, and after connecting a website (S1.1, S6.1).
+"""`doctor`: the self-check a coding agent runs after installing, and after connecting a website.
 
 doctor(folder, url) prints one line per check (doctor_lines.py: PASS, FAIL, WARN, SKIP), in three groups:
 - Agent Cake itself: it answers on 127.0.0.1 (reach(): nothing listening is "not running, start it"; a connection that
-  a sandbox forbids is said to be the sandbox's doing, never "not running", GOAL T2), its local page opens, it serves
+  a sandbox forbids is said to be the sandbox's doing, never "not running"), its local page opens, it serves
   the page script with this installation's site key, a visit arrived: a self-check or a real one (server_checks();
-  D37 took the demo shop out of these lines), replays can be stored (replay_storage(),
-  S2.2: the replays folder can be written, or made where the nearest existing folder above it can be written, which
+  since 0.4.0 there is no demo shop to check), replays can be stored (replay_storage():
+  the replays folder can be written, or made where the nearest existing folder above it can be written, which
   codec, and whether this Python can read the chunks already there; a write refused although the folder's permissions
-  allow it is a sandbox's doing, a SKIP that asks for doctor in the user's own terminal, never "storage broken", T7);
-- this computer (doctor_machine.py): Python and zstd, free disk space (S2.5), the lists' age (I4), `agentcake` on PATH;
-- the web server's log import, once one has run (doctor_logs.py, S4.4): how the last went, which headers the log lacks;
+  allow it is a sandbox's doing, a SKIP that asks for doctor in the user's own terminal, never "storage broken");
+- this computer (doctor_machine.py): Python and zstd, free disk space, the lists' age, `agentcake` on PATH;
+- the web server's log import, once one has run (doctor_logs.py): how the last went, which headers the log lacks;
 - the user's own website, when its folder (--dir, site_dir) or a page of it (--url, site_url) is known: its files
   (doctor_site.py) and that page, opened (doctor_live.py).
 Returns 0 when no check failed (a WARN or a SKIP does not fail), else 1. Its words are in data/copy.en.json.

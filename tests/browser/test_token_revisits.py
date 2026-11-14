@@ -1,15 +1,14 @@
-"""The server half when a browser shows a page again (plan step S4.2, GOAL T8, N1, N2): token_revisits.mjs from the suite.
+"""The server half when a browser shows a page again (case T8, N1, N2): token_revisits.mjs from the suite.
 
 token_revisits.mjs starts its own `agentcake serve` (a scratch CAKE_HOME, a free port, a secret of its own) and walks
-S4.1's Node test site (HTML revalidated: no-cache + ETag; and with noStore) and the test site's shop (tests/site): home, a link, the link
+the Node middleware's test site (HTML revalidated: no-cache + ETag; and with noStore) and the test site's shop (tests/site): home, a link, the link
 home (a 304), reload, back, forward, an SPA route change. Checked on its report: every page view whose navigation entry
 had a token is linked to a token of its visit (N1: 100%); a 304 shows the 304's own token; a page shown from the
 browser's cache brings its stored token back as reuse, never as replay, and it is kept once; the SPA route stays in
 its page view; a token whose first upload is refused goes again until it is taken; a real token with a changed byte
 is bad, from another visit replay, past the max age stale (N2).
 
-The suite runs Chromium (CAKE_REVISIT_BROWSERS: e.g. "chromium,chromium-bfcache,webkit,firefox" for all of them, as
-the S4.2 evidence was made). Skipped, saying what is missing, without node or playwright-core
+The suite runs Chromium (CAKE_REVISIT_BROWSERS: e.g. "chromium,chromium-bfcache,webkit,firefox" for all of them). Skipped, saying what is missing, without node or playwright-core
 (see harness.py); a browser that is not installed is named in the report and fails the run.
 """
 import json

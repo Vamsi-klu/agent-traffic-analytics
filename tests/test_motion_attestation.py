@@ -1,4 +1,4 @@
-"""motion-attestation's 27 human captures as cake regression data (tests/motion_attestation.py; job borrow-rules, D33).
+"""motion-attestation's 27 human captures as cake regression data (tests/motion_attestation.py).
 
     python3 -I -m unittest discover -s tests -v      (from the repository root)
 
@@ -120,7 +120,7 @@ class BehaviourLayerTest(unittest.TestCase):
                 self.assertNotEqual(result["verdict"], "agent")
 
     def test_even_judged_on_their_few_actions_as_if_no_phone_was_seen_none_is_an_agent(self):
-        # Before the M3 clean-up and borrow-rules B1, the 6 touch captures were agents here: a finger never glides
+        # Before touch sessions and a pointer that hardly moved stopped counting as evidence, the 6 touch captures were agents here: a finger never glides
         # like a mouse, so their pointer rate read as an agent's.
         params = dict(model.load_params(), min_actions=1)
         for name in ma.names():

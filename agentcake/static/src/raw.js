@@ -1,10 +1,10 @@
-// Agent Cake page script, part: raw input events and page-structure changes (plan step S1.3), stream "r".
+// Agent Cake page script, part: raw input events and page-structure changes, stream "r".
 //
 // Ported from the research lab's raw.js (our research code, 11/11;
 // our own code). It records raw values only; cake judges later. The field names are the lab's, so the lab's
-// behaviour features (plan step S3.6) read cake's data unchanged. Added here: pointerId, tilt and the number of
-// coalesced pointer samples (signals sig-057, sig-058 of the signal audit).
-// Privacy (plan step S1.4, rules in agentcake/data/privacy.json): never which key was pressed, only the time, a key
+// behaviour features read cake's data unchanged. Added here: pointerId, tilt and the number of
+// coalesced pointer samples.
+// Privacy (rules in agentcake/data/privacy.json): never which key was pressed, only the time, a key
 // class and whether event.code is empty; never what was typed, only the input type and the field's length; nothing
 // typed into a private element (data-cake-private, passwords, payment card fields) at all, and no selector or box of
 // a private element on any other event.

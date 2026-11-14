@@ -1,13 +1,13 @@
-"""The four layers on sessions known to be human: everything that could call a human an agent (GOAL A1, plan S3.9).
+"""The four layers on sessions known to be human: everything that could call a human an agent (threshold A1).
 
     table(rows) -> {"sessions": [per session], "rules": {rule id: {...}}, "summary": counts}
 
 A1 counts only the class. This table shows how close each layer came, one session per row: every environment rule
-that held (hard, soft or weak, S3.3) and how many distinct soft or hard rules held together (S3.4 counts a soft hit
+that held (hard, soft or weak) and how many distinct soft or hard rules held together (the verdict counts a soft hit
 when another rule that is not weak holds too); the longest run of actions the behaviour timeline gave an agent,
 against verdict.json "mixed" (a run that long, with a long human run, makes a session Mixed); and the crawler check's
 patterns (a datacenter address, page loads or visits at fixed intervals, many pages in a row; two of them write
-"looks like a crawler", S3.4); S3.8's weak-signal reasons (rhythm, window jumps, ...), which never change a class.
+"looks like a crawler"); the weak-signal reasons (rhythm, window jumps, ...), which never change a class.
 Per rule: in how many sessions it held, and in how many it could not be checked because the session did not record
 its inputs.
 """
@@ -15,7 +15,7 @@ from agentcake.detect import crawler, env_rules, verdict
 from agentcake.units import MS_PER_S
 
 WEAK = "weak"
-WEAK_PREFIX = "weak."  # the ids of S3.8's weak-signal reasons (agentcake/data/reasons.json)
+WEAK_PREFIX = "weak."  # the ids of the weak-signal reasons (agentcake/data/reasons.json)
 
 
 def table(rows):

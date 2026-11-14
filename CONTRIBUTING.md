@@ -1,7 +1,7 @@
 # Contributing to AgentCake
 
 Thank you for helping. Bugs, wrong verdicts and ideas go to
-[GitHub Issues](https://github.com/tartini-ai/agent-behavior-analysis/issues); security vulnerabilities go to
+[GitHub Issues](https://github.com/tartini-ai/agent-traffic-analytics/issues); security vulnerabilities go to
 [`SECURITY.md`](SECURITY.md), not to an issue.
 
 ## Before you start

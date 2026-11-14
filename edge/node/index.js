@@ -14,7 +14,7 @@
  *   createCakeEdge(options).token(request, { ip, rawHeaders, env })   the token for a request, or null
  *   mintToken, signPayload, verifyToken, networkKey, ipPrefix, isPageRequest   the format, for tests and checks by hand
  *
- * Step S4.1.
+ *
  */
 const DEFAULTS = require("./defaults.json")
 const { settingsFrom, resolveSecret, secretBytes, isShortSecret, message, startupWarnings, warnOnce } = require("./lib/settings")

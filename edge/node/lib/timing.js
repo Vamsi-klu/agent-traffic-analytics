@@ -7,7 +7,7 @@
  * (https://github.com/nalinbhardwaj/botscent, src/server/timing.ts, commit 7f948003, Copyright (c) 2026 Nalin Bhardwaj,
  * MIT License). Any cake entry already in the value (from a proxy, a second copy of this middleware or a stored
  * response) is dropped and this request's entry goes last, so a response carries exactly one. botscent's Next.js and
- * Hono adapters copy a response whose headers cannot change; responseWith does the same. Step S4.1.
+ * Hono adapters copy a response whose headers cannot change; responseWith does the same.
  */
 function entries(value) {
   const out = []

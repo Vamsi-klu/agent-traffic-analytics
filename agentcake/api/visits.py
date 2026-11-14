@@ -1,12 +1,12 @@
-"""The sessions the local pages show (S5.1): which ones count, the filters, and each one as the lists show it.
+"""The sessions the local pages show: which ones count, the filters, and each one as the lists show it.
 
-Lists and counts leave out self-check visits (is_test), uploads from another site (origin "other", S2.1) and prefetches
-the browser never showed (the verdict class "excluded", S3.4). Sessions that an earlier AgentCake's demo shop recorded
-(origin "demo", until D37 removed the shop) count as any other: they stay in the database and open as they did. A
-session is sorted as D39 names it (judging.en.json):
+Lists and counts leave out self-check visits (is_test), uploads from another site (origin "other") and prefetches
+the browser never showed (the verdict class "excluded"). Sessions that an earlier AgentCake's demo shop recorded
+(origin "demo", until 0.4.0 removed the shop) count as any other: they stay in the database and open as they did. A
+session is sorted as judging.en.json names it:
   1 its verdict, the four layers' class as the contract names it (data/api.json "verdicts"): human, agent (cake's agent
     and mixed) or bot; a session cake 0.3.4 judged and nobody opened since keeps 0.3.4's verdict column. A session cake
-    can't tell (Not sure, Too little data, 0.3.4's unsure, not judged yet) is human with evidence "thin" (D39: the
+    can't tell (Not sure, Too little data, 0.3.4's unsure, not judged yet) is human with evidence "thin" (the
     reasons say why). An Agent session is Agent only or Human + agent (agent_turns: a human and an agent took turns,
     cake's mixed);
   2 its agent: the product's or the automation tool's name and how sure it is (certainty: verified, likely or
@@ -16,7 +16,7 @@ session is sorted as D39 names it (judging.en.json):
 A session's length on the lists is its recording's (recording_length): from its first recorded event, where its
 replay, its timeline and every moment of its page start, to its last action, replay event or segment, whichever is
 later: the player's length, as PostHog's replay list shows each recording's. The dashboard's average session length
-(D30) is another measure: from a session's first to its last recorded action (activity.py, kept with each verdict;
+ is another measure: from a session's first to its last recorded action (activity.py, kept with each verdict;
 LENGTH), so a tab left open afterwards adds nothing; one judged before that runs from its first to its last recorded
 event. Its share is each actor's share of the actions its page lists under Every action (actions.session_share, the
 function the session page uses), whole percents that add up to 100, all 0 without an action; its segments, when the
@@ -52,7 +52,7 @@ from agentcake.session_replay import STREAM
 from agentcake.units import PERCENT
 
 WHO = ("human", "agent", "unsure")
-VERDICTS = ("human", "agent", "bot")  # D39
+VERDICTS = ("human", "agent", "bot")  # judging.en.json's verdicts
 TURNS = ("agent_only", "human_agent")  # an Agent session's split
 EVIDENCE = ("thin",)  # a Human session cake could not tell: marked
 GROUPS = ("all",) + VERDICTS + TURNS + EVIDENCE  # the session list's filters and counts
@@ -104,7 +104,7 @@ def turns_of(verdict_class, old_verdict):
 
 
 def evidence_of(verdict_class, old_verdict):
-    """thin for a session cake could not tell, which the contract counts as human (D39); None for any other."""
+    """thin for a session cake could not tell, which the contract counts as human; None for any other."""
     return numbers()["evidence"].get(verdict_class or old_verdict or "unsure")
 
 

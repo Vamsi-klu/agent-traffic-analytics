@@ -1,4 +1,4 @@
-"""tools/releasing/bundled_lists.py (plan step S6.4, D23): a commit whose lists were built more than max_age_days
+"""tools/releasing/bundled_lists.py: a commit whose lists were built more than max_age_days
 before it is refused, counting from the commit's day (not today); `refresh` runs the refresh scripts in the repository.
 
     python3 -I -m unittest discover -s tests -v      (from the repository root)

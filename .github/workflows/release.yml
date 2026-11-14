@@ -1,9 +1,9 @@
-# Build a release of Agent Cake when a v<version> tag is pushed (plan step S6.4; D3: we build it, people download it).
+# Build a release of Agent Cake when a v<version> tag is pushed (we build it, people download it).
 #
 # It runs the same command as a release built by hand, `python3 -I tools/release.py build`, twice, and stops unless
 # both builds have the same SHA256SUMS (the same commit gives the same bytes). The files then go on a DRAFT release:
 # the maintainer reads it and publishes it by hand. Nothing goes to PyPI, npm or Docker Hub. The tag's commit already
-# carries the lists refreshed for it (`release.py refresh` before tagging, D23); this job does not fetch new ones.
+# carries the lists refreshed for it (`release.py refresh` before tagging); this job does not fetch new ones.
 #
 # Written, not run yet: the repository has no remote. Actions are pinned by commit; the version is in the comment.
 name: release

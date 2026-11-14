@@ -1,5 +1,5 @@
 {
-  "$comment": "How tools/release.py builds a release of Agent Cake (plan step S6.4; D3, D23). Paths are relative to the repository, or to the commit being built. Each value is written once: the version only in agentcake/__init__.py; the package's name, Python, command and shipped files in pyproject.toml; the folder the compiled pages go to in agentcake/data/web.json; the runtime marker of cake.js in agentcake/data/cakejs.json.",
+  "$comment": "How tools/release.py builds a release of Agent Cake. Paths are relative to the repository, or to the commit being built. Each value is written once: the version only in agentcake/__init__.py; the package's name, Python, command and shipped files in pyproject.toml; the folder the compiled pages go to in agentcake/data/web.json; the runtime marker of cake.js in agentcake/data/cakejs.json.",
   "package": "agentcake",
   "version_file": "agentcake/__init__.py",
   "out_dir": "dist",
@@ -10,12 +10,12 @@
     "checksums": "SHA256SUMS"
   },
   "toolchain": {
-    "$comment": "What .github/workflows/release.yml builds with (tests/test_release_workflow.py keeps them equal). A build with another Python (its zlib) or Node can differ byte for byte; release.py says so. Node: an LTS that every package of web/package-lock.json accepts (react-router 8.5.1 needs 22.22.0 or newer); Node 20.20.2 and 24.22.1 were checked to build the same bytes (S6.4).",
+    "$comment": "What .github/workflows/release.yml builds with (tests/test_release_workflow.py keeps them equal). A build with another Python (its zlib) or Node can differ byte for byte; release.py says so. Node: an LTS that every package of web/package-lock.json accepts (react-router 8.5.1 needs 22.22.0 or newer); Node 20.20.2 and 24.22.1 were checked to build the same bytes.",
     "python": "3.14.7",
     "node": "24.22.1"
   },
   "lists": {
-    "$comment": "D23: every release ships freshly built lists. `release.py refresh` runs the scripts (online) in the working tree, to be reviewed and committed; `release.py build` refuses a commit whose lists were built more than max_age_days before it.",
+    "$comment": "Every release ships freshly built lists. `release.py refresh` runs the scripts (online) in the working tree, to be reviewed and committed; `release.py build` refuses a commit whose lists were built more than max_age_days before it.",
     "names_file": "agentcake/data/lists/names.json",
     "max_age_days": 7,
     "refresh": ["tools/build_lists.py", "tools/build_timezones.py"],
@@ -36,7 +36,7 @@
     }
   },
   "edge": {
-    "$comment": "The sites' middleware: the commit's edge/ is copied into the package, under the folder the data file names (settings_key), where agentcake.site_setup.edge_dir() looks first (S6.1). skip: tests and development scripts, relative to edge/.",
+    "$comment": "The sites' middleware: the commit's edge/ is copied into the package, under the folder the data file names (settings_key), where agentcake.site_setup.edge_dir() looks first. skip: tests and development scripts, relative to edge/.",
     "folder": "edge",
     "skip": ["node/test", "node/scripts", "php/tests"],
     "settings_file": "agentcake/data/site_files.json",
@@ -69,7 +69,7 @@
     "wheel_folder": "dist"
   },
   "pyz": {
-    "$comment": "agentcake.pyz: a zip of the package behind a shebang line; tools/releasing/pyz_main.py is its __main__.py and unpacks the package into <CAKE_HOME>/<unpack_folder>/<version>-<hash>/ on the first run. from_zip: the commands that read only the package's own files and run straight from the zip, making no CAKE_HOME (S6.6: they work in a coding agent's sandbox, which cannot write CAKE_HOME); agentcake/cli.py answers them before reading any setting.",
+    "$comment": "agentcake.pyz: a zip of the package behind a shebang line; tools/releasing/pyz_main.py is its __main__.py and unpacks the package into <CAKE_HOME>/<unpack_folder>/<version>-<hash>/ on the first run. from_zip: the commands that read only the package's own files and run straight from the zip, making no CAKE_HOME (they work in a coding agent's sandbox, which cannot write CAKE_HOME); agentcake/cli.py answers them before reading any setting.",
     "shebang": "#!/usr/bin/env python3",
     "bootstrap": "tools/releasing/pyz_main.py",
     "unpack_folder": "pyz",

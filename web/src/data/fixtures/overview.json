@@ -101,7 +101,7 @@
       {
         "what": "A program that gives its name and isn't an agent: a search engine, a monitor, a link preview",
         "verdict": "bot",
-        "shown_as": "Counted only; marked “Verified” when its signature is valid",
+        "shown_as": "Counted only; “Verified” when a signature or the operator's published address range confirms it",
         "how": "The User-Agent or a signature matches the list of programs that aren't agents. It's marked “Verified” when a published address range or a signature confirms it. The behavior model doesn't run."
       },
       {

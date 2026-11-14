@@ -1,7 +1,7 @@
-"""The name and verification lists (S3.1): who a User-Agent says it is, whose published range an address is in, and
+"""The name and verification lists: who a User-Agent says it is, whose published range an address is in, and
 which operator a Web Bot Auth signer is, all read from files on this computer.
 
-Like PostHog's bot_definitions.py and bot_ip_networks.py, the lists ship with each release (D23): User-Agent names
+Like PostHog's bot_definitions.py and bot_ip_networks.py, the lists ship with each release: User-Agent names
 from botscent, PostHog, ai.robots.txt and our own (names.json), operators' published address ranges (ip_ranges.json),
 Web Bot Auth signers (signers.json) and their key directories (keys.json), all built by lists_build.py from
 sources.json. Nothing in this module opens a connection. `agentcake lists update` writes a dated copy under
@@ -315,7 +315,7 @@ class Lists:
                 "keys_fetched_at": response.get("fetched_at") or self._keys_fetched_at}
 
     def key_directories(self):
-        """{signer host: [Ed25519 JWK]}: what the Web Bot Auth check (S3.2) verifies against."""
+        """{signer host: [Ed25519 JWK]}: what the Web Bot Auth check verifies against."""
         return {host: list(keys) for host, keys in self._keys.items()}
 
     def directory_response(self, host):
@@ -325,7 +325,7 @@ class Lists:
     # age -----------------------------------------------------------------------------------------------------------
 
     def status(self, max_age_days=None, today=None):
-        """How old the lists in use are against the I4 limit (sources.json "update", unless given)."""
+        """How old the lists in use are against their age limit (sources.json "update", unless given)."""
         if max_age_days is None:
             max_age_days = update_settings()["max_age_days"]
         today = today or datetime.datetime.now(datetime.timezone.utc).date()

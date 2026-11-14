@@ -1,4 +1,4 @@
-"""Made-up web server access logs for the log import tests (S4.4), with the truth every line was written from.
+"""Made-up web server access logs for the log import tests, with the truth every line was written from.
 
     requests(count, seed, start_ms) -> [Truth]          a mix of page views, static files, uploads, redirects
     LINE_WRITERS[name](truth) -> one log line            as nginx, Apache and Caddy write it, escaping included

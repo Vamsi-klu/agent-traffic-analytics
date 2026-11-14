@@ -1,4 +1,4 @@
-"""The JSON API the local pages read (S5.1), one module per resource like PostHog 1.0's posthog/api/<resource>.py.
+"""The JSON API the local pages read, one module per resource like PostHog 1.0's posthog/api/<resource>.py.
 
 The compiled pages (web/dist, served by assets.py) hold no data: each asks for JSON under /api, in the shapes of the
 contract in web/src/data/ (types.ts, schema/, fixtures/; the tests check every answer against schema/ with
@@ -12,7 +12,7 @@ in words, and every answer that is not 2xx is {"error": "<a sentence the page ca
                     GET /api/session/<id>/replay?chunk=<n>                    one chunk of its replay (replay.py)
     settings.py     GET and POST /api/settings
     onboarding.py   GET /api/setup                                            the home page's ways to connect
-    registration.py GET and POST /api/register                                the registration card (S5.8)
+    registration.py GET and POST /api/register                                the registration card
     health.py       GET /api/health (doctor, status), GET /healthz (the public listener's health check)
     visits.py       which sessions count, the filters, and each session as the lists show it
     reasons.py, actions.py, replay.py, server_half.py    the parts of one session's answer

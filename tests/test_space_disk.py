@@ -1,6 +1,6 @@
-"""K2, the floor of free disk (disk_min_free_mb, 10 GB): below it Agent Cake keeps storing new replays and deletes the
-oldest ones to get back above it (S2.5's rule as the user changed it on 11/12: GOAL K2 and T9), unless deleting every
-one it may would not get back above it (D34: other files fill the disk).
+"""The floor of free disk (disk_min_free_mb, 10 GB): below it Agent Cake keeps storing new replays and deletes the
+oldest ones to get back above it, unless deleting every
+one it may would not get back above it (other files fill the disk).
 
     python3 -I -m unittest discover -s tests -p test_space_disk.py -v      (from the repository folder)
 
@@ -76,7 +76,7 @@ class DiskFloor(unittest.TestCase):
         return space.free_disk(self.con, c or self.c, self.short_by(missing), self.now if now is None else now)
 
     def test_the_default_floor_is_10_gb(self):
-        self.assertEqual(self.c["disk_min_free_mb"], 10240, "K2")
+        self.assertEqual(self.c["disk_min_free_mb"], 10240, "the floor is 10 GB")
         self.assertTrue(self.c["auto_free"])
 
     def test_below_the_floor_a_new_replay_is_still_stored(self):
@@ -111,7 +111,7 @@ class DiskFloor(unittest.TestCase):
         self.assertEqual(replay(self.con, "humanLive"), EVENTS)
         self.assertEqual(replay(self.con, "agentLive"), EVENTS)
 
-    # D34: deleting cannot be undone, and it cannot fix a disk that other files fill
+    # deleting cannot be undone, and it cannot fix a disk that other files fill
 
     def test_when_deleting_every_replay_would_not_reach_the_floor_none_is_deleted(self):
         room, removed = self.free(self.quiet + 1, dict(self.c, auto_free_batch_sessions=len(MIX)))
@@ -227,7 +227,7 @@ class DiskFloor(unittest.TestCase):
 
 
 class SharedFile(unittest.TestCase):
-    """A dropped replay that is a small part of its chunk file: S2.2's lab sessions store about a quarter of their
+    """A dropped replay that is a small part of its chunk file: the lab's sessions store about a quarter of their
     bytes as replay (sizes.json: 7.35 of 31.95 KB a minute), so a file whose replays were all dropped stays under
     compact_min_dead_share dead. The reclaim after freeing for the disk compacts it all the same."""
 
@@ -251,7 +251,7 @@ class SharedFile(unittest.TestCase):
         space.free_space(self.con, dict(self.c, budget_mb=0.0001), self.now)
         self.con.commit()
         self.assertIsNotNone(space.reclaim_if_due(self.con, self.now))
-        self.assertEqual(chunk_file_bytes(), before, "S2.5: under compact_min_dead_share a file is not rewritten")
+        self.assertEqual(chunk_file_bytes(), before, "under compact_min_dead_share a file is not rewritten")
 
     def test_freeing_for_the_disk_gets_every_dropped_byte_back_at_the_next_reclaim(self):
         before, floor = chunk_file_bytes(), self.c["disk_min_free_mb"] * MB

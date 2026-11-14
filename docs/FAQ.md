@@ -14,8 +14,9 @@ and scrolling move cover agents that don't name themselves.
 
 Yes, while it marks the page it drives. Claude in Chrome draws its own marks on the page while it acts, such as its
 "Claude is working here" tag and its Stop button, and older versions left elements and styles in the page; the page
-script notices them. Comet and Browser Use mark pages too. On held-out data, 17 of 23 Claude in Chrome replays were
-judged agent, but so was 1 of 39 probably-human replays ([how it is measured](../eval/README.md)).
+script notices them. Comet and Browser Use mark pages too. In our tests it recognized 53 of 70 Claude in Chrome
+sessions; the 17 it missed are PostHog replays, which hold only its behavior, and lab recordings with no actions
+([how it is measured](../eval/README.md)).
 
 ## Which agents and automation tools does it recognize?
 
@@ -35,9 +36,11 @@ release; `agentcake lists update` gets newer ones when you ask.
 
 ## How accurate is it?
 
-On held-out data, 17 of 23 Claude in Chrome replays were judged agent, but so was 1 of 39 probably-human replays, and
-only 29.5% of hand-offs are found within 3 seconds. An agent that moves and types like a human, with no name and no
-trace, can pass as a human. [`eval/README.md`](../eval/README.md) says how each number is measured.
+We tested it on 14 data sets from about 350 websites. It recognized 347 of 405 agent sessions from 26 tools, and
+mistook 2 of 7,122 sessions by at least 400 real people for an agent. Where a human and an agent took turns, it judged
+106 of 159 sessions Human + agent and put the hand-off a median of 0 seconds from the real one. An agent that moves and
+types like a human, with no name and no trace, can pass as a human. [`eval/README.md`](../eval/README.md) says how each
+number is counted and where it falls short.
 
 ## What do Human, Agent and Bot mean?
 

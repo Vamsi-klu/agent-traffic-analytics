@@ -1,6 +1,6 @@
 // Who acted when: the segmented bar (rows) and the session timeline (replay page). DESIGN.md §6
 // The components draw percents; spansOf() and timelineView() turn the API's milliseconds (src/data/types.ts) into them.
-// On the replay page the session timeline is also the replay's position control (S5.4): click or drag to move the
+// On the replay page the session timeline is also the replay's position control: click or drag to move the
 // replay, arrow keys step, Home and End go to the ends.
 import { useRef, type KeyboardEvent, type PointerEvent } from "react"
 import type { Segment, Timeline } from "@/data/types"

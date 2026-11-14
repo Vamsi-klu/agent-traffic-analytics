@@ -1,4 +1,4 @@
-"""Freeing space by the four layers' verdict (agentcake.space.HUMAN_ONLY, plan step S3.4 wiring).
+"""Freeing space by the four layers' verdict (agentcake.space.HUMAN_ONLY).
 
     python3 -I -m unittest discover -s tests -v      (from the repository root)
 
@@ -17,7 +17,7 @@ from agentcake import space  # noqa: E402
 
 
 class FourLayersVerdict(unittest.TestCase):
-    """S3.4 wiring: sessions the four layers judged are freed by their class, a Human only; an Agent, Mixed, Bot, Not
+    """Sessions the four layers judged are freed by their class, a Human only; an Agent, Mixed, Bot, Not
     sure or Too little data never, even where cake 0.3.4's columns still say human."""
 
     CLASSES = (("newHuman", "human"), ("newAgent", "agent"), ("newMixed", "mixed"), ("newBot", "bot"),

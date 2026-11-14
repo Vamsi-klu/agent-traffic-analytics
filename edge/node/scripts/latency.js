@@ -1,6 +1,6 @@
 "use strict"
 /*
- * latency.js — what the middleware adds to a page's response time (GOAL N3). Two servers in this process serve the same
+ * latency.js — what the middleware adds to a page's response time. Two servers in this process serve the same
  * small page, one through the Express mounting and one without; a keep-alive client asks them in turn with the header
  * lines of a Chrome navigation, so the middleware does all its work on every request, and the two sides' p50, p90 and
  * p99 are compared. Node's own clock (process.hrtime), no load-testing tool. The Web Crypto path (the Next.js mounting)
@@ -8,7 +8,7 @@
  *
  *   node edge/node/scripts/latency.js --requests 1000 --max-p50-diff-ms 5 [--out latency.json]
  *
- * Exit status 1 when the p50 difference is over the limit. Step S4.1.
+ * Exit status 1 when the p50 difference is over the limit.
  */
 const crypto = require("node:crypto")
 const fs = require("node:fs")

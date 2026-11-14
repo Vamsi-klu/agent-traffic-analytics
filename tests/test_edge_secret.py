@@ -1,5 +1,5 @@
-"""The server half's shared secret, $CAKE_HOME/srv_secret: agentcake/edge_secret.py (0.3.3, S2.4; its own module in
-the M4 clean-up, these tests with it from test_demo_token.py).
+"""The server half's shared secret, $CAKE_HOME/srv_secret: agentcake/edge_secret.py (from cake 0.3.3;
+these tests moved here with it from test_demo_token.py).
 
     python3 -I -m unittest discover -s tests -p test_edge_secret.py -v      (from the Agent Cake folder)
 

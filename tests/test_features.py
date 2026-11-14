@@ -1,4 +1,4 @@
-"""agentcake/detect/features.py: the lab's 25 behaviour features and their missing variant (plan step S3.6).
+"""agentcake/detect/features.py: the lab's 25 behaviour features and their missing variant.
 
     python3 -I -m unittest discover -s tests -v
 
@@ -58,11 +58,11 @@ class ClickFeaturesTest(unittest.TestCase):
         self.assertEqual(feats(events, events)["moves_before_click"], 2)
 
     def test_a_click_the_keyboard_made_has_no_approach(self):
-        # borrow-rules B3 (bot-signal's isPointerClick): Enter or Space on a button clicks with detail 0
+        # after bot-signal's isPointerClick: Enter or Space on a button clicks with detail 0
         self.assertIsNone(feats([click(1000, d=0)])["moves_before_click"])
 
     def test_a_click_a_finger_or_a_pen_made_has_no_approach(self):
-        # borrow-rules B3: by the click's own pointerType, or, where the click names none (Safari), the pointerdown's
+        # by the click's own pointerType, or, where the click names none (Safari), the pointerdown's
         pressed = [ev(900, "pointerdown", cx=0, cy=0, pt="pen"), click(1000, d=1)]
         self.assertIsNone(feats([click(1000, d=1, pt="touch")])["moves_before_click"])
         self.assertIsNone(feats(pressed, pressed)["moves_before_click"])
@@ -70,6 +70,36 @@ class ClickFeaturesTest(unittest.TestCase):
     def test_a_mouse_click_keeps_its_approach(self):
         events = [ev(900, "pointerdown", cx=0, cy=0, pt="mouse"), click(1000, d=1, pt="mouse")]
         self.assertEqual(feats(events, events)["moves_before_click"], 0)
+
+    def approach_and_click(self, t, x, y):
+        """A hand's approach of 10 moves to (x, y), then a click there, off the centre of BOX."""
+        moves = [move(t - 50 * (10 - k), x - 8 * (10 - k), y - (10 - k) ** 2 % 7) for k in range(10)]
+        return moves + [click(t, x, y, d=1, r=self.BOX)]
+
+    def test_a_click_again_in_place_has_no_approach_of_its_own(self):
+        # a person paging through pictures, a calendar's arrow pressed again, a label passing its click to its input:
+        # the pointer was already on the spot, so this click does not show how it got there; where it landed on its
+        # target is still measured
+        first = self.approach_and_click(1000, 80, 40)
+        for again in ([click(1000, 80, 40, d=1, r=[60, 30, 40, 20])],  # the label's click on its input
+                      [click(1800, 80, 40, d=1, r=self.BOX)],
+                      [move(1400, 81, 41), move(1500, 82, 38), click(1800, 81, 39, d=1, r=self.BOX)]):
+            session = first + again
+            with self.subTest(again=again):
+                f = feats(again, session)
+                self.assertIsNone(f["moves_before_click"])
+                self.assertIsNotNone(f["click_center_norm"])
+                self.assertEqual(feats(first, session)["moves_before_click"], 10)
+
+    def test_a_click_off_the_spot_or_after_the_pointer_left_has_its_own_approach(self):
+        first = self.approach_and_click(1000, 80, 40)
+        off_the_spot = [move(2700, 83, 40), click(3000, 83, 40, d=1, r=self.BOX)]
+        left_and_back = [move(2600, 160, 40), move(2700, 80, 40), click(3000, 80, 40, d=1, r=self.BOX)]
+        for again, moves in ((off_the_spot, 1), (left_and_back, 2)):
+            with self.subTest(again=again):
+                f = feats(again, first + again)
+                self.assertEqual(f["moves_before_click"], moves)
+                self.assertIsNotNone(f["click_center_norm"])
 
     def test_click_centre_is_0_in_the_middle_and_1_on_a_corner(self):
         middle = feats([click(0, 50, 25, d=1, r=self.BOX)])
@@ -130,7 +160,7 @@ class PointerFeaturesTest(unittest.TestCase):
         self.assertEqual(feats(events, events)["screen_eq_client"], 0.5)
 
     def test_screen_equal_client_needs_two_places_in_the_session(self):
-        # borrow-rules B5 (bot-signal's cdp-input-coordinate-leak, MIT): one spot where the screen and the page
+        # after bot-signal's cdp-input-coordinate-leak, MIT: one spot where the screen and the page
         # positions coincide is a window in the screen's corner, not input a debugger dispatched
         once = [move(0, 10, 10, sx=10, sy=10), move(50, 30, 10, sx=130, sy=110)]
         twice = once + [move(90, 40, 40, sx=40, sy=40)]
@@ -156,7 +186,7 @@ class ScrollAndKeyFeaturesTest(unittest.TestCase):
         self.assertEqual((f["wheel_n"], f["scroll_no_wheel"]), (1, 1 / 3))
 
     def test_a_scroll_during_a_touch_or_a_held_button_has_its_input(self):
-        # borrow-rules B6 (agent-detector's scroll drivers, MIT): a finger on the screen, a button held on the
+        # after agent-detector's scroll drivers, MIT: a finger on the screen, a button held on the
         # scrollbar, and the fling right after either, scroll the page with no wheel
         touch = [ev(0, "touchstart"), ev(300, "scroll"), ev(600, "scroll"), ev(900, "touchend"), ev(1200, "scroll")]
         drag = [ev(0, "mousedown", cx=1, cy=1), ev(500, "scroll"), ev(1500, "scroll"), ev(1600, "mouseup", cx=1, cy=1)]
@@ -182,7 +212,7 @@ class ScrollAndKeyFeaturesTest(unittest.TestCase):
         self.assertEqual((f["keys_n"], f["input_no_keydown"]), (0, 1.0))
 
     def test_only_typed_text_can_lack_its_keydown(self):
-        # borrow-rules B4 (agent-detector's insertWithoutKeys, MIT): a paste from the menu, an autofill or a
+        # after agent-detector's insertWithoutKeys, MIT: a paste from the menu, an autofill or a
         # correction, a drop and an input method's composition change a field without a keydown, and humans make them
         for change in ({"it": "insertFromPaste"}, {"it": "insertReplacementText"}, {"it": "insertFromDrop"},
                        {"it": "insertText", "ic": 1}):
@@ -190,7 +220,7 @@ class ScrollAndKeyFeaturesTest(unittest.TestCase):
             self.assertEqual((f["keys_n"], f["input_no_keydown"]), (None, None), change)
 
     def test_typed_text_after_a_touch_has_no_missing_keydown(self):
-        # borrow-rules B4: an on-screen keyboard, handwriting or dictation on a touch screen types without keys
+        # an on-screen keyboard, handwriting or dictation on a touch screen types without keys
         for pointer in ("touch", "pen"):
             session = [ev(0, "pointerdown", cx=1, cy=1, pt=pointer), ev(500, "input", it="insertText")]
             self.assertIsNone(feats(session[1:], session)["input_no_keydown"], pointer)

@@ -1,10 +1,10 @@
-"""GET /api/health on the local listener, and GET /healthz on server mode's public listener (S1.1, S5.1).
+"""GET /api/health on the local listener, and GET /healthz on server mode's public listener.
 
 /api/health is what `agentcake status`, `start`, `doctor`, `migrate` and `delete` ask the running cake (daemon.py),
-in the fields of cake 0.3.4 but its demo shop's (D37): version, data folder (absolute: migrate compares it), site key,
+in the fields of cake 0.3.4 but its demo shop's: version, data folder (absolute: migrate compares it), site key,
 sessions (every row), real sessions (not self-checks, and not uploads from another site: site_origin.py), self-check
-visits, and the disk: budget and use, the disk's free space and why new replays are stopped (space.space_status,
-S2.5). Like every /api answer it is for this computer only (answers.local_only).
+visits, and the disk: budget and use, the disk's free space and why new replays are stopped (space.space_status).
+Like every /api answer it is for this computer only (answers.local_only).
 /healthz answers the load balancer's health check: "ok", nothing about the data.
 """
 from http import HTTPStatus

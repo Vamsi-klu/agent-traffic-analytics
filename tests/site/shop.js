@@ -1,4 +1,4 @@
-/* The test site's shop (tests/site/site_server.py): AgentCake's demo shop until D37, now a test fixture.
+/* The test site's shop (tests/site/site_server.py): AgentCake's demo shop until 0.4.0, now a test fixture.
    Everything runs in this page; the cart lives in localStorage. Nothing is sent anywhere except what
    cake's own page script records (inputs masked by cake's setting; card fields are never recorded).
    The look is shop.css beside it; COLORS are the products' own colours. */

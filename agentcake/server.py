@@ -1,12 +1,12 @@
-"""The two listeners (S1.1): the local page on 127.0.0.1, and server mode's public listener (0.3.3).
+"""The two listeners: the local page on 127.0.0.1, and server mode's public listener (0.3.3).
 
 serve() runs the local listener on 127.0.0.1:<port>, when public_listen is set the public one in a thread, and the
-upkeep of the replay chunks in another (maintenance.py, S2.2). Each request is answered by the view routes.py names for
+upkeep of the replay chunks in another (maintenance.py). Each request is answered by the view routes.py names for
 it. The local listener lets any origin post to collect (a site on this computer, such as a dev server on another port,
 sends its visits there) and to nothing else: no other answer carries CORS headers, so no other site's page can read the
-local pages' data (S5.1; /api also checks Host and Origin, api/answers.py). The public listener answers only below
+local pages' data (/api also checks Host and Origin, api/answers.py). The public listener answers only below
 path_prefix, refuses a body over public_max_body_bytes before reading it, and sends no CORS header (cake sits on a path
-of the site's own domain). SIGINT and SIGTERM end serve() cleanly (S6.1).
+of the site's own domain). SIGINT and SIGTERM end serve() cleanly.
 """
 import signal
 import threading
@@ -119,7 +119,7 @@ def make_listeners(c):
 
 def stop_on_signals(listeners):
     """SIGINT (Ctrl+C) and SIGTERM (systemd, `agentcake stop`, a container's stop: there Python is PID 1, which gets no
-    default action for SIGTERM) end serve() cleanly instead of with a KeyboardInterrupt traceback (S6.1). shutdown()
+    default action for SIGTERM) end serve() cleanly instead of with a KeyboardInterrupt traceback. shutdown()
     waits for serve_forever() to return, so it runs in a thread of its own, never in the handler on the main thread."""
     def on_signal(signum, frame):
         for listener in listeners:
@@ -135,7 +135,7 @@ def serve():
     listeners = [listener for listener in (local, public) if listener]
     stop_on_signals(listeners)
     print(text("serving", version=__version__, base=base_url(c), home=paths.home()), flush=True)
-    upkeep = maintenance.start()  # sealing replay chunks, and the nightly recompression (S2.2)
+    upkeep = maintenance.start()  # sealing replay chunks, and the nightly recompression
     if public:
         threading.Thread(target=public.serve_forever, daemon=True).start()
         print(text("public_listening", listen=c["public_listen"], prefix=c.get("path_prefix") or "/",

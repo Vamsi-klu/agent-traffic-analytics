@@ -1,4 +1,4 @@
-"""Web Bot Auth key directories: which public keys speak for which signer (S3.2).
+"""Web Bot Auth key directories: which public keys speak for which signer.
 
 In draft-ietf-webbotauth-httpsig-protocol-01 a signer is the HTTPS URL its Signature-Agent member names, where it
 publishes a JWK Set (section 4.1). A verifier looks a key up by the pair (that URL, keyid), never by keyid alone
@@ -13,7 +13,7 @@ signer_identifier() turns a Signature-Agent value into the same name (RFC 3986 6
 
 Keys that cannot be used are handled as the draft asks (section 5.5.1, "reject malformed entries"): a malformed JWK
 is left out; a well-formed key of another type (RSA, EC, X25519) is kept without key material, so that a signature
-made with it can be told apart from one whose key is unknown. The keys come from S3.1's bundled lists; this module
+made with it can be told apart from one whose key is unknown. The keys come from the bundled lists; this module
 never fetches anything.
 """
 import base64

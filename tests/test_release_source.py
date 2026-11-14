@@ -1,4 +1,4 @@
-"""tools/releasing/source.py (plan step S6.4): a release starts from the commit alone (no edited or untracked file),
+"""tools/releasing/source.py: a release starts from the commit alone (no edited or untracked file),
 stamped with the commit's time or SOURCE_DATE_EPOCH, and says what the working tree has that the commit has not.
 
     python3 -I -m unittest discover -s tests -v      (from the repository root)

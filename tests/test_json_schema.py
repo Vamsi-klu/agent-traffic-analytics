@@ -1,4 +1,4 @@
-"""tests/json_schema.py, the Python twin of web/scripts/json-schema.mjs (S5.1).
+"""tests/json_schema.py, the Python twin of web/scripts/json-schema.mjs.
 
     python3 -I -m unittest discover -s tests -p test_json_schema.py -v      (from the Agent Cake folder)
 

@@ -57,7 +57,7 @@
   "$defs": {
     "Length": { "type": ["integer", "null"], "minimum": 0 },
     "AverageLength": {
-      "description": "D30: the average length of a session, its first to its last recorded action, in ms; null when the range has no such session.",
+      "description": "The average length of a session, its first to its last recorded action, in ms; null when the range has no such session.",
       "type": "object",
       "additionalProperties": false,
       "required": ["ms", "about"],

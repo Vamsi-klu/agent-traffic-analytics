@@ -1,4 +1,4 @@
-"""The wheel, agentcake-<version>-py3-none-any.whl (S6.4), written with the standard library.
+"""The wheel, agentcake-<version>-py3-none-any.whl, written with the standard library.
 
 A wheel is a zip of the package and a <name>-<version>.dist-info folder
 (https://packaging.python.org/specifications/binary-distribution-format/): METADATA (project.py), WHEEL (the format

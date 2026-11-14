@@ -1,4 +1,4 @@
-"""Shared server-half token vectors (S4.1): the Node middleware and cake make and read the same tokens, byte for byte.
+"""Shared server-half token vectors: the Node middleware and cake make and read the same tokens, byte for byte.
 
     python3 -I -m unittest discover -s tests -v      (from the cake folder)
 
@@ -171,7 +171,7 @@ class AgentcakeEdgeToken(unittest.TestCase):
                     self.assertEqual(payload, v["payload"])
 
     def test_the_age_window_is_the_vectors_window(self):
-        self.assertEqual(config.DEFAULTS["token_max_age_ms"], RULES["max_age_ms"])  # settings since S1.2 (defaults.json)
+        self.assertEqual(config.DEFAULTS["token_max_age_ms"], RULES["max_age_ms"])  # settings since 0.4.0 (defaults.json)
         self.assertEqual(config.DEFAULTS["token_max_future_ms"], RULES["max_future_ms"])
 
     def test_netfacts_computes_every_network_key(self):

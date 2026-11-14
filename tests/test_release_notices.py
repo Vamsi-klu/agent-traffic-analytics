@@ -1,4 +1,4 @@
-"""tools/releasing/notices.py (job web-notices): a release stops unless the compiled pages it copied into the package
+"""tools/releasing/notices.py: a release stops unless the compiled pages it copied into the package
 hold the third-party notices `npm run build` wrote, each entry with a licence text and each package at the version
 web/package-lock.json locks.
 

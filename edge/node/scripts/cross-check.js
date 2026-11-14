@@ -7,7 +7,7 @@
  *   input (stdin):   [{ secret, request: { method, path, headers }, now_ms, id, client_ip, verdict, version, token }]
  *   output (stdout): [{ token: Node's token or null, result: "ok" | "stale" | "bad" | null (no token to read) }]
  *
- * Step S4.1.
+ *
  */
 const { mintToken, verifyToken } = require("..")
 

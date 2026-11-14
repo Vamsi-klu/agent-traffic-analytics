@@ -1,4 +1,4 @@
-"""GET and POST /api/register: the local dashboard's registration card (S5.8, D32; the sending is agentcake/register.py).
+"""GET and POST /api/register: the local dashboard's registration card (the sending is agentcake/register.py).
 
 GET answers Registration (web/src/data/types.ts): whether this data folder has registered (until it has, the pages
 show the card before anything else), what it sent and when (the settings page shows it), the rules the card checks

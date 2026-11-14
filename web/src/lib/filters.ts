@@ -8,7 +8,7 @@ export const ALL = "all"
 export const ANY_AGENT = "any"
 export const DEFAULT_RANGE: DateRange = "7d"
 export const RANGE_KEYS = Object.keys(RANGES) as DateRange[]
-/** The session list's verdict filter: all, or one verdict (D39's level 1). */
+/** The session list's verdict filter: all, or one verdict (level 1 of judging.en.json). */
 export const VERDICT_FILTERS: (Verdict | typeof ALL)[] = [ALL, ...VERDICT_ORDER]
 
 /** The URL's value when it is one of `choices`, else `fallback`. */

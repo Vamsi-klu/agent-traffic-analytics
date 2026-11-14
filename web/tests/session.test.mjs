@@ -1,4 +1,4 @@
-// The session page around the replay (S5.4) in Chromium, against the built app and the samples: every reason layer is
+// The session page around the replay in Chromium, against the built app and the samples: every reason layer is
 // shown and one that is off says why, a replay deleted to make room says so while the verdict and timeline stay, a
 // replay cut short says so and still plays, the server half has a row per page request, and Pages visited names the
 // entry and exit page, then each page in order (at 485 px without scrolling sideways). Usage: node --test tests/

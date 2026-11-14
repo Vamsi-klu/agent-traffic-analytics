@@ -1,5 +1,5 @@
 // One session: replay + who acted when + pages visited + four-layer reasons + server half + every action (DESIGN.md §6). Data:
-// /api/session/<id>; the replay plays in rrweb-player, chunk by chunk from …/replay?chunk=<n> (S5.4, lib/use-replay.ts).
+// /api/session/<id>; the replay plays in rrweb-player, chunk by chunk from …/replay?chunk=<n> (lib/use-replay.ts).
 import { ArrowLeft, Search, Sparkles, Timer } from "lucide-react"
 import { Link, useParams } from "react-router"
 import { Alert, AlertDescription } from "@/components/ui/alert"

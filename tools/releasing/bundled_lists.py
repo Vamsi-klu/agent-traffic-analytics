@@ -1,4 +1,4 @@
-"""The lists that ship with Agent Cake (S6.4, D23): refreshed online before a release, checked when it is built.
+"""The lists that ship with Agent Cake: refreshed online before a release, checked when it is built.
 
 As PostHog keeps its bot lists in the code and refreshes them with a script before a release
 (products/web_analytics/scripts/refresh_bot_ip_ranges.py), Agent Cake's lists, address ranges and signing keys

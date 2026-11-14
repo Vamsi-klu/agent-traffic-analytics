@@ -1,4 +1,4 @@
-"""Signals for the environment rules (S3.3): what a session's recorded data says about its browser, as one dict.
+"""Signals for the environment rules: what a session's recorded data says about its browser, as one dict.
 
     from_cake(batches, collect_requests=(), page_requests=None, settings=None) -> signals    cake.js, format v1
     from_lab(payloads, requests=(), settings=None) -> signals                                 the research lab
@@ -58,7 +58,7 @@ HOOK_FLAGS = ("pptr", "utilityScript", "puppeteerEval")
 CAKE_AUTO_FIELDS = {"auto": ("globalsAtLoad", "errorStack", "docInterception"),
                     "globals": ("globalsAtEnd", "hookHits"),
                     "cdp": ("runtimeEnableLeak",),
-                    "probes": ("permissions", "workerConsistency", "nativeTampering", "uaFullVersion")}
+                    "probes": ("permissions", "workerConsistency", "nativeTampering", "uaFullVersion", "systemFontNames")}
 CAKE_VISIT_RECORD = "frames"
 CAKE_BOTSCENT_RECORD = "botscent"
 CAKE_PAGE_RECORD = "page"
@@ -288,7 +288,7 @@ def _last_time(records):
 
 def cake_page_order(batches):
     """The page view ids of a visit's batches in the order from_cake lists its pages: what lines up facts kept per
-    page view (the server half, prerendering) with the signals' pages and the environment hits' page indexes (S3.4)."""
+    page view (the server half, prerendering) with the signals' pages and the environment hits' page indexes."""
     return [pv for pv, _, _ in _cake_page_views(list(batches))]
 
 

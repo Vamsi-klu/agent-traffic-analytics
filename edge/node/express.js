@@ -10,7 +10,7 @@
  * response's head is (a writeHead hook, the way the on-headers package and botscent's Express adapter work), so a
  * handler that sets its own Server-Timing later, with setHeader or writeHead, keeps its entries and cake's, and noStore
  * can see the type the handler chose. The hook is adapted from botscent (https://github.com/nalinbhardwaj/botscent,
- * src/adapters/express.ts, commit 7f948003, Copyright (c) 2026 Nalin Bhardwaj, MIT License). Step S4.1.
+ * src/adapters/express.ts, commit 7f948003, Copyright (c) 2026 Nalin Bhardwaj, MIT License).
  */
 const { settingsFrom, resolveSecret, secretBytes, startupWarnings, warnOnce } = require("./lib/settings")
 const { viewOf, botscentRequestOf, addressOf } = require("./lib/request")

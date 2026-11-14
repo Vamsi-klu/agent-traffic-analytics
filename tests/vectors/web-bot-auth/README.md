@@ -1,6 +1,6 @@
 # Web Bot Auth and HTTP message signature test vectors
 
-Used by `tests/test_ed25519.py`, `tests/test_sfv.py` and `tests/test_webbotauth.py` (S3.2). All keys here are the
+Used by `tests/test_ed25519.py`, `tests/test_sfv.py` and `tests/test_webbotauth.py`. All keys here are the
 published test keys of RFC 9421 Appendix B.1; they must never be trusted outside tests (draft-ietf-webbotauth-httpsig-protocol-01
 section 6.8), and Agent Cake's default settings reject the Ed25519 one (`agentcake/data/webbotauth.json`).
 

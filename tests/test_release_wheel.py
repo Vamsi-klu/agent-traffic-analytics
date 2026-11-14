@@ -1,4 +1,4 @@
-"""tools/releasing/wheel.py (plan step S6.4): a wheel of the package with METADATA, WHEEL, entry_points.txt and a RECORD
+"""tools/releasing/wheel.py: a wheel of the package with METADATA, WHEEL, entry_points.txt and a RECORD
 that matches every file; the same tree gives the same bytes; pip installs the real one and its command runs.
 
     python3 -I -m unittest discover -s tests -v      (from the repository root)

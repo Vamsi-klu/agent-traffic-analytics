@@ -1,12 +1,12 @@
-"""The four layers of "Why this verdict" (S5.1; S5.4 draws them): each layer's state and reasons, from the verdict.
+"""The four layers of "Why this verdict" (the session page draws them): each layer's state and reasons, from the verdict.
 
 The verdict (judging.py) keeps each layer's state, which way it leans and how sure (verdict.py's layers: {"state",
-"why"?, "leans", "percent"}; detect/confidence.py; None in a verdict kept before S3.7) and its reasons layer by layer
+"why"?, "leans", "percent"}; detect/confidence.py; None in a verdict kept before 0.4.0) and its reasons layer by layer
 (verdict_text.reason). The page has the four layers name, verify, environment and behavior; a reason of a layer
 it does not have (weak signals, crawler-like patterns) shows in the layer data/api.json "reasons" names for it, and a
 prefetch's exclusion reasons never show (such a session is no visit). Each reason keeps its tone and its text and gets
 the kind of evidence the page draws an icon for (data/api.json "reasons", in the order its comment gives). A layer the
-verdict does not name (a session judged before S3.4) is off. A reason is worded as it is shown (verdict_text.words: today's
+verdict does not name (a session judged before 0.4.0) is off. A reason is worded as it is shown (verdict_text.words: today's
 text, and its detail, the technical evidence the page shows under it, or None), not as it was when judged.
 
     layers(layers_json, reasons_json, origin=None, turns=False, verdict=None) -> [LayerReasons], in the order name,
@@ -61,7 +61,7 @@ def layers(layers_json, reasons_json, origin=None, turns=False, verdict=None):
                                  {"kind": kind(reason, layer), "tone": reason["tone"], "text": text, "detail": detail}))
     out = []
     for layer in table["layers"]:
-        own = kept.get(layer) or {}  # its state, and since S3.7 which way it leans and how sure (confidence.py)
+        own = kept.get(layer) or {}  # its state, and since 0.4.0 which way it leans and how sure (confidence.py)
         state = _shown_state(layer, states.get(own["state"], UNKNOWN_STATE) if own.get("state") else OFF, turns,
                              verdict)
         sure = own.get("leans") is not None and own.get("leans") in AGREES.get(state, (state,))

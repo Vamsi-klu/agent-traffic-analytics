@@ -1,4 +1,4 @@
-"""tools/releasing/middleware.py (plan step S6.4): edge/ is copied into the package, into the folder the data file
+"""tools/releasing/middleware.py: edge/ is copied into the package, into the folder the data file
 names, without its tests, development scripts and node_modules.
 
     python3 -I -m unittest discover -s tests -v      (from the repository root)

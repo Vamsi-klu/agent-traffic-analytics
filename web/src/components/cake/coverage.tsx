@@ -54,9 +54,9 @@ function CategoryRow({ mark, about }: { mark: ReactNode; about: string }) {
   )
 }
 
-/** The session categories (D39): each verdict a session can get (Human, which counts what cake can't tell, marked;
+/** The session categories: each verdict a session can get (Human, which counts what cake can't tell, marked;
  *  Agent; Bot), with Agent only and Human + agent, the two kinds of Agent session, right after Agent; every badge in
- *  one shape (the user, 11/13: only these, all aligned; no Unknown). */
+ *  one shape (only these, all aligned; no Unknown). */
 export function Taxonomy() {
   const { verdicts, turns } = TAXONOMY
   return (

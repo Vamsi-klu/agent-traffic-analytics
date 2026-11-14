@@ -1,8 +1,8 @@
-"""When a session is judged (agentcake.detect.schedule, plan step S3.4), on an injected clock: nothing sleeps.
+"""When a session is judged (agentcake.detect.schedule), on an injected clock: nothing sleeps.
 
     python3 -I -m unittest discover -s tests -v      (from the repository root)
 
-EXECUTION-BRIEF S3.4: a batch arrives -> judged once; quiet for the configured time -> judged once more and final;
+The rule: a batch arrives -> judged once; quiet for the configured time -> judged once more and final;
 new data after that -> opened again and judged; on a server a sending session is judged at most every
 public_judge_interval_ms, and opening a replay with new data catches up; a Bot known by name and a session with too
 few actions never reach the behaviour model; and the whole run opens no socket.

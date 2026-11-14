@@ -12,7 +12,7 @@
  * the lengths in defaults.json with control characters removed, the header names in order (never their values), whether
  * a Web Bot Auth signature came along, and botscent's verdict in its own vocabulary. Never an IP address, a cookie or an
  * authorization value. Adapted from tartini.ai's cake-server-timing.js (toast_mvp branch cake-tartini, 01eafdb7).
- * Step S4.1.
+ *
  */
 const CONTROL = /[\u0000-\u001f\u007f]/g
 const HEADER_NAME = /^[a-z0-9-]+$/

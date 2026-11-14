@@ -1,7 +1,7 @@
-// The settings page (S5.5) in Chromium, against the built app with /api/settings answered here: every item shows what
+// The settings page in Chromium, against the built app with /api/settings answered here: every item shows what
 // /api/settings and /api/register say; a change is posted at once with only its field, and a selector list the browser
-// can't read isn't posted; where visits come from is asked again while the page is open (I3), leaving the form as it
-// is; lists past I4 and a full budget warn; "Delete all data" asks first and then posts /api/delete for everything;
+// can't read isn't posted; where visits come from is asked again while the page is open, leaving the form as it
+// is; lists past their age limit and a full budget warn; "Delete all data" asks first and then posts /api/delete for everything;
 // the description of freeing space states the share of the budget it stops at as /api/settings gives it.
 // Usage: node --test tests/
 import assert from "node:assert/strict"
@@ -100,7 +100,7 @@ test("a selector list the browser can't read isn't posted; one it reads is", asy
   } finally { await tab.close() }
 })
 
-test("where visits come from is asked again while the page is open, and the form stays as it is (I3)", async () => {
+test("where visits come from is asked again while the page is open, and the form stays as it is", async () => {
   const waiting = { ...settings, refresh_ms: 200, sources: { ...settings.sources, site: "waiting" }, last_seen: { ...settings.last_seen, site: null } }
   const tab = await open(waiting)
   try {
@@ -133,7 +133,7 @@ test("the description of freeing space states the share of the budget it stops a
   }
 })
 
-test("lists past I4 warn and give the command; a full budget says new replays aren't stored", async () => {
+test("lists past their age limit warn and give the command; a full budget says new replays aren't stored", async () => {
   const late = { ...settings, lists: { ...settings.lists, age_days: 45, stale: true },
     storage: { ...settings.storage, used_bytes: settings.budget_mb * 1024 * 1024, replays_stopped: "budget" } }
   const tab = await open(late)

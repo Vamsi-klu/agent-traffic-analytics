@@ -1,4 +1,4 @@
-"""agentcake/detect/confidence.py: the percents a verdict shows (plan step S3.7, decision D36).
+"""agentcake/detect/confidence.py: the percents a verdict shows.
 
     python3 -I -m unittest discover -s tests -v
 
@@ -138,6 +138,23 @@ class SessionTest(unittest.TestCase):
         rrweb = confidence.annotate(result("agent", {"behavior": {"state": "agent"}}),
                                     {"behavior": {**typed, "raw_input": False}}, table)
         self.assertEqual(rrweb["percent"], 50)  # no keys without raw input: the typing is not read
+
+    def test_fast_arrivals_add_their_strength_and_human_looking_actions_do_not_lower_it(self):
+        """Only automation made to look human action by action trips the arrival check, so its human-looking action
+        scores say nothing against an agent then (the map's chance counts only above even); agent-looking ones add."""
+        table = {**TABLE, "layers": {**TABLE["layers"], "fast_arrivals": 0.9}}
+        held = {"movements": 10, "fast": 9, "share": 0.9, "holds": True, "span": [1, 2]}
+
+        def judged(*probabilities, raw_input=True, mouse=True):
+            found = {**behaviour(*probabilities), "raw_input": raw_input,
+                     "evidence": {"fast_arrivals": held, "mouse_pointer": mouse}}
+            return confidence.annotate(result("agent", {"behavior": {"state": "agent"}}), {"behavior": found}, table)
+
+        humanlike = judged(0.02, 0.03)  # the map alone reads 5% agent
+        self.assertEqual((humanlike["layers"]["behavior"]["leans"], humanlike["percent"]), ("agent", 90))
+        self.assertEqual(judged(0.8, 0.7)["percent"], 99)  # the map's 90% and the check's 90% add, up to the clamp
+        self.assertEqual(judged(0.02, 0.03, mouse=False)["percent"], 5)  # not a mouse: the check is not read
+        self.assertEqual(judged(0.02, 0.03, raw_input=False)["percent"], 5)  # no raw input: not read either
 
     def test_a_bot_counts_by_its_check_and_an_excluded_session_has_none(self):
         self.assertEqual(annotate(result("bot", {"name": {"state": "bot"}}, verification="self_reported"))["percent"],

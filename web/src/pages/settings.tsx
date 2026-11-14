@@ -1,8 +1,8 @@
-// Settings (S5.5). Like PostHog 1.0's setup page: your website's domain (the project, D40: the top bar shows it) and the
-// line to add to its pages; then where visits come from and when each last arrived (asked again every refresh_ms, so a first visit shows within I3), what
+// Settings. Like PostHog 1.0's setup page: your website's domain (the project: the top bar shows it) and the
+// line to add to its pages; then where visits come from and when each last arrived (asked again every refresh_ms, so a first visit shows within 10 seconds), what
 // the server half says about your site's server, retention and the disk (as cake 0.3.4: keep everything by default, a
-// budget, free space from old human-only replays, K2 below the disk's floor), the page script's two settings, how
-// AgentCake decides (the four layers and the lists' age, which are not settings), the registration (D32) and deleting
+// budget, free space from old human-only replays, and below the disk's floor), the page script's two settings, how
+// AgentCake decides (the four layers and the lists' age, which are not settings), the registration and deleting
 // everything. Data: GET /api/settings and GET /api/register; each change is saved at once with POST /api/settings,
 // which answers the new state; "Delete all data" posts /api/delete after its Dialog.
 import { useEffect, useState } from "react"
@@ -66,7 +66,7 @@ function SettingsForm({ initial, registration }: { initial: Settings; registrati
   const [hidden, setHidden] = useState(initial.hide_selectors)
   const save = (update: SettingsUpdate) =>
     api.saveSettings(update).then((saved) => { setS(saved); setError(null); return saved }, (e: unknown) => { setError(asApiError(e).message); return null })
-  // I3: while the page is open, where visits come from is asked again; the rest of the form stays as it is.
+  // while the page is open, where visits come from is asked again; the rest of the form stays as it is.
   useEffect(() => {
     const timer = setInterval(() => {
       api.settings().then((now) => setS((was) => ({ ...was, sources: now.sources, last_seen: now.last_seen, server_half: now.server_half })), () => undefined)
@@ -181,7 +181,7 @@ function SettingsForm({ initial, registration }: { initial: Settings; registrati
   )
 }
 
-/** No telemetry; what the registration sent, and how to have it deleted (D32, PRIVACY.md). */
+/** No telemetry; what the registration sent, and how to have it deleted (PRIVACY.md). */
 function RegistrationCard({ registration: r }: { registration: Registration }) {
   return (
     <Card>

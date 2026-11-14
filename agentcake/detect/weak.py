@@ -1,27 +1,26 @@
-"""Weak signals (S3.8): patterns agents show but humans show too, so each only adds a reason (layer "weak") and never
-changes a verdict (D5; D17 for the rhythm of the steps). Research note 13's audit: sig-014, sig-015, sig-097, sig-100,
-sig-111, sig-072.
+"""Weak signals: patterns agents show but humans show too, so each only adds a reason (layer "weak") and never
+changes a verdict (a guessed pattern never makes a Bot or an Agent).
 
     facts(signals, requests, raw, settings=None) -> what the signals below read, for verdict.decide's evidence["weak"]
     reasons(found, settings=None) -> [reason dicts]
 
   timezone-country   the browser's time zone is not one the address's country uses (IANA zone.tab: timezones.json)
   language-country   the browser's languages name regions, none of them the address's country
-  same-address       many sessions from one address (its salted hash, S2.3) within a window
+  same-address       many sessions from one address (its salted hash) within a window
   header-order       a User-Agent that claims a browser, on requests whose header names come in an order that
                      browser does not send (only requests that reached cake directly: a load balancer reorders them)
-  display-change     the screen's colour depth or size changed within the session (sig-100: Claude in Chrome's tab
+  display-change     the screen's colour depth or size changed within the session (Claude in Chrome's tab
                      reported 30 where its user's own window reported 24)
-  window-jump        the window jumped across the screen while keeping its size (sig-097)
-  rhythm             most steps come after a still pause (as when an AI looks at the page before it acts): D17's
-                     "is there time to think". Its other half, nearly every step right after the previous one,
-                     was removed (job borrow-rules, D34): humans step that way as often as agents do, so it only
+  window-jump        the window jumped across the screen while keeping its size
+  rhythm             most steps come after a still pause (as when an AI looks at the page before it acts): "is
+                     there time to think". Its other half, nearly every step right after the previous one,
+                     was removed: humans step that way as often as agents do, so it only
                      wrote "like a script" into humans' replays
-The keyboard and assistive-tool guard is the verdict's own (S3.4: the reason behavior.assistive). The address's
+The keyboard and assistive-tool guard is the verdict's own (the reason behavior.assistive). The address's
 country comes from the load balancer (server mode); in local mode the first two have nothing to compare. Thresholds
 and the header anchors: agentcake/data/verdict.json "weak".
 
-signals: env_signals' dict; requests: the visit's request facts (S2.3, oldest first); raw: the raw stream's records.
+signals: env_signals' dict; requests: the visit's request facts (oldest first); raw: the raw stream's records.
 """
 from agentcake import datafiles
 from agentcake.detect import segment
@@ -48,7 +47,7 @@ def facts(signals, requests, raw, settings=None):
             "languages": _distinct([tag for env in envs for tag in env.get("languages") or []]
                                    + [tag for h in headers for tag in _accepted(h.get("accept-language"))]),
             "user_agents": _distinct(h.get("user-agent") for h in headers),
-            # a request whose order is not known (a web server log's page request, S4.4) has no "names"
+            # a request whose order is not known (a web server log's page request) has no "names"
             "header_orders": [fact["names"] for fact in requests
                               if fact.get("names") and not any(key in fact for key in LOAD_BALANCER_FACTS)],
             "color_depths": _distinct((env.get("screen") or {}).get("cd") for env in envs),

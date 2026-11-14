@@ -1,5 +1,5 @@
 {
-  "$comment": "The home page's example preview before any real visit (S5.1, GET /api/setup 'example'): made-up sessions in the shape of web/src/data/types.ts SessionSummary and Timeline, shown under 'example data' and never stored or counted. Their ids say 'example' so they can't be mistaken for a visit.",
+  "$comment": "The home page's example preview before any real visit (GET /api/setup 'example'): made-up sessions in the shape of web/src/data/types.ts SessionSummary and Timeline, shown under 'example data' and never stored or counted. Their ids say 'example' so they can't be mistaken for a visit.",
   "sessions": [
     {"id": "example-human-agent", "verdict": "agent", "evidence": null, "agent_turns": "human_agent",
      "agent": "Claude in Chrome", "certainty": "likely",

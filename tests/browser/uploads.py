@@ -1,4 +1,4 @@
-"""Reading back what cake.js uploaded to the stand-in collector (plan steps S1.3, S1.4).
+"""Reading back what cake.js uploaded to the stand-in collector.
 
 collect.ndjson has one line per upload as it arrived; a batch can arrive twice (docs/collect-format.md: a copy parked
 in sessionStorage is sent again), so batches are told apart by (s, pv, seq), as cake's collector does. A page view is

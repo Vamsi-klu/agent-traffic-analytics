@@ -1,5 +1,5 @@
-"""agentcake/detect/cadence.py: isHumanCadence's class of a session's typing, on cake.js's raw events (plan step S3.7,
-decision D36), and the model's session-level check that reads it (model.py, basis "typing_cadence").
+"""agentcake/detect/cadence.py: isHumanCadence's class of a session's typing, on cake.js's raw events, and
+the model's session-level check that reads it (model.py, basis "typing_cadence").
 
     python3 -I -m unittest discover -s tests -v      (from the repository root)
 

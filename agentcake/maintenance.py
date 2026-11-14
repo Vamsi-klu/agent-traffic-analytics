@@ -1,4 +1,4 @@
-"""Background upkeep of the replay chunks (S2.2): `serve` starts it in a daemon thread with start().
+"""Background upkeep of the replay chunks: `serve` starts it in a daemon thread with start().
 
 Every maintenance_tick_ms a round seals the windows that went quiet (streams.seal), so a finished visit is compressed
 within seal_idle_ms of its last batch. Every maintenance_recompress_every_ms the round also checks whether it is a
@@ -7,11 +7,11 @@ good time for the heavy night work, and then recompresses old sessions and recla
 recompress_require_ac_power (macOS: pmset; Linux: /sys/class/power_supply; a machine without a battery, such as a
 server, counts as on AC power), with the load per CPU under recompress_max_load_per_cpu, and no batch received for
 recompress_quiet_ms (sessions.end_ms, open windows). Chunks dropped to free space or by a retention give their file
-space back at the next round, by day as well (space.reclaim_if_due, S2.5): on a server that is never quiet at night
+space back at the next round, by day as well (space.reclaim_if_due): on a server that is never quiet at night
 the bytes would otherwise never come back.
 
-Each round also gives the sessions that went quiet their final verdict (judging.tick, S3.4: judge_quiet_s) and, with
-what is left of its limit, judges anew the sessions an older judge judged (S3.7: after an upgrade, a few each round).
+Each round also gives the sessions that went quiet their final verdict (judging.tick: judge_quiet_s) and, with
+what is left of its limit, judges anew the sessions an older judge judged (after an upgrade, a few each round).
 
 Upkeep.tick(now_ms) is one round; the tests call it with a clock and replaced probes, so nothing sleeps.
 """

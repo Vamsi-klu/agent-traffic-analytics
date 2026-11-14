@@ -1,4 +1,4 @@
-"""What a privacy scan looks for (GOAL S1, plan step S6.5), built from tools/privacy/rules.json.
+"""What a privacy scan looks for, built from tools/privacy/rules.json.
 
 Rules(canaries, secret, extra_own).find(text) returns the kind of every thing in text that an Agent Cake data folder
 must never hold, one entry per occurrence, in CATEGORIES' terms; never the text that matched, so that a scan can

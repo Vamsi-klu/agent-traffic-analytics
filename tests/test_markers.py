@@ -1,4 +1,4 @@
-"""Agent products' marks on the page and when each was there (S3.3, S3.7; GOAL A5): agentcake/detect/markers.py.
+"""Agent products' marks on the page and when each was there (threshold A5): agentcake/detect/markers.py.
 
     python3 -I -m unittest discover -s tests -p test_markers.py -v      (from the Agent Cake folder)
 
@@ -90,7 +90,7 @@ class Table(unittest.TestCase):
 
 class Words(unittest.TestCase):
     def test_the_words_of_a_mark_call_a_visitor_human_or_agent_only(self):
-        # D26, as tests/test_verdict_text.py checks reasons.json: a mark's text becomes a reason's
+        # as tests/test_verdict_text.py checks reasons.json: a mark's text becomes a reason's
         forbidden = re.compile(r"\b(?:person|people|visitors?)\b|\busers?\b(?!-agent)", re.IGNORECASE)
         for text in [meta["text"] for meta in TABLE.markers.values()] + list(TABLE.spans.values()):
             with self.subTest(text=text):
@@ -183,6 +183,17 @@ class TurnSpans(unittest.TestCase):
 
     def test_pages_not_watched_give_none(self):
         self.assertEqual(markers.turn_spans({"pages": [{"path": "/"}, page([])]}), [])
+
+    def test_a_span_says_whether_its_mark_went_off_while_the_page_view_went_on(self):
+        hidden = [(at(3), at(5))]
+        signals = {"pages": [page([span(WORKING, at(0), at(10)), span(WORKING, at(12), None)], until=at(20),
+                                  hidden=hidden)]}
+        self.assertEqual([(s["from"], s["to"], s["went_off"]) for s in markers.turn_spans(signals)],
+                         [(at(0), at(3), False), (at(5), at(10), True), (at(12), at(20), False)])
+
+    def test_a_mark_that_went_off_while_the_page_was_hidden_did_not_go_off_in_sight(self):
+        signals = {"pages": [page([span(WORKING, at(0), at(10))], until=at(20), hidden=[(at(8), None)])]}
+        self.assertEqual([(s["to"], s["went_off"]) for s in markers.turn_spans(signals)], [(at(8), False)])
 
 
 class Describe(unittest.TestCase):

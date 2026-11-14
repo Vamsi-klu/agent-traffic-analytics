@@ -1,5 +1,5 @@
-// The walks the sample replays are recorded from (S5.4): what each sample session in src/data/fixtures/ does in the
-// test site's shop (tests/site, the demo shop until D37), and when. scripts/replay-fixtures.mjs runs them in Chromium against a scratch Agent Cake and keeps the
+// The walks the sample replays are recorded from: what each sample session in src/data/fixtures/ does in the
+// test site's shop (tests/site, the demo shop until 0.4.0), and when. scripts/replay-fixtures.mjs runs them in Chromium against a scratch Agent Cake and keeps the
 // rrweb events its cake.js recorded. Times are milliseconds from the moment the first page is asked for (the
 // session's ms 0); each walk ends, and its tab closes, at its sample's duration.
 //

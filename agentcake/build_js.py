@@ -1,4 +1,4 @@
-"""Build Agent Cake's page script, agentcake/static/cake.js, and fill in its runtime values (plan steps S1.3, S1.4).
+"""Build Agent Cake's page script, agentcake/static/cake.js, and fill in its runtime values.
 
 cake.js is made from the sources in agentcake/static/src/, in the order agentcake/data/cakejs.json lists them
 ("build" -> "parts"), plus the "script" settings and the data files listed under "build" -> "data" (the privacy rules
@@ -6,7 +6,7 @@ of agentcake/data/privacy.json), which become the CFG object every part reads: n
 sources. Each part runs inside its own function within one enclosing function, so nothing reaches the
 page but window.cake; the parts share a private namespace, C. The licences of the vendored third-party parts are kept
 in /*! ... */ comments at the top. The development build is this plain concatenation; the release build minifies the
-same output and keeps those comments (plan step S6.4).
+same output and keeps those comments.
 
 When cake serves /cake.js it calls with_runtime() to put in the values that belong to one installation (the site key,
 settings the site owner turned on) between the two runtime markers.

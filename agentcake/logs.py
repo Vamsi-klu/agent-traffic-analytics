@@ -1,4 +1,4 @@
-"""`agentcake logs import` and `agentcake logs formats` (S4.4, D20): a web server's access log, read where it lies.
+"""`agentcake logs import` and `agentcake logs formats`: a web server's access log, read where it lies.
 
 logs_command(args) -> exit code: 0, 1 when an error stops the import, 2 on a usage error.
 

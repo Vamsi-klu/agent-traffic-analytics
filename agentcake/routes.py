@@ -1,10 +1,10 @@
-"""The URL tables of the two listeners (S1.1), like PostHog 1.0's posthog/urls.py: which view answers which path.
+"""The URL tables of the two listeners, like PostHog 1.0's posthog/urls.py: which view answers which path.
 
-LOCAL is the local page on 127.0.0.1: the compiled pages (/ and their files, S5.1), the JSON API they read (/api),
-cake.js, the rrweb files, collect and /edge (D37 removed the demo shop that was served at /demo). PUBLIC is server
+LOCAL is the local page on 127.0.0.1: the compiled pages (/ and their files), the JSON API they read (/api),
+cake.js, the rrweb files, collect and /edge (0.4.0 removed the demo shop that was served at /demo). PUBLIC is server
 mode's public listener (paths below path_prefix): only the page script, the recorder, collect, /edge and a health check;
-the local page is never served there. /edge takes a web server's log records signed with the server half's secret (S4.4,
-edge_api.py) on both. resolve() takes the first route that matches, so the compiled pages' catch-all comes last; no
+the local page is never served there. /edge takes a web server's log records signed with the server half's secret
+(edge_api.py) on both. resolve() takes the first route that matches, so the compiled pages' catch-all comes last; no
 match is 404.
 """
 from collections import namedtuple
@@ -34,9 +34,9 @@ LOCAL = [
     path("POST", "/api/settings", settings.save),
     path("GET", "/api/setup", onboarding.view),
     path("GET", "/api/health", health.view),
-    path("POST", "/api/delete", deletion.view),  # S6.5: never on PUBLIC
+    path("POST", "/api/delete", deletion.view),  # never on PUBLIC
     path("GET", "/api/register", registration.view),
-    path("POST", "/api/register", registration.press),  # S5.8: never on PUBLIC
+    path("POST", "/api/register", registration.press),  # never on PUBLIC
     prefix("GET", "/api/", answers.no_route),
     prefix("POST", "/api/", answers.no_route),
     path("GET", "/c.js", assets.cake_js),

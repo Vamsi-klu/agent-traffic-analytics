@@ -1,5 +1,5 @@
-// The registration card's words, the version of its text and the JSON it sends (S5.8, D32). The title, the subtitle,
-// the two paragraphs, the two field names, the small print and the button are the user's own words (plan D32) and
+// The registration card's words, the version of its text and the JSON it sends. The title, the subtitle,
+// the two paragraphs, the two field names, the small print and the button are the user's own words and
 // stay exactly as they are; the rest is ours. The version goes with every registration (consent_version), so it tells
 // which text was shown: change it whenever any of these words change. cake checks the body and sends it on unchanged
 // (agentcake/register.py), which is why the page builds it once, here, for both "See what is sent" and the button.

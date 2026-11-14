@@ -1,5 +1,5 @@
 {
-  "_about": "Spliced take-over sessions (agentcake/evaluation/splice.py, plan step S3.7; moved from the research tools' splice_params.json in S3.9). The lab's values, unchanged (the behaviour lab's splice.py and analyze.py, 2026-11-11): each pattern is [who, seconds of that source's input timeline] in order; stretches are joined gap_ms apart; a source needs more than min_input_events input events.",
+  "_about": "Spliced take-over sessions (agentcake/evaluation/splice.py; moved from the research tools' splice_params.json). The lab's values, unchanged (the behaviour lab's splice.py and analyze.py, 2026-11-11): each pattern is [who, seconds of that source's input timeline] in order; stretches are joined gap_ms apart; a source needs more than min_input_events input events.",
   "gap_ms": 1500,
   "min_input_events": 20,
   "patterns": {

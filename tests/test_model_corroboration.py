@@ -1,4 +1,4 @@
-"""agentcake/detect/model.py: corroboration and cake's own rules (plan step S3.7, decision D36).
+"""agentcake/detect/model.py: corroboration and cake's own rules.
 
     python3 -I -m unittest discover -s tests -v
 
@@ -22,14 +22,15 @@ def scrolls_with_a_wheel(n, t0):
     return [e for k in range(n) for e in (ev(t0 + 6000 * k, "wheel"), ev(t0 + 6000 * k + 10, "scroll"))]
 
 
-def bare_click(t, centred=False, **fields):
-    """A mouse click with no pointer move before it; on a box's centre when centred, else on no known box."""
-    box = {"r": [350, 280, 100, 40]} if centred else {}
-    return ev(t, "click", cx=400, cy=300, d=1, pt="mouse", **box, **fields)
+def bare_click(t, centred=False, x=400, **fields):
+    """A mouse click with no pointer move before it; on a box's centre when centred, else on no known box. A second
+    one on the same spot would repeat it in place, which shows no approach: give it another x."""
+    box = {"r": [x - 50, 280, 100, 40]} if centred else {}
+    return ev(t, "click", cx=x, cy=300, d=1, pt="mouse", **box, **fields)
 
 
 class CorroborationTest(unittest.TestCase):
-    """Without hard evidence an agent needs two independent kinds of evidence (plan step S3.7, D36)."""
+    """Without hard evidence an agent needs two independent kinds of evidence."""
 
     def test_one_kind_of_evidence_is_unsure_and_names_its_kind(self):
         result = model.judge_session([bare_click(1000)] + scrolls_with_a_wheel(3, 5000))
@@ -50,12 +51,12 @@ class CorroborationTest(unittest.TestCase):
 
     def test_without_raw_input_evidence_on_two_actions_stands_in_for_the_second_kind(self):
         one = model.judge_session([bare_click(1000)] + scrolls_with_a_wheel(3, 5000), raw_input=False)
-        two = model.judge_session([bare_click(1000), bare_click(3000)] + scrolls_with_a_wheel(3, 5000),
+        two = model.judge_session([bare_click(1000), bare_click(3000, x=520)] + scrolls_with_a_wheel(3, 5000),
                                   raw_input=False)
         self.assertEqual((one["verdict"], two["verdict"]), ("unsure", "agent"))
 
     def test_with_raw_input_two_actions_of_one_kind_are_still_one_kind(self):
-        result = model.judge_session([bare_click(1000), bare_click(3000)] + scrolls_with_a_wheel(3, 5000))
+        result = model.judge_session([bare_click(1000), bare_click(3000, x=520)] + scrolls_with_a_wheel(3, 5000))
         self.assertEqual((result["verdict"], result["evidence"]["one_kind"]), ("unsure", "approach"))
 
     def test_the_fallback_counts_with_a_second_kind_of_evidence(self):
@@ -81,7 +82,7 @@ def centred_click(t):
 
 
 class SegmentsDecideTest(unittest.TestCase):
-    """The user's rule of 11/13 (D39): segments nobody can tell count for neither side, and an agent part needs
+    """The user's rule of 11/13: segments nobody can tell count for neither side, and an agent part needs
     min_agent_actions actions that are an agent's on their own evidence."""
 
     def test_one_action_never_makes_an_agent_whatever_the_smoothing_pulls_along(self):

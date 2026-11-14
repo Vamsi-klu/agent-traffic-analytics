@@ -1,4 +1,4 @@
-// Tests for check:dist (S5.1): a built folder with a sample session in it fails; a clean one passes.
+// Tests for check:dist: a built folder with a sample session in it fails; a clean one passes.
 // Usage: node --test scripts/   (npm test)
 import assert from "node:assert/strict"
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs"

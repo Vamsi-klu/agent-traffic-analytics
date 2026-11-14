@@ -1,4 +1,4 @@
-"""The storage parameters (S2.2): agentcake/data/storage.json, read once when the package is imported.
+"""The storage parameters: agentcake/data/storage.json, read once when the package is imported.
 
 SETTINGS holds the chunk length, the compression codec and levels, the folder names, the night recompression rules
 and the CSS de-duplication switch; the storage modules take every number from it. Functions whose behaviour a test

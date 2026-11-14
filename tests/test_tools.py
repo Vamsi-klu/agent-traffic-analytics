@@ -1,4 +1,4 @@
-"""The three code checks (S1.2): tools/check_hardcode.py, check_size.py and check_imports.py each find what they are
+"""The three code checks: tools/check_hardcode.py, check_size.py and check_imports.py each find what they are
 for and skip what they must skip, and the repository itself passes all three.
 
     python3 -I -m unittest discover -s tests -v      (from the Agent Cake folder)

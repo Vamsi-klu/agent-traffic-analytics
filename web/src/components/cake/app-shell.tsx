@@ -1,5 +1,5 @@
 // Top bar + page frame. Navigation uses Button (ghost; outline for the current page); `project` is the website's link
-// beside the logo (D40, ProjectLink). DESIGN.md §6
+// beside the logo (ProjectLink). DESIGN.md §6
 import type { ReactNode } from "react"
 import { Activity, List, Settings } from "lucide-react"
 import { Link, NavLink } from "react-router"

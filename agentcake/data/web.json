@@ -1,7 +1,7 @@
 {
-  "$comment": "How cake serves the compiled local pages (S5.1, assets.py): web/dist from `npm run build` (paths.web_folder). / is index.html (the pages route by the URL's #); any other file is served by its suffix's type, and a suffix not listed here is not served. Vite names the files under assets/ by their content, so a browser may keep them; the pages themselves are asked for again each time.",
+  "$comment": "How cake serves the compiled local pages (assets.py): web/dist from `npm run build` (paths.web_folder). / is index.html (the pages route by the URL's #); any other file is served by its suffix's type, and a suffix not listed here is not served. Vite names the files under assets/ by their content, so a browser may keep them; the pages themselves are asked for again each time.",
   "folders": {
-    "$comment": "Where the compiled pages are (paths.web_folder): $CAKE_WEB_DIR when set; else 'release' inside the package, which a release (wheel, .pyz or unpacked folder: S6.4's release.json names the same folder) carries; else 'checkout' next to the package, where `npm run build` puts them in a checkout.",
+    "$comment": "Where the compiled pages are (paths.web_folder): $CAKE_WEB_DIR when set; else 'release' inside the package, which a release (wheel, .pyz or unpacked folder: tools/releasing/release.json names the same folder) carries; else 'checkout' next to the package, where `npm run build` puts them in a checkout.",
     "release": "web",
     "checkout": ["web", "dist"]
   },

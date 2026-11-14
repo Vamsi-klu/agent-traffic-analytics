@@ -1,4 +1,4 @@
-"""cake.js notes when agent products' marks appear and go away (plan steps S3.3, S3.7; GOAL A5).
+"""cake.js notes when agent products' marks appear and go away (threshold A5).
 
 Chromium (tests/browser/markers.mjs) draws on a test page through the stand-in collector the way agent products do,
 noting each change's moment on the page's clock: a Comet stop button in the page's DOM, Claude in Chrome 1.0.107's
@@ -23,7 +23,7 @@ from agentcake.datafiles import load  # noqa: E402  (collector.py, imported by h
 DRIVER = os.path.join(harness.HERE, "markers.mjs")
 MARKS_PAGE = "/pages/markers.html"
 EVERY_MS = load("data/agent_markers.json")["page"]["every_ms"]
-SLACK_MS = 1000  # a look can run late on a busy machine; GOAL A5 allows 3 s for a hand-off point
+SLACK_MS = 1000  # a look can run late on a busy machine; threshold A5 allows 3 s for a hand-off point
 
 
 class MarkWatch(unittest.TestCase):

@@ -1,4 +1,4 @@
-"""Signals for the environment rules (S3.3): agentcake/detect/env_signals.py turns recordings into one dict.
+"""Signals for the environment rules: agentcake/detect/env_signals.py turns recordings into one dict.
 
     python3 -I -m unittest discover -s tests -v      (from the Agent Cake folder)
 

@@ -1,10 +1,10 @@
-"""The dashboard's note on what Agent Cake records and how it decides (S5.3's wording, served by S5.1).
+"""The dashboard's note on what Agent Cake records and how it decides.
 
 coverage() is the Coverage of web/src/data/types.ts: the words of data/coverage.en.json, each row's "how it's decided"
-the sentence data/judging.en.json gives its class (the same words the verdicts use, S3.4), or "named": how an agent's
-name is found (D39: a name is level 3, no class of its own). The names of the categories themselves (D39's three
+the sentence data/judging.en.json gives its class (the same words the verdicts use), or "named": how an agent's
+name is found (a name is the third level, no class of its own). The names of the categories themselves (the three
 levels) are judging.en.json's too, which the pages read when they are built. average_length_about() says how a
-session's length is measured (D30).
+session's length is measured.
 """
 from agentcake.datafiles import load
 from agentcake.detect import verdict_text

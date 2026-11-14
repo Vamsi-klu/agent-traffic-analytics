@@ -1,4 +1,4 @@
-// Reads a replay's chunks as the player needs them (S5.4) and hands their events over strictly in chunk order, however
+// Reads a replay's chunks as the player needs them and hands their events over strictly in chunk order, however
 // the answers arrive: rrweb rebuilds a page from its last full snapshot onwards, so chunk n is no use before chunks
 // 0 … n-1. Chunks can be asked for together (a jump far ahead asks for all the chunks before it at once); each is
 // asked for once, and one that failed is asked for again next time.

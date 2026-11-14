@@ -1,14 +1,14 @@
-"""GET /api/setup: the home page's ways to connect a website, and its example preview (S5.1; S5.2 draws it). Since D37
-there is no demo shop: a fresh AgentCake's home page connects its owner's website, as PostHog 1.0's setup page did.
+"""GET /api/setup: the home page's ways to connect a website, and its example preview (the home page draws it). Since
+0.4.0 there is no demo shop: a fresh AgentCake's home page connects its owner's website, as PostHog 1.0's setup page did.
 
     sentence          the one sentence for a coding agent, in English and Chinese (copy.en.json and copy.zh.json
-                      site_sentence; D21 keeps both until the user decides), with this installation's launcher, ~ for
+                      site_sentence: the sentence is for an AI, so both stay), with this installation's launcher, ~ for
                       the home folder
     terminal, server  the commands of the Terminal and On a server tabs, one per line, placeholders only (api.en.json)
     example           made-up sessions and a timeline the page shows as "example data" until real visits arrive
                       (data/example.json); nothing in the database
     recorded          how many sessions the lists show (visits.py), and how many of them are Agent sessions, at any
-                      time: the home page is the dashboard from the first session on (S5.2, like 0.3.4's page), and
+                      time: the home page is the dashboard from the first session on (like 0.3.4's page), and
                       the dashboard's top block is the getting-started one until the first Agent session
 """
 from agentcake import paths

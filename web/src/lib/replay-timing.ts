@@ -1,4 +1,4 @@
-// Where a replay is, on the session's own clock (S5.4): which chunks the player needs for a moment, where "Jump to
+// Where a replay is, on the session's own clock: which chunks the player needs for a moment, where "Jump to
 // hand-off" goes, who the cursor belongs to and the page's address at a moment. Plain functions over the API's numbers
 // (src/data/types.ts); the player itself (components/cake/use-replay.ts) is a thin layer over rrweb-player.
 import type { Actor, Handoff, ReplayEvent, ReplayInfo, Segment } from "@/data/types"

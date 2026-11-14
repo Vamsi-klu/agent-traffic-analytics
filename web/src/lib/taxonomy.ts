@@ -1,4 +1,4 @@
-/** The session categories (D39), as agentcake/data/judging.en.json names them, read when the pages are built
+/** The session categories, as agentcake/data/judging.en.json names them, read when the pages are built
  *  (vite.config.ts), so every page, badge and filter says the same word as the API and the categories block:
  *  1 a verdict for each session (Human, Agent, Bot), a Human session cake couldn't tell marked thin evidence, an Agent
  *  session split into Agent only and Human + agent; 2 which agent: its product's or tool's name and how sure it is, or

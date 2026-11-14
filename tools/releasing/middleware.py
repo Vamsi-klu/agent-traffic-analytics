@@ -1,8 +1,8 @@
-"""The sites' middleware in the release (S6.4): edge/ copied into the package, so every way of installing has it.
+"""The sites' middleware in the release: edge/ copied into the package, so every way of installing has it.
 
 edge/ holds the server half for a website (Node, Python, PHP, WordPress; S4.1-S4.3). It is not published anywhere
 else: `agentcake setup --print --site` points at the copy inside the installed package, in the folder the data file
-named by release.json "edge" says (agentcake.site_setup.edge_dir() looks there first, S6.1). Its tests and
+named by release.json "edge" says (agentcake.site_setup.edge_dir() looks there first). Its tests and
 development scripts stay in the repository (release.json "edge" -> "skip"), and so do node_modules and the other
 names never shipped.
 """

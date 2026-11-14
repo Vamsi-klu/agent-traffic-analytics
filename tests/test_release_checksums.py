@@ -1,4 +1,4 @@
-"""tools/releasing/checksums.py (plan step S6.4): SHA256SUMS lines as shasum and sha256sum write them, which
+"""tools/releasing/checksums.py: SHA256SUMS lines as shasum and sha256sum write them, which
 `shasum -a 256 -c` accepts, and rejects once a file changed.
 
     python3 -I -m unittest discover -s tests -v      (from the repository root)

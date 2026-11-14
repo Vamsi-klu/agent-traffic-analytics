@@ -1,4 +1,4 @@
-"""Structured Field Values (agentcake.detect.sfv, S3.2): the parsing and serialisation HTTP message signatures need.
+"""Structured Field Values (agentcake.detect.sfv): the parsing and serialisation HTTP message signatures need.
 
     python3 -I -m unittest discover -s tests -v      (from the repository root)
 

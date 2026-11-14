@@ -1,4 +1,4 @@
-// The home page (S5.2, D37, D40) in Chromium, against the built app and the sample /api/setup and /api/settings: while
+// The home page in Chromium, against the built app and the sample /api/setup and /api/settings: while
 // nothing is recorded it is the onboarding (the website's address, where AgentCake runs, the page script with the
 // sentence for a coding agent in English or Chinese, the first visit; example data beside it); a saved address shows in
 // the top bar; the first visit shows up and opens the dashboard; from the first recorded session on it is the
@@ -37,7 +37,7 @@ test("with nothing recorded, / is the onboarding: four steps, the sentence in En
     assert.deepEqual(await tab.page.getByRole("tab").allInnerTexts(), ["On this computer", "On a server", "Script tag", "Terminal"])
     assert.ok(await tab.page.getByText("No visits yet").isVisible())
     assert.ok(await tab.page.getByText("Example data", { exact: true }).isVisible())
-    assert.equal(await tab.page.getByText(/demo shop/i).count(), 0, "D37: no demo shop")
+    assert.equal(await tab.page.getByText(/demo shop/i).count(), 0, "no demo shop")
     assert.equal(await tab.page.getByRole("link", { name: "Skip for now" }).count(), 0)
     assert.match(tab.page.url(), /#\/$/)
   } finally { await tab.close() }
@@ -53,7 +53,7 @@ test("in server mode step 2 says AgentCake runs on this server", async () => {
   } finally { await tab.close() }
 })
 
-test("a saved address shows in the top bar, opening the site in a new tab (D40)", async () => {
+test("a saved address shows in the top bar, opening the site in a new tab", async () => {
   const tab = await open()
   try {
     await tab.page.route("**/api/settings", (route) => route.request().method() === "POST"

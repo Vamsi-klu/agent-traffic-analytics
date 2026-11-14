@@ -6,7 +6,7 @@
 
 Ported from our own code with the same arithmetic in the same order, so it gives the lab's numbers:
 the behaviour lab's labcore.py (vec, fit_lr, pred_lr; 2026-11-11). It is only
-measured here, never used to judge a session (D6). Settings: agentcake/data/eval.json "segments.logistic".
+measured here, never used to judge a session. Settings: agentcake/data/eval.json "segments.logistic".
 """
 import functools
 import math

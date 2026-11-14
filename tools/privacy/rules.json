@@ -1,8 +1,8 @@
 {
-  "about": "What tools/privacy_scan.py looks for in a data folder (GOAL S1, plan step S6.5) and what it leaves out, each with why. It prints how many and where, never what matched.",
+  "about": "What tools/privacy_scan.py looks for in a data folder and what it leaves out, each with why. It prints how many and where, never what matched.",
   "own_addresses": {
     "addresses": ["127.0.0.1", "0.0.0.0", "::1"],
-    "why": "Agent Cake's own listen addresses (GOAL S1). The scanned folder's public_listen host is added: also cake's own. Nothing else is left out, not even the documentation ranges tests plant."
+    "why": "Agent Cake's own listen addresses. The scanned folder's public_listen host is added: also cake's own. Nothing else is left out, not even the documentation ranges tests plant."
   },
   "version_before_address": {
     "pattern": "(?:[A-Za-z]/|version\\W{0,4})$",
@@ -16,11 +16,11 @@
     "max_digits": 19,
     "group_size": 4,
     "other_groupings": [[4, 6, 5], [4, 6, 4]],
-    "why": "Luhn-valid, 13 to 19 digits (GOAL S1), standing alone, written in one piece or in the groups cards are printed in (fours; 4-6-5 and 4-6-4 for Amex and Diners). Only numbers that start with 2 to 6, the ISO/IEC 7812 major industry identifiers of payment cards: replay events are full of 13-digit times in milliseconds, which start with 1."
+    "why": "Luhn-valid, 13 to 19 digits, standing alone, written in one piece or in the groups cards are printed in (fours; 4-6-5 and 4-6-4 for Amex and Diners). Only numbers that start with 2 to 6, the ISO/IEC 7812 major industry identifiers of payment cards: replay events are full of 13-digit times in milliseconds, which start with 1."
   },
   "test_cards": {
     "numbers": ["4242424242424242"],
-    "why": "The test card number every payment form knows (GOAL S1); counted apart from other card numbers."
+    "why": "The test card number every payment form knows; counted apart from other card numbers."
   },
   "key_fields": {
     "text": ["key", "code", "char", "keyIdentifier"],

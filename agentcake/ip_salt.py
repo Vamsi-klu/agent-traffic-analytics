@@ -1,4 +1,4 @@
-"""The salt of the visitors' address hashes (S2.3): random, one per period of ip_salt_days, then replaced.
+"""The salt of the visitors' address hashes: random, one per period of ip_salt_days, then replaced.
 
 current(con, now_ms) gives the salt in use, and makes a new one when there is none yet or the period of the one there
 has ended. It is kept in the database's settings table (key "ip_salt": the salt and when its period began), never next
@@ -6,7 +6,7 @@ to an address: only the hashes netfacts.address_hashes() makes with it are store
 hashes made with it can no longer be computed again from an address; requests within one period stay comparable
 (the same address, the same network).
 
-Gone means from the files as well (M4 clean-up; S6.5 found the old salt's bytes in cake.db after a replacement): the new
+Gone means from the files as well (a privacy scan found the old salt's bytes in cake.db after a replacement): the new
 salt is written with secure_delete on (the old cell is zeroed, not only unlinked) and committed at once, then the
 write-ahead log is checkpointed into cake.db and emptied (TRUNCATE), so neither file keeps a copy of the old page. The
 caller holds store.LOCK, asks for the salt before its transaction's first write (collect_store, log_match), and

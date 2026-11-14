@@ -1,6 +1,6 @@
-# Agent Cake as a wheel: no dependencies, standard library only (G13). flit_core builds the wheel from a checkout
+# Agent Cake as a wheel: no dependencies, standard library only. flit_core builds the wheel from a checkout
 # (`pip wheel .`); it is not shipped and Agent Cake does not need it to run. Everything inside agentcake/ (schema.sql,
-# static/, data/) goes into the wheel. A release (tools/release.py, S6.4) writes the same wheel itself from
+# static/, data/) goes into the wheel. A release (tools/release.py) writes the same wheel itself from
 # this file's [project] table, with the local pages compiled into agentcake/ and cake.js minified, and the release
 # folder (agentcake-<version>.tar.gz, also a source distribution) from [tool.flit.sdist] below.
 [build-system]

@@ -1,4 +1,4 @@
-"""The release settings (tools/releasing/release.json) and the error every step of a release raises (S6.4).
+"""The release settings (tools/releasing/release.json) and the error every step of a release raises.
 
 load() reads release.json once per call; nothing is cached, so a test can hand any step its own settings. Each step
 takes the parts of the settings it needs and the folder it works in (the repository, or the exported commit).

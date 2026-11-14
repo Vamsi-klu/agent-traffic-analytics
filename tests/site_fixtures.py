@@ -1,5 +1,5 @@
-"""Test copies of websites for `setup --print --site` and `doctor` (S6.1): the static site, Express, Next.js and Flask
-sites GOAL T7 connects, and smaller Hono, FastAPI, Django, PHP and WordPress ones for telling the frameworks apart.
+"""Test copies of websites for `setup --print --site` and `doctor`: the static site, Express, Next.js and Flask
+sites an install test connects, and smaller Hono, FastAPI, Django, PHP and WordPress ones for telling the frameworks apart.
 Not a test module: discovery leaves it alone.
 
 make_site(kind, folder, tag, mounted) writes one site into folder. tag is the cake.js line its pages carry (None: none
@@ -14,7 +14,7 @@ import shutil
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 EDGE = os.path.join(ROOT, "edge")
 KINDS = ("static", "express", "next-app", "flask", "hono", "fastapi", "django", "php", "wordpress")
-T7_KINDS = ("static", "express", "next-app", "flask")  # the four folders the S6.1 brief has doctor pass on
+T7_KINDS = ("static", "express", "next-app", "flask")  # the four folders doctor has to pass on
 
 
 def write(folder, name, content):

@@ -1,9 +1,9 @@
-"""One session's evidence for the verdict, read from the database (S3.4 wiring): what verdict.judge() takes.
+"""One session's evidence for the verdict, read from the database: what verdict.judge() takes.
 
     session_evidence(con, session_id, c=None, now_s=None) -> (evidence, raw, rrweb)
 
-The evidence keys are agentcake/detect/verdict.py's. Each comes from what collect kept (S2.1, S2.3) and the server
-half (S4.1):
+The evidence keys are agentcake/detect/verdict.py's. Each comes from what collect kept and the server
+half:
   pages        one per page view, in env_signals' page order: when it began (its first batch), whether it was
                prerendered and then shown (the page record cake.js sends, the visibility of its records), and the
                Sec-Purpose of the request that opened it (the page's server half: srv.body through batches.token_id)
@@ -15,11 +15,11 @@ half (S4.1):
   signatures   collector: the best Web Bot Auth result collect kept with a request (facts "wba", collect.py);
                server: a page request's Signature-Agent, a claim only (the token keeps no signature to check)
   network      the lists.match_ip() fields kept with the visit's requests: the latest that had an address
-  visits       when the earlier sessions from the same network began (the requests' net_hash, S2.3)
+  visits       when the earlier sessions from the same network began (the requests' net_hash)
   touch        the environment record says mobile, or there is a coarse pointer and no fine one
   mode         "server" when server mode is on (public_listen), else "local": every visit comes from 127.0.0.1
   weak         weak.facts() of the signals, requests and raw records, with how many sessions came from the same
-               address (its salted ip_hash, S2.3) within the weak same_address window
+               address (its salted ip_hash) within the weak same_address window
 raw: the raw stream's records (the behaviour model's input); rrweb: only when there are none (cake 0.3.x
 recordings), the rrweb events. A record without a time is left out: the behaviour model orders by it. A cake 0.3.4
 visit has one page view (None), and its server half is the session's first srv row (0.3.4 kept no page view to link
@@ -39,8 +39,8 @@ HEADERS = load("data/edge.json")["headers"]
 TOKEN_HEADERS = ((("ua",), "user_agent"), (("al",), "accept_language"), (("ch", "ua"), "sec_ch_ua"),
                  (("ch", "pf"), "sec_ch_ua_platform"), (("ch", "mb"), "sec_ch_ua_mobile"),
                  (("sf", "s"), "sec_fetch_site"), (("sf", "m"), "sec_fetch_mode"), (("sf", "d"), "sec_fetch_dest"),
-                 (("sf", "u"), "sec_fetch_user"))  # protocol: the token payload's format (S4.1)
-TOKEN_PURPOSE, TOKEN_SIGNATURE, TOKEN_SIGNATURE_AGENT = "sp", "sg", "a"  # protocol: token payload fields (S4.1)
+                 (("sf", "u"), "sec_fetch_user"))  # protocol: the token payload's format
+TOKEN_PURPOSE, TOKEN_SIGNATURE, TOKEN_SIGNATURE_AGENT = "sp", "sg", "a"  # protocol: token payload fields
 MATCH_IP_FIELDS = ("range", "range_id", "range_kind", "operator", "verifies", "cloud", "cdn", "relay")
 WEB_BOT_AUTH = "wba"  # the request facts key collect.py keeps a Web Bot Auth result under
 VERIFICATION_FIELDS = ("outcome", "code", "signer", "keyid", "label", "via", "claimed", "facts")
@@ -81,8 +81,8 @@ def session_evidence(con, session_id, c=None, now_s=None):
 
 def _server_halves(con, session_id):
     """{page view: token payload}: each page view's first linked server half; a 0.3.4 visit's under None. A page view
-    that reused another one's token (S4.2: the browser showed it a stored copy) has no server half of its own; a token
-    kept before S4.2 names no page view and stays with every page view linked to it."""
+    that reused another one's token (the browser showed it a stored copy) has no server half of its own; a token
+    kept before 0.4.0 names no page view and stays with every page view linked to it."""
     halves = {}
     for pv, body in con.execute("SELECT b.pv, s.body FROM batches b JOIN srv s ON s.id = b.token_id WHERE "
                                 "b.session_id=? AND (s.pv IS NULL OR s.pv = b.pv) ORDER BY b.pv, b.seq",

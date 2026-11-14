@@ -1,8 +1,8 @@
-"""A small stand-in for cake's /collect, for the browser tests of cake.js (plan steps S1.3, S1.4).
+"""A small stand-in for cake's /collect, for the browser tests of cake.js.
 
 It serves cake.js with runtime values filled in (as cake does), the test site's shop (tests/site) and the test pages in
 tests/browser/pages, and stores every upload exactly as it arrived (after gunzip) as one line of collect.ndjson. The
-real collector is plan step S2.1, built from docs/collect-format.md; this one only keeps what arrives so the tests can
+real collector is agentcake/collect.py, built from docs/collect-format.md; this one only keeps what arrives so the tests can
 check it.
 
 Every HTML page gets a Server-Timing token (cake;desc="tok-<n>") and a cookie, and served.ndjson records which page

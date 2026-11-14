@@ -32,7 +32,7 @@ export function OnboardingLayout({ status, title, lead, note, example, children 
   )
 }
 
-/** One numbered step of the onboarding (D37): its number, its title and what to do. */
+/** One numbered step of the onboarding: its number, its title and what to do. */
 export function OnboardingStep({ n, title, children }: { n: number; title: string; children: ReactNode }) {
   return (
     <section className="flex flex-col gap-2" aria-labelledby={`step-${n}`}>

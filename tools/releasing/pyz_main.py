@@ -1,15 +1,15 @@
-"""Agent Cake as one file (plan step S6.4): python3 agentcake.pyz <command>. This is the zip's __main__.py.
+"""Agent Cake as one file: python3 agentcake.pyz <command>. This is the zip's __main__.py.
 
 Agent Cake reads its own files (data, local pages) from the folder its package is in, and a zip is not a
 folder. So the first run unpacks the package once into <CAKE_HOME>/pyz/<version>-<hash>/ (CAKE_HOME as
 agentcake.paths.home() says, imported from the zip), and every run imports the package from there and runs it in
 this process, as `python3 -m agentcake` does: agentcake/__main__.py checks the Python version, then runs the command.
 sys.argv[0] stays this file's full path, by which agentcake.paths.launcher() tells people how to run Agent Cake
-again (S6.1). A newer release unpacks next to an older one; a folder no release uses any more can be deleted.
+again. A newer release unpacks next to an older one; a folder no release uses any more can be deleted.
 
 The commands in FROM_ZIP (--version, help) read only the package's own JSON files, which the package can read from
 the zip (agentcake.datafiles.read): they run straight from the zip, unpack nothing and make no CAKE_HOME, so they also
-work where CAKE_HOME cannot be written, such as a coding agent's sandbox (S6.6).
+work where CAKE_HOME cannot be written, such as a coding agent's sandbox.
 
 tools/releasing/pyz.py copies this file into the zip with BUILD, UNPACK_FOLDER and FROM_ZIP filled in. Any Python 3
 must be able to read it, so that one too old for Agent Cake reaches the sentence saying which Python it needs.

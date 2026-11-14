@@ -1,10 +1,10 @@
-"""Web Bot Auth verification (agentcake.detect.webbotauth, S3.2): verified, invalid, declared or none, with a reason.
+"""Web Bot Auth verification (agentcake.detect.webbotauth): verified, invalid, declared or none, with a reason.
 
     python3 -I -m unittest discover -s tests -v      (from the repository root)
 
-N4 (GOAL): the five published Ed25519 examples verify (four of cloudflare/web-bot-auth 01c0d10a, draft -01 E.2.1),
+Threshold N4: the five published Ed25519 examples verify (four of cloudflare/web-bot-auth 01c0d10a, draft -01 E.2.1),
 the same five with one byte changed do not (invalid), five unsigned requests are none. Expired, not yet valid or too
-old signatures, a missing key and an expired key are declared, never invalid (D23). One verification stays under
+old signatures, a missing key and an expired key are declared, never invalid. One verification stays under
 verify_budget_ms (median of 100). Verifying opens no socket. Each session is verified once.
 """
 import base64, dataclasses, hashlib, json, os, socket, statistics, sys, time, unittest

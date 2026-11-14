@@ -1,4 +1,4 @@
-"""The value of each GOAL threshold on each data set, from the tables (plan step S3.9).
+"""The value of each threshold of eval/thresholds.json on each data set, from the tables.
 
     collect(results, settings, limit_s) -> [measurement]     what gate.judge() reads
 
@@ -11,7 +11,7 @@ from agentcake.evaluation import sessions, takeovers
 
 AGENTLIKE = ("agent", "mixed")
 RECORDED = "recorded"  # the data set of the recorder's agents that A2 judges; every other label is "recorded/<label>"
-SELFCOLLECT = sessions.SELFCOLLECT  # the recordings we ran ourselves (S9.4): "selfcollect/<label>", printed only
+SELFCOLLECT = sessions.SELFCOLLECT  # the recordings we ran ourselves: "selfcollect/<label>", printed only
 NOT_JUDGED = ("too_little_data", "excluded")
 NO_HIT, OFF = "no_hit", "off"
 
@@ -62,7 +62,7 @@ def _a2(rows, settings):
 
 
 def _a2_recorded(rows, a2_labels):
-    """The recorder's agents (answer agent; hand-offs are A3-A5's): GOAL A2's labels together in "recorded", every
+    """The recorder's agents (answer agent; hand-offs are A3-A5's): threshold A2's labels together in "recorded", every
     other label on a line of its own. Those with too little data are A8's, as for PostHog."""
     agents = {}
     for r in rows:
@@ -74,9 +74,9 @@ def _a2_recorded(rows, a2_labels):
 
 
 def _a2_self_collected(rows):
-    """The recordings we ran ourselves (S9.4): one line per label, apart from people's recordings, their answers
+    """The recordings we ran ourselves: one line per label, apart from people's recordings, their answers
     certain (we ran them). eval/thresholds.json says which lines A2 judges: cic-mcp, Claude in Chrome driven by Claude
-    Code, the product GOAL A2 names; every other label is printed and never judged."""
+    Code, the product threshold A2 names; every other label is printed and never judged."""
     agents = {}
     for r in rows:
         if r["truth"].get("class") == "agent":
@@ -99,7 +99,7 @@ def _recorded_ratio(source, agents):
 def _takeover(source, items, limit_s):
     view = takeovers.summary(items, "verdict", limit_s)
     model = takeovers.summary(items, "model", limit_s)
-    accuracy, error, handoff = view["accuracy_decided"], view["share_error_pp"], view["handoff_error_s"]
+    accuracy, error = view["accuracy_decided"], view["share_error_pp"]
     details = {"model_view": {"accuracy_median": model["accuracy_decided"]["median"],
                               "share_error_median": model["share_error_pp"]["median"],
                               "handoffs_within_limit": model["handoffs_within_limit"],
@@ -110,11 +110,24 @@ def _takeover(source, items, limit_s):
            {"threshold": "A4", "source": source, "value": error["median"], "n": view["scored"],
             "what": "median agent-share error, points", "details": dict(details, largest=error["max"])}]
     if view["handoffs_true"]:
-        out.append({"threshold": "A5", "source": source, "value": view["largest_handoff_error_s"],
-                    "n": view["handoffs_true"], "what": "largest hand-off error, s (a missed hand-off fails)",
-                    "details": dict(details, missed=view["handoffs_missed"], median=handoff["median"],
-                                    within_limit=view["handoffs_within_limit"], extra=view["handoffs_extra"])})
+        out.append(_a5(source, view, details))
     return out
+
+
+def _a5(source, view, details):
+    """A5 over the true hand-offs of the sessions judged Human + agent: their median error, a miss counting as over
+    the limit, and no samples when those sessions have none. Every true hand-off's numbers and how many mixed sessions
+    were judged Human + agent ride along, printed and never judged."""
+    inside = view["in_mixed"]
+    every = {"true": view["handoffs_true"], "missed": view["handoffs_missed"],
+             "within_limit": view["handoffs_within_limit"], "largest_found": view["handoff_error_s"]["max"],
+             "extra": view["handoffs_extra"]}
+    return {"threshold": "A5", "source": source, "value": inside["handoff_error_median_s"],
+            "n": inside["handoffs_true"],
+            "what": "median hand-off error in the sessions judged Human + agent, s (a miss is over the limit)",
+            "details": dict(details, missed=inside["handoffs_missed"], within_limit=inside["handoffs_within_limit"],
+                            largest_found=inside["handoff_error_s"]["max"], extra=inside["handoffs_extra"],
+                            every_handoff=every, mixed_found=view["mixed_found"])}
 
 
 def _a6(source, rows, automated_reason):

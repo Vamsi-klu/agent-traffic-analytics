@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Build agentcake/data/timezones.json, which time zone each country uses, from the IANA time zone database (S3.8).
+"""Build agentcake/data/timezones.json, which time zone each country uses, from the IANA time zone database.
 
     python3 -I tools/build_timezones.py [zone.tab]      (default: /usr/share/zoneinfo/zone.tab)
 
 The weak signal "time zone and IP country do not match" (agentcake/detect/weak.py) reads it. Source: the tz
 database's zone.tab, one line per country and zone (country code, coordinates, zone name, comments), public domain
 (https://www.iana.org/time-zones). The tzdata version is read from +VERSION next to zone.tab when there is one. The
-output is sorted, so the same zone.tab gives the same bytes. Run it when a release refreshes its lists (D23).
+output is sorted, so the same zone.tab gives the same bytes. Run it when a release refreshes its lists.
 """
 import json
 import os

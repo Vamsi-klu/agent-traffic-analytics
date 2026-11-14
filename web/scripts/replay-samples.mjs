@@ -1,4 +1,4 @@
-// What a recorded sample replay is (S5.4), shared by the recorder (scripts/replay-fixtures.mjs) and its test
+// What a recorded sample replay is, shared by the recorder (scripts/replay-fixtures.mjs) and its test
 // (scripts/replay-samples.test.mjs): rrweb events cut into chunks the way cake cuts them, the server half's rows from
 // cake's srv table, and what must never be in a sample.
 import { readFileSync } from "node:fs"
@@ -55,14 +55,14 @@ export function pageViews(rows, label) {
 const same = (match) => (match === null ? null : Boolean(match))
 
 /** One server-half row of a sample from an srv row [page_ms, path, token JSON, net_match, ua_match, lang_match, reuses]
- *  (agentcake/edge_token.py; S4.2's matches and reuses), as agentcake/api/server_half.py answers it. */
+ *  (agentcake/edge_token.py: its matches and reuses), as agentcake/api/server_half.py answers it. */
 export function serverPage([pageMs, pagePath, body, netMatch, uaMatch, langMatch, reuses], t0) {
   const token = JSON.parse(body), sf = token.sf ?? {}, sg = token.sg ?? {}
   return {
     at_ms: Math.max(0, pageMs - t0),
     path: pagePath,
     fetch: { site: sf.s ?? null, mode: sf.m ?? null, dest: sf.d ?? null, user: sf.u ?? null },
-    signature: sg.s ? { agent: sg.a ?? null, verified: false } : null, // verifying is the verify layer's job (S3.2)
+    signature: sg.s ? { agent: sg.a ?? null, verified: false } : null, // verifying is the verify layer's job
     same_network: same(netMatch),
     same_user_agent: same(uaMatch),
     same_language: same(langMatch),

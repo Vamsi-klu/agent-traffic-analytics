@@ -1,4 +1,4 @@
-"""The disk rules (S2.5, carried over from cake 0.3.4; K2 as the user changed it on 11/12): a budget for cake's data,
+"""The disk rules (carried over from cake 0.3.4, the floor changed in 0.4.0): a budget for cake's data,
 freeing space from human-only replays, and a floor of free space on the disk.
 
 used_bytes(con) is what cake's data takes: the database's pages in use plus the live replay chunks, whose total
@@ -15,7 +15,7 @@ The budget: when it is full and auto_free is on, free_space() removes the replay
 quiet for auto_free_quiet_ms (never a session an agent took part in or one cake is unsure about), down to
 auto_free_target_ratio of the budget; with auto_free off, or nothing left to free, no new replay is stored.
 
-The floor (K2): while the disk holding the data folder has less than disk_min_free_mb free, new replays are still
+The floor: while the disk holding the data folder has less than disk_min_free_mb free, new replays are still
 stored as long as auto_free is on and room can be made. free_disk() removes the replays of the oldest human-only
 sessions quiet for auto_free_quiet_ms, then those of the oldest other sessions quiet as long (an agent's, a mixed or
 an unsure one), until the free space plus the dead bytes of the chunk files reaches the floor, at most
@@ -27,14 +27,14 @@ batch goes on. With auto_free off new replays stop.
 
 Before removing any, free_disk() checks that removing every replay it may would reach the floor: the free space,
 the dead bytes and those replays' chunk bytes together (_replay_bytes_to_free). If not, other files fill the disk
-and it removes none (D34): new replays stop until there is room, then start again on their own. PostHog 1.0.0 has
+and it removes none: new replays stop until there is room, then start again on their own. PostHog 1.0.0 has
 no rule that deletes data for disk space and today's PostHog expires data by age; Elasticsearch at its flood-stage
 watermark stops writing and deletes nothing; a deletion cannot be undone and would not free a disk others fill.
 
 Dropping a replay deletes its rows at once (streams.drop_replay); reclaim_if_due(), which every maintenance round
 runs, then gives the chunk files' bytes back (recompress.reclaim). After freeing for the floor (RECLAIM_ALL) it
 rewrites every file with dead bytes, not only those compact_min_dead_share dead: a replay is about a quarter of what
-a visit stores (S2.2's measurement on the lab sessions), so a file whose replays were all dropped
+a visit stores (measured on our lab's sessions), so a file whose replays were all dropped
 would otherwise keep their bytes. The thresholds are settings (budget_*, auto_free_*, disk_min_free_mb: defaults.json);
 the replay streams are storage.json's replay_streams.
 """
@@ -45,19 +45,19 @@ from agentcake.config import DEFAULTS
 from agentcake.storage_config import SETTINGS, now_ms as clock_ms
 from agentcake.units import BYTES_PER_MB, MS_PER_DAY, PERCENT
 
-# A human-only session: judged after its last event, a Human by the four layers' verdict (S3.4: no automation trace,
+# A human-only session: judged after its last event, a Human by the four layers' verdict (no automation trace,
 # no agent name, every action a human's), and no stretch or name of an agent or bot in the newer tables (segments,
 # labels). A session cake 0.3.4's judge decided (no verdict_class yet) keeps 0.3.4's test until it is judged anew: a
 # human all the way (no agent share), its source not an agent's (no self-declared name, no automation flag, no server
 # verdict, no agent IP range: group H1/L?). Only these sessions' replays are removed to keep the budget, oldest first,
-# once quiet for auto_free_quiet_ms; below the disk's floor theirs go first, then the oldest of the others (K2).
+# once quiet for auto_free_quiet_ms; below the disk's floor theirs go first, then the oldest of the others.
 HUMAN_ONLY = ("(verdict_class='human' OR (verdict_class IS NULL AND verdict='human' AND COALESCE(agent_pct,0)=0 "
               "AND group_id='H1/L?')) AND judged_ms>=end_ms AND replay_freed_ms IS NULL "
               "AND NOT EXISTS (SELECT 1 FROM segments g WHERE g.session_id=sessions.id "
               "AND g.actor NOT IN ('human','unsure')) "
               "AND NOT EXISTS (SELECT 1 FROM labels l WHERE l.session_id=sessions.id)")
-DISK_ANSWER = "disk_room"  # settings key (K2): {"ms": when collect last asked about a disk below its floor, "room"}
-RECLAIM_ALL = "reclaim_all_dead_ms"  # settings key (K2): the next reclaim rewrites every file with dead bytes
+DISK_ANSWER = "disk_room"  # settings key: {"ms": when collect last asked about a disk below its floor, "room"}
+RECLAIM_ALL = "reclaim_all_dead_ms"  # settings key: the next reclaim rewrites every file with dead bytes
 
 
 def used_bytes(con):
@@ -104,7 +104,7 @@ def free_space(con, c, now=None):
 
 
 def free_disk(con, c, disk, now=None):
-    """Make room on a disk below its floor (disk: disk_space()'s answer) if removing replays can (D34): remove the
+    """Make room on a disk below its floor (disk: disk_space()'s answer) if removing replays can: remove the
     replays of the oldest sessions quiet for auto_free_quiet_ms, human-only ones first, until the free space plus the
     chunk files' dead bytes reaches the floor, at most auto_free_batch_sessions of them, and have the next reclaim
     rewrite every file with dead bytes; none when even all of those replays would leave the disk short. What else a
@@ -175,7 +175,7 @@ def space_status(con, c, now=None, usage=None):
     days = max(0.0, (budget - used) / per_day) if per_day else None
     freed = con.execute("SELECT COUNT(*) FROM sessions WHERE replay_freed_ms IS NOT NULL").fetchone()[0]
     full, disk = used >= budget, disk_space(c, usage)
-    disk_stop = "disk_full_other" if c["auto_free"] else "disk"  # with auto_free on, no room means other files (D34)
+    disk_stop = "disk_full_other" if c["auto_free"] else "disk"  # with auto_free on, no room means other files
     stopped = (disk_stop if disk["low"] and not disk_room(con, c, disk, now) else
                "budget" if full and not (c["auto_free"] and _freeable(con, c, now, 1)) else None)
     return {"used": used, "budget": budget, "pct": round(PERCENT * used / budget, 1) if budget else 0,
@@ -231,7 +231,7 @@ def _freeable(con, c, now, limit):
 
 def _oldest_replays(con, c, now, limit):
     """Up to `limit` sessions quiet for auto_free_quiet_ms that still have a replay, human-only ones first, each kind
-    oldest first (the disk's floor, K2: "delete by the oldest session replay")."""
+    oldest first (the disk's floor deletes by the oldest session replay)."""
     names = SETTINGS["replay_streams"]
     return [sid for (sid,) in con.execute(
         f"SELECT id FROM sessions WHERE end_ms < ? AND {_has_replay(names)} "
@@ -243,7 +243,7 @@ def _replay_bytes_to_free(con, c, now):
     """The bytes the disk gets back, at the reclaim after, if free_disk() removes every replay it may: the sealed
     chunks of the replay streams of every session quiet for auto_free_quiet_ms (_oldest_replays' sessions). Their open
     windows and 0.3.4 replay rows are rows in cake.db, whose pages SQLite keeps for itself when they are deleted: the
-    disk gets nothing back from them, so they do not count (D34). CROSS JOIN keeps the sessions as SQLite's outer loop,
+    disk gets nothing back from them, so they do not count. CROSS JOIN keeps the sessions as SQLite's outer loop,
     so chunks_s reads only their replay chunks instead of scanning raw input and signals too (about half the time on
     two million chunks)."""
     names = SETTINGS["replay_streams"]

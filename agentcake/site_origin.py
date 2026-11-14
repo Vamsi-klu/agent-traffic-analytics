@@ -1,10 +1,10 @@
-"""Where an upload came from (S2.1): the website, or another site.
+"""Where an upload came from: the website, or another site.
 
 classify(headers, batch_url, c, public) -> "site" | "other". The page an upload came from is its Origin header (browsers
 send it with every POST, cake.js's included), else its Referer, else the batch's own URL (what cake.js read from
 location; all a non-browser sender shows). On the local listener, any page on this computer counts as the site: a dev
 server. The site is site_domain (a leading "www." left out) and its subdomains; without a site_domain there is nothing
-to check against and every upload counts as the site. (Until D37, a page under /demo on cake's own port was cake's demo
+to check against and every upload counts as the site. (Until 0.4.0, a page under /demo on cake's own port was cake's demo
 shop, "demo"; the sessions it recorded keep that origin and are shown like the site's, api/visits.py.) An upload from
 anywhere else (another domain, an opaque "null" origin, no page at all) is "other": collect still records it, and the
 dashboard leaves it out (someone else's copy of the page script, a staging site, a forged upload). A sender that is not

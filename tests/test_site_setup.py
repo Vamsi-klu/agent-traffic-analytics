@@ -1,4 +1,4 @@
-"""`agentcake setup --print --site` (S6.1): agentcake/site_setup.py, what a coding agent follows to connect a website.
+"""`agentcake setup --print --site`: agentcake/site_setup.py, what a coding agent follows to connect a website.
 
     python3 -I -m unittest discover -s tests -p test_site_setup.py -v      (from the Agent Cake folder)
 
@@ -125,6 +125,16 @@ class Frameworks(SetupSite):
                 self.assertIn("config set site_url", out)
                 self.assertIn(" doctor", out)
 
+    def test_the_check_stops_only_the_server_the_agent_started_and_the_answer_is_in_the_users_language(self):
+        """In a trial run Claude Code started a server for the static site to check it, then stopped it with
+        `lsof -ti tcp:<port> | xargs kill`, which stops whatever listens there, perhaps the user's own program; in
+        another it answered a Chinese request in English. Step 4 says to stop it by its process ID only, step 5 to
+        answer in the user's language."""
+        flat = " ".join(self.printed("static").split())
+        for words in ("note its process ID", "stop only that process", "never by port or name",
+                      "Tell the user, in their language"):
+            self.assertIn(words, flat)
+
     def test_an_unknown_folder_gets_the_line_for_the_shared_head(self):
         with open(os.path.join(self.folder, "notes.txt"), "w", encoding="utf-8") as f:
             f.write("hello\n")
@@ -161,7 +171,7 @@ class ServerMode(SetupSite):
 
 
 class EdgeFolder(SetupSite):
-    """Where the sites' middleware is: $CAKE_EDGE_DIR, else inside the package (a release, S6.4), else beside it."""
+    """Where the sites' middleware is: $CAKE_EDGE_DIR, else inside the package (a release), else beside it."""
 
     def package_with_edge(self, inside):
         package = os.path.join(tempfile.mkdtemp(prefix="cake-test-package-"), "agentcake")

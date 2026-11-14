@@ -1,5 +1,5 @@
-// The registration card the local dashboard shows before anything else until this AgentCake has registered (S5.8,
-// D32; DESIGN.md §6.6). The words are the user's (src/lib/registration.ts). "See what is sent" shows the exact JSON the
+// The registration card the local dashboard shows before anything else until this AgentCake has registered
+// (DESIGN.md §6.6). Its words are in src/lib/registration.ts. "See what is sent" shows the exact JSON the
 // button posts; the button stays off until the email address passes cake's check. The page that shows the card does
 // the asking (pages/register.tsx) and tells it how the last press went: being sent, not sent (say why, then Continue:
 // no retry, the card asks again next time), or refused for what was typed (say why, keep the form).

@@ -1,4 +1,4 @@
-"""The repository's community files against README, the release and the command line (repo-best, 11/13).
+"""The repository's community files against README, the release and the command line.
 
     python3 -I -m unittest discover -s tests -v      (from the AgentCake folder)
 
@@ -44,8 +44,9 @@ PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"  # protocol: the PNG file signature
 SOCIAL_PREVIEW_SIZE = (1280, 640)  # protocol: GitHub's size "for best display" of a social preview
 SOCIAL_PREVIEW_MAX_BYTES = 1_000_000  # protocol: GitHub takes a social preview under 1 MB
 PRIVACY_WARNING = "Do not paste"  # each issue form says it before the reporter writes anything
-# README's accuracy figures (a share of hand-offs may have decimals: 29.5%)
-FIGURE = r"\d+ of \d+ [\w -]+? replays|\d+(?:\.\d+)?% of hand-offs are found within \d+ seconds"
+# README's accuracy figures: one set of totals (eval/README.md, "README's figures"); a median may have decimals
+FIGURE = (r"\d[\d,]* of \d[\d,]* agent sessions|\d[\d,]* of \d[\d,]* sessions by at least [\d,]+ real people"
+          r"|\d[\d,]* of \d[\d,]* sessions Human \+ agent|a median of \d+(?:\.\d+)? seconds")
 
 
 def issue_forms():

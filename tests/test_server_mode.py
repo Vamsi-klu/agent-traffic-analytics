@@ -1,4 +1,4 @@
-"""Server mode as SERVER.md describes it, on this computer (S6.3): GOAL T8 without Docker or a load balancer.
+"""Server mode as SERVER.md describes it, on this computer: case T8 without Docker or a load balancer.
 
     python3 -I -m unittest discover -s tests -v      (from the Agent Cake folder)
 

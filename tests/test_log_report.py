@@ -1,4 +1,4 @@
-"""The report of the last log import (S4.4): agentcake/log_report.py. doctor's line on it: test_doctor_logs.py.
+"""The report of the last log import: agentcake/log_report.py. doctor's line on it: test_doctor_logs.py.
 
     python3 -I -m unittest discover -s tests -p test_log_report.py -v      (from the Agent Cake folder)
 

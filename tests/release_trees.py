@@ -1,4 +1,4 @@
-"""Scratch project trees for the release tests (plan step S6.4): a pyproject.toml, a made-up agentcake package and
+"""Scratch project trees for the release tests: a pyproject.toml, a made-up agentcake package and
 whatever files a test adds, in a temporary folder. Nothing in them is real data.
 """
 import os

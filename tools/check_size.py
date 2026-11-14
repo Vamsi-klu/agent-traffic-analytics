@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Find source files longer than the line limit (S1.2; D29: one module does one job, like PostHog 1.0).
+"""Find source files longer than the line limit (one module does one job, like PostHog 1.0).
 
     python3 tools/check_size.py [repository folder]      (default: the folder above tools/)
 
 Counts the lines of every source file (suffixes and limit in tools/limits.json, "check_size") in the repository,
 leaving out the folder names in "skip_dir_names" and the paths in "exempt" (bundled third-party code, generated files,
-the plan), each listed there with its reason. Prints one line per file over the limit and a count; the exit code is
+the development repository's notes), each listed there with its reason. Prints one line per file over the limit and a count; the exit code is
 0 when the count is 0.
 """
 import json

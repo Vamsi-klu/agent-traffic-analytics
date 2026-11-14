@@ -1,4 +1,4 @@
-"""tools/releasing/project.py (plan step S6.4): the version comes from agentcake/__init__.py alone, the metadata from
+"""tools/releasing/project.py: the version comes from agentcake/__init__.py alone, the metadata from
 pyproject.toml, and the package is every file of agentcake/ except what is never shipped.
 
     python3 -I -m unittest discover -s tests -v      (from the repository root)

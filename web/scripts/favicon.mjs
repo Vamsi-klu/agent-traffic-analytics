@@ -1,4 +1,4 @@
-// The favicon (S5.2): Crumb's head, the top bar's logo (DESIGN.md §7), as public/favicon.ico, which the build copies
+// The favicon: Crumb's head, the top bar's logo (DESIGN.md §7), as public/favicon.ico, which the build copies
 // into dist/ and cake serves at /favicon.ico, where browsers look for it (the local pages).
 // The app draws it itself: Chromium opens the built pages in the light theme, copies the logo's SVG with the colours the
 // page gives each shape (tokens.css, through the page's own styles) written in, and draws it at each size; the PNGs go

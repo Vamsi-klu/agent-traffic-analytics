@@ -1,4 +1,4 @@
-"""agentcake/datafiles.py (S1.2, S6.6): the JSON files that ship inside the package, read from the package's folder,
+"""agentcake/datafiles.py: the JSON files that ship inside the package, read from the package's folder,
 or from inside the .pyz when the bootstrap runs a command from the zip without unpacking it (--version, help), so that
 those commands work where CAKE_HOME cannot be written, such as a coding agent's sandbox. And none of those files names
 a key twice in one object: json.load keeps only the last one, so the first would be dead text nobody notices.

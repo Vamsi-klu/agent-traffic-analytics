@@ -1,4 +1,4 @@
-"""GET /api/overview?range=today|7d|30d: the dashboard (S5.1; S5.3 draws it).
+"""GET /api/overview?range=today|7d|30d: the dashboard (the dashboard page draws it).
 
 First the sessions with data newer than their verdict are judged (judging.catch_up, as the 0.3.4 dashboard did); then,
 over the sessions that count (visits.py) in the range (no range: every session):
@@ -13,11 +13,11 @@ over the sessions that count (visits.py) in the range (no range: every session):
     top_pages               page views per page (the path and query of its address) in Agent sessions and in Human
                             sessions: the top_pages most visited by each, both tables sort this one list
     latest, latest_agent    the newest sessions of every kind, and of Agent sessions
-    average_length          D30: the mean length of Human, Agent only and Human + agent sessions, null for a group
+    average_length          the mean length of Human, Agent only and Human + agent sessions, null for a group
                             without sessions, and how it is measured
     storage                 the disk budget and what cake's data uses of it, whatever the filters (settings.disk: the
-                            settings page's numbers; S5.3's Disk bar warns from warn_at_pct, as 0.3.4's dashboard did),
-                            and the disk under it with why new replays are stopped, if they are (K2, D34)
+                            settings page's numbers; the dashboard's Disk bar warns from warn_at_pct, as 0.3.4's dashboard did),
+                            and the disk under it with why new replays are stopped, if they are
     coverage                coverage.py
 """
 from agentcake import config, judging

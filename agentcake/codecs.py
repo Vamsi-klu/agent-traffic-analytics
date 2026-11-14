@@ -1,4 +1,4 @@
-"""Replay compression (S2.2): zstd from the standard library when this Python has it, otherwise zlib.
+"""Replay compression: zstd from the standard library when this Python has it, otherwise zlib.
 
 compression.zstd arrived in Python 3.14. On Python 3.11-3.13 (Debian 12 ships 3.11) ZSTD is None: new chunks are
 written with zlib, `agentcake doctor` says so, and a zstd chunk read there raises CodecUnavailable. Every chunk names

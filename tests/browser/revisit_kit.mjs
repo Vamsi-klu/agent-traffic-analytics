@@ -1,4 +1,4 @@
-// revisit_kit.mjs — what token_revisits.mjs needs around the browsers (S4.2): a scratch `agentcake serve` with a site key
+// revisit_kit.mjs — what token_revisits.mjs needs around the browsers: a scratch `agentcake serve` with a site key
 // and a secret of its own, its database read through Python's sqlite3 (Node 20 has no SQLite), the browsers, and the
 // small readers of what cake.js sends. Like tests/browser/demo_walk.mjs, cake gets its own CAKE_HOME and a free port of
 // 127.0.0.1, so a person's own cake (~/.cake, its port) is never touched.
@@ -22,7 +22,7 @@ const LOOPBACK = "127.0.0.1"
 const SITE_KEY = "ck_revisits"
 const START_TIMEOUT_MS = 10000
 const POLL_MS = 50
-const GZIP_MAGIC = Buffer.from([0x1f, 0x8b]) // cake.js gzips its bigger batches (S1.3); collect knows them by these bytes
+const GZIP_MAGIC = Buffer.from([0x1f, 0x8b]) // cake.js gzips its bigger batches; collect knows them by these bytes
 const QUERY = "import json, sqlite3, sys\ncon = sqlite3.connect(sys.argv[1])\n" +
   "print(json.dumps(con.execute(sys.argv[2], json.loads(sys.argv[3])).fetchall()))"
 // Playwright's Chromium as web/scripts/shots.mjs finds it; WebKit and Firefox from Playwright's own cache.
@@ -93,7 +93,7 @@ function freePort() {
 }
 
 // One `agentcake serve` of its own: a scratch CAKE_HOME with a site key and `secret init`, on a free port.
-/** The test site's shop (tests/site/site_server.py: AgentCake's demo shop until D37) on a free port, its pages loading
+/** The test site's shop (tests/site/site_server.py: AgentCake's demo shop until 0.4.0) on a free port, its pages loading
  *  this cake's cake.js and signed with its secret, as the demo shop's were: { url, stop }. */
 export async function startShop(cake) {
   const child = spawn(PYTHON, ["-I", path.join(repo, "tests", "site", "site_server.py"), "--cake", cake.base,

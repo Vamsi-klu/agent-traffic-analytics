@@ -1,5 +1,5 @@
 {
-  "$comment": "Hit and miss cases for every environment rule (tests/test_env_rules.py). The CDP rule's last cases are cake.js's own probe (S1.3: under Playwright 1 formatting and 2 name reads in its one round; an ordinary Chrome reads the name once per round). `page` and `session` are an ordinary person's Chrome (made-up values, no real visitor) that no rule matches. Each case is merged into one of them: into `page` for page and landing rules (then wrapped as the session's only page), into `session` for session rules. Merging is recursive for objects; lists and other values replace; \"$delete\" removes a key (an input that was not recorded).",
+  "$comment": "Hit and miss cases for every environment rule (tests/test_env_rules.py). The CDP rule's last cases are cake.js's own probe (under Playwright 1 formatting and 2 name reads in its one round; an ordinary Chrome reads the name once per round). `page` and `session` are an ordinary person's Chrome (made-up values, no real visitor) that no rule matches. Each case is merged into one of them: into `page` for page and landing rules (then wrapped as the session's only page), into `session` for session rules. Merging is recursive for objects; lists and other values replace; \"$delete\" removes a key (an input that was not recorded).",
   "page": {
     "path": "/",
     "env": {
@@ -18,6 +18,7 @@
       "docInterception": {"nextHopProtocol": "h2", "transferSize": 5120, "intercepted": false},
       "permissions": {"notificationPermission": "default", "permissionsQuery": "prompt", "mismatch": false},
       "workerConsistency": {"differs": []},
+      "systemFontNames": "agree",
       "nativeTampering": {"tampered": {}, "iframeSharesRealm": false},
       "hookHits": [{"fn": "getElementById", "pptr": false, "utilityScript": false, "puppeteerEval": false}]
     },
@@ -228,6 +229,18 @@
       "hit": [{"env": {"userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36"}},
               {"env": {"uaData": {"platform": "Windows"}}}],
       "miss": [{}, {"env": {"userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36", "platform": "Win32", "uaData": {"platform": "Windows"}}}]
+    },
+    "env.spoof.system-font-names": {
+      "hit": [{"auto": {"systemFontNames": "disagree"}}],
+      "miss": [{}, {"auto": {"systemFontNames": "agree"}}, {"auto": {"systemFontNames": "unknown"}}]
+    },
+    "env.spoof.request-os-mismatch": {
+      "hit": [{"collect": {"headers": {"user-agent": {"values": ["Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"]}}}},
+              {"collect": {"headers": {"user-agent": {"values": ["Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36"]}}}},
+              {"collect": {"headers": {"user-agent": {"values": ["Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36", "Mozilla/5.0 (Linux; Android 15; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Mobile Safari/537.36"]}}}}],
+      "miss": [{}, {"collect": {"headers": {"user-agent": {"values": ["Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/158.0.0.0 Safari/537.36"]}}}},
+               {"collect": {"headers": {"user-agent": {"values": ["Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36", "Mozilla/5.0 (iPad; CPU OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1"]}}}},
+               {"collect": {"headers": {"user-agent": {"values": ["Mozilla/5.0 (Linux; Android 15; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Mobile Safari/537.36", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36"]}}}}]
     },
     "env.spoof.empty-brands-desktop-chrome": {
       "hit": [{"env": {"uaData": {"brands": []}}}],

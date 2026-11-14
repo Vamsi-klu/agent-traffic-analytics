@@ -1,4 +1,4 @@
-"""Each stylesheet stored once (S2.2): agentcake/styles.py, through agentcake/streams.py.
+"""Each stylesheet stored once: agentcake/styles.py, through agentcake/streams.py.
 
     python3 -I -m unittest discover -s tests -p test_styles.py -v      (from the cake folder)
 

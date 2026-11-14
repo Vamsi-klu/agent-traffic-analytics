@@ -1,4 +1,4 @@
-"""Calibration of the percents a verdict shows (plan step S3.7, decision D36): fitting the behaviour map, and checking
+"""Calibration of the percents a verdict shows: fitting the behaviour map, and checking
 every percent against sessions with known answers.
 
     fit(points, prior_count) -> blocks [[upper score, chance of an agent]], non-decreasing (the map confidence.py reads)
@@ -6,7 +6,7 @@ every percent against sessions with known answers.
     build(rows, settings, table=None) -> {"behaviour": {"held_out", "packaged"}, "session": ...} for the report
     answered(rows, spec) -> the rows calibration reads: answered agents and humans of its sources, left_out apart
 
-A percent says a probability, so of the sessions shown at 90% about 90% must be right (D34). The behaviour map is an
+A percent says a probability, so of the sessions shown at 90% about 90% must be right. The behaviour map is an
 isotonic fit (pool-adjacent-violators) of "an agent acted" on the behaviour score (confidence.score), each class
 weighted alike so that the chance reads as if humans and agents were equally common, as the session percent assumes.
 Sessions with the same score are one step of the fit. A block's chance is then shrunk towards even by prior_count
@@ -112,13 +112,13 @@ def answered(rows, spec):
 
 
 def _fold(row):
-    """What a session is held out with: the person when its data set says (S9.2's PostHog set, the site owner's
+    """What a session is held out with: the person when its data set says (the PostHog training set, the site owner's
     accounts as one), else its data set."""
     return f"{row['source']} / {row['holdout']}" if row.get("holdout") else row["source"]
 
 
 def _agent_chance(row):
-    """The session percent as the chance of an agent: a Human's percent (and a thin one's, D39) is a human's."""
+    """The session percent as the chance of an agent: a Human's percent (and a thin one's) is a human's."""
     chance = row["percent"] / PERCENT
     return 1 - chance if row["class"] in confidence.SHOWN_AS_HUMAN else chance
 

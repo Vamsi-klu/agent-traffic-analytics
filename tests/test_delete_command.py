@@ -1,4 +1,4 @@
-"""`agentcake delete` and POST /api/delete (plan step S6.5): agentcake/delete_command.py, api/deletion.py, routes.py.
+"""`agentcake delete` and POST /api/delete: agentcake/delete_command.py, api/deletion.py, routes.py.
 
     python3 -I -m unittest discover -s tests -p test_delete_command.py -v      (from the Agent Cake folder)
 
@@ -114,7 +114,7 @@ class DeleteEndpoint(Planted):
         self.assert_gone_everywhere()
 
     def test_the_settings_page_deletes_everything_at_once(self):
-        # S5.5: "Delete all data", after its Dialog: every session in the database, each as thoroughly as one
+        # the settings page's "Delete all data", after its Dialog: every session in the database, each as thoroughly as one
         port = os.environ["CAKE_PORT"]
         answer = self.post({"all": True}, Origin=f"http://127.0.0.1:{port}")
         self.assertEqual(answer.status, HTTPStatus.OK, answer.body)
@@ -142,7 +142,7 @@ class DeleteEndpoint(Planted):
     def test_only_the_local_listener_has_it(self):
         self.assertIs(routes.resolve(routes.LOCAL, "POST", "/api/delete"), deletion.view)
         self.assertIsNone(routes.resolve(routes.PUBLIC, "POST", "/api/delete"))
-        self.assertIs(routes.resolve(routes.LOCAL, "GET", "/api/delete"), answers.no_route)  # S5.1: a JSON 404
+        self.assertIs(routes.resolve(routes.LOCAL, "GET", "/api/delete"), answers.no_route)  # a JSON 404
 
 
 if __name__ == "__main__":

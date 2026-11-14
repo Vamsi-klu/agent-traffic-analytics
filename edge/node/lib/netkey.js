@@ -9,7 +9,7 @@
  * "::", maybe an IPv4 tail and a zone after "%". Anything else has no prefix and so no key. The prefix is written the way
  * cake's own ip_prefix writes it (agentcake/netfacts.py: "203.0.113.0/24", "2001:db8:0::/48"). The MAC is the caller's,
  * as in token.js.
- * Step S4.1.
+ *
  */
 const IPV4_OCTETS = 4 // protocol: an IPv4 address
 const OCTET_BITS = 8 // protocol

@@ -1,29 +1,30 @@
-"""One conclusion per session from the four layers (S3.4): class, Agent row, name, confidence, segments and reasons.
+"""One conclusion per session from the four layers: class, Agent row, name, confidence, segments and reasons.
 
-The synthesis of research note 13 section 5, with D5 and D17; its conflict table is the specification and
-tests/test_verdict.py pins it rule by rule.
+The synthesis of our research on agent signals: four layers (name, verification, environment, behaviour), signatures
+name the infrastructure but never who acts at a moment, and only a certain name makes a Bot. Its conflict table is
+the specification and tests/test_verdict.py pins it rule by rule.
 
  0  Exclusion. A page requested as a prefetch or prerender (the server half's token carries Sec-Purpose) keeps its
     page half, but its server half is not used; a page prerendered and never shown is left out; a session with no
     page left is no visit ("excluded").
  1, 2  Name and verification: verdict_identity.py. A verified signature or published range names the infrastructure
     (certain), never who acts at a given moment; a failed check is impersonation: no name, Automated browser.
- 3  Bot (D17): a listed program that is not an agent, its name not impersonated, is a Bot (verified or self-reported
+ 3  Bot: a listed program that is not an agent, its name not impersonated, is a Bot (verified or self-reported
     only) and the behaviour model is not run. Guessed patterns never make a Bot.
- 4  Environment: hard automation and spoofing traces are not overturned by behaviour (D5): an Agent in the Automated
+ 4  Environment: hard automation and spoofing traces are not overturned by behaviour: an Agent in the Automated
     browser row, never Mixed. Any other hard trace (a product rule, an extension acting on the page) says an agent is
     here, like a signature: a human may take over. Soft traces count only with company: another trace that is not
     weak, or the behaviour model judging an agent; alone, human behaviour gives Human and anything else Not sure.
     Weak traces only go into the reasons.
- 5  Behaviour (S3.7's model through behavior.py): with agent evidence, a long enough human run (verdict.json "mixed")
+ 5  Behaviour (the behaviour model through behavior.py): with agent evidence, a long enough human run (verdict.json "mixed")
     makes the session Mixed; without any, Mixed needs long enough runs of both (a hand-off lies between them, and
     the timeline marks it). Behaviour alone judging an agent is "possibly an agent on the visitor's own computer":
     AI in a real browser, no name. Assistive-tool signs keep the behaviour's agent judgement from counting (Not
     sure). Only weak signals: Human.
  6  Confidence (verdict.json "confidence"): certain, likely, possible or unsure.
- 7  Crawler-like patterns (crawler.py) and the other weak signals (weak.py, S3.8) only add reasons.
+ 7  Crawler-like patterns (crawler.py) and the other weak signals (weak.py) only add reasons.
  8  Each of the interface's four layers gets a state; a layer that did not run says why.
-The name, or the category when no product can be named, comes from attribute.py (S3.5's priority).
+The name, or the category when no product can be named, comes from attribute.py (its name priority).
 
     decide(evidence, settings=None, lists_=None) -> verdict (a dict, below)
     needs_behavior(evidence, settings=None, lists_=None) -> (False, "bot" | "excluded") or (True, None)
@@ -48,11 +49,11 @@ Verdict:
     class        human | agent | mixed | not_sure | too_little_data | bot | excluded
     row          "ai" (AI in a real browser) or "automated" (Automated browser) for agent and mixed, else None
     judging      the judging.en.json class whose sentence explains it (JUDGING_KEYS): an agent's by its Agent row, named
-                 or not (D39: a name is level 3, never a class of its own)
+                 or not (a name is the third level, never a class of its own)
     name, display_name, operator, kind       the list entry of a named agent or bot, else None (operator also for
                  an operator's agent range); name_certainty: certain | likely; name_method: how it was named
     category     without a name: infrastructure | automated | extension | cloud_browser | local_agent (attribute.py):
-                 where it runs, which its reasons say; the interface calls such an agent Unnamed (D39)
+                 where it runs, which its reasons say; the interface calls such an agent Unnamed
     verification verified | self_reported | unverifiable | impersonation for a declared name, else None
     impersonating the list id a failed check unmasked; confidence: certain | likely | possible | unsure (or None)
     segments     [{"who", "model_who", "start", "end", "n", "p"}]: behaviour runs, "who" as the class decides it
@@ -65,8 +66,8 @@ Verdict:
 import dataclasses
 
 from agentcake import datafiles
-from agentcake.detect import (attribute, behavior, confidence, crawler, lists, markers, model as behavior_model,
-                              verdict_identity, weak)
+from agentcake.detect import (attribute, behavior, confidence, crawler, lists, model as behavior_model,
+                              verdict_identity, verdict_marks, weak)
 from agentcake.detect.verdict_identity import IMPERSONATION, SELF_REPORTED, VERIFIED
 from agentcake.detect.verdict_text import env_reason, reason
 from agentcake.units import MS_PER_S, PERCENT
@@ -263,7 +264,7 @@ class _Case:
         verdict = self.verdict
         if self.assistive and verdict == AGENT:
             return NOT_SURE, None, []
-        if self.long_runs(HUMAN) and verdict == AGENT:  # a confirmed agent part beside a human's (D39, 11/13)
+        if self.long_runs(HUMAN) and verdict == AGENT:  # a confirmed agent part beside a human's (11/13)
             return MIXED, AI_ROW, ["behavior"]
         if verdict == AGENT:
             return AGENT, AI_ROW, ["behavior"]
@@ -306,17 +307,13 @@ class _Case:
         return out
 
     def _indicator_reasons(self, result):
-        """One reason per turn span the timeline was given (an indicator said its agent was working), in the mark
-        table's words and with its evidence grade."""
+        """One reason per turn span the timeline was given (an indicator said its agent was working), with its times
+        from the session's start (verdict_marks.py)."""
         spans = (result.get("timeline") or {}).get("marks") or []
         if not spans:
             return []
-        table = markers.load_table()
         start = self.session_start or min([r["start"] for r in self.runs] + [s["from"] for s in spans])
-        return [dict(reason("behavior.indicator", PAGE, [span["from"], span["to"]], marker=span["marker"],
-                            from_ms=span["from"] - start, to_ms=None if span["to"] is None else span["to"] - start),
-                     grade=table.markers[span["marker"]]["grade"])
-                for span in spans]
+        return verdict_marks.reasons(result["timeline"], start)
 
 
 def _segment_shares(result):

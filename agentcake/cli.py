@@ -1,10 +1,10 @@
-"""The command line (S1.1): main(argv) runs one command and returns its exit code.
+"""The command line: main(argv) runs one command and returns its exit code.
 
 Used by bin/agentcake (and the 0.3.x entry points bin/cake and cake.py), by `python3 -m agentcake`, and by the
 `agentcake` command an installed wheel provides (pyproject.toml). Everything it prints is in data/copy.en.json;
-`config get` lists every setting with its value and where it comes from (S1.2).
+`config get` lists every setting with its value and where it comes from.
 
-Every command is a Python process of its own, so each imports its module when it runs (M4 clean-up): importing them
+Every command is a Python process of its own, so each imports its module when it runs: importing them
 all up front made every command, --version too, load the server, the judging and the storage first.
 """
 import json
@@ -75,8 +75,8 @@ def config_command(args):
 
 
 def lists_command(args):
-    """`lists`: the age and sources of the name and range lists in use (S3.1). `lists update`: the only command that
-    fetches them (D23), into $CAKE_HOME/lists/<date>/; when anything fails it says what and the lists stay as they were."""
+    """`lists`: the age and sources of the name and range lists in use. `lists update`: the only command that
+    fetches them, into $CAKE_HOME/lists/<date>/; when anything fails it says what and the lists stay as they were."""
     from agentcake.detect import lists
 
     sub = (args or [""])[0]
@@ -150,7 +150,7 @@ def main(argv=None):
         return config_command(args)
     if cmd == "lists":
         return lists_command(args)
-    if cmd == "eval":  # S3.9: the evaluation code is the biggest of all
+    if cmd == "eval":  # the evaluation code is the biggest of all
         from agentcake import eval as eval_command
         return eval_command.main(args)
     if cmd == "logs":

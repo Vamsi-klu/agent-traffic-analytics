@@ -1,4 +1,4 @@
-// The registration step in front of the local dashboard (S5.8, D32; DESIGN.md §6.6): until this AgentCake has
+// The registration step in front of the local dashboard (DESIGN.md §6.6): until this AgentCake has
 // registered, every page shows the registration card first. The demo shop (/demo), collecting visits, the command line
 // and doctor are not these pages and never ask. Data: GET /api/register; the card's button is the only thing that
 // posts it. A registration that can't be sent lets the owner in for as long as this page stays open, and the card asks

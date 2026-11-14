@@ -1,4 +1,4 @@
-// Types for @agentcake/edge/express (express.js). Step S4.1.
+// Types for @agentcake/edge/express (express.js).
 import type { IncomingMessage, ServerResponse } from "node:http"
 import type { CakeOptions, RequestLike, Verdict } from "./index"
 

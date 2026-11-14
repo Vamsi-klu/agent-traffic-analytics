@@ -1,4 +1,4 @@
-"""The local listener of a real `agentcake serve` (server.py, S5.1): what other sites' pages can and cannot do.
+"""The local listener of a real `agentcake serve` (server.py): what other sites' pages can and cannot do.
 
     python3 -I -m unittest discover -s tests -p test_server.py -v      (from the Agent Cake folder)
 

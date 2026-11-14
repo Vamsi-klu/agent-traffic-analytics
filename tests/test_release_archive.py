@@ -1,4 +1,4 @@
-"""tools/releasing/archive.py (plan step S6.4): the release folder holds what pyproject.toml's [tool.flit.sdist] names,
+"""tools/releasing/archive.py: the release folder holds what pyproject.toml's [tool.flit.sdist] names,
 the package, PKG-INFO and the wheel in dist/; the real one has what a server install needs, leaves tests and tools
 out, and its bin/agentcake runs.
 
@@ -97,7 +97,7 @@ class RealReleaseFolder(unittest.TestCase):
             self.assertFalse([n for n in self.names if n.startswith(folder)], folder)
 
     def test_readmes_pictures_stay_out_while_the_rest_of_docs_comes_along(self):
-        """docs/assets/ holds README's icon and screenshots, for the repository's page on GitHub only (D34)."""
+        """docs/assets/ holds README's icon and screenshots, for the repository's page on GitHub only."""
         self.assertFalse([n for n in self.names if n.startswith("docs/assets/")])
         self.assertIn("README.md", self.names)
         self.assertIn("docs/collect-format.md", self.names)

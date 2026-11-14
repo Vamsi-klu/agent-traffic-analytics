@@ -1,9 +1,8 @@
-"""README.md and its Chinese translation (docs/locales/zh-CN/README.md) against the release and each other
-(readme-preview).
+"""README.md and its Chinese translation (docs/locales/zh-CN/README.md) against the release and each other.
 
     python3 -I -m unittest discover -s tests -v      (from the AgentCake folder)
 
-Each README has one install sentence, in its own language (D21) and in a code block to copy, that names this version
+Each README has one install sentence, in its own language and in a code block to copy, that names this version
 and points at the INSTALL.md of this tag; it names curl and the GitHub CLI, which reads that file signed in while the
 repository is a private preview (its raw address answers 404 then). The pictures are files of the repository
 (docs/assets/readme/, made by web/scripts/readme-images.mjs) or shields.io's static badges, which draw while the
@@ -62,7 +61,7 @@ class ReadmeDocuments(unittest.TestCase):
         cls.repository, = repositories(read(INSTALL_MD))
 
     def test_each_readme_has_one_install_sentence_for_this_version_and_its_install_md(self):
-        """README's in English and the Chinese README's in Chinese (D21), each in a code block under Install. It works
+        """README's in English and the Chinese README's in Chinese, each in a code block under Install. It works
         whether the repository is public (curl reads the raw address) or a private preview, where that address
         answers 404 and the GitHub CLI, signed in, reads the same file: the sentence names both."""
         url = f"https://raw.githubusercontent.com/{self.repository}/{self.tag}/INSTALL.md"

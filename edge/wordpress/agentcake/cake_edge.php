@@ -1,6 +1,6 @@
 <?php
 /**
- * AgentCake site middleware for PHP, the server half (step S4.3). On each page response it sets one signed token, byte
+ * AgentCake site middleware for PHP, the server half. On each page response it sets one signed token, byte
  * for byte what the Node middleware (edge/node) makes for the same request:
  *
  *     Server-Timing: cake;desc="c1.<base64url JSON>.<base64url HMAC-SHA256>"

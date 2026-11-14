@@ -1,10 +1,10 @@
-"""agentcake/detect/timeline.py: who did each action, the shares by action and the hand-offs (plan step S3.7).
+"""agentcake/detect/timeline.py: who did each action, the shares by action and the hand-offs.
 
     python3 -I -m unittest discover -s tests -v
 
 The timeline is cake 0.3.4's per-action judge (kept as tests/judge_0_3_4.py), read from the raw-event format instead
 of rrweb. The small cases document it; one case checks it against judge_0_3_4.judge on the same input, and the cases after it
-pin what S3.7 changed. The cases on the lab's sessions and on PostHog replays are kept with that data, outside the published repository.
+pin what 0.4.0 changed. The cases on the lab's sessions and on PostHog replays are kept with that data, outside the published repository.
 """
 import json
 import math
@@ -25,8 +25,14 @@ def ev(t, ty, **fields):
     return {"t": float(t), "ty": ty, "tr": 1, "hf": 1, "vs": 1, **fields}
 
 
-def jump_click(t, x=400, y=300):
-    """How Claude in Chrome clicks: the pointer appears on the target and clicks a few ms later."""
+MS_PER_TARGET_PX = 100  # jump_click()'s default target moves 1 px to the right per 100 ms of t
+
+
+def jump_click(t, x=None, y=300):
+    """How Claude in Chrome clicks: the pointer appears on the target and clicks a few ms later. By default each
+    click's target is its own, further right the later the click: the same spot pressed again would repeat the
+    click in place, which shows no approach."""
+    x = 400 + int(t) // MS_PER_TARGET_PX if x is None else x
     return [ev(t - 5, "mousemove", cx=x, cy=y), ev(t, "click", cx=x, cy=y)]
 
 
@@ -67,15 +73,18 @@ def majority(shares):
 
 
 def agent_then_human(agent_clicks=5, human_clicks=5, gap_ms=6000):
+    """The agent's jump clicks, then a hand's clicks; the hand-off is the person's first click (their first
+    action), a second after their pointer began to move towards it."""
     events, t = [], 1000
     for _ in range(agent_clicks):
         t += gap_ms
         events += jump_click(t)
-    handoff = t + gap_ms - 20 * 50
+    handoff = t + gap_ms
     for _ in range(human_clicks):
         t += gap_ms
         events += hand_click(t)
     return events, handoff
+
 
 
 class ActionTest(unittest.TestCase):
@@ -135,7 +144,7 @@ class ActionTest(unittest.TestCase):
 
 
 class NoPointerTest(unittest.TestCase):
-    """An action with no pointer position before it gets no pointer evidence (research note 12's missing variant)."""
+    """An action with no pointer position before it gets no pointer evidence (the missing-data variant)."""
 
     WITHOUT_POINTER = {"moves_per_s": 0.0, "moves_before_act": 0, "straight": 1.0, "pause_s": 4.0, "no_move_act": 1.0}
 
@@ -148,13 +157,24 @@ class NoPointerTest(unittest.TestCase):
         self.assertEqual(timeline.p_agent(jumped), timeline.p_agent(jumped, as_0_3_4()))
 
     def test_a_click_no_mouse_made_has_no_pointer_evidence(self):
-        # borrow-rules B3: the move just before a click the keyboard, a finger or a pen made says nothing about it
+        # the move just before a click the keyboard, a finger or a pen made says nothing about it
         by_mouse = timeline.actions(jump_click(1000))[0]
         for made_by in ({"d": 0}, {"d": 1, "pt": "touch"}, {"d": 1, "pt": "pen"}):
             act = timeline.actions([ev(995, "mousemove", cx=400, cy=300),
                                     ev(1000, "click", cx=400, cy=300, **made_by)])[0]
             self.assertEqual((act["features"]["by_mouse"], by_mouse["features"]["by_mouse"]), (0.0, 1.0))
             self.assertLess(timeline.p_agent(act["features"]), timeline.p_agent(by_mouse["features"]))
+
+    def test_a_click_again_in_place_has_no_pointer_evidence(self):
+        # the pointer rested on the spot it had clicked: its one jittered move is no jump onto a target
+        def second(x):
+            return timeline.actions(hand_click(1000) + [ev(3700, "mousemove", cx=x, cy=301),
+                                                        ev(4000, "click", cx=x, cy=300)])[1]
+        again, jumped = second(401), second(480)
+        self.assertEqual((again["features"]["in_place"], jumped["features"]["in_place"]), (1.0, 0.0))
+        self.assertEqual(timeline.p_agent(again["features"]),
+                         timeline.p_agent(dict(again["features"], no_move_act=0.0, straight=0.0)))
+        self.assertLess(timeline.p_agent(again["features"]), timeline.p_agent(jumped["features"]))
 
     def test_0_3_4_read_no_position_as_a_jump(self):
         self.assertGreater(timeline.p_agent(self.WITHOUT_POINTER, as_0_3_4()),
@@ -177,11 +197,13 @@ class SmoothTest(unittest.TestCase):
 
 
 class BuildTest(unittest.TestCase):
-    def test_agent_then_human_gives_two_runs_and_one_handoff_where_the_human_starts(self):
+    def test_agent_then_human_gives_two_runs_and_one_handoff_at_the_humans_first_click(self):
         events, handoff = agent_then_human()
         result = timeline.build(events)
         self.assertEqual([(r["who"], r["n"]) for r in result["runs"]], [("agent", 5), ("human", 5)])
         self.assertEqual([(h["from"], h["to"], h["t"]) for h in result["handoffs"]], [("agent", "human", handoff)])
+        human_run = result["runs"][1]
+        self.assertEqual(human_run["start"], handoff - 20 * 50, "the run still begins where the hand began to move")
 
     def test_shares_are_by_action(self):
         events, _ = agent_then_human(agent_clicks=3, human_clicks=1)
@@ -204,14 +226,17 @@ class BuildTest(unittest.TestCase):
         self.assertEqual([(r["who"], r["n"]) for r in result["runs"]], [("human", 3), ("agent", 3)])
         self.assertEqual([(h["from"], h["to"], h["t"]) for h in result["handoffs"]], [("human", "agent", 20500)])
 
-    def test_evidence_shapes_the_runs_and_handoffs_but_not_the_shares(self):
+    def test_evidence_shapes_the_runs_but_not_the_shares_and_movement_alone_hands_nothing_over(self):
         events, _ = agent_then_human(agent_clicks=3, human_clicks=0)
         glide = {"kind": "move", "t": 30000, "first": 30000, "start": 29000, "score": 0.02}
         result = timeline.build(events, evidence=[glide, dict(glide, t=32000, first=32000, start=31000)])
         self.assertEqual(result["shares"], {"human": 0.0, "agent": 1.0, "unsure": 0.0})
         self.assertEqual([(r["who"], r["n"]) for r in result["runs"]], [("agent", 3), ("human", 2)])
-        self.assertEqual([(h["from"], h["to"], h["t"]) for h in result["handoffs"]], [("agent", "human", 29000)])
+        self.assertEqual(result["handoffs"], [], "a hand that only moved the pointer took no action")
         self.assertEqual([e["who"] for e in result["evidence"]], ["human", "human"])
+        scroll = {"kind": "scroll", "t": 30000, "first": 30000, "start": 29500, "score": 0.02}
+        wheeled = timeline.build(events + [ev(30000, "wheel", dy=120)], evidence=[scroll, dict(scroll, t=32000)])
+        self.assertEqual([(h["from"], h["to"], h["t"]) for h in wheeled["handoffs"]], [("agent", "human", 30000)])
 
     def test_an_unsure_run_between_two_actors_does_not_hide_the_handoff(self):
         runs = [{"who": "agent", "start": 0, "end": 10}, {"who": "unsure", "start": 20, "end": 30},
@@ -223,6 +248,15 @@ class BuildTest(unittest.TestCase):
         runs = [{"who": "agent", "start": 0, "end": 10}, {"who": "unsure", "start": 20, "end": 30},
                 {"who": "agent", "start": 40, "end": 50}]
         self.assertEqual(timeline.handoffs(runs), [])
+
+    def test_a_scroll_hands_over_only_when_the_visitors_own_input_caused_it(self):
+        events = [e for t in (6000, 12000, 18000) for e in jump_click(t)] + \
+            [e for t in (24000, 30000, 36000) for e in hand_click(t)]
+        page_made = timeline.build(sorted(events + [ev(23500, "scroll", y=200)], key=lambda e: e["t"]))
+        self.assertEqual([h["t"] for h in page_made["handoffs"]], [24000], "the page scrolled itself: the click")
+        caused = events + [ev(23400, "pointerdown", pt="mouse"), ev(23500, "scroll", y=200)]
+        dragged = timeline.build(sorted(caused, key=lambda e: e["t"]))
+        self.assertEqual([h["t"] for h in dragged["handoffs"]], [23500], "the person's pointer moved the page")
 
     def test_the_parameters_come_from_the_data_file(self):
         params = timeline.load_params()

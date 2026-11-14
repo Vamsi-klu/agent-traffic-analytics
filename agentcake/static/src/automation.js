@@ -1,4 +1,4 @@
-// Agent Cake page script, part: probes for a browser driven over the DevTools protocol (plan step S1.3), stream "x".
+// Agent Cake page script, part: probes for a browser driven over the DevTools protocol, stream "x".
 //
 // The ideas of these checks come from rebrowser-bot-detector (github.com/rebrowser/rebrowser-bot-detector, commit
 // 55fa59b); the code is our own. That repository declares MIT in its package.json but has no licence file, so none of
@@ -13,7 +13,7 @@
 //   4. Code a DevTools client evaluates in the page leaves its own frames on the call stack (Puppeteer's pptr: URLs,
 //      Playwright's UtilityScript), visible from inside the page's DOM lookups. Off unless the site owner turns it
 //      on, since it wraps the site's own DOM methods.
-// Field names follow the research lab's (runtimeEnableLeak, ipcFlooding.all300, …): cake's environment rules (S3.3)
+// Field names follow the research lab's (runtimeEnableLeak, ipcFlooding.all300, …): cake's environment rules
 // read them.
 
 // ---------------------------------------------------------------- 1. the logged-error probe

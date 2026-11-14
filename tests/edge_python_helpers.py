@@ -1,4 +1,4 @@
-"""What the Python site middleware's tests share (S4.3): the shared vectors, a browser's page request, and a WSGI server
+"""What the Python site middleware's tests share: the shared vectors, a browser's page request, and a WSGI server
 and an ASGI server written by hand, so tests/test_edge_python.py and tests/test_edge_python_mountings.py read the same
 requests and responses. Not a test module: discovery leaves it alone.
 """

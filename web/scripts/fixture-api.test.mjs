@@ -1,4 +1,4 @@
-// Tests for the fixture /api of the screenshot and dev servers (S5.1): the same routes, filters and errors as the
+// Tests for the fixture /api of the screenshot and dev servers: the same routes, filters and errors as the
 // contract, and every answer fits its schema. Usage: node --test scripts/   (npm test)
 import assert from "node:assert/strict"
 import { readFileSync } from "node:fs"
@@ -37,7 +37,7 @@ test("every GET endpoint answers its sample, and each fits its schema", async ()
   }
 })
 
-test("the samples' AgentCake has registered, so every page shows at once (S5.8)", async () => {
+test("the samples' AgentCake has registered, so every page shows at once", async () => {
   const { body } = await call("/api/register")
   assert.equal(body.registered, true)
 })
@@ -55,7 +55,7 @@ test("the next page of the sample list is empty and last", async () => {
   assert.deepEqual([body.results, body.next], [[], null])
 })
 
-test("each sample session answers its own replay chunks, in order (S5.4)", async () => {
+test("each sample session answers its own replay chunks, in order", async () => {
   for (const id of ["7f3a-c1", "6e0f-13", "19fc-90"]) {
     const { body: detail } = await call(`/api/session/${id}`)
     for (const [n, span] of detail.replay.chunks.entries()) {

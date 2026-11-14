@@ -159,7 +159,7 @@ By default the middleware leaves your caching headers alone. Two cases need a ch
   304s for HTML altogether.
 
 Tried with Chromium 149, WebKit 27.2 (Safari's engine, as Playwright builds it) and Firefox 157, headless, on a test
-site with and without `noStore` (step S4.2):
+site with and without `noStore`:
 
 - **At a 304** each of them shows the page the 304's own new token, and keeps that token with its stored copy. WebKit
   reloads a page with a plain request (a 200 with a new token) where the other two send a 304.

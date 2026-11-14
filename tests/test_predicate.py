@@ -1,4 +1,4 @@
-"""The predicate language the environment rules are written in (S3.3): agentcake/detect/predicate.py.
+"""The predicate language the environment rules are written in: agentcake/detect/predicate.py.
 
     python3 -I -m unittest discover -s tests -v      (from the Agent Cake folder)
 

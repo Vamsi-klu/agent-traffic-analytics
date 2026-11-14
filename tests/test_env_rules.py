@@ -1,10 +1,10 @@
-"""The environment layer (S3.3): the rule table agentcake/data/env_rules.json and its evaluator,
+"""The environment layer: the rule table agentcake/data/env_rules.json and its evaluator,
 agentcake/detect/env_rules.py.
 
     python3 -I -m unittest discover -s tests -v      (from the Agent Cake folder)
 
 Every rule has hit and miss cases (tests/fixtures/env_rules/cases.json). The checks on the lab's recorded sessions
-(GOAL T6's environment part) are kept with those recordings, outside the published repository.
+(case T6's environment part) are kept with those recordings, outside the published repository.
 """
 import copy, json, os, re, sys, unittest
 

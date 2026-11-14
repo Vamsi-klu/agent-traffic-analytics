@@ -1,4 +1,4 @@
-// The pages' only way to cake's data (S5.1): typed GET / POST of the JSON in ./types.ts, and useApi() for what every
+// The pages' only way to cake's data: typed GET / POST of the JSON in ./types.ts, and useApi() for what every
 // page shows before its data is there (loading) or when it can't get it (failed). Same idea as PostHog 1.0.0's
 // frontend/src/Api.js (MIT): one small fetch wrapper that turns the server's error body into an error. No code copied.
 import { useEffect, useState, type DependencyList } from "react"

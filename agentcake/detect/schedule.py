@@ -1,6 +1,6 @@
-"""When a session is judged (S3.4): on new data, once more when it has been quiet, again when an opened page shows it.
+"""When a session is judged: on new data, once more when it has been quiet, again when an opened page shows it.
 
-The rule (EXECUTION-BRIEF S3.4, with 0.3.3's server-mode rule folded in; the interface explains it from
+The rule (cake 0.3.3's lazy judging, with its server-mode rule folded in; the interface explains it from
 judging.en.json "when_model_runs"):
   - new data: judge now, but a session that keeps sending at most every interval_ms (on a server
     public_judge_interval_ms, 0.3.3's 15 s; on this computer judge_interval_ms: a judgement reads the whole session,

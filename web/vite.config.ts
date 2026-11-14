@@ -19,10 +19,10 @@ function fixtureApiForDev(): Plugin {
   }
 }
 
-/** The product's name, from Agent Cake's own data file (D19), the one place it is written: the pages read it as
+/** The product's name, from Agent Cake's own data file, the one place it is written: the pages read it as
  *  import.meta.env.VITE_PRODUCT_NAME (src/lib/product.ts) and index.html as %VITE_PRODUCT_NAME% (the browser title). */
 const product = JSON.parse(readFileSync(path.resolve(__dirname, "../agentcake/data/product.json"), "utf8"))
-/** The names of the session categories and a sentence on each (D39), from the one file the API's words
+/** The names of the session categories and a sentence on each, from the one file the API's words
  *  use too (agentcake/data/judging.en.json): the pages read them as import.meta.env.VITE_TAXONOMY (src/lib/taxonomy.ts). */
 const judging = JSON.parse(readFileSync(path.resolve(__dirname, "../agentcake/data/judging.en.json"), "utf8"))
 const TAXONOMY_KEYS = ["title", "lead", "verdicts", "unsure", "evidence", "turns", "names"]

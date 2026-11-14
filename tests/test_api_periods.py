@@ -1,4 +1,4 @@
-"""agentcake/api/periods.py (S5.1): the date ranges and the wall-clock words, in this computer's timezone.
+"""agentcake/api/periods.py: the date ranges and the wall-clock words, in this computer's timezone.
 
     python3 -I -m unittest discover -s tests -p test_api_periods.py -v      (from the Agent Cake folder)
 

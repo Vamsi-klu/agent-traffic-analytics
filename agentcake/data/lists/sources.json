@@ -1,5 +1,5 @@
 {
-  "$comment": "Where Agent Cake's name and verification lists come from and how they are built (S3.1, D23). tools/build_lists.py (when a release is made) and `agentcake lists update` (only when someone runs it) fetch every source below and write names.json, ip_ranges.json, signers.json and keys.json; Agent Cake never fetches anything while it runs. This file and kinds.json are edited by hand; the four generated files are not. Every exclusion, correction and addition below says why.",
+  "$comment": "Where Agent Cake's name and verification lists come from and how they are built. tools/build_lists.py (when a release is made) and `agentcake lists update` (only when someone runs it) fetch every source below and write names.json, ip_ranges.json, signers.json and keys.json, and beside them each repository's licence file at the commit read (<source>.LICENSE.txt, unchanged); Agent Cake never fetches anything while it runs. This file and kinds.json are edited by hand; the four generated files are not. Every exclusion, correction and addition below says why.",
   "fetch": {
     "timeout_s": 30,
     "retries": 1,
@@ -7,7 +7,7 @@
     "user_agent": "agentcake-lists"
   },
   "update": {
-    "$comment": "`agentcake lists update` writes <CAKE_HOME>/<user_dir>/<date>/. Lists older than max_age_days are reported as stale (GOAL I4) by status(), for doctor and the settings page.",
+    "$comment": "`agentcake lists update` writes <CAKE_HOME>/<user_dir>/<date>/. Lists older than max_age_days are reported as stale by status(), for doctor and the settings page.",
     "user_dir": "lists",
     "max_age_days": 30
   },
@@ -69,7 +69,7 @@
         "kind": "cloud-agent",
         "evidence": "unverified",
         "patterns": [{"match": "token", "text": "Claude-Agent"}],
-        "note": "Anthropic's hosted browser. The User-Agent form 'compatible; Claude-Agent/1.0' is second-hand (notes 13, sig-109) and botscent does not list it; Anthropic's own SAIL file names the service Claude-Agent and publishes its addresses (ip_ranges: anthropic-claude-agent)."
+        "note": "Anthropic's hosted browser. The User-Agent form 'compatible; Claude-Agent/1.0' is second-hand and botscent does not list it; Anthropic's own SAIL file names the service Claude-Agent and publishes its addresses (ip_ranges: anthropic-claude-agent)."
       },
       {
         "id": "grokagent",
@@ -78,7 +78,7 @@
         "kind": "cloud-agent",
         "evidence": "unverified",
         "patterns": [{"match": "versioned", "text": "GrokAgent"}],
-        "note": "xAI's Grok cloud computer. 'GrokAgent/1.0 (u:...)' at the end of the User-Agent comes from one second-hand source (notes 13, sig-108); neither botscent nor PostHog lists it."
+        "note": "xAI's Grok cloud computer. 'GrokAgent/1.0 (u:...)' at the end of the User-Agent comes from one second-hand source; neither botscent nor PostHog lists it."
       }
     ],
     "aliases": {
@@ -88,12 +88,12 @@
       "Grok Bot": "grok-bot"
     },
     "overrides": {
-      "$comment": "Decisions applied last, by list id: a display name a source has out of date (name), and where the sources disagree on whether a name works for a human (D17: an agent works for a human; only a certain non-agent program is a bot). Rule used: when the lists disagree, the name is an agent unless the operator's own naming or documentation shows it is a crawler (for example a separate -User fetcher, as ChatGPT-User, Claude-User and Perplexity-User have).",
+      "$comment": "Decisions applied last, by list id: a display name a source has out of date (name), and where the sources disagree on whether a name works for a human (an agent works for a human; only a certain non-agent program is a bot). Rule used: when the lists disagree, the name is an agent unless the operator's own naming or documentation shows it is a crawler (for example a separate -User fetcher, as ChatGPT-User, Claude-User and Perplexity-User have).",
       "claude-chrome": {"name": "Claude in Chrome", "reason": "Anthropic's name for its browser extension; botscent still lists it under its earlier name, Claude for Chrome."},
       "google-agent": {"kind": "cloud-agent", "reason": "Google's documentation: used by agents hosted on Google infrastructure to act on a user's request (PostHog files it as an AI crawler)."},
-      "duckassistbot": {"kind": "ai-assistant", "reason": "Fetches pages in real time to answer a human's question (DuckDuckGo); PostHog lists it as an AI assistant, botscent as a crawler, so it is not a certain non-agent program (D17)."},
+      "duckassistbot": {"kind": "ai-assistant", "reason": "Fetches pages in real time to answer a human's question (DuckDuckGo); PostHog lists it as an AI assistant, botscent as a crawler, so it is not a certain non-agent program."},
       "cohere-ai": {"kind": "ai-assistant", "reason": "ai.robots.txt: retrieves data for responses to user-initiated prompts; Cohere's training crawler is the separate cohere-training-data-crawler."},
-      "phindbot": {"kind": "ai-assistant", "reason": "Phind answers a developer's question by fetching pages and documents no separate crawler, so PostHog's 'search crawler' is not certain (D17); ai.robots.txt lists it as an AI assistant."},
+      "phindbot": {"kind": "ai-assistant", "reason": "Phind answers a developer's question by fetching pages and documents no separate crawler, so PostHog's 'search crawler' is not certain; ai.robots.txt lists it as an AI assistant."},
       "mozilla-tabstack": {"kind": "ai-assistant", "reason": "Mozilla's browsing API that fetches pages when an AI agent asks for them (PostHog: AI assistant; ai.robots.txt: data provider)."},
       "lightpanda": {"kind": "automated-browser", "reason": "a headless browser engine anyone runs, as PostHog files it; ai.robots.txt's 'AI data scraper' describes one use of it."},
       "scrapy": {"kind": "http-client", "reason": "a crawling framework anyone runs, as botscent and PostHog file it; ai.robots.txt's 'AI data scraper' describes one use of it."},
@@ -139,8 +139,8 @@
       },
       "patterns": {
         "$comment": "Corrections to single PostHog patterns, keyed by the pattern exactly as PostHog writes it.",
-        "Claude/.*Electron": {"kind": "ai-desktop-app", "reason": "Claude Desktop's built-in browser (GOAL section 8)"},
-        "ChatGPT/.*Electron": {"kind": "ai-desktop-app", "reason": "ChatGPT Desktop's built-in browser (GOAL section 8)"},
+        "Claude/.*Electron": {"kind": "ai-desktop-app", "reason": "Claude Desktop's built-in browser"},
+        "ChatGPT/.*Electron": {"kind": "ai-desktop-app", "reason": "ChatGPT Desktop's built-in browser"},
         "desktop\\.hog\\.dev": {"kind": "ai-desktop-app", "reason": "PostHog's desktop AI app"},
         "agent\\.hog\\.dev": {"kind": "ai-desktop-app", "reason": "PostHog's desktop AI app"},
         "cloud\\.hog\\.dev": {"kind": "cloud-agent", "reason": "PostHog's AI app running in the cloud"},
@@ -156,7 +156,7 @@
       },
       "exclude": {
         "Amazon CloudFront": "CloudFront sends this User-Agent on every request it forwards when a site does not pass the visitor's own through: naming it would turn human visits into a Bot",
-        "Chrome Privacy Preserving Prefetch Proxy": "Chrome prefetching for a human's browser; prefetch and prerender are left out before naming (S3.4)"
+        "Chrome Privacy Preserving Prefetch Proxy": "Chrome prefetching for a human's browser; prefetch and prerender are left out before naming"
       },
       "hints": {
         "$comment": "PostHog patterns that recognise a malformed or forged User-Agent rather than name a product. They never name anyone; ua_hints() reports them as weak signals.",

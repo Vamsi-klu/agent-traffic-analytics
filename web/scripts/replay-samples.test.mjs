@@ -1,4 +1,4 @@
-// Tests for the recorded sample replays (S5.4): they are what scripts/replay-fixtures.mjs promises, checked without
+// Tests for the recorded sample replays: they are what scripts/replay-fixtures.mjs promises, checked without
 // recording again. Every chunk is one window of cake's chunk length, in time order, as the session's sample lists it;
 // the first chunk lets the player start (a page's address, then its full snapshot) at the default address; nothing
 // typed, no card number, no site key but the placeholder. Usage: node --test scripts/   (npm test)

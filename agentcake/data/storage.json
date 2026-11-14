@@ -1,5 +1,5 @@
 {
-  "note": "Storage parameters (S2.2): replay chunks, compression, night recompression, CSS de-duplication. Times in ms unless the key says otherwise.",
+  "note": "Storage parameters: replay chunks, compression, night recompression, CSS de-duplication. Times in ms unless the key says otherwise.",
   "replay_dir": "replays",
   "backup_dir": "backups",
   "streams": ["rrweb", "raw", "env"],

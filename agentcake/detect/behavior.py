@@ -1,4 +1,4 @@
-"""The behaviour layer as the verdict step runs it (S3.4): S3.7's model on a session's events, unless it cannot judge.
+"""The behaviour layer as the verdict step runs it: the behaviour model on a session's events, unless it cannot judge.
 
     run(raw=None, rrweb=None, touch=False, session_start=None, model=None, params=None, turns=()) -> result
     assistive_signs(raw, settings=None) -> {"keys": n, "pointer_moves": n} or None
@@ -8,12 +8,12 @@ tablet, or fewer segments than the model's min_actions (behavior_model.json), is
 is not called at all, so a schedule can call run() on every new batch cheaply. Otherwise it returns the model's own
 result, model.judge_session()'s dict (see agentcake/detect/model.py); the too-little-data result has the same shape.
 raw is the session's events in the raw-event format cake.js sends (segment.py); a recording with only rrweb events
-(cake 0.3.x) is rebuilt with rrweb_events.events_from_rrweb() and judged without raw input (research note 12's missing
+(cake 0.3.x) is rebuilt with rrweb_events.events_from_rrweb() and judged without raw input (the model's missing-data
 variant). model: what judges (default model.judge_session; tests pass a stand-in). turns: when an agent product's
 indicator said its agent was working (markers.turn_spans), handed to the model's timeline. Nothing leaves this
 computer.
 
-assistive_signs() reads keyboard navigation without a pointer (research note 13, sig-088): an assistive tool's way of
+assistive_signs() reads keyboard navigation without a pointer: an assistive tool's way of
 moving through a page, which the model can take for an agent's. cake.js sends each key's class, never the key; an
 rrweb-only recording has no keys, so it gives no signs. Thresholds: agentcake/data/verdict.json "assistive".
 """

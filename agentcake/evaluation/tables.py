@@ -1,4 +1,4 @@
-"""Every table of `agentcake eval`, built from the data sources.load() found (plan step S3.9; GOAL T12).
+"""Every table of `agentcake eval`, built from the data sources.load() found.
 
     build(data, settings, limit_s, with_logistic) -> results
 
@@ -12,7 +12,7 @@ recorded hand-offs; the recorder's hand-offs, scored against the stretches betwe
 (baselines.py), "layers" (layers.py), "humans" (humans.py), "bots" (bots.py) and "store_sessions" (N1's page views
 and tokens).
 
-PostHog's data is split as S3.7 split it: the validation set is every session that holds a mixed replay or a Claude
+PostHog's data is split as the behaviour model's study split it: the validation set is every session that holds a mixed replay or a Claude
 in Chrome unit; its splices pair those Claude in Chrome units with its own probably-human units, and the dev set's
 pair the lab's Claude in Chrome recordings with the dev set's humans.
 """
@@ -87,7 +87,7 @@ def _takeovers(lab, data, posthog, settings, limit_s):
     out = {"lab_splices": takeovers.splice_rows(humanlike, humans_raw, True, limit_s),
            "recording_splices": takeovers.splice_rows(cic_raw, humans_raw, True, limit_s),
            "store": [takeovers.session_row(s["evidence"], _who_at(s["truth"][SPLICE_TRUTH]),
-                                           [t for t, _, _ in splice.boundaries(s["truth"][SPLICE_TRUTH])], limit_s)
+                                           splice.boundaries(s["truth"][SPLICE_TRUTH]), limit_s)
                      for s in data["store"] if s["truth"].get(SPLICE_TRUTH)]}
     if posthog:
         out.update(_posthog_takeovers(lab, posthog, settings, limit_s))
@@ -98,8 +98,8 @@ def _recorded_handoffs(items, rows, limit_s):
     """The recorder's hand-offs: each action's answer is the stretch it lies in, the true hand-offs the first action
     of each stretch that follows the other side's (splice.boundaries, as for a T5 session of a CAKE_HOME)."""
     evidence = {r["id"]: r["evidence"] for r in rows}
-    return [takeovers.session_row(evidence[item["h"]], _who_at(item["stretches"]),
-                                  [t for t, _, _ in splice.boundaries(item["stretches"])], limit_s)
+    return [takeovers.session_row(evidence[item["h"]], _who_at(item["stretches"]), splice.boundaries(item["stretches"]),
+                                  limit_s)
             for item in items if item["stretches"]]
 
 
@@ -152,10 +152,10 @@ def _layered(rows):
 
 
 def posthog_truth(unit, group, settings):
-    """A PostHog unit's answer: the one its dataset gives (S9.2's training set: truth, truth_strength); the site
+    """A PostHog unit's answer: the one its dataset gives (the training set: truth, truth_strength); the site
     owner's presumed humans (the user's own labels showed many of them were agents, settings "posthog.untrusted") and
     labels the user has yet to confirm (pending) are weak answers ("weak"), reported on their own and left out of
-    every pool and fit; else note 12's answer by group."""
+    every pool and fit; else the PostHog study's answer by group."""
     labels = settings["posthog"]
     if unit.get("truth") is not None:
         if unit["truth"] not in ("human", "agent"):

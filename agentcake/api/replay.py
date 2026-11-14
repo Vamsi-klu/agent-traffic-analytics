@@ -1,4 +1,4 @@
-"""A session's replay, read a chunk at a time (S5.1; S5.4's player): its ReplayInfo, and GET .../replay?chunk=<n>.
+"""A session's replay, read a chunk at a time (the session page's player): its ReplayInfo, and GET .../replay?chunk=<n>.
 
 The replay is the session's rrweb stream (streams.py: sealed chunks and the windows still open). The player reads it
 in chunks of storage.json's chunk_ms of event time, aligned as the stream's own windows are, so each event belongs to

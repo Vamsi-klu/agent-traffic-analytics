@@ -25,7 +25,9 @@ The page script, `cake.js`, is the one line a site adds. It records:
   element is kept, not even its timing.
 - **What the browser shows about itself**: user agent and client hints, screen and window sizes, time zone, the
   graphics renderer, traces automation tools leave, the results of the bundled BotD and botscent checks, how many
-  media devices of each kind exist (no names), whether a few fonts are installed, and when an agent product's own
+  media devices of each kind exist (no names), whether a few fonts are installed, whether the browser recognises a system
+  font name only Apple's systems have while it says it runs on another system (one answer: yes, no or can't tell; no
+  font names or sizes leave the page), and when an agent product's own
   marks (such as Claude in Chrome's "working" tag) appeared on the page and went away: which mark and when, nothing
   else of the page.
 - **The server-half token** the site's own server puts in the page's response, when the site runs AgentCake's

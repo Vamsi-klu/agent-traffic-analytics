@@ -7,7 +7,7 @@
  * verdictWaitMs, maxHeaderNames, cut, skipExtensions). The values under "fixed" belong to the token's format and meaning,
  * which cake's verifier and the shared vectors (tests/vectors/edge_token.json) hold too, so no option changes them. An
  * option of the wrong kind keeps its default and is named in one warning, as is an option nobody knows: a mistake in the
- * site's setup must cost the site its token, never its pages. Step S4.1.
+ * site's setup must cost the site its token, never its pages.
  */
 const DEFAULTS = require("../defaults.json")
 const HEADERS = require("../headers.json")

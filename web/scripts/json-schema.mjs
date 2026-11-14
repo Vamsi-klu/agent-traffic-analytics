@@ -1,4 +1,4 @@
-// A small JSON Schema validator for the /api contract in src/data/schema/ (S5.1). It knows only the keywords below, so
+// A small JSON Schema validator for the /api contract in src/data/schema/. It knows only the keywords below, so
 // the Python half can check cake's answers with the same few rules and the standard library; checkKeywords() fails a
 // schema that uses anything else, which keeps the two validators equal.
 //

@@ -1,11 +1,11 @@
-"""GET and POST /api/settings (S5.1, S5.5; agentcake/api/settings.py).
+"""GET and POST /api/settings (agentcake/api/settings.py).
 
     python3 -I -m unittest discover -s tests -p test_api_settings.py -v      (from the AgentCake folder)
 
 GET answers the contract from the settings in use: the website's domain and site key and the line to add (with that
 key), where visits come from and when each source last sent something, which headers the server half's recent page
-requests arrived without and how the last log import went, how old the lists are against I4, how often the page asks
-again (I3), retention and the disk (with the share of the budget freeing space stops at, which the page's description
+requests arrived without and how the last log import went, how old the lists are against their age limit, how often the page asks
+again, retention and the disk (with the share of the budget freeing space stops at, which the page's description
 of auto_free states, from auto_free_target_ratio), the page script's two settings (hook_dom, hide_selectors) and the
 four layers, which are not settings. A POST of only the fields to change saves retention_days, budget_mb, auto_free, site_domain,
 hook_dom and hide_selectors to config.json under those names, checked as `agentcake config set` checks them, and answers
@@ -86,10 +86,10 @@ class Settings(SettingsCase):
         self.assertEqual(body["database"]["sessions"], 0)
         self.assertEqual(body["layers"], {"name": True, "verify": False, "environment": True, "behavior": True},
                          "every visit on this computer comes from 127.0.0.1: no verification layer")
-        self.assertLessEqual(body["refresh_ms"], 10_000, "I3: connected shows within 10 s while the page is open")
+        self.assertLessEqual(body["refresh_ms"], 10_000, "connected shows within 10 s while the page is open")
 
     def test_storage_says_how_much_of_the_disk_is_free_and_why_new_replays_stop(self):
-        # K2 and D34: the settings page explains a disk below its floor with the floor and the free space in bytes
+        # the settings page explains a disk below its floor with the floor and the free space in bytes
         config.save_user(disk_min_free_mb=2000)
         nearly_full = DiskUsage(1000 * 1000 * BYTES_PER_MB, 0, 1500 * BYTES_PER_MB)
         with mock.patch("shutil.disk_usage", return_value=nearly_full):
@@ -182,7 +182,7 @@ class Sources(SettingsCase):
         self.assertEqual(body["route"], "this_computer")
         now = int(time.time() * 1000)
         config.save_user(site_domain="shop.example")
-        self.visit("demo1", "demo", now)  # the demo shop of an earlier AgentCake (D37): not a source any more
+        self.visit("demo1", "demo", now)  # the demo shop of an earlier AgentCake: not a source any more
         self.visit("old1", "site", now - 30 * MS_PER_DAY)
         body = self.settings()
         self.assertEqual(body["sources"], {"site": "waiting", "server_half": "not_connected"})
@@ -191,7 +191,7 @@ class Sources(SettingsCase):
 
     def test_a_first_visit_shows_connected_at_once(self):
         self.visit("site1", "site", int(time.time() * 1000))
-        self.assertEqual(self.settings()["sources"]["site"], "receiving", "I3: the very next answer")
+        self.assertEqual(self.settings()["sources"]["site"], "receiving", "the very next answer")
 
     def test_in_server_mode_the_website_arrives_through_the_server(self):
         config.save_user(public_listen="127.0.0.1:9", path_prefix="/cake")

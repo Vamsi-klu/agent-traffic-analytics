@@ -1,4 +1,4 @@
-"""Zip and tar.gz files whose bytes depend only on what goes into them and one timestamp (S6.4).
+"""Zip and tar.gz files whose bytes depend only on what goes into them and one timestamp.
 
 Every entry gets the same time (the commit's, SOURCE_DATE_EPOCH: https://reproducible-builds.org/specs/source-date-epoch/),
 the mode its kind has (release.json "modes": file, executable or folder), no owner (uid and gid 0, no user or group

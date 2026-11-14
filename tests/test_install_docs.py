@@ -1,21 +1,21 @@
-"""INSTALL.md, README.md (and its Chinese translation) and AGENTS.md against the code and the release (S6.2).
+"""INSTALL.md, README.md (and its Chinese translation) and AGENTS.md against the code and the release.
 
     python3 -I -m unittest discover -s tests -v      (from the AgentCake folder)
 
 INSTALL.md is what a coding agent follows to install AgentCake, one command at a time: every code block holds one
 command, with no `&&`, `;`, `|`, `$` or `NAME=value`, because Claude Code's approval rules match a command by how it
-starts and cannot check a variable in advance (plan note 9). Its download URLs, file names and version are the ones
-tools/release.py builds from agentcake/__init__.py (S6.4). While the repository is a private preview, its release
+starts and cannot check a variable in advance. Its download URLs, file names and version are the ones
+tools/release.py builds from agentcake/__init__.py. While the repository is a private preview, its release
 and raw.githubusercontent.com addresses need a GitHub sign-in that curl does not have: INSTALL.md's step 2 and both
-READMEs download the release with `gh release download` before the same `shasum -c` line (readme-preview); the
+READMEs download the release with `gh release download` before the same `shasum -c` line; the
 READMEs' own checks (install sentence, pictures, badges, the Chinese translation) are in test_readme_docs.py. Every
 `agentcake` command the documents show is one the command line lists in `agentcake help`, with
 settings that exist, and INSTALL.md's own `agentcake` commands run in a scratch CAKE_HOME without a usage error. Every
 link to a file of the repository exists, the local page's port is the default one, and the least Python INSTALL.md
 and the READMEs name is pyproject.toml's requires-python (read as test_server_docs.py reads it). INSTALL.md and
-AGENTS.md say the installing agent never registers for the user (D32), and no root document or file of docs/ splits
+AGENTS.md say the installing agent never registers for the user, and no root document or file of docs/ splits
 the product's name.
-Two lessons of the S6.6 runs: the download is checked by `shasum -c`'s OK line alone, and a download that fails
+Two lessons of trial installs by coding agents: the download is checked by `shasum -c`'s OK line alone, and a download that fails
 without network is called that.
 """
 import glob
@@ -44,7 +44,7 @@ README_ZH = os.path.join(ROOT, "docs", "locales", "zh-CN", "README.md")
 AGENTS_MD = os.path.join(ROOT, "AGENTS.md")
 CLAUDE_MD = os.path.join(ROOT, "CLAUDE.md")
 SHOWN_TO_AGENTS = (INSTALL_MD, README_MD, README_ZH, AGENTS_MD)
-# Each README, the heading of its Install and Connect sections, and whether its sentences are Chinese (D21).
+# Each README, the heading of its Install and Connect sections, and whether its sentences are Chinese.
 READMES = ((README_MD, "Install", "Connect your website", False), (README_ZH, "安装", "接入你的网站", True))
 
 SHELL_SYNTAX = ("&", ";", "|", ">", "<", "$", "`")  # chaining, pipes, redirection, variables, command substitution
@@ -130,7 +130,7 @@ def readme_name(readme):
 
 
 class InstallDocuments(unittest.TestCase):
-    """What a coding agent reads to install AgentCake matches the release, the command line and the plan's rules."""
+    """What a coding agent reads to install AgentCake matches the release, the command line and the install rules."""
 
     @classmethod
     def setUpClass(cls):
@@ -262,20 +262,34 @@ class InstallDocuments(unittest.TestCase):
 
     # ---------------------------------------------------------------------------------------- what the agent says
     def test_the_installing_agent_never_registers_for_the_user(self):
-        """D32: the local page asks the user to register; the agent gives the address and nothing more."""
+        """The local page asks the user to register; the agent gives the address and nothing more."""
         for words in ("never fill in their e-mail address", 'press "Register & Continue" for them'):
             self.assertIn(words, " ".join(self.install.split()))
             self.assertIn(words, " ".join(self.agents.split()))
 
+    def test_an_agent_stops_only_what_it_started_and_answers_in_the_users_language(self):
+        """In a trial run of connecting a website, Claude Code stopped the server it had started for doctor with
+        `lsof -ti tcp:<port> | xargs kill`, which stops whatever listens on that port, perhaps the user's own program;
+        in another it answered a Chinese request in English. INSTALL.md's website section and AGENTS.md say to stop
+        a program by the process ID noted when starting it, never by port or name, and to answer in the user's
+        language."""
+        website = " ".join(section(self.install, "Connect the user's website (only if the user asks)").split())
+        agents = " ".join(self.agents.split())
+        for words in ("note its process ID", "never by port or name"):
+            self.assertIn(words, website)
+            self.assertIn(words, agents)
+        self.assertIn("tell the user, in their language", website)
+        self.assertIn("in the user's language", agents)
+
     def test_whether_agentcake_is_on_path_is_left_to_doctors_line(self):
-        """S6.6: told that uv's folder "may not be on PATH", Claude Code told the user it was not, while doctor's own
+        """In a trial install, told that uv's folder "may not be on PATH", Claude Code told the user it was not, while doctor's own
         line said it was. INSTALL.md says nothing an agent can repeat as a fact and sends it to doctor's line."""
         flat = " ".join(self.install.split())
         self.assertNotRegex(flat, r"(?i)(?:may|might|is) not (?:be )?on PATH")
         self.assertIn(text("doctor_path", command=product()["command"]), flat)
 
     def test_the_download_is_checked_by_the_checksum_command_alone(self):
-        """S6.6 (GOAL T1): in a trial run Claude Code printed SHA256SUMS and the file's hash and compared them itself,
+        """In a trial run Claude Code printed SHA256SUMS and the file's hash and compared them itself,
         with no OK line. Step 2 says the command's OK line alone decides."""
         step = section(self.install, "Step 2. Download the release and check it")
         self.assertIn(["shasum -a 256 -c SHA256SUMS --ignore-missing"], code_blocks(step))
@@ -284,7 +298,7 @@ class InstallDocuments(unittest.TestCase):
             self.assertIn(words, flat)
 
     def test_a_download_without_network_is_called_no_network(self):
-        """S6.6 (GOAL T2, no network): curl failed with "Couldn't connect to server" and Codex asked the user to start
+        """In a trial run without network, curl failed with "Couldn't connect to server" and Codex asked the user to start
         that server. The sandbox section names curl's errors without network and says to ask for network access."""
         sandbox = " ".join(section(self.install, "If you run in a sandbox").split())
         for words in ("Could not resolve host", "Couldn't connect to server", "there is no network access here",
@@ -292,7 +306,7 @@ class InstallDocuments(unittest.TestCase):
             self.assertIn(words, sandbox)
 
     def test_the_documents_spell_the_product_as_readme_does(self):
-        """D19: one word since 11/12. The root documents and docs/ never split README's name ("Agent Cake"); README's
+        """One word: AgentCake. The root documents and docs/ never split README's name ("Agent Cake"); README's
         pictures in docs/assets/ are not text."""
         split = re.sub(r"(?<=[a-z])(?=[A-Z])", " ", self.readme_name)
         documents = glob.glob(os.path.join(ROOT, "*.md")) + [path for path in glob.glob(os.path.join(ROOT, "docs", "*"))

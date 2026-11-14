@@ -1,4 +1,4 @@
-"""The words Agent Cake prints (S1.2; D19, D21): its name, command and minimum Python from data/product.json, and the
+"""The words Agent Cake prints: its name, command and minimum Python from data/product.json, and the
 copy of the command line, setup, doctor, ping and the server from data/copy.en.json (data/copy.zh.json holds the two
 texts written for a coding agent that are also offered in Chinese).
 

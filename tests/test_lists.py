@@ -1,12 +1,12 @@
-"""S3.1: the name and verification lists, read and matched on this computer without any network.
+"""The name and verification lists, read and matched on this computer without any network.
 
     python3 -I -m unittest discover -s tests -v      (from the cake folder)
 
 Checks the bundled lists in agentcake/data/lists/: ten self-declared User-Agents get the right name and category
-(GOAL A7: AI working for a human is an Agent, a named non-agent program is a Bot, D17), the classes PostHog can name
-are named too (GOAL section 8), ordinary browsers are never named, an address is placed in the published range it
-belongs to and then forgotten, the age of the lists is reported against the I4 limit, and none of it opens a socket
-(D23); the signers are checked in test_lists_signers.py. Addresses used here are read from the bundled ranges at
+(threshold A7: AI working for a human is an Agent, a named non-agent program is a Bot), the classes PostHog can name
+are named too, ordinary browsers are never named, an address is placed in the published range it
+belongs to and then forgotten, the age of the lists is reported against its age limit, and none of it opens a socket
+; the signers are checked in test_lists_signers.py. Addresses used here are read from the bundled ranges at
 test time or come from the documentation ranges of RFC 5737, so no real visitor address appears in this file.
 """
 import datetime, ipaddress, json, os, shutil, socket, sys, tempfile, unittest
@@ -20,7 +20,7 @@ from agentcake.detect import lists  # noqa: E402
 BUNDLED = os.path.join(HERE, "agentcake", "data", "lists")
 TEST_NET = "192.0.2.10"  # RFC 5737 documentation range: in nobody's published list
 
-# GOAL A7: (User-Agent, list id, category, kind). Strings are the vendors' documented forms; Claude-Agent's comes
+# Threshold A7: (User-Agent, list id, category, kind). Strings are the vendors' documented forms; Claude-Agent's comes
 # from a second-hand source and is marked unverified in the list.
 A7 = [
     ("Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko); compatible; ChatGPT-User/1.0; +https://openai.com/bot",
@@ -45,7 +45,7 @@ A7 = [
      "facebookexternalhit", "bot", "link-preview"),
 ]
 
-# GOAL section 8: the classes PostHog names, which cake has to name at least as well.
+# The classes PostHog names, which cake has to name at least as well.
 POSTHOG_CLASSES = [
     ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Claude/1.0.211 "
      "Chrome/138.0.7204.251 Electron/37.2.3 Safari/537.36", "agent", "ai-desktop-app", "Claude"),

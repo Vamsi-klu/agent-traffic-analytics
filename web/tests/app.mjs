@@ -1,4 +1,4 @@
-// The built app for the page tests (S5.4): Vite builds it once per test file into a scratch folder, served the way the
+// The built app for the page tests: Vite builds it once per test file into a scratch folder, served the way the
 // screenshot server serves dist/ (scripts/shots.mjs: the fixture /api and cake's /static/ player files), and
 // Playwright's Chromium opens it. The samples the pages show are read from src/data/fixtures/ for the expectations.
 import { mkdtempSync, readFileSync, rmSync } from "node:fs"

@@ -1,4 +1,4 @@
-"""Where a privacy scan reads from (GOAL S1, plan step S6.5): every file of a data folder, as the text it holds.
+"""Where a privacy scan reads from: every file of a data folder, as the text it holds.
 
 Folder(root, data).texts() walks root (or reads one file) and yields (location, text):
 

@@ -1,6 +1,6 @@
-// token_revisits.mjs — the server half when a browser shows a page again (S4.2; GOAL T8's visits, N1, N2). Chromium,
+// token_revisits.mjs — the server half when a browser shows a page again (case T8's visits, N1, N2). Chromium,
 // WebKit and Firefox through Playwright, headless, each on three sites with cake.js of a scratch `agentcake serve` on
-// every page: S4.1's Node test site with its HTML revalidated (no-cache + ETag, so going home again and reloading are
+// every page: the Node middleware's test site with its HTML revalidated (no-cache + ETag, so going home again and reloading are
 // 304s), the same site with noStore, and the test site's shop (tests/site: no cache headers, so going back shows the
 // stored page). Chromium
 // runs twice: as Playwright starts it (no back-forward cache, so going back reads the HTTP cache) and with the
@@ -43,6 +43,7 @@ const UNTIL_COMMIT = { waitUntil: "commit" }
 const PAGE_VIEW_ID = "f".repeat(32) // a page view id as cake.js makes them (16 random bytes, hex)
 const PAST_THE_WINDOW_MS = 60000 // how far past the max age the N2 token is signed
 const tokensById = new Map() // the tokens pages saw, for the N2 checks; the report keeps ids only
+const CLOSED = /has been closed/ // Playwright's error for a page, context or browser closed under a call
 
 // [step, how, where it lands (path and query)] for each site; `home` and `second` are the site's two pages.
 const VISITS = {
@@ -76,16 +77,26 @@ function seenByPage(page) {
   }, "cake_sid")
 }
 
-// Every batch cake.js sends in this context, with collect's answer: [{ at, pv, seq, u, st, answer }].
+// Every batch cake.js sends in this context, with collect's answer: [{ at, pv, seq, u, st, answer }]. A batch can
+// finish while the run closes the context; its answer can no longer be read then (Playwright: "Target page, context
+// or browser has been closed"), and the run, which is over, reads no more batches, so it is left out. Any other error
+// still fails the script.
 function watchBatches(context) {
   const batches = []
   context.on("requestfinished", async (request) => {
     if (request.method() !== "POST" || !new URL(request.url()).pathname.endsWith("/collect")) return
     const batch = batchOf(request.postDataBuffer())
     if (!batch) return
-    const response = await request.response()
+    let response, headers
+    try {
+      response = await request.response()
+      headers = response ? await response.allHeaders() : null
+    } catch (error) {
+      if (CLOSED.test(String(error?.message))) return
+      throw error
+    }
     const status = response ? response.status() : null
-    const answer = response ? (await response.allHeaders())["x-cake-token"] || null : "no answer"
+    const answer = response ? headers["x-cake-token"] || null : "no answer"
     batches.push({ at: batches.length, pv: batch.pv, seq: batch.seq, u: batch.u, st: batch.st || null,
       answer: status === UNAVAILABLE ? `HTTP ${status}` : answer })
   })
@@ -160,7 +171,7 @@ async function spaRouteChange(page, batches, last) {
 
 async function serverHalfShot(context, cake, visit, file) {
   const page = await context.newPage()
-  await page.goto(`${cake.base}/#/sessions/${encodeURIComponent(visit)}`) // the session page (S5.1)
+  await page.goto(`${cake.base}/#/sessions/${encodeURIComponent(visit)}`) // the session page
   const half = page.getByRole("heading", { name: "Server half" })
   if (await half.count()) await half.scrollIntoViewIfNeeded()
   await page.screenshot({ path: file, fullPage: true })
@@ -251,7 +262,7 @@ function describe(r) {
 }
 
 async function main() {
-  const out = path.resolve(argument("--out", path.join(os.tmpdir(), "agentcake-evidence", today(), "S4.2")))
+  const out = path.resolve(argument("--out", path.join(os.tmpdir(), "agentcake-evidence", today(), "token-revisits")))
   const browsers = argument("--browsers", "chromium,chromium-bfcache,webkit,firefox").split(",")
   const sites = argument("--sites", "etag,nostore,demo").split(",").map((name) => ({ name, kind: name === "demo" ? "demo" : "node" }))
   mkdirSync(out, { recursive: true })

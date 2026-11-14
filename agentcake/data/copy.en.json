@@ -47,7 +47,7 @@
     "          logs formats (the log formats it reads, and the recommended lines for each web server)",
     "          delete --session <id> | --visitor <visit id> [--dry-run] (every trace of a visit: database, replays,",
     "          backups/, cake.log; works while {name} runs)",
-    "          eval [--gate] [--out DIR] (how well it judges sessions with known answers, GOAL's thresholds)",
+    "          eval [--gate] [--out DIR] (how well it judges sessions with known answers, against eval/thresholds.json)",
     ""
   ],
   "version": "{command} {version}",
@@ -57,13 +57,13 @@
   "lists_usage": "usage: {command} lists | {command} lists update",
 
   "eval_options": {
-    "about": "How well {name} judges sessions with known answers (our lab, clean human recordings, splices, a CAKE_HOME's labelled sessions, PostHog replays as reference), and GOAL's thresholds. Reads only.",
+    "about": "Measures how well {name} judges sessions with known answers and checks the thresholds in eval/thresholds.json. It uses lab sessions, clean human recordings, splices and a CAKE_HOME's labelled sessions, with PostHog replays as reference only. Reads only.",
     "gate": "exit 0 only when every threshold this command measures passes (1 when one fails or has no data)",
     "out": "folder to write eval.md and eval.json into",
     "no_logistic": "skip training the lab's logistic regression on its splices (it takes minutes)",
     "sources": "JSON file naming this computer's data folders (default: eval/sources.json of a checkout)",
-    "recordings": "the S1.5 recorder's data folder (sessions/<run>.ndjson, logs/server.jsonl)",
-    "posthog": "S1.5's local PostHog dataset (index.jsonl, units/)",
+    "recordings": "the recorder's data folder (sessions/<run>.ndjson, logs/server.jsonl)",
+    "posthog": "the local PostHog dataset (index.jsonl, units/)",
     "cake_home": "the CAKE_HOME whose sessions eval/truth_goal.jsonl lists (default: the current one)",
     "truth_goal": "the list of labelled CAKE_HOME sessions (default: eval/truth_goal.jsonl)",
     "truth_manual": "the list of clean human recordings",
@@ -72,7 +72,7 @@
     "lab_sessions": "our lab's sessions",
     "lab_signals": "our lab's environment signals",
     "cakejs_uploads": "folder of recorded cake.js uploads",
-    "named_user_agents": "GOAL A7's named User-Agents (default: eval/named_user_agents.json)",
+    "named_user_agents": "named User-Agents for threshold A7 (default: eval/named_user_agents.json)",
     "selfcollect": "the data folder of the recorder copy our own runs used (Claude Code with an MCP server, automation dressed up as a human)",
     "truth_selfcollect": "the list of our own runs' recordings"
   },
@@ -387,9 +387,11 @@
     "  doctor reads the site's files, then opens that page the way a browser does: the page must load cake.js and, with the",
     "  server half, its response must carry {name}'s token with the Sec-Fetch values and signature headers doctor sent.",
     "  If the site cannot run here, say so and skip site_url: doctor then checks the files only.",
-    "  If only a 'visit' line fails: open the site in a browser, or run  {launcher} ping  (one test visit), then doctor again."
+    "  If only a 'visit' line fails: open the site in a browser, or run  {launcher} ping  (one test visit), then doctor again.",
+    "  If you start the site yourself, note its process ID; when you are done, stop only that process (kill <PID>),",
+    "  never by port or name: other programs on this computer may be the user's."
   ],
-  "setup_site_tell": ["", "Step 5. Tell the user: the local page URL, which files you changed, and what is left for them:"],
+  "setup_site_tell": ["", "Step 5. Tell the user, in their language: the local page URL, which files you changed, and what is left for them:"],
   "setup_site_tell_local": [
     "  - a site running on this computer (dev server at localhost) sends visits to {name} right away;",
     "  - visitors of a public website cannot reach 127.0.0.1 on this computer: for them {name} has to run on a server the",

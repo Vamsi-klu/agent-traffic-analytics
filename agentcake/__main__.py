@@ -2,13 +2,13 @@
 
 The first form needs agentcake importable (an installed wheel). bin/agentcake uses the second form for a release
 folder or a checkout: isolated mode (-I) puts neither the current folder nor this file's folder on sys.path, so the
-folder that holds the package is added here, the way pip's own __main__.py does it (S1.1). cake.py, the 0.3.x
+folder that holds the package is added here, the way pip's own __main__.py does it. cake.py, the 0.3.x
 entry point, runs this file too.
 
 Before anything else is imported, a Python older than the one data/product.json names ("python") is told so in one
 sentence (data/copy.en.json, "python_too_old") instead of failing somewhere later with a traceback. An older Python
 reads this file, so it keeps to syntax every Python 3 parses and uses only json, os, sys and zipfile (agentcake.pyz
-runs --version and help with the package still inside the zip, S6.6). pyproject.toml's requires-python names the same
+runs --version and help with the package still inside the zip). pyproject.toml's requires-python names the same
 version (tests/test_cli.py checks that they agree).
 """
 import json

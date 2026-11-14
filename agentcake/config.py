@@ -1,4 +1,4 @@
-"""Settings (S1.1, S1.2): agentcake/defaults.json, then the user's $CAKE_HOME/config.json, then $CAKE_PORT.
+"""Settings: agentcake/defaults.json, then the user's $CAKE_HOME/config.json, then $CAKE_PORT.
 
 defaults.json lists every setting once: its default, how a typed value is checked (choices, min, max, pattern) and
 what it is for ("about"), the way PostHog 1.0's posthog/settings.py gives each setting a default that the environment
@@ -6,7 +6,7 @@ can override. config.json holds only what the user set (cake 0.3.x wrote every v
 working). load_cfg() merges the three; sources() says where each value came from; coerce(key, text) turns what was
 typed into a checked value or raises ValueError naming what is allowed; base_url() is the local page's address.
 A setting marked "retired" no longer does anything: it keeps its default for the code that still reads it, and
-coerce() refuses every value with the reason (mask_inputs since S1.4: cake.js masks every input, data/privacy.json).
+coerce() refuses every value with the reason (mask_inputs since 0.4.0: cake.js masks every input, data/privacy.json).
 """
 import json
 import os

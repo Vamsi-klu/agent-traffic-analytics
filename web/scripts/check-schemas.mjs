@@ -1,10 +1,10 @@
-// check:schemas (run by `npm run check:ui`): the /api contract stays one contract (S5.1).
+// check:schemas (run by `npm run check:ui`): the /api contract stays one contract.
 //  1. Every schema in src/data/schema/ uses only the keywords scripts/json-schema.mjs knows (so the Python half can
 //     check cake's answers the same way), closes its objects, and has no broken $ref.
 //  2. Every sample in src/data/fixtures/ matches the schema of the same name, and every schema but common has a sample.
 //     A schema's samples are fixtures/<name>.json and every .json under fixtures/<name>/ (more sessions in session/,
-//     their replay chunks in replay/<id>/, S5.4), and fixtures/library/<name>.json (cake's answers on the fixed test
-//     library, S5.3).
+//     their replay chunks in replay/<id>/), and fixtures/library/<name>.json (cake's answers on the fixed test
+//     library).
 //  3. Every sample also type-checks as the TypeScript type its schema's "title" names in src/data/types.ts, so the
 //     pages and the schemas cannot drift apart.
 // Usage: node scripts/check-schemas.mjs   (exit 1 on any problem)

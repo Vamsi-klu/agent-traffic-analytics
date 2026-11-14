@@ -1,12 +1,12 @@
-"""`agentcake doctor`, the lines about this computer (S6.1): agentcake/doctor_machine.py.
+"""`agentcake doctor`, the lines about this computer: agentcake/doctor_machine.py.
 
     python3 -I -m unittest discover -s tests -p test_doctor_machine.py -v      (from the Agent Cake folder)
 
-Python and compression.zstd; the free disk space against disk_min_free_mb (S2.5, K2: below it the oldest replays are
+Python and compression.zstd; the free disk space against disk_min_free_mb (below it the oldest replays are
 deleted to make room, a warning; with auto_free off, or when deleting every old replay would not make room because
-other files fill the disk (D34: then none is deleted), new replays are not stored, a failure; either way doctor says
+other files fill the disk (then none is deleted), new replays are not stored, a failure; either way doctor says
 how to change it), with shutil.disk_usage replaced by a nearly full disk; the age of the name
-and address lists against I4 (over max_age_days: a warning naming `agentcake lists update`); and every `agentcake` on
+and address lists against their age limit (over max_age_days: a warning naming `agentcake lists update`); and every `agentcake` on
 PATH (`which -a`): one that is not this installation coming first is named.
 """
 import contextlib
@@ -104,7 +104,7 @@ class Disk(ScratchHome):
             con.close()
 
     def test_below_the_floor_with_old_replays_to_delete_it_warns_that_they_go(self):
-        # K2 (11/12): new replays are still stored while the oldest ones make room
+        # new replays are still stored while the oldest ones make room
         self.settings(disk_min_free_mb=2000)
         short_mb = self.old_replay() / 2 / BYTES_PER_MB  # deleting the old replay gets the disk back above the floor
         _, ok, info = self.disk_line(2000 - short_mb)
@@ -114,7 +114,7 @@ class Disk(ScratchHome):
         self.assertIn("config set disk_min_free_mb", info)
 
     def test_below_the_floor_by_more_than_every_old_replay_it_fails_and_deletes_none(self):
-        # D34: other files fill the disk, and deleting replays would not change that
+        # other files fill the disk, and deleting replays would not change that
         self.settings(disk_min_free_mb=2000)
         self.old_replay()
         _, ok, info = self.disk_line(1500)

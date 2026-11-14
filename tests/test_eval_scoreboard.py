@@ -1,5 +1,5 @@
-"""agentcake/evaluation/scoreboard.py and heldout.py: the behaviour layer reported the industry's way (plan step S3.7,
-decision D36), and thresholds set from data tested where they were not set.
+"""agentcake/evaluation/scoreboard.py and heldout.py: the behaviour layer reported the industry's way, and
+thresholds set from data tested where they were not set.
 
     python3 -I -m unittest discover -s tests -v
 

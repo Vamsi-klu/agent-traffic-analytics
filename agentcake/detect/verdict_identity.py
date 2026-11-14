@@ -1,17 +1,17 @@
-"""Who a session says it is, and whether that holds: the name and verification layers of the verdict (S3.4).
+"""Who a session says it is, and whether that holds: the name and verification layers of the verdict.
 
-Name layer (research note 13 section 5, step 1): what the session declares, read from the User-Agent of each half
+Name layer (step 1): what the session declares, read from the User-Agent of each half
 (the page's navigator.userAgent, cake.js's requests to the collect endpoint, the site's server half), from
-navigator.platform and from the signer that Signature-Agent names, each looked up in the bundled lists (lists.py,
-S3.1). Names count only when they agree (botscent's rule, src/core/verdict.ts, MIT, 7f948003: the idea, not the
+navigator.platform and from the signer that Signature-Agent names, each looked up in the bundled lists (lists.py).
+Names count only when they agree (botscent's rule, src/core/verdict.ts, MIT, 7f948003: the idea, not the
 code). A tool anyone can run (a kind marked generic in kinds.json: HeadlessChrome, curl, Cloudflare Browser Run)
 names no product; it only says that the browser is automated.
 
 Verification layer (step 2): a declared name holds when something that cannot be claimed confirms it: a Web Bot Auth
-signature verified with the signer's bundled key (webbotauth.py, S3.2), the operator's published address range
-(ip_ranges.json "verifies"), or reverse DNS when such a check is given. Impersonation (D5, after Known Agents'
+signature verified with the signer's bundled key (webbotauth.py), the operator's published address range
+(ip_ranges.json "verifies"), or reverse DNS when such a check is given. Impersonation (after Known Agents'
 definition), and so no name: a name that a published range could verify, seen from an address outside it, and a
-signature that does not verify. Never impersonation, only self-reported (D23): a missing, expired or unknown key, a
+signature that does not verify. Never impersonation, only self-reported: a missing, expired or unknown key, a
 signature outside its time window, local mode (every visit is 127.0.0.1), no address, or a name with nothing to
 check it against. A signature that does not verify but covers what a proxy in front of the site may rewrite
 (verdict.json "signature_proxy_components") could not be verified, which is not impersonation either.
@@ -201,7 +201,7 @@ def _signer_entry(lists_, host):
 
 
 def _signer_claims(signature, half, lists_, found):
-    """The signer that Signature-Agent names; T16: a claimed signer other than the one that signed is a reason."""
+    """The signer that Signature-Agent names: a claimed signer other than the one that signed is a reason."""
     if signature is None:
         return []
     if signature.claimed and signature.signer and signature.claimed != signature.signer:

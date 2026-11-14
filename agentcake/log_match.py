@@ -1,4 +1,4 @@
-"""A web server's page requests matched to the visits they opened, and what they say kept (S4.4, GOAL N5).
+"""A web server's page requests matched to the visits they opened, and what they say kept.
 
 record(con, envelope, now_ms, c, directory=None) -> counts. The caller (edge_api) holds store.LOCK and commits.
 
@@ -11,7 +11,7 @@ among candidates the one whose first upload came soonest wins, and one page requ
 already kept for that visit (same time, address hash, User-Agent, method, path, status) is a duplicate, so importing
 a log twice keeps each line once.
 
-A matched line becomes one more requests row (S2.3's table): seq NULL, pv the page view it opened, and as facts
+A matched line becomes one more requests row: seq NULL, pv the page view it opened, and as facts
 (JSON) what netfacts.request_facts keeps of the headers sent (no header order, no origin: a log has neither), with
 source "log", format, method, path (without the query), status, the address's published range and network class
 (lists.match_ip, as for an upload), ip_hash and net_hash (netfacts.address_hashes), and, for a request with Web Bot
@@ -154,7 +154,7 @@ class _Verifier:
         if self.directory is None:
             try:
                 keys = lists.current().key_directories()
-            except lists.ListsError:  # no readable lists: every signer is unknown, so declared (D23)
+            except lists.ListsError:  # no readable lists: every signer is unknown, so declared
                 keys = {}
             self.directory = webbotauth.KeyDirectory(keys, webbotauth.default_settings())
         return self.directory

@@ -1,9 +1,9 @@
-"""POST /collect: one upload from cake.js (S1.1, S2.1; the counterpart of PostHog 1.0's posthog/api/capture.py, which
+"""POST /collect: one upload from cake.js (the counterpart of PostHog 1.0's posthog/api/capture.py, which
 also writes what it receives within the request).
 
 An upload (docs/collect-format.md, version 1; cake 0.3.4's batches are still taken) is unzipped and read (upload.py),
 and its site key must be this cake's. Where it came from is read from its Origin and Referer headers (site_origin.py);
-the request's network facts (netfacts.py, S2.3) from its headers and, on server mode's public listener with trust_lb,
+the request's network facts (netfacts.py) from its headers and, on server mode's public listener with trust_lb,
 from what the load balancer says about the connection: the visitor's address is looked up in the bundled lists and
 hashed, never kept (no other forwarding header is ever read). collect_store.py keeps it: the request's facts; the
 batch's key, so a batch sent twice is stored once; the visit; the server-half token; each record in its stream with
@@ -16,7 +16,7 @@ most every public_judge_interval_ms on the public listener; the maintenance roun
 
 Answers 204, also to a copy of a batch already kept (so cake.js stops sending it), with X-Cake-Token when a token was
 read: ok | dup | reuse | replay | stale | bad | off (edge_token.take_token; reuse is a stored copy of a page, after a
-304 or going back, showing an earlier page view's token, S4.2). A refused upload gets its status (400 unreadable, 403
+304 or going back, showing an earlier page view's token). A refused upload gets its status (400 unreadable, 403
 another site key, 413 too large or too many records) and is counted in the refusals table. On the public listener a
 visit cannot mark itself a test.
 """

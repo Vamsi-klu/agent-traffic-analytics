@@ -1,4 +1,4 @@
-"""Recorded uploads sent through collect and read back (S2.1): every rrweb event and raw record comes back the same.
+"""Recorded uploads sent through collect and read back: every rrweb event and raw record comes back the same.
 
     python3 -I -m unittest discover -s tests -v      (from the Agent Cake folder)
 
@@ -68,7 +68,7 @@ class Replay(unittest.TestCase):
     def setUp(self):
         os.environ["CAKE_HOME"] = tempfile.mkdtemp(prefix="cake-test-")
         os.environ.pop("CAKE_PORT", None)
-        # replays are stored whatever this computer's free disk (K2, disk_min_free_mb, is test_space's)
+        # replays are stored whatever this computer's free disk (disk_min_free_mb, is test_space's)
         config.save_user(site_key=KEY, disk_min_free_mb=0)
         self.con = store.db()
         self.addCleanup(self.con.close)

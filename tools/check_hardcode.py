@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Find values written into Agent Cake's code instead of its settings, data files or design tokens (S1.2; G10, D12).
+"""Find values written into Agent Cake's code instead of its settings, data files or design tokens.
 
     python3 tools/check_hardcode.py [repository folder]      (default: the folder above tools/)
 

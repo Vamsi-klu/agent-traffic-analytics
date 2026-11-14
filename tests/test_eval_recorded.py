@@ -1,5 +1,5 @@
-"""How eval/thresholds.json counts the recorder's agent and hand-off recordings (GOAL A2, A3-A5; D34), and how the
-recordings we ran ourselves (S9.4) are counted beside them without being mixed in.
+"""How eval/thresholds.json counts the recorder's agent and hand-off recordings (threshold A2, A3-A5), and how the
+recordings we ran ourselves are counted beside them without being mixed in.
 
     python3 -I -m unittest discover -s tests -v
 
@@ -20,13 +20,14 @@ SETTINGS = datafiles.load("data/eval.json")
 THRESHOLDS = os.path.join(REPO, "eval", "thresholds.json")
 LIMIT_S = 3
 SELF_COLLECTED = ["cc-playwright-mcp", "cc-devtools-mcp", "cic-mcp", "fake-patchright-ghost", "fake-camoufox",
-                  "fake-pw-humanlike"]
+                  "fake-pw-humanlike", "fake-pw-builtin", "fake-pptr-ghost-humanize", "fake-pw-humancursor",
+                  "fake-selenium-humancursor", "fake-pw-fingerprint", "fake-pptr-setua"]
 
 
 class GateData(unittest.TestCase):
-    """eval/thresholds.json counts the recorded data sets as decided on 2026-11-13 under D34: A2 is GOAL's Claude in
+    """eval/thresholds.json counts the recorded data sets as decided on 2026-11-13: A2 judges Claude in
     Chrome, A3-A5 the real hand-offs beside the splices, every other local AI browser a line of its own that is never
-    judged (GOAL T18-T21 hold their own expectations). No threshold value changed."""
+    judged (the local AI browsers hold their own expectations). No threshold value changed."""
 
     A2_LABELS = ["cic-panel", "cic-mcp"]
     OTHER_LOCAL = ["comet", "atlas", "gemini-chrome", "dia", "codex", "agy", "codex-cu", "neon", "edge-copilot",
@@ -52,6 +53,12 @@ class GateData(unittest.TestCase):
             self.assertIn("recording_splices", data["gated"], threshold)
             self.assertNotIn("recorded_handoffs", data["reference"], threshold)
 
+    def test_a5_is_a_median_over_the_sessions_judged_human_plus_agent_and_still_at_most_3_seconds(self):
+        a5 = self.entries["A5"]
+        self.assertEqual((a5["goal"], a5["op"], a5["value"], a5["unit"]), ("≤ 3 seconds", "<=", 3, "s"))
+        self.assertTrue(a5["statistic"].startswith("median over the true hand-offs in the sessions judged Human + "
+                                                   "agent"), a5["statistic"])
+
     def test_a8_prints_the_recordings(self):
         self.assertIn("recorded", self.entries["A8"]["data"]["reference"])
 
@@ -73,7 +80,7 @@ def row(label, judged):
 
 
 class SelfCollected(unittest.TestCase):
-    """The recordings we ran ourselves (S9.4) are a data set of their own: one A2 line per label beside people's
+    """The recordings we ran ourselves are a data set of their own: one A2 line per label beside people's
     recordings, which stay as they were, and the scoreboard counts them as agents of their product."""
 
     @staticmethod
@@ -113,7 +120,9 @@ class SelfCollected(unittest.TestCase):
         # calibration reads the real products of our own runs, never the automation we made to look human (11/13)
         self.assertIn("selfcollect", SETTINGS["calibration"]["sources"])
         self.assertEqual(sorted(SETTINGS["calibration"]["left_out"]["selfcollect"]),
-                         ["fake-camoufox", "fake-patchright-ghost", "fake-pw-humanlike"])
+                         ["fake-camoufox", "fake-patchright-ghost", "fake-pptr-ghost-humanize", "fake-pptr-setua",
+                          "fake-pw-builtin", "fake-pw-fingerprint", "fake-pw-humancursor", "fake-pw-humanlike",
+                          "fake-selenium-humancursor"])
 
 
 if __name__ == "__main__":

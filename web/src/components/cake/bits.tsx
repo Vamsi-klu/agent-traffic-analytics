@@ -68,7 +68,7 @@ export function StorageMeter({ usedPct, warnAtPct }: { usedPct: number; warnAtPc
   )
 }
 
-/** Why new replays aren't stored while the disk is below its floor (K2, D34): its free space, how far below the floor
+/** Why new replays aren't stored while the disk is below its floor: its free space, how far below the floor
  *  that is (the two can round to the same size) and the floor. A full budget has the page's own warning. */
 const DISK_STOPPED: Partial<Record<NonNullable<ReplaysStopped>, (free: string, short: string, floor: string) => string>> = {
   disk_full_other: (free, short, floor) => `Other files are filling this disk. Only ${free} is free, ${short} less than the ${floor} ${PRODUCT_NAME} keeps free. Deleting every old replay wouldn't free enough space, so ${PRODUCT_NAME} deleted none. New replays start being stored again on their own once there's room. Visits and verdicts are still recorded.`,

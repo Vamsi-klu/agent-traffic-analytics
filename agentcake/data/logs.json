@@ -1,5 +1,5 @@
 {
-  "about": "Web server access logs for `agentcake logs import` (S4.4, D20): the formats Agent Cake reads, what each web server's format string means, which lines are page requests, which of their headers go to Agent Cake, and what the recommended formats add to the usual ones. A format is described by the web server's own format string and compiled into a parser, the idea GoAccess uses for its log formats (github.com/allinurl/goaccess, MIT); no GoAccess code is used. The format strings and config lines are the same as in docs/nginx.conf.example, docs/apache.conf.example and docs/Caddyfile.example, which tests/test_log_formats.py checks.",
+  "about": "Web server access logs for `agentcake logs import`: the formats Agent Cake reads, what each web server's format string means, which lines are page requests, which of their headers go to Agent Cake, and what the recommended formats add to the usual ones. A format is described by the web server's own format string and compiled into a parser, the idea GoAccess uses for its log formats (github.com/allinurl/goaccess, MIT); no GoAccess code is used. The format strings and config lines are the same as in docs/nginx.conf.example, docs/apache.conf.example and docs/Caddyfile.example, which tests/test_log_formats.py checks.",
 
   "formats": {
     "caddy-json": {

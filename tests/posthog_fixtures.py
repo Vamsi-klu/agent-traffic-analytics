@@ -1,4 +1,4 @@
-"""Made-up sessions in the shape of a PostHog replay download (plan step S1.5 tests).
+"""Made-up sessions in the shape of a PostHog replay download (for the tests of the local PostHog dataset).
 
 No real data: hashes, times and pages are invented. Row layouts follow the download's compressed rrweb rows:
 page [t, "M", path, kt, window, width, height, host], move [t, "m", x, y, window], click

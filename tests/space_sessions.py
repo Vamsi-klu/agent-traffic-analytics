@@ -1,5 +1,5 @@
-"""Sessions of every kind recorded into a scratch CAKE_HOME, for the disk-rule tests (tests/test_space.py, S2.5, and
-tests/test_space_disk.py, K2).
+"""Sessions of every kind recorded into a scratch CAKE_HOME, for the disk-rule tests (tests/test_space.py and
+tests/test_space_disk.py).
 
 fresh_cake() makes a CAKE_HOME and returns cake 0.3.4's single-module names for the functions the tests call;
 add_session() records a session (its sessions row, a replay of incompressible events, raw input, environment signals)
@@ -19,7 +19,7 @@ if REPO not in sys.path:
     sys.path.insert(0, REPO)
 from agentcake import config, judging, replay_chunks, server, space, store, streams  # noqa: E402
 
-# cake 0.3.4's single-module names, from the agentcake modules they moved to (S1.1)
+# cake 0.3.4's single-module names, from the agentcake modules they moved to
 CAKE = types.SimpleNamespace(db=store.db, prune=store.prune, load_cfg=config.load_cfg, save_cfg=config.save_cfg,
                              ensure_cfg=config.ensure_cfg, coerce=config.coerce, used_bytes=space.used_bytes,
                              free_space=space.free_space, space_status=space.space_status, rejudge=judging.rejudge,

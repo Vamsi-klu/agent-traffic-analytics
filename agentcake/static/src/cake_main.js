@@ -1,10 +1,10 @@
-// Agent Cake page script, part: start, stop and window.cake (plan steps S1.3, S1.4).
+// Agent Cake page script, part: start, stop and window.cake.
 //
 // As in cake 0.3.3, a site adds one line:
 // <script src="https://<cake>/cake.js" data-site="<key>" defer></script>.
 // cake.js sends to the address it was loaded from (…/cake.js → …/collect) and keeps the visit id in sessionStorage
 // (a visit ends with the tab).
-// Consent, as PostHog 1.0 left it to the site (plan step S1.4, GOAL G12): a site that asks first either adds the tag
+// Consent, as PostHog 1.0 left it to the site: a site that asks first either adds the tag
 // only after the visitor agreed, or adds it with data-consent="required" and calls window.cake.start() once they
 // agree; until then cake.js does nothing at all (no listener, no storage, no request). window.cake.stop() (the
 // visitor said no) ends recording and sending on this page for good, drops what was not sent yet and forgets the
@@ -19,7 +19,7 @@ Object.keys(CFG.defaults).forEach(function (key) {
   settings[key] = key in RUNTIME ? RUNTIME[key] : CFG.defaults[key]
 })
 
-// What is never recorded (plan step S5.5): privacy.json's private elements, and the parts of the page the site owner
+// What is never recorded: privacy.json's private elements, and the parts of the page the site owner
 // lists in AgentCake's settings (hide_selectors). A list this browser cannot read is left out, and said so in the
 // upload's faults, rather than stopping the recorders; AgentCake's settings page saves only lists a browser reads.
 C.privateSelector = (function (owned) {

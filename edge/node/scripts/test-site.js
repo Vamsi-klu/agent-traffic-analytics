@@ -9,7 +9,6 @@
  * four Sec-Fetch values inside it. Pages go out with Cache-Control: no-cache and an ETag, so opening one again is a 304,
  * unless --no-store turns on the middleware's noStore. browser-check.mjs starts it in-process with startSite();
  * tests/browser/token_revisits.mjs too, with cake.js on every page (`head`) and each answer logged (`onResponse`).
- * Steps S4.1, S4.2.
  */
 const crypto = require("node:crypto")
 const http = require("node:http")

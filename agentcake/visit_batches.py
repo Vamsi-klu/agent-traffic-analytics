@@ -1,15 +1,15 @@
-"""A visit's stored uploads, given back in cake.js's upload format (S2.1), for the readers built on its batches.
+"""A visit's stored uploads, given back in cake.js's upload format, for the readers built on its batches.
 
 batches(con, session_id) -> one batch per page view, in the order the page views' first records were made:
 {"v", "s", "pv", "seq", "t", "u", "e", "r", "x"}, with the page view's header (t, u) from its first batch in the
 batches table and its records from the streams in time order, each once (a batch sent twice was stored once).
-env_signals.from_cake (S3.3) reads these as it reads cake.js's own batches. A cake 0.3.4 visit has no page views: it
+env_signals.from_cake reads these as it reads cake.js's own batches. A cake 0.3.4 visit has no page views: it
 comes back as one batch with pv None and the session's URL.
 
-collect_requests(con, session_id) -> the network facts of the visit's upload requests (S2.3, netfacts.request_facts),
+collect_requests(con, session_id) -> the network facts of the visit's upload requests (netfacts.request_facts),
 oldest first, in from_cake's collect_requests shape: {"headers": [[name, value], ...]}, with "ip_class" when the
 address was looked up (no key: unknown). The server half of each page is in the srv table (batches.token_id), and in
-the requests rows of source "log" a web server's log added (S4.4): page requests, which are left out here.
+the requests rows of source "log" a web server's log added: page requests, which are left out here.
 """
 import json
 
@@ -24,7 +24,7 @@ def collect_requests(con, session_id):
     out = []
     for (text,) in con.execute("SELECT facts FROM requests WHERE session_id=? ORDER BY recv_ms, rowid", (session_id,)):
         facts = json.loads(text)
-        if facts.get("source") == LOG_SOURCE:  # a page request from the web server's log (S4.4), not an upload
+        if facts.get("source") == LOG_SOURCE:  # a page request from the web server's log, not an upload
             continue
         out.append({"headers": facts["headers"], **({"ip_class": facts["ip_class"]} if "ip_class" in facts else {})})
     return out

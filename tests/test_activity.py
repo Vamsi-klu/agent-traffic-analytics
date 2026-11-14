@@ -1,4 +1,4 @@
-"""agentcake/activity.py (S5.1, D30): when a session's recorded actions began and ended.
+"""agentcake/activity.py: when a session's recorded actions began and ended.
 
     python3 -I -m unittest discover -s tests -p test_activity.py -v      (from the Agent Cake folder)
 

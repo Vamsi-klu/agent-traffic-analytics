@@ -1,4 +1,4 @@
-"""Network facts of every upload request (S2.3): agentcake/netfacts.py, and its salt (ip_salt.py) through collect.
+"""Network facts of every upload request: agentcake/netfacts.py, and its salt (ip_salt.py) through collect.
 
     python3 -I -m unittest discover -s tests -p test_netfacts.py -v      (from the Agent Cake folder)
 

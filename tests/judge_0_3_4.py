@@ -1,10 +1,10 @@
 """cake 0.3.4's judge, kept with the tests as the reference agentcake/detect/timeline.py is checked against.
 
-Nothing in Agent Cake runs it: the four-layer verdict (agentcake/detect/verdict.py, S3.4) took its place, and
-timeline.py is its per-action half read from the raw-event format (S3.7). tests/test_timeline.py runs both on the same
-input and expects the same numbers, and expects research note 12's results for this judge on the lab's rrweb
-recordings. It was agentcake/detect/legacy.py (cake.py 0.3.4's judge, S1.1; its numbers in data/model.json, S1.2;
-its User-Agent names from the bundled lists since S3.5) until the M3 clean-up moved it and its numbers here
+Nothing in Agent Cake runs it: the four-layer verdict (agentcake/detect/verdict.py) took its place, and
+timeline.py is its per-action half read from the raw-event format. tests/test_timeline.py runs both on the same
+input and expects the same numbers, and expects our PostHog study's results for this judge on the lab's rrweb
+recordings. It was agentcake/detect/legacy.py (cake.py 0.3.4's judge, with its numbers in data/model.json and its
+User-Agent names from the bundled lists) until a clean-up moved it and its numbers here
 (tests/fixtures/judge_0_3_4/model.json).
 
 judge(ua, events, webdriver, srv, net) -> (source, group, verdict, shares, segments). The source comes from names in

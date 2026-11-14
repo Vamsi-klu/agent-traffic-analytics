@@ -1,5 +1,5 @@
 {
-  "$comment": "The words of the JSON API's answers (S5.1, agentcake/api/), ready for the local pages to show: English only (D21), visitors are Human or Agent (with Unknown and Bot, D39), never person, people or user (D26). {name} and {command} come from product.json, the other {placeholders} are filled where the text is used. A list is one line per item. summary: the session page's summary (agentcake/api/session.py): who acted when, turn by turn, its moments ({start}, {end}, {at}) as the player writes them, then the layers that point to the verdict, each named as judging.en.json 'layers' names it, with the percent the layer shows.",
+  "$comment": "The words of the JSON API's answers (agentcake/api/), ready for the local pages to show: English only, visitors are Human or Agent (with Unknown and Bot), never person, people or user. {name} and {command} come from product.json, the other {placeholders} are filled where the text is used. A list is one line per item. summary: the session page's summary (agentcake/api/session.py): who acted when, turn by turn, its moments ({start}, {end}, {at}) as the player writes them, then the layers that point to the verdict, each named as judging.en.json 'layers' names it, with the percent the layer shows.",
 
   "errors": {
     "no_session": "There's no session with this ID. It may have been deleted. Go back to the session list.",
@@ -78,8 +78,8 @@
     "type": "Type in {target}",
     "type_plain": "Type",
     "scroll": "Scroll",
-    "touch": "Tap {target}",
-    "touch_plain": "Tap"
+    "key": "Press a key on {target}",
+    "key_plain": "Press a key"
   },
 
   "server_half": {

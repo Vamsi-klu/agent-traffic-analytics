@@ -1,7 +1,7 @@
-"""One upload from cake.js, checked and read into a Batch (S2.1; docs/collect-format.md, upload format version 1).
+"""One upload from cake.js, checked and read into a Batch (docs/collect-format.md, upload format version 1).
 
 decode_body(body, limit) -> the batch's JSON bytes. cake.js gzips its bigger batches and says so with ?z=gzip, but the
-public listener does not read query strings, so the body's first two bytes decide (S1.3 wrote this part). A body that
+public listener does not read query strings, so the body's first two bytes decide. A body that
 would unzip to more than `limit` bytes is refused: a small gzip body can hold a huge one.
 
 read_batch(data, caps, max_records) -> Batch. The header is checked and cut to the field caps of data/sizes.json: the

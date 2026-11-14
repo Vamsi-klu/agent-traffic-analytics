@@ -6,7 +6,7 @@
 // where GitHub shrinks them to its column; each is the top of its page, as far down as README describes it.
 // The repository's social preview (social-preview.png, the picture a shared link to the repository shows) is the top of
 // the same dashboard at the size GitHub asks for, 1280x640 at one pixel per CSS pixel, which keeps it under GitHub's
-// 1 MB (repo-best; it is uploaded in the repository's settings, under "Social preview").
+// 1 MB (it is uploaded in the repository's settings, under "Social preview").
 //   cd web && npm run build && node scripts/readme-images.mjs        (when a page, Crumb or the tokens change; commit them)
 // With --origin <url>, the dashboard, the session and the social preview are taken from that running AgentCake instead
 // (the maintainers serve their own test recordings this way, which stay out of the repository): the session is

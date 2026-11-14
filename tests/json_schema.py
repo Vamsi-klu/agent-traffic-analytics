@@ -1,4 +1,4 @@
-"""A small JSON Schema validator for the /api contract in web/src/data/schema/ (S5.1), standard library only.
+"""A small JSON Schema validator for the /api contract in web/src/data/schema/, standard library only.
 
 The Python twin of web/scripts/json-schema.mjs: the same keywords, the same rules, the same "path: problem" lines, so
 the Python tests check Agent Cake's answers exactly as `npm run check:ui` checks the samples. Keywords: type (one name

@@ -1,4 +1,4 @@
-"""A stand-in for Tartini AI's registration address (S5.8), and a guard that notes every connection a test tries.
+"""A stand-in for Tartini AI's registration address, and a guard that notes every connection a test tries.
 
     Receiver(status=200)          an HTTP server on a free port of this computer that answers every POST with status
                                   (a 3xx with a Location), keeps each request it got (method, path, headers, body),

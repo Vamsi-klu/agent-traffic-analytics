@@ -1,4 +1,4 @@
-"""The lab's per-segment test (its segment-level accuracy) on our behaviour lab's sessions and on its splices (S3.9).
+"""The lab's per-segment test (its segment-level accuracy) on our behaviour lab's sessions and on its splices.
 
     single_source(sessions, settings) -> rows     each lab group, mode and method: segments judged right
     splices(sessions, settings, with_logistic) -> rows    the lab's 160 splices: accuracy, shares, switch errors
@@ -7,7 +7,7 @@ A session is cut into one-second windows (win) or action segments (act), each se
 (model.rule_score), by the lab's logistic regression (logistic.py, trained on the other sessions, only when they
 hold both actors), and by both smoothed with the lab's HMM. The splices join a Claude in Chrome session with a
 human-like Playwright script standing in for the human: they show whether cutting and smoothing work, not how well
-humans are judged (research note 12; the lab said the same). Sessions: {run: {"group", "segment_group", "events"}}.
+humans are judged (our study of PostHog replays and the lab both found so). Sessions: {run: {"group", "segment_group", "events"}}.
 
 Ported from our own code with the same arithmetic, so the rows equal the lab's
 bh-lab.eval.jsonl (the behaviour lab's analyze.py seg_dataset, evaluate, acc,
@@ -46,7 +46,7 @@ def dataset(events, truth, mode, settings):
 
 
 def lab_rules():
-    """The packaged parameters with the lab's rules only: cake's own (marked since, S3.7) are measured by the
+    """The packaged parameters with the lab's rules only: cake's own (marked since) are measured by the
     scoreboard, while this table reproduces the lab's published numbers."""
     params = dict(model.load_params())
     params["rules"] = {**params["rules"], "list": [r for r in params["rules"]["list"] if "since" not in r]}
@@ -123,7 +123,8 @@ def splices(sessions, settings, with_logistic=True):
         for stand_in in stand_ins:
             models = {}  # one model per mode: the training set does not depend on the pattern
             for pattern in params["patterns"].values():
-                spliced = splice.build(sessions[agent]["events"], sessions[stand_in]["events"], pattern, params)
+                spliced = splice.build(sessions[agent]["events"], sessions[stand_in]["events"], pattern, params,
+                                       truth=splice.lab_truth)  # the lab's numbers, as the lab cut them
                 if spliced is None:
                     continue
                 for mode in MODES:

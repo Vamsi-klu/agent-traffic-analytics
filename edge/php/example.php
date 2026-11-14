@@ -1,6 +1,6 @@
 <?php
 /**
- * A two-page site for trying the PHP middleware in a real browser (step S4.3), the same pages as
+ * A two-page site for trying the PHP middleware in a real browser, the same pages as
  * edge/node/scripts/test-site.js: a home page and a second page that link to each other, each showing the token its own
  * navigation entry carries in Server-Timing (what cake.js reads): its id and the four Sec-Fetch values inside it. Pages
  * go out with Cache-Control: no-cache and an ETag, so opening one again is a 304, unless CAKE_NO_STORE=1 turns on the

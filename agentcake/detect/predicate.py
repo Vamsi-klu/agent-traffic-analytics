@@ -1,4 +1,4 @@
-"""A small three-valued predicate language over JSON signals (S3.3): what the environment rules' `match` is written in.
+"""A small three-valued predicate language over JSON signals: what the environment rules' `match` is written in.
 
     check(node, data) -> Outcome(state, witness)     state: True (held), False (did not), None (input not recorded)
     validate(node, where)                           raises PredicateError on a malformed predicate

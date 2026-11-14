@@ -2,7 +2,7 @@
 /*
  * web-crypto.js — HMAC-SHA256 and random token ids with Web Crypto (crypto.subtle, crypto.getRandomValues): the path for
  * Next.js middleware (the edge runtime has no Node crypto), Hono on any runtime, Workers, Deno and Bun. No Node API.
- * Step S4.1.
+ *
  */
 const { encodeBase64Url } = require("./token")
 

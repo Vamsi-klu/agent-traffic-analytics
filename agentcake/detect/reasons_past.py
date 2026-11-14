@@ -1,4 +1,4 @@
-"""The facts of a reason kept before verdicts kept facts, read back from its sentence (D34: the words are display).
+"""The facts of a reason kept before verdicts kept facts, read back from its sentence (the words are display).
 
 Such a session kept each reason's finished text only. agentcake/data/reasons_past.json lists every wording each reason,
 and each phrase a fact names, had until then (tools/reasons_past.py collects them from git). facts() matches the kept

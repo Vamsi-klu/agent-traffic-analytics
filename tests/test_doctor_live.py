@@ -1,4 +1,4 @@
-"""`agentcake doctor` opening a page of the user's website (S6.1): agentcake/doctor_live.py.
+"""`agentcake doctor` opening a page of the user's website: agentcake/doctor_live.py.
 
     python3 -I -m unittest discover -s tests -p test_doctor_live.py -v      (from the Agent Cake folder)
 

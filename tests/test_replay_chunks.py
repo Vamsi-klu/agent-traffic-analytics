@@ -1,4 +1,4 @@
-"""Replay chunk files and their compression (S2.2): agentcake/replay_chunks.py and agentcake/codecs.py.
+"""Replay chunk files and their compression: agentcake/replay_chunks.py and agentcake/codecs.py.
 
     python3 -I -m unittest tests.test_replay_chunks -v      (from the cake folder)
 

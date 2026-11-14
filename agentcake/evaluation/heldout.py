@@ -1,4 +1,4 @@
-"""Thresholds set from data, tested on data they were not set from (plan step S3.7, decision D36).
+"""Thresholds set from data, tested on data they were not set from.
 
     build(sessions, settings, params=None) -> [{"rule", "feature", "operator", "shipped", "fitted", "by_site",
                                                 "agents"}]
@@ -10,8 +10,7 @@ measured segments (those where the feature has data) of every data set of people
 by construction: the agents table judges them with the threshold fitted on all the people. Held out by site: for
 each site where people were recorded, the threshold is fitted again without that site's people, and the site's people
 are judged with it; a threshold that only holds where it was fitted shows here as false positives. This is how Akamai
-reports its research model (held out by customer) and why Charweb's grouped evaluation fell from 0.97 to 0.865
-(research notes 19 and 21).
+reports its research model (held out by customer) and why Charweb's grouped evaluation fell from 0.97 to 0.865.
 
 sessions: [{"source", "group", "product", "site", "truth", "events", "raw_input", "touch"}], one per session with
 known answer (agentcake/evaluation/tables.py builds them). Each is measured once (features.session_features); a fold

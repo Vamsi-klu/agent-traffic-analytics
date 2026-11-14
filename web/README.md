@@ -24,7 +24,7 @@ Screenshots and the visual test use Playwright's Chromium; set `CAKE_CHROME` to 
 runs with rendering switches that give the same pixels on every run however busy the machine is (CPU raster, every
 compositing stage done before a frame: `STABLE_RENDERING` in `scripts/shots.mjs`); the visual test's threshold stays.
 
-## Data: `/api` (S5.1)
+## Data: `/api`
 
 The pages hold no data. Each page asks cake for JSON through `src/data/api.ts` (one function per endpoint, relative URLs
 `api/…` so the pages work under any path) and shows `PageLoading` until the answer arrives, `PageError` with "Try again"
@@ -41,7 +41,7 @@ if it doesn't (`src/components/cake/page-state.tsx`). The contract has three par
 
 | Endpoint | Answer | Schema |
 |---|---|---|
-| `GET /api/overview?range=today\|7d\|30d` | `Overview`: counts, the human + agent top block, charts, top pages, latest sessions, average length (D30), disk use, the coverage table's wording | `overview` |
+| `GET /api/overview?range=today\|7d\|30d` | `Overview`: counts, the human + agent top block, charts, top pages, latest sessions, average length, disk use, the coverage table's wording | `overview` |
 | `GET /api/sessions?verdict=&agent=&range=&cursor=` | `SessionsPage`: counts per group, the names of the two kinds of agent, agent names, one page of sessions (newest first), `next` cursor | `sessions` |
 | `GET /api/session/<id>` | `SessionDetail`: the session, title, summary, timeline, the pages in the order they opened, four reason layers, actions, replay (chunks, the session's clock `epoch_ms`, `handoff_lead_ms`, why it is `missing`), server half; 404 if unknown | `session` |
 | `GET /api/session/<id>/replay?chunk=<n>` | `ReplayChunk`: the rrweb events of chunk n (one per 10 s, as listed in the session); the replay page asks for a chunk only when it needs it | `replay` |
@@ -68,7 +68,7 @@ The fixtures exist only for screenshots and development: `scripts/fixture-api.mj
 visual`, `npm run shots`, `npm run dev`, `npm run preview` and `npm test` (same routes, filters and errors as cake). A
 schema's samples are `fixtures/<endpoint>.json` and every file under `fixtures/<endpoint>/`: more sessions in
 `session/<id>.json`, and each recorded replay in `replay/<id>/<n>.json`, one file per chunk. The replays are real:
-cake.js recorded them in the shop (the demo shop until D37, now the test site in tests/site), read back with cake's own
+cake.js recorded them in the shop (the demo shop until 0.4.0, now the test site in tests/site), read back with cake's own
 `streams.read_events` (`node scripts/replay-fixtures.mjs` re-records them; what is typed is masked by cake.js and
 checked absent). The build never includes the fixtures, and `scripts/check-dist.mjs` (the last step of `npm run build`)
 fails if any sample session shows up in `dist/`. A change to the contract changes all three parts, and the Python side

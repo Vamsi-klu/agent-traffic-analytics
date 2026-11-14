@@ -1,4 +1,4 @@
-// Tests for the third-party notices of the local pages (scripts/notices.mjs, job web-notices): which packages count as
+// Tests for the third-party notices of the local pages (scripts/notices.mjs): which packages count as
 // bundled (code in a chunk, or styles a stylesheet imports), which of their files are copied, what stops the build,
 // and that the real build lists every package it bundles, each with its licence text, and nothing else.
 // Usage: node --test scripts/   (npm test)

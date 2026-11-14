@@ -1,11 +1,14 @@
-"""When a session's recorded actions began and ended (S5.1, D30): what a session's length is made of.
+"""When a session's recorded activity began and ended: what a session's length is made of.
 
-A session's length runs from its first to its last recorded action. An action is a page the visitor opened (cake.js's
+A session's length runs from its first to its last recorded activity. Activity is a page the visitor opened (cake.js's
 page record, or the rrweb Meta event of a cake 0.3.x recording) or the visitor's own input: pointer, keys, wheel or
 touch (detect/segment.py's INPUT_TYPES; detect/rrweb_events.py rebuilds them from a 0.3.x recording). Records of
 anything else (focus, visibility, window geometry, elements added to the page, the page leaving, page mutations) move
-neither end, so a tab left open after the last action adds nothing to the length (D30, the user's wording; later
-PostHog web analytics' "Session duration" is also first to last event).
+neither end, so a tab left open after the last activity adds nothing to the length (as the owner worded the measure;
+later PostHog web analytics' "Session duration" is also first to last event).
+
+Activity is wider than an action as the Every action list, its shares and the hand-offs count one (data/actions.json,
+detect/visitor_actions.py): pointer movement and every scroll move a session's ends, though they are no action.
 
     span(raw, rrweb, page_starts) -> (first, last) in epoch ms on the events' clock, or (None, None)
     page_starts(con, session_id) -> when each page record of the session's signals stream was made, oldest first

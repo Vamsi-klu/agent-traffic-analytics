@@ -1,4 +1,4 @@
-// The registration card (S5.8, D32) in Chromium, against the built app with /api/register answered here: until this
+// The registration card in Chromium, against the built app with /api/register answered here: until this
 // AgentCake has registered, every page shows the card first, in the user's own words; the button stays off until the
 // email address passes cake's check; "See what's sent" shows the exact text the button posts, once; a registration
 // that can't be sent says why, lets the owner in with Continue, is not tried again, and the card asks again the next
@@ -10,7 +10,7 @@ import { openTab, sample, startApp } from "./app.mjs"
 
 const WAIT_MS = 15000
 const NAME = JSON.parse(readFileSync(new URL("../../agentcake/data/product.json", import.meta.url), "utf8")).name
-/** The card's words the user wrote (plan D32), which stay exactly as they are. */
+/** The card's words the user wrote, which stay exactly as they are. */
 const USERS_WORDS = [
   `Welcome to ${NAME}`,
   "Free, open-source agent analytics",

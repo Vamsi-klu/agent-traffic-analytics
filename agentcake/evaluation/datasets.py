@@ -1,14 +1,14 @@
-"""Reading the data sets `agentcake eval` measures on (plan step S3.9). Every reader only reads; none writes a file.
+"""Reading the data sets `agentcake eval` measures on. Every reader only reads; none writes a file.
 
     lab_sessions(path, settings) -> {run: lab session}      our lab's sessions: label, raw events, rrweb events
     lab_signals(path, settings) -> [labelled signals]       the lab's environment signals of 2026-11-09 and 11-11
     cakejs_uploads(folder) -> {name: [{"headers", "batch"}]}   real cake.js uploads of automated browsers
-    recordings(folder, truth_path, settings) -> [clean human recording]   the S1.5 recorder's sessions in truth_manual
+    recordings(folder, truth_path, settings) -> [clean human recording]   the recorder's clean human sessions in truth_manual
     recorded(folder, truth_path, settings) -> [agent or hand-off recording]   the same folder's sessions in
                                                             truth_recordings (the data-collection kit), or a
-                                                            recorder copy's in the list of our own runs (S9.4)
-    posthog(folder, settings) -> {"units", "mixed"}          S1.5's local PostHog dataset and its mixed replays
-    named_user_agents(path) -> [case]                       GOAL A7's 10 User-Agents and their answers
+                                                            recorder copy's in the list of our own runs
+    posthog(folder, settings) -> {"units", "mixed"}          the local PostHog dataset and its mixed replays
+    named_user_agents(path) -> [case]                       threshold A7's 10 User-Agents and their answers
     motion_attestation(path) -> [public human]              motion-attestation's 27 captures (tests/fixtures, MIT)
     public_humans(path) -> [public human]                   PSAI and CaptchaSolve30k sessions, converted on this
                                                             computer by the maintainers' converter
@@ -16,16 +16,16 @@
     short_hash(prefix, text, settings) -> 12 hex digits     how the sample lists name sessions (eval/README.md)
 
 A public human: {"h", "set", "site", "touch", "events"}: a real person's session from a public data set, in the
-raw-event format, never committed except motion-attestation's fixture; the scoreboard counts them as humans (D36), the
-gate never does (GOAL T12: A1 counts our own clean recordings only). A lab session: {"gt", "group", "segment_group",
+raw-event format, never committed except motion-attestation's fixture; the scoreboard counts them as humans, the
+gate never does (threshold A1 counts our own clean recordings only). A lab session: {"gt", "group", "segment_group",
 "class", "row", "raw", "rrweb"}, the group and the answer coming from data/eval.json "lab". A recording: {"h", "raw",
 "rrweb", "payloads", "requests"}: the lab collectors' reports in arrival order and the recorder server's log rows of the
-run, which env_signals.from_lab reads, up to its line's until_ms when it has one (the recorder's 我做完了 plus its
+run, which env_signals.from_lab reads, up to its line's until_ms when it has one (the recorder's "I'm done" plus its
 grace: what reached the recorder later was left out of its verdict, eval/README.md); an agent's or a hand-off's adds its
-answer: "label", "truth", "mode", "task" and "stretches" [(from_ms, to_ms, who)]. A PostHog unit is S1.5's units/<h>.json with "start" (where its first rrweb
+answer: "label", "truth", "mode", "task" and "stretches" [(from_ms, to_ms, who)]. A PostHog unit is the dataset's units/<h>.json with "start" (where its first rrweb
 event lies, ms after the session start) and "session" (its session's short hash). A mixed replay rebuilds one of the
 site owner's sessions from its units: the events of all of them, and "agent_at" (t -> whether t lies in one of its
-agent units), as research note 12 scored them per action.
+agent units), as our study of PostHog replays scored them per action.
 """
 import gzip
 import hashlib
@@ -107,7 +107,7 @@ def recordings(folder, truth_path, settings):
 def recorded(folder, truth_path, settings):
     """The agent and hand-off recordings the recordings' list names, found in the same folder by their hash, each
     with its line's answer: label, truth (agent or mixed), mode, task, and a hand-off's stretches. The recordings we
-    ran ourselves (S9.4) are read the same way from their own folder and list; a line may name its variant (the model
+    ran ourselves are read the same way from their own folder and list; a line may name its variant (the model
     that drove the agent, or the mouse algorithm)."""
     words = settings["truth"]
     lines = {row["h"]: row for row in jsonl(truth_path) if row.get("truth") in (words["agent"], words["mixed"])}
@@ -164,7 +164,7 @@ def _streams(payloads):
 
 
 def posthog(folder, settings):
-    """S1.5's units (index order) and the mixed replays rebuilt from them."""
+    """The local PostHog dataset's units (index order) and the mixed replays rebuilt from them."""
     ph = settings["posthog"]
     units = []
     for row in jsonl(os.path.join(folder, ph["index"])):

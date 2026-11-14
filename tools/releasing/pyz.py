@@ -1,10 +1,12 @@
-"""agentcake.pyz (S6.4): the package as one file that Python runs, `python3 agentcake.pyz <command>`.
+"""agentcake.pyz: the package as one file that Python runs, `python3 agentcake.pyz <command>`.
 
 A .pyz is a zip behind a shebang line, as the standard library's zipapp makes one (PEP 441); it is written here with
 reproducible.py instead, so that its bytes are fixed. Its __main__.py is tools/releasing/pyz_main.py with three values
 filled in: BUILD, the version and a hash of the packaged files (the folder the package is unpacked into, one per
 build), UNPACK_FOLDER and FROM_ZIP, the commands run without unpacking (release.json). The package files are the
 wheel's, and the bootstrap is read from the same tree (the exported commit), so the .pyz depends on the commit alone.
+The project's license files (pyproject.toml's license-files: LICENSE, THIRD_PARTY.md) sit at the top of the zip, as
+the wheel and the release folder carry them; the bootstrap unpacks only the package, so they leave the hash alone.
 """
 import hashlib
 import json
@@ -40,14 +42,15 @@ def fill(template, values):
 
 
 def entries(project, settings):
-    """(name, bytes, executable) of every file of the .pyz: __main__.py, then the package."""
+    """(name, bytes, executable) of every file of the .pyz: __main__.py, the license files, then the package."""
+    licenses = [(name, read(os.path.join(project.root, name)), False) for name in project.license_files()]
     files = [(name, read(path), executable) for name, path, executable in project.package_files()]
     chars = settings["pyz"]["build_hash_chars"]
     build_id = f"{project.version}-{content_hash(files)[:chars]}"
     template = read(os.path.join(project.root, settings["pyz"]["bootstrap"])).decode("utf-8")
     main = fill(template, {"build": build_id, "unpack_folder": settings["pyz"]["unpack_folder"],
                            "from_zip": settings["pyz"]["from_zip"]})
-    return [(MAIN, main.encode("utf-8"), False)] + files
+    return [(MAIN, main.encode("utf-8"), False)] + licenses + files
 
 
 def build(project, out_dir, epoch, settings):

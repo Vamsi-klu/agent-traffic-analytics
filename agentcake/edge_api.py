@@ -1,4 +1,4 @@
-"""POST /edge (S4.4): a web server's page requests from its access log, signed with the server half's secret.
+"""POST /edge: a web server's page requests from its access log, signed with the server half's secret.
 
 `agentcake logs import` (logs.py) reads a log where it lies and sends its page requests here in batches, each an
 envelope {"v", "run", "format", "fields", "records"} (data/logs.json "edge"). Only a sender holding this Agent Cake's

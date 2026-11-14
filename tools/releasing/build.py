@@ -1,4 +1,4 @@
-"""One release, from one commit, into one folder (S6.4): what `python3 -I tools/release.py build` runs.
+"""One release, from one commit, into one folder: what `python3 -I tools/release.py build` runs.
 
 The steps: export the commit (source.py) into a scratch folder; check its lists are fresh (bundled_lists.py) and its
 cake.js current; build the local pages into the package (webapp.py), copy the sites' middleware into it

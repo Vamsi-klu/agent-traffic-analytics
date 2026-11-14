@@ -1,4 +1,4 @@
-"""Builds names.json (S3.1): every name a User-Agent can declare, merged from our own additions, botscent, PostHog
+"""Builds names.json: every name a User-Agent can declare, merged from our own additions, botscent, PostHog
 and ai.robots.txt, each with its kind (kinds.json) and the sources that list it.
 
     build_names(recipe, kinds, files) -> (names, hints, platforms, counts, disagreements)

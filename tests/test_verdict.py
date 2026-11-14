@@ -1,12 +1,12 @@
-"""The verdict step (agentcake.detect.verdict, plan step S3.4): one conclusion per session from the four layers.
+"""The verdict step (agentcake.detect.verdict): one conclusion per session from the four layers.
 
     python3 -I -m unittest discover -s tests -v      (from the repository root)
 
-The 16 control sessions of EXECUTION-BRIEF S3.4 each get the class, Agent row, name, verification, confidence and
-reasons of the design table (tests/verdict_cases.py). Then the conflict table of research note 13 section 5, one rule
+The 16 control sessions of the verdict's design each get the class, Agent row, name, verification, confidence and
+reasons of the design table (tests/verdict_cases.py). Then the verdict's conflict table, one rule
 per test: exclusion first, a verified signature names the infrastructure but not who acts, hard automation is not
-overturned by behaviour (D5), soft evidence needs company, only certain names make a Bot (D17), a missing key is never
-impersonation (D23). Last, the lab's 26 recorded agent sessions: the four layers together are right on all of them,
+overturned by behaviour, soft evidence needs company, only certain names make a Bot, a missing key is never
+impersonation. Last, the lab's 26 recorded agent sessions: the four layers together are right on all of them,
 against 16 of 26 for behaviour alone.
 """
 import dataclasses, os, sys, unittest
@@ -30,7 +30,7 @@ def ids(result):
 
 
 class ControlSessions(unittest.TestCase):
-    """EXECUTION-BRIEF S3.4: 16 made-up sessions, each judged as the design table says."""
+    """16 made-up sessions, each judged as the design table says."""
 
     def test_sixteen_controls(self):
         self.assertEqual(len(cases.CONTROLS), 16)
@@ -97,7 +97,7 @@ class Exclusion(unittest.TestCase):
 
 class Verification(unittest.TestCase):
     """Rule 2: a signature or a published range names the infrastructure; failing it is impersonation, unless the
-    check could not be made (D23)."""
+    check could not be made."""
 
     def test_missing_or_expired_key_is_self_reported_never_impersonation(self):
         for code in ("key-missing", "key-expired", "expired", "not-yet-valid", "unknown-signer", "claim-only"):
@@ -231,7 +231,7 @@ class Environment(unittest.TestCase):
 
 
 class NamesAndBots(unittest.TestCase):
-    """Rules 1 and 3 (D17): a Bot only by a listed name that is not impersonated; agents keep their names."""
+    """Rules 1 and 3: a Bot only by a listed name that is not impersonated; agents keep their names."""
 
     def test_declared_agent_is_named_and_self_reported(self):
         result = verdict.decide(evidence(uas=MANUS, platform="Linux x86_64", behavior_result=too_little()))
@@ -303,7 +303,7 @@ class Behaviour(unittest.TestCase):
 
     def test_an_agent_run_the_model_did_not_confirm_leaves_a_human(self):
         result = verdict.decide(evidence(behavior_result=behavior("human", AGENT_RUN, run("human", 61, 120, 15, 0.08))))
-        self.assertEqual(result["class"], "human")  # D39, 11/13: an agent part needs the model's two kinds
+        self.assertEqual(result["class"], "human")  # an agent part needs the model's two kinds
 
     def test_agent_evidence_of_one_kind_is_not_sure_and_says_which_kind(self):
         result_of_behavior = dict(behavior("unsure", run("unsure", 0, 9, 4, 0.5)), basis=[],
@@ -326,7 +326,7 @@ class Behaviour(unittest.TestCase):
 
 
 class Candidates(unittest.TestCase):
-    """Every name a layer found is kept for the labels table (S3.5 ranks them)."""
+    """Every name a layer found is kept for the labels table (attribute.py ranks them)."""
 
     def test_candidates_carry_layer_method_and_certainty(self):
         result = verdict.decide(evidence(uas=CHROME_LINUX, hits=[hit("env.product.muse")],

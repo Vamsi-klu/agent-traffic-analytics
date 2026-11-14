@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Privacy scan of an Agent Cake data folder (GOAL S1, plan step S6.5): at every milestone, before every release, and
-on the server during T13 and T14.
+"""Privacy scan of an Agent Cake data folder: before every release, and
+on a server install after a test visit.
 
     python3 -I tools/privacy_scan.py <CAKE_HOME> [more files or folders, such as exported JSON]
             [--canary <text> ...] [--json]

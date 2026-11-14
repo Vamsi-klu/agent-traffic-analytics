@@ -1,4 +1,4 @@
-"""tools/releasing/commands.py (plan step S6.4): a build command is shown without this computer's paths, and a missing
+"""tools/releasing/commands.py: a build command is shown without this computer's paths, and a missing
 program or a failing command stops the release with what is needed.
 
     python3 -I -m unittest discover -s tests -v      (from the repository root)

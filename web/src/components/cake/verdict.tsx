@@ -1,4 +1,4 @@
-// The session categories (D39) — one colour, one icon, one word each, everywhere. DESIGN.md §3.1
+// The session categories — one colour, one icon, one word each, everywhere. DESIGN.md §3.1
 // The verdict (Human, Agent, Bot) is VerdictBadge, with ThinEvidenceTag beside a Human session cake couldn't tell; an
 // Agent session's split (Agent only, Human + agent) is TurnsBadge; which agent is AgentTag (avatar.tsx) with how sure
 // its name is inside it, or UnnamedTag. A stretch or a layer that couldn't tell reads Unknown in the same badge. The words are
@@ -73,7 +73,7 @@ export function TurnsBadge({ turns, percent, className }: { turns: AgentTurns; p
   )
 }
 
-/** Thin evidence: a Human session cake couldn't tell (D39), beside its Human badge; the reasons say why. */
+/** Thin evidence: a Human session cake couldn't tell, beside its Human badge; the reasons say why. */
 export function ThinEvidenceTag({ className }: { className?: string }) {
   return <Badge variant="thin" className={className} title={TAXONOMY.evidence.thin.about}><CircleDashed aria-hidden />{TAXONOMY.evidence.thin.label}</Badge>
 }

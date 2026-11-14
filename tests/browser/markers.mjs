@@ -1,5 +1,5 @@
 // Draws agent products' marks on a page at noted moments, for the browser test of cake.js's mark watch
-// (tests/browser/test_markers.py; plan steps S3.3, S3.7; GOAL A5).
+// (tests/browser/test_markers.py; threshold A5).
 //
 //   node tests/browser/markers.mjs --base http://127.0.0.1:<port> --out <dir>
 //

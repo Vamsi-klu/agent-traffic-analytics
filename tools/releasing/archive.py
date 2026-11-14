@@ -1,4 +1,4 @@
-"""The release folder, agentcake-<version>.tar.gz (S6.4): Agent Cake ready to run, and what a server install needs.
+"""The release folder, agentcake-<version>.tar.gz: Agent Cake ready to run, and what a server install needs.
 
 One folder, agentcake-<version>/, holding what pyproject.toml's [tool.flit.sdist] names (bin/agentcake, the 0.3.x
 entry points, INSTALL.md, SERVER.md, deploy/cake.service, Dockerfile, .dockerignore, ...), the package as the release

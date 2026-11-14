@@ -1,4 +1,4 @@
-"""Judging wired to collect, the maintenance round and the pages (agentcake.judging, plan step S3.4 wiring).
+"""Judging wired to collect, the maintenance round and the pages (agentcake.judging).
 
     python3 -I -m unittest discover -s tests -v      (from the repository root)
 
@@ -185,7 +185,7 @@ class OldSessions(JudgingCase):
 
 class ModelVersion(JudgingCase):
     """A verdict keeps the version of the judge that made it; after an upgrade an older judge's verdicts are made
-    anew (the coordinator, 11/13: so that the sessions already kept get the new rules and percents too)."""
+    anew (so that the sessions already kept get the new rules and percents too)."""
 
     def setUp(self):
         super().setUp()

@@ -1,4 +1,4 @@
-"""A visit's stored uploads in cake.js's upload format (S2.1): agentcake/visit_batches.py.
+"""A visit's stored uploads in cake.js's upload format: agentcake/visit_batches.py.
 
     python3 -I -m unittest discover -s tests -p test_visit_batches.py -v      (from the Agent Cake folder)
 
@@ -33,7 +33,7 @@ class VisitBatches(unittest.TestCase):
     def setUp(self):
         os.environ["CAKE_HOME"] = tempfile.mkdtemp(prefix="cake-test-")
         os.environ.pop("CAKE_PORT", None)
-        # replays are stored whatever this computer's free disk (K2, disk_min_free_mb, is test_space's)
+        # replays are stored whatever this computer's free disk (disk_min_free_mb, is test_space's)
         config.save_user(site_key=KEY, disk_min_free_mb=0)
         self.con = store.db()
         self.addCleanup(self.con.close)

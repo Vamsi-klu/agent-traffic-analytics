@@ -1,4 +1,4 @@
-"""POST /edge (S4.4): agentcake/edge_api.py, the resource `logs import` sends a web server's log records to.
+"""POST /edge: agentcake/edge_api.py, the resource `logs import` sends a web server's log records to.
 
     python3 -I -m unittest discover -s tests -p test_edge_api.py -v      (from the Agent Cake folder)
 

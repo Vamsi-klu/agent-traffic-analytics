@@ -1,4 +1,4 @@
-"""A session's recorded streams (S2.2): agentcake/streams.py.
+"""A session's recorded streams: agentcake/streams.py.
 
     python3 -I -m unittest discover -s tests -p test_streams.py -v      (from the cake folder)
 
@@ -178,7 +178,7 @@ class AppendAndRead(unittest.TestCase):
 
 
 class DropReplay(unittest.TestCase):
-    """S2.5's interface: a replay removed to free space; what the session was judged by and from stays."""
+    """The disk rules' interface: a replay removed to free space; what the session was judged by and from stays."""
 
     def test_the_replay_goes_and_the_session_raw_input_server_half_and_segments_stay(self):
         con = fresh_db()

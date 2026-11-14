@@ -1,6 +1,6 @@
 <?php
 /**
- * PHP's half of a cross-language check (step S4.3), as edge/node/scripts/cross-check.js is Node's: reads a JSON list of
+ * PHP's half of a cross-language check, as edge/node/scripts/cross-check.js is Node's: reads a JSON list of
  * requests on stdin ({secret, request: {method, path, headers}, now_ms, id, client_ip, verdict, version}) and prints the
  * JSON list of the tokens PHP makes for them (null: no token). Whoever runs it compares them with another
  * implementation's, e.g. the 300 random requests of tests/test_edge_vectors.py against agentcake/edge_token.py's mint().

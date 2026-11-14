@@ -1,4 +1,4 @@
-// The third-party notices of the local pages (release 0.4.0, job web-notices): a Vite plugin that adds one plain-text
+// The third-party notices of the local pages (since release 0.4.0): a Vite plugin that adds one plain-text
 // file to dist/ (notices.json "file", THIRD_PARTY_NOTICES.txt) when `npm run build` writes it. The release copies dist/
 // into the package (tools/releasing/webapp.py), so every wheel carries the copyright and licence notices of what its
 // compiled pages bundle, as MIT, ISC, BSD and Apache-2.0 ask.

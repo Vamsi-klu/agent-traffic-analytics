@@ -1,13 +1,13 @@
-"""`doctor`, the lines about this computer (S6.1): machine_checks(c).
+"""`doctor`, the lines about this computer: machine_checks(c).
 
 python_check(): the Python that runs Agent Cake and whether it has compression.zstd (without it replays are stored
-with zlib and take more disk, S2.2). disk_check(c): the free space on the disk of the data folder (or of the folder it
-will be made in) against disk_min_free_mb (space.disk_space, S2.5, K2): below it the oldest replays are deleted to
+with zlib and take more disk). disk_check(c): the free space on the disk of the data folder (or of the folder it
+will be made in) against disk_min_free_mb (space.disk_space): below it the oldest replays are deleted to
 make room, a WARN; with auto_free off, or when deleting every old replay would not make room because other files fill
-the disk (D34: none is deleted; space.disk_room, read from the database without changing it), new replays are not
+the disk (none is deleted; space.disk_room, read from the database without changing it), new replays are not
 stored until there is room, a FAIL; the line gives the floor and the free space and says how to lower the floor.
-lists_check(): the age of the name and address lists in use (detect/lists.py) against max_age_days (I4):
-older is a WARN naming `agentcake lists update`, the one command that goes online (D23), or an upgrade. path_check():
+lists_check(): the age of the name and address lists in use (detect/lists.py) against max_age_days:
+older is a WARN naming `agentcake lists update`, the one command that goes online, or an upgrade. path_check():
 every `agentcake` on PATH, as `which -a` lists them: when the first is not this installation, typing the command runs
 another program, which is a WARN (the instructions run this one by its full path).
 """

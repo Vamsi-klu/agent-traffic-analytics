@@ -126,7 +126,7 @@ function Overview({ overview: o, registration }: { overview: Overview; registrat
         ))}
       </Block>
 
-      <Block name="Badge · verdicts (VerdictBadge) · ThinEvidenceTag" use="the only way to show a verdict (D39): icon + word + colour · Unknown only for a stretch, an action or a layer that couldn't tell · thin evidence beside a Human badge cake couldn't tell">
+      <Block name="Badge · verdicts (VerdictBadge) · ThinEvidenceTag" use="the only way to show a verdict: icon + word + colour · Unknown only for a stretch, an action or a layer that couldn't tell · thin evidence beside a Human badge cake couldn't tell">
         <VerdictBadge verdict="human" /><VerdictBadge verdict="agent" /><VerdictBadge verdict="bot" /><VerdictBadge verdict="unknown" /><ThinEvidenceTag />
       </Block>
       <Block name="VerdictBadge · TurnsBadge · percent" use="the session page: how sure cake is of the verdict and of each layer, bold on the highlighter · a Human verdict on thin evidence shows its own, lower chance beside the mark">
@@ -242,10 +242,10 @@ function Overview({ overview: o, registration }: { overview: Overview; registrat
       <Block name="CopyBlock · OrSeparator" use="commands and the one sentence for a coding agent; placeholders only">
         <div className="flex w-full max-w-xl flex-col gap-3"><CopyBlock text="agentcake setup --print --site" /><OrSeparator /></div>
       </Block>
-      <Block name="OnboardingStep" use="one numbered step of connecting the website (home page and dashboard before the first visit, D37)">
+      <Block name="OnboardingStep" use="one numbered step of connecting the website (home page and dashboard before the first visit)">
         <div className="w-full max-w-xl"><OnboardingStep n={1} title="Your website's address"><p className="text-sm text-muted-foreground">What to do in this step.</p></OnboardingStep></div>
       </Block>
-      <Block name="ProjectLink" use="the top bar's project (D40): the website's address, opened in a new tab · until it is set, a link to Settings">
+      <Block name="ProjectLink" use="the top bar's project: the website's address, opened in a new tab · until it is set, a link to Settings">
         <div className="flex flex-wrap items-center gap-2"><ProjectLink domain="shop.example.com" /><ProjectLink domain={null} /></div>
       </Block>
       <Block name="Crumb" use="wave (welcome, moves) · look (waiting) · sleep (no results) · oops (errors) · head (logo, human + agent marker)">
@@ -268,7 +268,7 @@ function Overview({ overview: o, registration }: { overview: Overview; registrat
       <Block name="Coverage · BotHelp" use="dashboard bottom: each kind of visit it records, how it's shown and how it's decided · wording from /api/overview · BotHelp = the Bots number’s “?”">
         <div className="w-full"><Coverage coverage={o.coverage} /></div>
       </Block>
-      <Block name="Taxonomy" use="dashboard bottom, after Coverage: the session categories level by level (D39), each with its badge or tag and a sentence · words from judging.en.json, read when the pages are built">
+      <Block name="Taxonomy" use="dashboard bottom, after Coverage: the session categories level by level, each with its badge or tag and a sentence · words from judging.en.json, read when the pages are built">
         <div className="w-full"><Taxonomy /></div>
       </Block>
       <Block name="PagesTable" use="top pages, one component for both lists: by agent visits and by human visits · same columns and widths, numbers from the same data">
@@ -295,7 +295,7 @@ function Overview({ overview: o, registration }: { overview: Overview; registrat
       <Block name="ServerHalfTable" use="Server half: what the site's server saw of each page request; the network line in server mode">
         <div className="w-full"><ServerHalfTable server={SERVER_LOOKS} /></div>
       </Block>
-      <Block name="RegisterCard" use="before every page until this AgentCake has registered (D32): the user's words, See what is sent = the exact JSON, the button off until the email passes cake's check · shown here after a press that couldn't be sent: why, then Continue (no retry; it asks again next time)">
+      <Block name="RegisterCard" use="before every page until this AgentCake has registered: its words are in src/lib/registration.ts, See what is sent = the exact JSON, the button off until the email passes cake's check · shown here after a press that couldn't be sent: why, then Continue (no retry; it asks again next time)">
         <div className="w-full">
           <RegisterCard rules={registration} outcome={{ state: "not_sent", message: "Couldn't reach tartini.ai ([Errno 8] nodename nor servname provided, or not known), so your registration wasn't sent." }}
             onRegister={nothing} onContinue={nothing} initial={{ email: "owner@example.com", company: "Example Shop" }} />

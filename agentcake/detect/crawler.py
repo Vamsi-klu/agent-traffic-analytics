@@ -1,6 +1,6 @@
-"""Crawler-like patterns of a session (S3.4): weak signals for the reasons, never a class (D17).
+"""Crawler-like patterns of a session: weak signals for the reasons, never a class.
 
-D17: only a certain name makes a Bot; what is guessed (a datacenter address, visits at fixed intervals, many pages in
+Only a certain name makes a Bot; what is guessed (a datacenter address, visits at fixed intervals, many pages in
 a row) is written into the reasons as "looks like a crawler: ...", and the session stays what the four layers made it
 (a script on a cloud server is an Agent in the Automated browser row).
 

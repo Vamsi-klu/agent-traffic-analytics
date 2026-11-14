@@ -1,4 +1,4 @@
-"""Keeping the server half's tokens (S4.2): edge_token.take_token, as collect calls it for each batch of cake.js.
+"""Keeping the server half's tokens: edge_token.take_token, as collect calls it for each batch of cake.js.
 
     python3 -I -m unittest discover -s tests -p test_edge_token.py -v      (from the Agent Cake folder)
 
@@ -10,7 +10,7 @@ kept token is replay; a token past the age the settings allow is stale; a change
 bad; without a secret it is off. Collect answers 204 to all of them and keeps the batch: a token's fate is no error
 for the visitor. The User-Agent, Accept-Language and network collect sees are compared with the token's; a difference
 is kept on the token's srv row as a signal for the verdict's reasons, never a refusal. Revisits replays the visits of
-GOAL T8 (home, a link, home again, reload) for each answer a browser may give at the 304: a new token, the stored one,
+case T8 (home, a link, home again, reload) for each answer a browser may give at the 304: a new token, the stored one,
 none.
 """
 import http.client
@@ -212,7 +212,7 @@ class Compared(TokenCase):
 
 
 class Revisits(TokenCase):
-    """GOAL T8's visits on a site whose HTML is revalidated: home, a link, the link back home (a 304), reload."""
+    """Case T8's visits on a site whose HTML is revalidated: home, a link, the link back home (a 304), reload."""
 
     def visit(self, at_the_304):
         """The four page views; at_the_304(n) is the token the page sees for the n-th revisit: new, stored or None."""

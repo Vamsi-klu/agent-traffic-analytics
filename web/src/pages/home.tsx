@@ -1,9 +1,9 @@
-// Installed, no visits yet: how to connect the website (D37, D40), as PostHog 1.0's setup page asked "What URL will you
+// Installed, no visits yet: how to connect the website, as PostHog 1.0's setup page asked "What URL will you
 // be using PostHog on?" and gave the snippet, and its dashboard waited under "Start sending events" until the first:
 // 1 the website's address (site_domain, the project the top bar shows); 2 where AgentCake runs: this computer for a
 // site on it, a server for a public website (SERVER.md); 3 the page script, through a coding agent (`agentcake setup
 // --print --site`), by hand or in a terminal, with the server half as an optional part; 4 the first visit, asked for
-// again every refresh_ms (I3) and shown when it comes. The dashboard shows the same page until the first session. Data:
+// again every refresh_ms and shown when it comes. The dashboard shows the same page until the first session. Data:
 // /api/setup and /api/settings; POST /api/settings saves the address.
 import { useEffect, useState } from "react"
 import { Code, List, Monitor, Plug, Server } from "lucide-react"
@@ -48,7 +48,7 @@ function Steps({ setup, initial, onOpen }: { setup: Setup; initial: Settings; on
   const [lang, setLang] = useState<keyof Setup["sentence"]>("en")
   const [first, setFirst] = useState<SessionSummary | null>(null)
   const setProjectDomain = useSetProjectDomain()
-  // Step 4: asked again until the first session is there (I3: within refresh_ms of its arrival).
+  // Step 4: asked again until the first session is there (within refresh_ms of its arrival).
   useEffect(() => {
     if (first) return undefined
     const timer = setInterval(() => {

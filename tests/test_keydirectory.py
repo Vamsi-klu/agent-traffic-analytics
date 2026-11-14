@@ -1,4 +1,4 @@
-"""Web Bot Auth key directories (agentcake.detect.keydirectory, S3.2): signer identifiers, JWK thumbprints, key lookup.
+"""Web Bot Auth key directories (agentcake.detect.keydirectory): signer identifiers, JWK thumbprints, key lookup.
 
     python3 -I -m unittest discover -s tests -v      (from the repository root)
 

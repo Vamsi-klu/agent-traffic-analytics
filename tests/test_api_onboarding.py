@@ -1,11 +1,11 @@
-"""GET /api/setup (S5.1, agentcake/api/onboarding.py): the home page's ways to connect and its example preview.
+"""GET /api/setup (agentcake/api/onboarding.py): the home page's ways to connect and its example preview.
 
     python3 -I -m unittest discover -s tests -p test_api_onboarding.py -v      (from the Agent Cake folder)
 
 The answer fits the contract. The sentence for a coding agent comes in English and Chinese, with this
 installation's launcher and ~ for the home folder (the same words `agentcake sentence` prints in Chinese); the
 commands hold placeholders only; the example sessions are made up and say so, and nothing about them is stored.
-`recorded` counts the sessions the lists show, from any source at any time (S5.2: the home page is the dashboard
+`recorded` counts the sessions the lists show, from any source at any time (the home page is the dashboard
 from the first one on): a self-check, a prefetch or a copy of the site elsewhere is not one.
 """
 import json
@@ -43,7 +43,7 @@ class Setup(unittest.TestCase):
         self.assertEqual(self.body["sentence"]["zh"], paths.tilde(site_setup.sentence_b()))
 
     def test_there_is_no_demo_shop_to_try(self):
-        """D37: a fresh AgentCake connects its owner's website; it has no demo shop and no task for it."""
+        """A fresh AgentCake connects its owner's website; it has no demo shop and no task for it."""
         self.assertFalse({"demo_url", "demo_task"} & set(self.body))
         self.assertNotIn("/demo", json.dumps(self.body))
 

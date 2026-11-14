@@ -1,4 +1,4 @@
-"""What is released (S6.4): the version, the core metadata from pyproject.toml, and which files are the package.
+"""What is released: the version, the core metadata from pyproject.toml, and which files are the package.
 
 The version is written only in agentcake/__init__.py (__version__) and read here with ast, without importing the
 package. Everything else that describes the package (name, Python, command, readme, license) is pyproject.toml's,
@@ -39,7 +39,7 @@ class Project:
             raise ReleaseError(f"pyproject.toml [project] has {', '.join(unknown)}, which tools/releasing/project.py "
                                "does not put into the metadata yet: add it there first")
         if self.table.get("dependencies"):
-            raise ReleaseError("pyproject.toml lists dependencies: Agent Cake ships as a wheel without any (G13)")
+            raise ReleaseError("pyproject.toml lists dependencies: Agent Cake ships as a wheel without any")
         unread = sorted(set(self.table.get("dynamic", [])) - FROM_PACKAGE)
         if unread or "version" in self.table:
             raise ReleaseError("pyproject.toml must leave the version to agentcake/__init__.py (dynamic) and have no "

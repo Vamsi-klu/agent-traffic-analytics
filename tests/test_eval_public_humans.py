@@ -1,4 +1,4 @@
-"""Public human data sets for the scoreboard (plan step S3.7, D36): reading them in `agentcake eval`.
+"""Public human data sets for the scoreboard: reading them in `agentcake eval`.
 
     python3 -I -m unittest discover -s tests -v
 

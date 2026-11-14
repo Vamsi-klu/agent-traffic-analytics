@@ -1,4 +1,4 @@
-// Turns the API's raw numbers into what the pages show (S5.1): times inside a session are milliseconds, sizes are
+// Turns the API's raw numbers into what the pages show: times inside a session are milliseconds, sizes are
 // bytes (src/data/types.ts). Units, not settings: the scales below never change.
 const SECOND_MS = 1000
 const MINUTE_S = 60
@@ -49,7 +49,7 @@ export const percent = (part: number, whole: number) => (whole > 0 ? Math.round(
 /** An address as an address bar or a link label shows it: no scheme. */
 export const withoutScheme = (url: string) => url.replace(/^[a-z][a-z0-9+.-]*:\/\//i, "")
 
-/** The website's address from its domain (D40): http for a site on this computer, https for any other. */
+/** The website's address from its domain: http for a site on this computer, https for any other. */
 export function siteAddress(domain: string) {
   const host = domain.replace(/:\d+$/, "").toLowerCase()
   const local = ["localhost", "127.0.0.1", "[::1]"].includes(host) || host.endsWith(".localhost")

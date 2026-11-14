@@ -4,7 +4,7 @@
 
 Until verdicts kept each reason's facts, a session kept only the finished sentence. agentcake/detect/reasons_past.py
 reads such a sentence back into facts by matching it against every wording that could have made it, so that it can be
-worded anew (D34: the words are display). This collects those wordings from every commit up to --until that changed
+worded anew (the words are display). This collects those wordings from every commit up to --until that changed
 the files they come from: reasons.json (the reasons and the phrases a fact names: halves, methods, behavior_basis,
 crawler_signals, durations), agent_markers.json (each mark's text and the spans) and webbotauth.json (each result's
 reason). Newest first, each wording once. A commit that already has FACTS_COMMIT (verdicts keep facts from there

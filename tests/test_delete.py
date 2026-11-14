@@ -1,10 +1,10 @@
-"""Deleting a visit in the process that owns the data folder (plan step S6.5): agentcake/delete.py.
+"""Deleting a visit in the process that owns the data folder: agentcake/delete.py.
 
     python3 -I -m unittest discover -s tests -p test_delete.py -v      (from the Agent Cake folder)
 
 After the first of two planted visits (tests/delete_fixtures.py) is deleted, its id and its canary are nowhere: not in
 any table, not in the database file's raw bytes, not in any replay chunk once decompressed, not in the backup, not in
-the log. The other visit reads back exactly as before, and the space follows S2.2's reclaim (a file with nothing live
+the log. The other visit reads back exactly as before, and the space follows the storage's reclaim (a file with nothing live
 is deleted, a mostly dead one compacted). A chunk row that points at another visit's chunk stops everything; a delete
 cut short after wiping is finished by running it again.
 """

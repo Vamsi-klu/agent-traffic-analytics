@@ -1,4 +1,4 @@
-"""tools/releasing/cakejs.py (plan step S6.4): cake.js is minified with its runtime markers kept, so cake still fills
+"""tools/releasing/cakejs.py: cake.js is minified with its runtime markers kept, so cake still fills
 in an installation's values; esbuild is pinned; with the release's target it rewrites no syntax, keeps the bundled
 licences and makes a script that Node parses.
 

@@ -1,5 +1,5 @@
 {
-  "$comment": "The reasons a verdict lists (S3.4, agentcake/detect/verdict_text.py fills them in). Each has the layer it belongs to, its evidence grade (env_rules.json legend: measured, project-claim, source, inferred) its English text (what it means) and, when it has one, its detail (what was seen, in technical words: the second line under the text); {placeholders} in both are filled from the reason's facts, which the verdict keeps so that a reason is worded anew each time it is shown (verdict_text.words: facts named half, method, other_method, basis, signals, marker and signature name a phrase of this file, agent_markers.json or webbotauth.json), {product} is the product name (product.json) and $missing stands in for a fact that is not known. tone is how the interface marks it (agent, human or none: a fact for neither). Layers are the interface's (web/src/data/schema/session.schema.json: name, verify, environment, behavior) plus exclusion (rule 0) and weak (weak signals). An environment rule's hit is listed under the rule's own id with the rule's title and detail (env_rules.json); a Web Bot Auth result's own words come from webbotauth.json and fill {signature} and {signature_detail}; an agent product's indicator fills {marker} and {marker_detail} from agent_markers.json. Interface text (English only, D21; Human / Agent / Mixed / Not sure / Bot, D26).",
+  "$comment": "The reasons a verdict lists (agentcake/detect/verdict_text.py fills them in). Each has the layer it belongs to, its evidence grade (env_rules.json legend: measured, project-claim, source, inferred) its English text (what it means) and, when it has one, its detail (what was seen, in technical words: the second line under the text); {placeholders} in both are filled from the reason's facts, which the verdict keeps so that a reason is worded anew each time it is shown (verdict_text.words: facts named half, method, other_method, basis, signals, marker and signature name a phrase of this file, agent_markers.json or webbotauth.json), {product} is the product name (product.json) and $missing stands in for a fact that is not known. tone is how the interface marks it (agent, human or none: a fact for neither). Layers are the interface's (web/src/data/schema/session.schema.json: name, verify, environment, behavior) plus exclusion (rule 0) and weak (weak signals). An environment rule's hit is listed under the rule's own id with the rule's title and detail (env_rules.json); a Web Bot Auth result's own words come from webbotauth.json and fill {signature} and {signature_detail}; an agent product's indicator fills {marker} and {marker_detail} from agent_markers.json. Interface text (English only; Human / Agent / Mixed / Not sure / Bot).",
   "$missing": "unknown",
   "halves": {
     "page": "the page",
@@ -18,7 +18,8 @@
     "rules_unnamed": "enough of the clicks and typing look like an agent's",
     "active_move_rate": "the pointer moves too rarely for a human hand",
     "teleport_clicks": "clicks immediately after pointer jumps",
-    "typing_cadence": "the typing rhythm doesn't vary the way a human's does"
+    "typing_cadence": "the typing rhythm doesn't vary the way a human's does",
+    "fast_arrivals": "most pointer movements don't slow down near the click target, unlike a human hand"
   },
   "behavior_kinds": {
     "approach": "how the pointer approaches each click",
@@ -123,6 +124,8 @@
       "text": "The behavior model can't tell whether the session is a human's or an agent's."},
     "behavior.indicator": {"layer": "behavior", "grade": "source", "tone": "agent",
       "text": "{marker}, so the actions in that time are the agent's.", "detail": "{marker_detail}"},
+    "behavior.indicator-tail": {"layer": "behavior", "grade": "source", "tone": "agent",
+      "text": "{marker}, so the actions until {until} are the agent's.", "detail": "{marker_detail} It stays on for a few seconds after the agent's last action, so later actions are judged by their behavior."},
     "behavior.handoff": {"layer": "behavior", "grade": "measured", "tone": "none",
       "text": "The {to} took over from the {from} at {at}."},
     "behavior.short-run": {"layer": "behavior", "grade": "measured", "tone": "none",

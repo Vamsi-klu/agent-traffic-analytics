@@ -1,5 +1,5 @@
-"""The pages of a session in the order they opened (S5.4: the replay page's pages section, under "Who acted, when";
-the user, 11/13: which pages the session went to, the page it came in on and the page it left from).
+"""The pages of a session in the order they opened (the replay page's pages section, under "Who acted, when": which
+pages the session went to, the page it came in on and the page it left from).
 
 PostHog's session list named each session's start point and end point, and its replay lists the session's events in
 time order beside the player; this does the same for pages. A page opens when a page view begins: cake.js's page record
@@ -12,7 +12,7 @@ A session with nothing to go by (a cake 0.3.4 visit) has one page: its own addre
 A page lasts until the next one opens, the last one until the session's end (the timeline's length). Its actions are
 the visitor's input on it (Every action without the "Open" rows): an action belongs to the page of its own page view
 open at that moment (before the view's first page: that page); an action without a page view, to the page open at
-that moment. Who acted on a page is named as the session categories are (D39): a human only, an agent only, both a
+that moment. Who acted on a page is named as the session categories are: a human only, an agent only, both a
 human and an agent (Human + agent), or unknown when all its actions are; a page without actions names nobody (None:
 the page shows a dash, as no one acted on it).
 
@@ -84,7 +84,7 @@ class Visit:
 
 
 def named(actors):
-    """Who acted, named as the session categories name it (D39): both a human and an agent, human_agent; else whichever
+    """Who acted, named as the session categories name it: both a human and an agent, human_agent; else whichever
     of them did; else unknown; None when nobody acted."""
     found = set(actors)
     if not found:

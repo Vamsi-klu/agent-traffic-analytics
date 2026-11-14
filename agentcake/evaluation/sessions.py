@@ -1,21 +1,21 @@
-"""Each data set's sessions judged by Agent Cake's four layers, one row per session with its answer (plan step S3.9).
+"""Each data set's sessions judged by Agent Cake's four layers, one row per session with its answer.
 
     lab(sessions, signals_by_run) -> rows            our lab's sessions: every layer (local mode)
     lab_signals(sessions) -> rows                    the lab's signal recordings: environment and names, no events
     cakejs(uploads) -> rows                          real cake.js uploads of automated browsers, as collect got them
-    recordings(items) -> rows                        clean human recordings (S1.5): every layer the recorder fed
+    recordings(items) -> rows                        clean human recordings: every layer the recorder fed
     recorded(items, source) -> rows                  the recorder's agents and hand-offs, each with its own answer
-                                                     (source: recorded, or selfcollect for our own runs, S9.4)
+                                                     (source: recorded, or selfcollect for our own runs)
     posthog(units, settings) -> rows                 PostHog replays: behaviour only (reference)
     public_humans(items) -> rows                     real people from public data sets: behaviour only (scoreboard)
     store(labelled) -> rows                          CAKE_HOME sessions listed in truth_goal.jsonl
-    named(cases) -> rows                             GOAL A7's User-Agents, nothing else known
+    named(cases) -> rows                             threshold A7's User-Agents, nothing else known
 
 A row: {"id", "source", "group", "truth": {"class", "row", ...}, "class", "row", "name", "kind", "verification",
 "reasons" (ids), "behaviour" (the model's own verdict), "too_little" (the behaviour layer saw too little data:
 a phone, a tablet, or fewer action segments than the minimum), "layers" (each layer's state), "site" (where it was
 recorded, when the data set says; the scoreboard counts per site), "holdout" (what a session is held out with, when
-the data set says: the person in S9.2's PostHog set, the site owner's accounts as one; the product in the
+the data set says: the person in the PostHog training set, the site owner's accounts as one; the product in the
 recorder's agents), "evidence"}. The
 evidence stays on the row for the tables that take parts of it away (layers.py); report.py never prints it.
 """
@@ -23,7 +23,7 @@ from agentcake.detect import env_signals, verdict
 from agentcake.evaluation import evidence as evidence_builder
 
 TOO_LITTLE = "too_little_data"
-RECORDED, SELFCOLLECT = "recorded", "selfcollect"  # people's agent recordings; the ones we ran ourselves (S9.4)
+RECORDED, SELFCOLLECT = "recorded", "selfcollect"  # people's agent recordings; the ones we ran ourselves
 
 
 def row(row_id, source, group, truth, evidence, site=None, holdout=None):
@@ -67,7 +67,7 @@ def cakejs(uploads, truth):
         for item in items:
             batch = item["batch"]
             key = (batch["s"], batch["pv"], batch["seq"])
-            if key not in seen:  # a batch sent twice is stored once (S2.1)
+            if key not in seen:  # a batch sent twice is stored once
                 seen.add(key)
                 batches.append(batch)
         signals = env_signals.from_cake(batches, [{"headers": item["headers"]} for item in items])
@@ -88,7 +88,7 @@ def recorded(items, source=RECORDED):
     """The recorder's agent and hand-off recordings: grouped by who operated them (the label), each answer its own
     line's (agent, or mixed for a hand-off), and the same layers as a clean recording; held out by product (the
     label), as the calibration's folds are. source names the data set: the recordings people made (recorded) or the
-    ones we ran ourselves (selfcollect, S9.4), never mixed."""
+    ones we ran ourselves (selfcollect), never mixed."""
     out = []
     for item in items:
         truth = {"class": item["truth"], "label": item["label"], "mode": item["mode"]}

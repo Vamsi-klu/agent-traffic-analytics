@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Build a release of Agent Cake (plan step S6.4; D3: we build it, people download what we built).
+"""Build a release of Agent Cake (we build it, people download what we built).
 
     python3 -I tools/release.py refresh
-        Refresh the lists that ship with Agent Cake (needs the internet; D23), in this working tree. Read the summary
+        Refresh the lists that ship with Agent Cake (needs the internet), in this working tree. Read the summary
         and `git diff`, run the tests, update the dates in THIRD_PARTY.md, and commit before building.
 
     python3 -I tools/release.py build [--out <folder>] [--tag v<version>]
@@ -44,7 +44,7 @@ def print_summary(summary):
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description="Build a release of Agent Cake (plan step S6.4).")
+    parser = argparse.ArgumentParser(description="Build a release of Agent Cake.")
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser("refresh", help="refresh the shipped lists (online), to review and commit")
     build_command = commands.add_parser("build", help="build the release of HEAD into an empty folder")

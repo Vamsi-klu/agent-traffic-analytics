@@ -1,8 +1,8 @@
-"""Web Bot Auth: is this request signed by the signer it names? The verification layer of the judgement (S3.2, D5).
+"""Web Bot Auth: is this request signed by the signer it names? The verification layer of the judgement.
 
 A Web Bot Auth request (draft-ietf-webbotauth-httpsig-protocol-01 over RFC 9421) carries Signature-Input, Signature
 and Signature-Agent. A verified signature is the only signal that names a cloud agent such as ChatGPT agent, which
-sends an ordinary browser User-Agent (research note 13, conclusion 1). verify_request() answers, on this computer and
+sends an ordinary browser User-Agent. verify_request() answers, on this computer and
 without any network access, one of four outcomes, each with a reason code:
 
   verified  the signature verifies with a bundled key of the signer it is attributed to, inside its time window;
@@ -10,7 +10,7 @@ without any network access, one of four outcomes, each with a reason code:
             changed or the signature is forged (the judgement reads this as impersonating that signer);
   declared  self-reported only: the signer or its key is not bundled, not valid or a known test key, the signature
             is outside its time window, uses an algorithm not supported here, or what it signed cannot be rebuilt.
-            Never impersonation (D23): this is also what an outdated key list or a clock difference looks like;
+            Never impersonation: this is also what an outdated key list or a clock difference looks like;
   none      no Web Bot Auth signature and no Signature-Agent.
 
 Attribution follows draft -01: a signature belongs to the Signature-Agent member it covers (section 5.2.2) and only

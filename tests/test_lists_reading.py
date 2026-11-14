@@ -1,4 +1,4 @@
-"""How the name and verification lists are read (S3.1): agentcake/detect/lists.py.
+"""How the name and verification lists are read: agentcake/detect/lists.py.
 
     python3 -I -m unittest discover -s tests -p test_lists_reading.py -v      (from the Agent Cake folder)
 

@@ -1,4 +1,4 @@
-"""tools/releasing/webapp.py (plan step S6.4): the web build's commands run in web/, and web/dist is copied into the
+"""tools/releasing/webapp.py: the web build's commands run in web/, and web/dist is copied into the
 package, into the folder agentcake/data/web.json names; a commit without that file cannot have its pages served.
 
     python3 -I -m unittest discover -s tests -v      (from the repository root)

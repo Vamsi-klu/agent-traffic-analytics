@@ -1,4 +1,4 @@
-"""The environment layer's rules (S3.3): automation, product, cloud-host and extension traces in a session.
+"""The environment layer's rules: automation, product, cloud-host and extension traces in a session.
 
 Every rule is data, in agentcake/data/env_rules.json: its id, kind, the half it is read from (the page script, cake's
 collect endpoint or the site's server half), where it comes from, what is known to collide with it, when it was last
@@ -8,7 +8,7 @@ checked and whether it is on by default. This module loads that table, checks it
     evaluate(signals, table=None, enabled=None) -> EnvResult(hits, unknown, off)
 
 A hit gives the rule id, layer, kind, half, strength, evidence grade and the value that matched, and the pages it held
-on; S3.4 combines the hits with the other three layers. A rule whose inputs the session did not record is listed as
+on; the verdict combines the hits with the other three layers. A rule whose inputs the session did not record is listed as
 unknown, never as a miss.
 """
 from __future__ import annotations
@@ -75,7 +75,7 @@ class RuleTable:
 
 @dataclass(frozen=True)
 class Hit:
-    """One rule that held: what S3.4 writes into a session's reasons."""
+    """One rule that held: what the verdict writes into a session's reasons."""
     rule: str
     layer: str
     kind: str

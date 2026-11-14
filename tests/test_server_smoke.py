@@ -2,7 +2,7 @@
 
     python3 -I -m unittest discover -s tests -v      (from the Agent Cake folder)
 
-Moved from our own research code (smoke_server_mode.py) in S1.1. One server
+Moved from our own research code (smoke_server_mode.py). One server
 runs in a scratch CAKE_HOME on two free ports, set up through the command line the way SERVER.md says. The test plays
 the load balancer (it sets the X-Cake-* headers a load balancer sets) and tartini.ai's web server (it signs
 Server-Timing tokens in the c1 format of cake-server-timing.js). Checks: the public listener serves only the script,
@@ -189,7 +189,7 @@ class ServerMode(unittest.TestCase):
 
     # ---------------------------------------------------------------- what was kept
     def test_the_session_page_shows_the_server_half(self):
-        st, _, body = req(self.L + "/api/session/sessA")  # S5.1: the page draws it from the JSON API
+        st, _, body = req(self.L + "/api/session/sessA")  # the page draws it from the JSON API
         self.assertEqual(st, 200)
         pages = json.loads(body)["server"]["pages"]
         self.assertEqual([(p["path"], p["signature"], p["same_network"]) for p in pages],
@@ -213,7 +213,7 @@ class ServerMode(unittest.TestCase):
         self.assertNotIn(self.ik, dump)
 
     def test_judged_source_from_the_published_range(self):
-        # S3.4: the published agent range is the operator's infrastructure, a reason of the four layers' verdict
+        # the published agent range is the operator's infrastructure, a reason of the four layers' verdict
         cls, reasons = self.query("SELECT verdict_class, reasons FROM sessions WHERE id='sessA'")[0]
         self.assertEqual(cls, "agent")
         self.assertIn("OpenAI ChatGPT-User", reasons or "")

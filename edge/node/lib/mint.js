@@ -4,7 +4,7 @@
  * computed at once (Node's crypto) or later (Web Crypto). The payload's keys are always in one order, which is part of
  * the format: v, id, t, p, sf, sp, md, al, ch, ua, hn, sg, ik, bs, bsv. Also signing a payload as it is and verifying a
  * token, for tests and for anyone checking a token by hand; cake verifies with its own copy (agentcake/edge_token.py).
- * Step S4.1.
+ *
  */
 const { requestFacts, verdictFields, versionOf } = require("./facts")
 const { networkText, networkKeyOf } = require("./netkey")

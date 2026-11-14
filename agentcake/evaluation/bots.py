@@ -1,13 +1,14 @@
-"""Named programs and bots: GOAL A7 (10 named User-Agents) and T22 / A9 (listed bots vs automated browsers).
+"""Named programs and bots: threshold A7 (10 named User-Agents) and case T22 / threshold A9 (listed bots vs automated
+browsers).
 
     named_table(rows) -> {"n", "right", "rows": [{"name", "class", "kind", "verification", "right"}]}
     t22_table(rows, settings) -> {"groups": {group: {"n", "right", "classes", "crawler_reason"}}, "n", "right"}
 
 A7 rows come from sessions.named(): each User-Agent judged as a local session with nothing else known, so a Bot is
-"self-reported only" (D17: on this computer nothing can be verified). T22 rows are CAKE_HOME sessions whose truth
+"self-reported only" (on this computer nothing can be verified). T22 rows are CAKE_HOME sessions whose truth
 line has case T22 and a group (googlebot-verified, googlebot-impersonated, uptimerobot, local-ai-tool, cloud-script,
 ...): right means the class, row and verification the line gives; crawler_reason counts the sessions whose reasons
-hold the crawler-like weak signal (data/eval.json "reasons.crawler"), which never changes the class (D17).
+hold the crawler-like weak signal (data/eval.json "reasons.crawler"), which never changes the class.
 """
 from agentcake.evaluation import sessions
 

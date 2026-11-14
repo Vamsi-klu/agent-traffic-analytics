@@ -1,5 +1,5 @@
-"""How a session's keys were typed: isHumanCadence's score and class of the typing, on cake.js's raw events (plan step
-S3.7, decision D36; job behavior-best, a lead from the open-source bench, S9.6).
+"""How a session's keys were typed: isHumanCadence's score and class of the typing, on cake.js's raw events (a lead
+from our bench of open-source detectors).
 
     judge(events, params) -> {"class": "bot" | "unknown" | "human", "score", "samples", "span"}, or None: no evidence
     classify(score, current, thresholds) -> the class after one more score (the library's hysteresis)

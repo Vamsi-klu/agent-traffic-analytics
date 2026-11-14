@@ -1,13 +1,13 @@
-// cake's /api answered from src/data/fixtures/ (S5.1), for the screenshot, visual and dev servers only. The release
+// cake's /api answered from src/data/fixtures/, for the screenshot, visual and dev servers only. The release
 // has no fixtures: there cake (Python) answers /api. Same routes, parameters and error bodies as src/data/types.ts:
 // the session list filters its sample rows the way cake filters the database (except by date: the samples carry
 // formatted times only), POST /api/settings is checked against its schema and kept in memory until the server stops,
 // an unknown session or chunk is a 404, and GET /api/register says registered (fixtures/register.json), so the pages
 // show at once (the registration card is shot with register/first-run, shots.mjs PAGE_ANSWERS). A session's sample is
-// fixtures/session.json or fixtures/session/<id>.json; its replay chunks are fixtures/replay/<id>/<n>.json (S5.4:
-// recorded by scripts/replay-fixtures.mjs).
+// fixtures/session.json or fixtures/session/<id>.json; its replay chunks are fixtures/replay/<id>/<n>.json
+// (recorded by scripts/replay-fixtures.mjs).
 // fixtureApi({ set: "library" }) answers from fixtures/library/<endpoint>.json first: cake's own answers on the fixed
-// test library at a fixed moment (written from the maintainers' recordings), for the pages shot on real data (S5.3); other endpoints
+// test library at a fixed moment (written from the maintainers' recordings), for the pages shot on real data; other endpoints
 // fall back to the samples above.
 import { existsSync, readFileSync } from "node:fs"
 import path from "node:path"

@@ -15,7 +15,7 @@
  * Headers object, which does not keep the request's header order, so the token's header names are null here. The
  * middleware runs before the page's own response exists, so noStore marks the response of every page navigation. As in
  * botscent's Next.js adapter (src/adapters/next.ts, MIT, 7f948003), a response whose headers cannot change is copied,
- * never thrown on. Step S4.1.
+ * never thrown on.
  */
 const { createCakeEdge } = require("./index")
 const { message, warnOnce } = require("./lib/settings")

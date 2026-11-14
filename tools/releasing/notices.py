@@ -1,4 +1,4 @@
-"""The third-party notices of the local pages in a release (job web-notices, before 0.4.0).
+"""The third-party notices of the local pages in a release (since 0.4.0).
 
 `npm run build` writes them into web/dist (web/scripts/notices.mjs; the file is web/notices.json "file") and
 webapp.py copies web/dist into the package, so the wheel, the .pyz and the release folder all carry them. The build

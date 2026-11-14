@@ -1,8 +1,8 @@
 """Is the whole session an agent's? The behaviour model's verdict, and the one result the verdict step reads
-(plan step S3.7; S3.4 combines it with the other layers).
+(the verdict combines it with the other layers).
 
 judge_session(events, raw_input=True, touch=False, session_start=None, params=None, turns=()) is the interface for
-S3.4. Input: one session's events in the raw-event format (segment.py; for an rrweb-only recording, rebuild them with
+the verdict. Input: one session's events in the raw-event format (segment.py; for an rrweb-only recording, rebuild them with
 rrweb_events.events_from_rrweb() and pass raw_input=False). touch: the device is a phone or a tablet. turns: when an
 agent product's indicator said its agent was working (markers.turn_spans), which the timeline gives to the agent; the
 session's own verdict does not read them. Nothing is sent anywhere: it is plain arithmetic on the events. Returns:
@@ -22,7 +22,7 @@ session's own verdict does not read them. Nothing is sent anywhere: it is plain 
      "timeline": timeline.build(...) (who did each action, the scroll and movement stretches that carry evidence,
                  shares by action, hand-offs, the turn spans it was given), or None}
 
-The verdict is research note 12's main model, missing variant (conclusion 8): the lab's readable rules score each
+The verdict is the main model of our study of PostHog replays, in its missing-data variant: the lab's readable rules score each
 action segment (features.py; without raw input the 8 features rrweb cannot see are "no data" and fire nothing),
 a two-state HMM smooths the scores over the session, and the session is an agent's when at least min_agent_actions of
 its segments are an agent's on their own evidence (labelled agent, at agent_min, and an agent rule fired in them) or
@@ -32,42 +32,41 @@ active_rate_below times a second while it moves, or more than teleport_share_abo
 right after a jump, or, with raw input, the class isHumanCadence gives the session's typing ends at bot (cadence.py:
 the typing as a whole, which no single typing segment shows). A pointer that hardly moved gives no rate at all: there
 is no movement to measure, which says
-nothing about who held it (job borrow-rules B1, after agent-detector's "missing is not negative"); nor has a click
-the keyboard, a finger or a pen made an approach to read (B3). Otherwise the session is a human's when any of its
-segments is, and unsure when none is either: segments nobody can tell count for neither side (D39, the user's rule of
-11/13: human + unknown is human, agent + unknown is agent, human + agent + unknown is agent). Without hard evidence
+nothing about who held it (after agent-detector's "missing is not negative"); nor has a click
+the keyboard, a finger or a pen made an approach to read. Otherwise the session is a human's when any of its
+segments is, and unsure when none is either: segments nobody can tell count for neither side (human + unknown is human, agent + unknown is agent, human + agent + unknown is agent). Without hard evidence
 (an untrusted event), an agent verdict also needs evidence of two independent kinds (each rule's kind: how the
 pointer reaches its clicks, where clicks land, how it moves, typing, the input events themselves, scrolling, page
-focus; plan step S3.7, decision D36, after agent-detector
+focus; after agent-detector
 and HABITS): one ambiguous click approach that the HMM spreads over a short session is how people were taken for
 agents. An rrweb-only recording can show two kinds at most, so there evidence on two actions (segments where an agent
 rule fired, and the session's pointer movement when it moves too seldom) stands in for the second kind. An
 uncorroborated agent verdict is unsure, and the evidence names its one kind ("one_kind"). Phones, tablets and sessions
-with fewer than min_actions action segments are too little data and no model runs (A8). Automation that looks human
-(Playwright made to move like a hand) is the environment layer's to name (S3.3); behaviour does not overrule it (D5).
+with fewer than min_actions action segments are too little data and no model runs (threshold A8). Automation that looks human
+(Playwright made to move like a hand) is the environment layer's to name; behaviour does not overrule it.
 The shares and hand-offs come from
 timeline.py (0.3.4's per-action judge, the most accurate on mixed replays), which also reads the scroll and movement
 segments that carry evidence (movement_evidence()), so a stretch without clicks or typing still shows who was there.
 A session-level check in the basis reads the session as a whole, so no action's own score shows it: the stretch its
-evidence covers (checked_stretches(): the typing window, each teleport click, and all the pointer movement when no
-segment located the agent's part) goes to the agent on the timeline, as a lit indicator's span does, and a hand-off,
-and so a Human + agent session, needs a human's evidence outside it (the coordinator, 11/13: no evidence that a
-person was there, no Human + agent).
+evidence covers (checked_stretches(): the typing window, each teleport click, the run of movements where fast arrivals
+gather, and all the pointer movement when no segment located the agent's part) goes to the agent on the timeline, as
+a lit indicator's span does, and a hand-off, and so a Human + agent session, needs a human's evidence outside it (no
+evidence that a human was there, no Human + agent).
 
 Ported from our own code with the same arithmetic: the rules and the HMM from the behaviour lab's
 labcore.py (rule_score, forward_backward; 2026-11-11), the fallback from
 cake-data/compare_models.py (active_rate, choudhary; 2026-11-11), the decision from cake-ph-eval/phcore.py
 (rules_hmm with rr_mode, all_models' main_rr; 2026-11-12). Parameters: agentcake/data/behavior_model.json.
-Job borrow-rules (D33) took two ideas from other projects' rules, MIT, no code copied: a pointer that hardly moved
+Two ideas come from other projects' rules, MIT, no code copied: a pointer that hardly moved
 gives no move rate (agent-detector, github.com/doubleagent-so/agent-detector a523214c3b67: "missing is not
 negative"), and only a mouse's clicks can be teleports (bot-signal, github.com/okasi/bot-signal 25a4e7b0159f:
-isPointerClick). Evidence: job borrow-rules.
+isPointerClick).
 """
 import bisect
 import math
 import operator
 
-from agentcake.detect import cadence, features, timeline
+from agentcake.detect import arrival, cadence, clicks, features, timeline
 from agentcake.units import MS_PER_S
 
 OPERATORS = {"<": operator.lt, "<=": operator.le, ">": operator.gt, ">=": operator.ge, "==": operator.eq}
@@ -76,9 +75,10 @@ GLIDES = "pointer_glides"  # the movement evidence's id in a step's rules
 ACTIVE_RATE = "active_move_rate"  # the fallback basis read from the whole session's pointer movement
 TYPING = "typing_cadence"  # the fallback basis read from the whole session's typing (cadence.py)
 TELEPORTS = "teleport_clicks"  # the fallback basis read from the clicks right after a pointer jump
+ARRIVALS = "fast_arrivals"  # the fallback basis read from how the pointer arrives at its presses (arrival.py)
 RULES = "rules"  # the basis of enough segments that are an agent's on their own evidence
-MOUSE = features.MOUSE
-NOT_A_MOUSE = features.TOUCH_OR_PEN
+MOUSE = clicks.MOUSE
+NOT_A_MOUSE = clicks.TOUCH_OR_PEN
 MOUSE_EVENTS = frozenset({"mousemove", "mousedown", "mouseup", "click", "dblclick", "contextmenu"})
 load_params = timeline.load_params
 
@@ -178,11 +178,12 @@ def mouse_pointer(events):
 
 
 def teleport_click_share(events, params=None):
-    """Share of the clicks a mouse made (features.mouse_click(): not the keyboard's, a finger's or a pen's; job
-    borrow-rules B3) with no mousemove before them, or whose last move (at most click_window_ms before) came after a
-    jump of more than jump_px in less than jump_ms; None without such clicks (compare_models.choudhary)."""
-    clicks = features.mouse_clicks(sorted(events, key=lambda e: e["t"]))
-    return len(teleport_clicks(events, params)) / len(clicks) if clicks else None
+    """Share of the clicks a mouse made that show an approach of their own (features.approached_clicks(): not the
+    keyboard's, a finger's or a pen's, and not a repeat in place of the click before) with no mousemove before
+    them, or whose last move (at most click_window_ms before) came after a jump of more than jump_px in less than
+    jump_ms; None without such clicks (compare_models.choudhary)."""
+    approached = features.approached_clicks(sorted(events, key=lambda e: e["t"]))
+    return len(teleport_clicks(events, params)) / len(approached) if approached else None
 
 
 def teleport_clicks(events, params=None):
@@ -192,7 +193,7 @@ def teleport_clicks(events, params=None):
     moves = [e for e in events if e.get("ty") == "mousemove"]
     times = [e["t"] for e in moves]
     out = []
-    for click in features.mouse_clicks(events):
+    for click in features.approached_clicks(events):
         seen = bisect.bisect_right(times, click["t"])
         if not seen:
             out.append(click["t"])
@@ -210,13 +211,16 @@ def teleport_clicks(events, params=None):
 def checked_stretches(basis, evidence, events, params=None):
     """The stretch each session-level check in the basis covers, which the timeline gives to the agent (timeline.py
     checks, after the indicator's turn spans): the typing rhythm its window of keys (cadence.py span), the move rate
-    the pointer movement it measured (the first move to the last), a teleport click its own moment."""
+    the pointer movement it measured (the first move to the last), a teleport click its own moment, fast arrivals the
+    run of movements where they gather (arrival.py span)."""
     out = []
     typing = evidence.get(TYPING)
     if TYPING in basis and typing and typing.get("span"):
         out.append({"check": TYPING, "from": typing["span"][0], "to": typing["span"][1]})
     if TELEPORTS in basis:
         out += [{"check": TELEPORTS, "from": t, "to": t} for t in teleport_clicks(events, params)]
+    if ARRIVALS in basis:
+        out.append({"check": ARRIVALS, "from": evidence[ARRIVALS]["span"][0], "to": evidence[ARRIVALS]["span"][1]})
     if ACTIVE_RATE in basis and RULES not in basis:  # all the movement: only when nothing located the agent's part
         moves = sorted(e["t"] for e in events if e.get("ty") == "mousemove")
         out.append({"check": ACTIVE_RATE, "from": moves[0], "to": moves[-1]})
@@ -258,7 +262,7 @@ def _evidence(labels, scored, events, params):
                                  if label == "agent" and any(r in agent_rules for r in fired)),
             "unsure_share": labels.count("unsure") / n, "active_move_rate": active_move_rate(events, params),
             "mouse_pointer": mouse_pointer(events), "teleport_click_share": teleport_click_share(events, params),
-            TYPING: cadence.judge(events, params["cadence"]),
+            TYPING: cadence.judge(events, params["cadence"]), ARRIVALS: arrival.judge(events, params["arrival"]),
             "rule_hits": hits, "agent_kinds": sorted({agent_rules[r] for r in hits if r in agent_rules}),
             "agent_observations": sum(1 for _, fired in scored if any(r in agent_rules for r in fired))}
 
@@ -266,8 +270,8 @@ def _evidence(labels, scored, events, params):
 def _decide(evidence, params, raw_input=True):
     """(verdict, basis): an agent when its part of the session meets the bar (at least min_agent_actions segments are
     an agent's on their own evidence, or the fallback fires) and is corroborated (_corroborated); else a human when
-    any segment is a human's; else unsure. Segments nobody can tell count for neither side (D39, the user's rule of
-    11/13). The smoothing labels a strong action's neighbours too, so the bar counts the actions whose own rules said
+    any segment is a human's; else unsure. Segments nobody can tell count for neither side (human + unknown
+    is human). The smoothing labels a strong action's neighbours too, so the bar counts the actions whose own rules said
     agent: one action never makes an agent of a session, whatever it pulls along."""
     fallback = params["fallback"]
     basis = ["rules"] if evidence["agent_actions"] >= params["session"]["min_agent_actions"] else []
@@ -280,6 +284,9 @@ def _decide(evidence, params, raw_input=True):
     typing = evidence[TYPING]
     if raw_input and typing and typing["class"] == cadence.BOT:
         basis.append(TYPING)
+    arrivals = evidence[ARRIVALS]
+    if raw_input and evidence["mouse_pointer"] and arrivals and arrivals["holds"]:
+        basis.append(ARRIVALS)
     if basis:
         kinds = _kinds(evidence, basis, params)
         if _corroborated(evidence, basis, kinds, params, raw_input):

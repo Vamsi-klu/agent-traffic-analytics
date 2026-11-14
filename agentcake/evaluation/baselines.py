@@ -1,10 +1,10 @@
-"""Whole-session models printed beside Agent Cake's own, never used to judge (plan step S3.9; research note 11).
+"""Whole-session models printed beside Agent Cake's own, never used to judge.
 
     flags(events, raw_input, env, settings) -> {method: True (agent) | False | None (cannot tell)}
     table(rows, settings) -> {group: {method: {"n", "agent"}}}     how many sessions of each group each one flags
 
 methods:
-- cake: the behaviour model's own session verdict (model.judge_session; S3.7's main model, missing variant).
+- cake: the behaviour model's own session verdict (model.judge_session; the main model, missing-data variant).
 - rules_hmm: the lab's rules on each action segment smoothed by its HMM, an agent when at least half of the
   segments score 0.5 or more (compare_models.lab_rules_hmm), with no fallback.
 - choudhary: Choudhary et al.'s original thresholds: mouse events per second over the input time, or clicks right

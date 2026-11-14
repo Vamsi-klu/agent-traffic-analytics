@@ -4,7 +4,7 @@
  * module, or the promise import() returns). Asked once per page and never waited on longer than verdict_wait_ms,
  * counting the first import: a botscent that is missing, slow or failing gives a token without a verdict, never an error
  * and never a slower page than the wait. botscent reads the request's headers only and makes no network request; nothing
- * here adds one. Step S4.1.
+ * here adds one.
  */
 const NO_VERDICT = Object.freeze({ verdict: null, version: null })
 const TIMED_OUT = Symbol("timed out")

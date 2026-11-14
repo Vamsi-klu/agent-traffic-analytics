@@ -1,4 +1,4 @@
-"""S3.1: building the lists from their sources, and `agentcake lists update`, without the internet.
+"""Building the lists from their sources, and `agentcake lists update`, without the internet.
 
     python3 -I -m unittest discover -s tests -v      (from the cake folder)
 
@@ -294,7 +294,7 @@ class UpdateTest(unittest.TestCase):
     def test_update_writes_a_dated_snapshot_that_is_then_used(self):
         folder = lists_build.update(fetcher(world(self.sources)), self.later, self.root)
         self.assertEqual(os.path.basename(folder), self.later.date().isoformat())
-        self.assertEqual(sorted(os.listdir(folder)), sorted(lists.SNAPSHOT_FILES))
+        self.assertLessEqual(set(lists.SNAPSHOT_FILES), set(os.listdir(folder)))  # with the licences: test_lists_licences
         self.assertEqual(lists.Lists.load(user_root=self.root).location, folder)
 
     def test_a_failed_fetch_changes_nothing(self):

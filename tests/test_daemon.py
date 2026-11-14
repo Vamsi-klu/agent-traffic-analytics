@@ -1,6 +1,6 @@
-"""Running cake in the background (S1.1): agentcake/daemon.py. start, stop and status run end to end in test_cli.py;
+"""Running cake in the background: agentcake/daemon.py. start, stop and status run end to end in test_cli.py;
 here, running_here(), the one answer to "is a cake running on this data folder?" that `migrate` and `delete` act on
-(M4 clean-up: each had its own copy), and stop() against stand-ins for the background server (S6.6): stop returns
+(each used to have its own copy), and stop() against stand-ins for the background server: stop returns
 once the process has exited, says so when it has not within stop_wait_s and keeps its pid file, and says why when it
 may not stop it or cannot read the pid file; a pid file whose process has ended is removed.
 

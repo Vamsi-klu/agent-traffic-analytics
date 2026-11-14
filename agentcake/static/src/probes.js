@@ -1,9 +1,10 @@
-// Agent Cake page script, part: the asynchronous environment probes of a page view (plan step S1.3), stream "x".
+// Agent Cake page script, part: the asynchronous environment probes of a page view, stream "x".
 //
 // The research lab's asynchronous checks (env.js, 11/11), in our own code: the worker-consistency and
 // native-tampering ideas come from rebrowser-bot-detector (no code of it is used, see automation.js). Added: the
-// media-device counts (signal sig-040, and the evaluation's superline comparison) and a font check (sig-030, with
-// botscent's width-measuring idea). Every probe has a time limit; all results go to cake in one
+// media-device counts (for the evaluation's superline comparison too), a font check (with
+// botscent's width-measuring idea) and the system font names a browser maps only on Apple's systems, read against the
+// system the browser says it runs on (one answer leaves the page). Every probe has a time limit; all results go to cake in one
 // record. Nothing here asks the visitor for a permission: enumerateDevices without a grant gives kinds, no labels,
 // and only the counts per kind are kept.
 
@@ -148,12 +149,13 @@ function mediaDeviceCounts() {
   })
 }
 
-// Whether a font is installed: a sample's width in that font differs from at least one generic fallback.
-function hasFont(context, font) {
+// Whether a font family resolves: a sample's width in it differs from at least one generic fallback. family is CSS
+// text: a quoted font name, or a keyword such as -apple-system.
+function resolves(context, family) {
   return CFG.probes.font_bases.some(function (base) {
     context.font = CFG.probes.font_px + 'px ' + base
     var fallback = context.measureText(CFG.probes.font_sample).width
-    context.font = CFG.probes.font_px + 'px "' + font + '",' + base
+    context.font = CFG.probes.font_px + 'px ' + family + ',' + base
     return context.measureText(CFG.probes.font_sample).width !== fallback
   })
 }
@@ -163,9 +165,27 @@ function fonts() {
   if (!context) return Promise.resolve(null)
   var found = {}
   CFG.probes.fonts.forEach(function (font) {
-    found[font] = hasFont(context, font)
+    found[font] = resolves(context, '"' + font + '"')
   })
   return Promise.resolve(found)
+}
+
+// The system font names engines map only on Apple's systems (Gecko and WebKit -apple-system, Blink
+// BlinkMacSystemFont), unless the system gives the name an alias (fontconfig can on Linux), against the system the
+// browser says it runs on: 'disagree' when
+// it says another system (user agent and platform both) and one of the names resolves, 'agree' when it says an Apple
+// system or none resolves, 'unknown' when it names no system or there is no canvas. Only this answer is sent.
+function systemFontNames() {
+  var said = navigator.userAgent + ' ' + navigator.platform
+  var names = CFG.probes.system_font_names
+  if (new RegExp(names.apple_claim).test(said)) return Promise.resolve('agree')
+  if (!new RegExp(names.other_claim).test(said)) return Promise.resolve('unknown')
+  var context = document.createElement('canvas').getContext('2d')
+  if (!context) return Promise.resolve('unknown')
+  var apple = names.keywords.some(function (keyword) {
+    return resolves(context, keyword)
+  })
+  return Promise.resolve(apple ? 'disagree' : 'agree')
 }
 
 var PROBES = {
@@ -174,7 +194,8 @@ var PROBES = {
   nativeTampering: nativeTampering,
   uaFullVersion: uaFullVersion,
   mediaDevices: mediaDeviceCounts,
-  fonts: fonts
+  fonts: fonts,
+  systemFontNames: systemFontNames
 }
 
 var results = null

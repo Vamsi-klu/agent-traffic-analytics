@@ -9,7 +9,7 @@ body { font: 16px/1.5 system-ui, sans-serif; max-width: 760px; margin: 0 auto; p
 #bar { position: fixed; left: 0; right: 0; bottom: 0; padding: 12px 16px; border-top: 1px solid; background: Canvas; }
 </style>
 <script>
-  // The simplest consent bar, for GOAL T10 (as tartini.ai does it): the answer is remembered in localStorage; with
+  // The simplest consent bar, for the consent cases (as tartini.ai does it): the answer is remembered in localStorage; with
   // a "yes" from an earlier page, cake.js is told to start before it has even loaded (the queue form).
   window.cake = window.cake || []
   if (localStorage.getItem('consent') === 'yes') window.cake.push('start')

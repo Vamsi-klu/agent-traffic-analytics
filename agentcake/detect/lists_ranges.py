@@ -1,4 +1,4 @@
-"""Builds ip_ranges.json (S3.1): each operator's published address list, read in its own format and collapsed into
+"""Builds ip_ranges.json: each operator's published address list, read in its own format and collapsed into
 CIDR blocks, kept in the lookup order of sources.json "ip_ranges".
 
     build_ranges(recipe, fetch) -> [range entry]      read_blocks(spec, bodies, published_fields) -> (blocks, published)

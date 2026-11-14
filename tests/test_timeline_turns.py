@@ -1,16 +1,16 @@
-"""The behaviour timeline and an agent product's indicator (plan step S3.7; GOAL A5): timeline.build(..., turns=...).
+"""The behaviour timeline and an agent product's indicator (threshold A5): timeline.build(..., turns=...).
 
     python3 -I -m unittest discover -s tests -p test_timeline_turns.py -v
 
 While an indicator said the agent was working (markers.turn_spans), every action is the agent's, whatever the model
 makes of it; the actions outside are the model's, smoothed apart in the stretches between the spans, so that once the
-indicator goes off what follows is judged on its own evidence; the hand-offs stay at the new side's first action and
-carry the indicator's moment beside them. With no turns the timeline is what it was. Through the verdict: a person,
-then Claude in Chrome with its indicator lit, then the person again is Mixed, named, with both hand-offs and the
-indicator's span in the reasons; without the indicator the same session is Human, since the extension's
-closed-shadow host alone is a soft trace that needs company. The stretches of the behaviour model's session-level checks
-(timeline.build(..., checks=...)) go to the agent the same way, but they are no indicator: no marks, no lit or off
-moment, and no step of their own where they hold input but no action.
+indicator goes off what follows is judged on its own evidence; the hand-offs stay at the new side's first action (a
+click, a key or typed input, a wheel) and carry the indicator's moment beside them. With no turns the timeline is what
+it was. Through the verdict: a person, then Claude in Chrome with its indicator lit, then the person again is Mixed,
+named, with both hand-offs and the indicator's span in the reasons; without the indicator the same session is Human,
+since the extension's closed-shadow host alone is a soft trace that needs company. The stretches of the behaviour
+model's session-level checks (timeline.build(..., checks=...)) go to the agent the same way, but they are no indicator:
+no marks, no lit or off moment, and no step of their own where they hold input but no action.
 """
 import os
 import sys
@@ -65,16 +65,16 @@ class Turns(unittest.TestCase):
         self.assertEqual([a["p"] for a in before], timeline.smooth([a["score"] for a in before], HMM))
         self.assertEqual([a["p"] for a in after], timeline.smooth([a["score"] for a in after], HMM))
 
-    def test_hand_offs_stay_at_the_new_sides_first_input_with_the_indicators_moment_beside_them(self):
+    def test_hand_offs_stay_at_the_new_sides_first_action_with_the_indicators_moment_beside_them(self):
         events = clicks(hand_click, 5000, 10000) + clicks(jump_click, 15000, 20000, 25000) + \
             clicks(hand_click, 32000, 37000)
         result = timeline.build(events, turns=[turn(12000, 26000)])
         self.assertEqual([(r["who"], r["n"]) for r in result["runs"]], [("human", 2), ("agent", 3), ("human", 2)])
         to_agent, to_human = result["handoffs"]
-        # the agent's first input once lit: the jump onto its first target, 5 ms before the click
-        self.assertEqual((to_agent["t"], to_agent["marker"]), (14995, {"id": WORKING, "t": 12000}))
-        human_start = next(r["start"] for r in result["runs"][2:])
-        self.assertEqual((to_human["t"], to_human["marker"]), (human_start, {"id": WORKING, "t": 26000}))
+        # the agent's first action once lit is its first click; the jump onto the target 5 ms before is no action
+        self.assertEqual((to_agent["t"], to_agent["marker"]), (15000, {"id": WORKING, "t": 12000}))
+        self.assertEqual(result["runs"][1]["start"], 14995, "the agent's run still begins at its first input")
+        self.assertEqual((to_human["t"], to_human["marker"]), (32000, {"id": WORKING, "t": 26000}))
         self.assertEqual(result["marks"], [turn(12000, 26000)])
 
     def test_an_agent_that_scrolls_before_its_first_click_takes_over_at_its_first_scroll(self):
@@ -92,7 +92,7 @@ class Turns(unittest.TestCase):
         (step,) = [e for e in result["evidence"] if e["kind"] == "turn"]
         self.assertEqual((step["t"], step["who"], step["marker"]), (21000, "agent", WORKING))
         self.assertEqual([(r["who"], r["n"]) for r in result["runs"]], [("human", 3), ("agent", 1), ("human", 3)])
-        self.assertEqual([(h["from"], h["to"]) for h in result["handoffs"]], [("human", "agent"), ("agent", "human")])
+        self.assertEqual(result["handoffs"], [], "the agent only moved the pointer: no action, so no hand-off")
         self.assertEqual(result["shares"]["agent"], 0.0, "a step, not an action: the shares count actions")
 
     def test_a_lit_span_with_no_input_at_all_adds_nothing(self):
@@ -120,13 +120,86 @@ class Turns(unittest.TestCase):
         self.assertEqual([(e["who"], e["marker"]) for e in result["evidence"]], [("agent", WORKING)])
 
 
+TAIL_MS = timeline.load_params()["timeline"]["indicator_tail"]["ms"]["claude-chrome"]
+
+
+def went_off(start, end, marker=WORKING):
+    """A span that ended with its mark going away while the page view went on (markers.turn_spans' went_off)."""
+    return dict(turn(start, end, marker), went_off=True)
+
+
+class IndicatorTail(unittest.TestCase):
+    """The indicator stays lit for a while after the agent's last action (Claude in Chrome checks its work and writes
+    its answer first): its last seconds say nothing about who acted, once the visitor acted after it went off."""
+
+    def test_the_tail_is_seconds_the_agent_never_acted_in(self):
+        self.assertGreater(TAIL_MS, 0)
+        self.assertLess(TAIL_MS, 10000, "Claude in Chrome's shortest measured gap is 4.9 s")
+
+    def test_a_product_whose_tail_was_never_measured_keeps_its_whole_span(self):
+        events = clicks(jump_click, 10000, 15000) + clicks(hand_click, 27000, 29000) + clicks(hand_click, 35000, 40000)
+        comet = dict(went_off(5000, 30000, "comet.overlay"), product="comet")
+        result = timeline.build(events, turns=[comet])
+        self.assertEqual([a["who"] for a in result["actions"]][:4], ["agent"] * 4)
+        self.assertNotIn("held_to", result["marks"][0])
+
+    def test_actions_in_the_tail_are_judged_with_what_follows_the_indicator(self):
+        off = 30000
+        human = (off - TAIL_MS + 1000, off - 1000)  # a hand's clicks under the lit indicator's last seconds
+        events = clicks(jump_click, 10000, 15000, 20000) + clicks(hand_click, *human) + \
+            clicks(hand_click, 35000, 40000)
+        result = timeline.build(events, turns=[went_off(5000, off)])
+        self.assertEqual([(a["t"], a["who"]) for a in result["actions"]],
+                         [(10000, "agent"), (15000, "agent"), (20000, "agent"), (human[0], "human"),
+                          (human[1], "human"), (35000, "human"), (40000, "human")])
+        released = [a for a in result["actions"] if a["t"] in human]
+        self.assertFalse([a for a in released if "marker" in a], "the indicator did not decide them")
+        (to_human,) = result["handoffs"]
+        self.assertEqual((to_human["from"], to_human["to"], to_human["t"]), ("agent", "human", human[0]))
+        self.assertEqual(to_human["marker"], {"id": WORKING, "t": off}, "the indicator's own off stays beside it")
+        self.assertEqual(result["marks"], [dict(went_off(5000, off), held_to=off - TAIL_MS)],
+                         "the reasons still say when it was lit, and until when it decided")
+
+    def test_the_agents_actions_before_the_tail_stay_the_agents(self):
+        events = clicks(hand_click, 10000, 15000, 20000) + clicks(hand_click, 35000, 40000)
+        result = timeline.build(events, turns=[went_off(5000, 30000)])
+        self.assertEqual([a["who"] for a in result["actions"]][:3], ["agent"] * 3, "outside the tail: lit, the agent's")
+
+    def test_with_nothing_done_after_the_indicator_its_tail_stays_the_agents(self):
+        events = clicks(jump_click, 10000, 15000, 20000) + clicks(hand_click, 27000)
+        result = timeline.build(events, turns=[went_off(5000, 30000)])
+        self.assertEqual([a["who"] for a in result["actions"]], ["agent"] * 4, "no one took over after it")
+
+    def test_leaving_the_page_is_no_end_of_the_turn(self):
+        # the agent clicks a link: its marks go off as the page unloads and light again on the next page before it acts
+        events = clicks(jump_click, 10000, 15000, 29000) + clicks(hand_click, 36000, 41000)
+        result = timeline.build(events, turns=[went_off(5000, 29500), turn(31000, 45000)])
+        self.assertEqual({a["who"] for a in result["actions"]}, {"agent"})
+
+    def test_a_span_closed_by_the_page_view_or_cut_where_it_was_hidden_keeps_its_tail(self):
+        events = clicks(jump_click, 10000, 15000) + clicks(hand_click, 27000, 29000) + clicks(hand_click, 35000, 40000)
+        result = timeline.build(events, turns=[dict(turn(5000, 30000), went_off=False)])
+        self.assertEqual([a["who"] for a in result["actions"]][:4], ["agent"] * 4)
+
+    def test_a_span_shorter_than_the_tail_decides_nothing(self):
+        moves = [ev(28000 + 40 * k, "mousemove", cx=300 + k, cy=200) for k in range(3)]
+        events = clicks(hand_click, 10000, 15000, 20000) + moves + clicks(hand_click, 35000, 40000)
+        result = timeline.build(events, turns=[went_off(27000, 30000)])
+        self.assertEqual({a["who"] for a in result["actions"]}, {"human"})
+        self.assertEqual([e for e in result["evidence"] if e["kind"] == "turn"], [], "no lit step of the agent's")
+
+
 HOST = {"tag": "DIV", "nattr": 0, "attrs": [], "open_shadow": 0, "disp": "contents", "parent": "body", "how": "added"}
+INDICATOR_TAIL_TEXT = "Claude in Chrome was working {span}, so the actions until {until} are the agent's."
+INDICATOR_TAIL_DETAIL = ("Its “working” indicator was on screen {span}. It stays on for a few seconds after the agent's "
+                         "last action, so later actions are judged by their behavior.")
 
 
 def hand_off_session(indicator=True):
-    """A person clicks three times, Claude in Chrome three times (its indicator lit from 20 s to 37 s), the person
-    three times again; the extension's host is on the page throughout."""
-    events = clicks(hand_click, 5000, 10000, 15000) + clicks(jump_click, 25000, 30000, 35000) + \
+    """A person clicks three times, Claude in Chrome three times (its indicator lit from 20 s to 37 s, going off 6 s
+    after its last click, as it does: never sooner than its tail), the person three times again; the extension's host
+    is on the page throughout."""
+    events = clicks(hand_click, 5000, 10000, 15000) + clicks(jump_click, 25000, 28000, 31000) + \
         clicks(hand_click, 45000, 50000, 55000)
     page = {"path": "/demo", "dom_add": [HOST]}
     if indicator:
@@ -154,6 +227,25 @@ class ThroughTheVerdict(unittest.TestCase):
         result = verdict.judge(evidence, raw=events)
         self.assertEqual((result["class"], result["handoffs"]), ("human", []))
         self.assertIn("env.soft-alone", [r["id"] for r in result["reasons"]])
+
+    def test_a_human_who_took_over_before_the_indicator_went_off_is_told_apart_in_the_reasons(self):
+        # the person clicks under the lit indicator's last seconds, then goes on after it went off at 40 s
+        events = clicks(hand_click, 5000, 10000, 15000) + clicks(jump_click, 25000, 30000) + \
+            clicks(hand_click, 37000, 39000, 45000, 50000)
+        page = {"path": "/demo", "dom_add": [HOST],
+                "markers": {"list": "2026-11-13", "from": 2000, "until": 60000, "hidden": [],
+                            "spans": [turn(20000, 40000)]}}
+        result = verdict.judge(evidence_builder.from_signals({"pages": [page]}, raw=events), raw=events)
+        self.assertEqual(result["class"], "mixed")
+        self.assertEqual([(h["from"], h["to"], h["t"]) for h in result["handoffs"]],
+                         [("human", "agent", 25000), ("agent", "human", 37000)])
+        reasons = {r["id"]: r for r in result["reasons"]}
+        self.assertNotIn("behavior.indicator", reasons, "not every action while it was lit is the agent's")
+        said = reasons["behavior.indicator-tail"]
+        self.assertEqual(said["value"], [20000, 40000, 40000 - TAIL_MS])
+        self.assertEqual(said["text"], INDICATOR_TAIL_TEXT.format(span="from 0:16 to 0:36", until="0:31"))
+        self.assertEqual(said["detail"], INDICATOR_TAIL_DETAIL.format(span="from 0:16 to 0:36"))
+        self.assertEqual(said["grade"], markers.load_table().markers[WORKING]["grade"])
 
 
 def check(start, end, name="typing_cadence"):

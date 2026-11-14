@@ -1,6 +1,6 @@
-"""A session's recorded streams (S2.2): rrweb replay, raw input and environment signals, kept as 10-second chunks.
+"""A session's recorded streams: rrweb replay, raw input and environment signals, kept as 10-second chunks.
 
-cake.js sends a session's events in batches every few seconds, several streams at once (S1.3). Every stream is kept
+cake.js sends a session's events in batches every few seconds, several streams at once. Every stream is kept
 the same way, whatever its fields: events are grouped into windows of chunk_ms of their own time; a window stays
 uncompressed in the open_chunks table while it can still grow, then it is sealed: sorted by time, its stylesheets
 taken out (styles.py, rrweb only), compressed (zstd-3, or zlib without compression.zstd) and appended to the hour's
@@ -9,15 +9,15 @@ seal_lag_ms past its end (cake.js has moved on), or after seal_idle_ms without n
 maintenance thread). Nothing is lost if cake stops: open windows are in the database, and every read includes them.
 
 Raw input is a stream of chunks rather than a row per event: a minute of mouse and keyboard timing is about 1,300
-events (lab session pwhhd-1), which as rows would cost more than the compressed replay (note 5: 626 bytes per SQLite
-row), and S3.6 reads it in time order next to the rrweb events, which is what a chunk gives. The events table keeps
+events (lab session pwhhd-1), which as rows would cost more than the compressed replay (measured: 626 bytes per SQLite
+row), and the behaviour features read it in time order next to the rrweb events, which is what a chunk gives. The events table keeps
 only the small events a dashboard counts.
 
-Each event can carry the page view it was recorded on (S2.1: cake.js's `pv`; two tabs of one visit send events of
+Each event can carry the page view it was recorded on (cake.js's `pv`; two tabs of one visit send events of
 the same times), kept in its chunk line and given back by the reads with with_page=True.
 
 Interfaces (writers hold store.LOCK and commit):
-    append(con, session_id, stream, items, now_ms)       collect_store.py (S2.1): one stream of a batch, items are
+    append(con, session_id, stream, items, now_ms)       collect_store.py: one stream of a batch, items are
                                                          (ts_ms, event) or (ts_ms, event, page view)
     seal(con, now_ms, force=False, session_id=None)      maintenance.py: seal the windows that went quiet;
                                                          migrate.py: all of one session's, at once
@@ -31,12 +31,12 @@ Interfaces (writers hold store.LOCK and commit):
                                                          page view with with_page=True
     record_chunk(con, ...)                               sealing, recompress.py: the chunks row of a chunk written
     replay_bytes(con, session_id=None, streams=None)     bytes a session's replay (or all replays) takes
-    drop_replay(con, session_id, streams=None)           space.py (S2.5): delete a session's replay (chunks, open
+    drop_replay(con, session_id, streams=None)           space.py: delete a session's replay (chunks, open
                                                          windows and 0.3.4 replay rows); its raw input and
                                                          environment signals, session, segments, srv, labels and
                                                          small events stay; recompress.reclaim() frees the files
     OLD_REPLAY_ROW                                       the SQL condition of a cake 0.3.4 replay row in events
-The replay is the streams in replay_streams (rrweb): what freeing space removes (D4, G5). The raw input and
+The replay is the streams in replay_streams (rrweb): what freeing space removes. The raw input and
 environment streams are what verdicts are made from, so they stay unless a caller names them in `streams`.
 """
 import heapq

@@ -1,4 +1,4 @@
-"""The arithmetic of the industry-style scoreboard (plan step S3.7, decision D36): exact binomial bounds and precision
+"""The arithmetic of the industry-style scoreboard: exact binomial bounds and precision
 at a prevalence.
 
     clopper_pearson(k, n, confidence) -> (low, high)    exact (Clopper–Pearson) interval of k successes in n trials
@@ -8,7 +8,7 @@ A rate measured on a few sessions says little on its own: 0 false positives in 1
 28%. The scoreboard prints every rate with its exact interval (the two-sided interval, so its upper end is the 97.5%
 one-sided bound for a 95% confidence), as Akamai's research prototype and AgentShield report theirs. Precision at a
 prevalence is Bayes' rule on recall and the false positive rate: when agents are 1% of the visits, a false positive
-rate of 5% makes most sessions called agent humans whatever the recall (research note 21, section 3).
+rate of 5% makes most sessions called agent humans whatever the recall.
 
 Standard library only: the binomial tail is summed in log space (math.lgamma) and the bound found by bisection, which
 needs no inverse beta function.

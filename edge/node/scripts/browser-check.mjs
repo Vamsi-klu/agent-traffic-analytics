@@ -3,7 +3,7 @@
 // follows the link back (a 304: the pages are no-cache with an ETag) and reloads. For every page request it compares the
 // four Sec-Fetch values inside the token with the request headers Chrome sent, as Chrome's DevTools protocol records
 // them (Network.requestWillBeSentExtraInfo), checks the token verifies, and notes which token the page itself sees in
-// its navigation entry (what cake.js reads): this response's, an earlier one's, or none. Step S4.1 (GOAL T8, middleware).
+// its navigation entry (what cake.js reads): this response's, an earlier one's, or none (case T8, middleware).
 //
 //   node edge/node/scripts/browser-check.mjs [--out <folder>] [--modes headless,headed] [--no-store]
 //
@@ -116,7 +116,7 @@ async function runMode(mode, site, secret, out) {
 }
 
 async function main() {
-  const out = path.resolve(argument("--out", path.join(os.tmpdir(), "agentcake-evidence", new Date().toISOString().slice(0, 10), "S4.1")))
+  const out = path.resolve(argument("--out", path.join(os.tmpdir(), "agentcake-evidence", new Date().toISOString().slice(0, 10), "browser-check")))
   const modes = argument("--modes", "headless,headed").split(",")
   const noStore = process.argv.includes("--no-store")
   mkdirSync(out, { recursive: true })

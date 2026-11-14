@@ -1,4 +1,4 @@
-"""agentcake/detect/segment.py: input events, one-second windows and per-action segments (plan step S3.6).
+"""agentcake/detect/segment.py: input events, one-second windows and per-action segments.
 
     python3 -I -m unittest discover -s tests -v
 

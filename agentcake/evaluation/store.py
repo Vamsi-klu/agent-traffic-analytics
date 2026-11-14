@@ -1,5 +1,5 @@
-"""The sessions of a CAKE_HOME that a truth list names, read without writing anything (plan step S3.9; GOAL T3, T5,
-T6, T8, T22 run on a real Agent Cake and labelled afterwards).
+"""The sessions of a CAKE_HOME that a truth list names, read without writing anything (cases T3, T5,
+T6, T8 and T22 run on a real Agent Cake and labelled afterwards).
 
     labelled(truth_rows, settings, home=None) -> [{"h", "truth", "evidence", "page_views", "tokens"}]
 
@@ -7,8 +7,8 @@ The database is opened read only (connect_readonly), in the CAKE_HOME given or t
 read from its replay folder and its settings from its config.json, which the readers find through CAKE_HOME, so
 CAKE_HOME is set to it while they read. A session is listed by its short hash, sha256("cake-goal|" + session id)[:12]
 (data/eval.json "short_hash"), so the list never holds a session id. Its evidence is exactly what Agent Cake judges:
-agentcake/evidence.py's session_evidence() (the S3.4 wiring), with the behaviour layer run as verdict.judge() runs
-it. page_views and tokens: the session's page views, and those whose server-half token reached cake (GOAL N1).
+agentcake/evidence.py's session_evidence(), with the behaviour layer run as verdict.judge() runs
+it. page_views and tokens: the session's page views, and those whose server-half token reached cake.
 """
 import contextlib
 import os

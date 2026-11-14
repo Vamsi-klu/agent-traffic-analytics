@@ -1,11 +1,11 @@
-"""The words of a verdict (agentcake.detect.verdict_text, reasons.json, judging.en.json; plan step S3.4).
+"""The words of a verdict (agentcake.detect.verdict_text, reasons.json, judging.en.json).
 
     python3 -I -m unittest discover -s tests -v      (from the repository root)
 
 Every reason the code can give is in reasons.json with a known layer, grade and tone; judging.en.json says what every
-class means (the dashboard's "how cake judges", S5.3, reads the same sentences) and labels every row, verification
+class means (the dashboard's "how cake judges", reads the same sentences) and labels every row, verification
 and layer (how sure a verdict is, the page says only as its percent); a reason's moments read on the replay's clock
-when its start is given; none of the interface text calls a visitor a person, people or a user (D26).
+when its start is given; none of the interface text calls a visitor a person, people or a user.
 """
 import json, os, re, subprocess, sys, unittest
 
@@ -19,7 +19,8 @@ from agentcake.detect import env_rules, markers, reasons_past, verdict, verdict_
 from tools.reasons_past import FACTS_COMMIT  # noqa: E402
 
 DETECT = os.path.join(ROOT, "agentcake", "detect")
-CODE_FILES = ("verdict.py", "verdict_identity.py", "attribute.py", "crawler.py", "behavior.py", "weak.py")
+CODE_FILES = ("verdict.py", "verdict_identity.py", "verdict_marks.py", "attribute.py", "crawler.py", "behavior.py",
+              "weak.py")
 REASON_ID = re.compile(r"""["']((?:exclude|name|verify|env|behavior|crawler|weak)\.[a-z-]+)["']""")  # not rule ids
 LAYERS = {"exclusion", "name", "verify", "environment", "behavior", "weak"}
 TONES = {"agent", "human", "none"}
@@ -86,7 +87,7 @@ def _fill(template, **facts):
 
 
 class KeptFacts(unittest.TestCase):
-    """D34: a reason keeps its facts and is worded each time it is shown, so changed words reach old sessions."""
+    """A reason keeps its facts and is worded each time it is shown, so changed words reach old sessions."""
 
     def test_a_reason_keeps_its_facts_as_json_and_is_worded_from_them(self):
         kept = verdict_text.reason("behavior.too-little-data", "page", 2, n=2, min=3)
@@ -126,6 +127,16 @@ class KeptFacts(unittest.TestCase):
                                        from_ms=8_000, to_ms=None)
         self.assertIn(markers.words("comet.overlay", 16_500, None), verdict_text.words(still_on, T_EPOCH)[0])
 
+    def test_an_indicators_tail_says_until_when_on_the_replays_clock(self):
+        kept = verdict_text.reason("behavior.indicator-tail", "page", [T_EPOCH + 16_500, T_EPOCH + 33_200,
+                                                                      T_EPOCH + 28_300],
+                                   marker="claude-chrome.working", from_ms=8_000, to_ms=24_700, until_ms=19_800)
+        on_replay, from_visit = verdict_text.words(kept, T_EPOCH)[0], verdict_text.words(kept)[0]
+        self.assertIn(markers.words("claude-chrome.working", 16_500, 33_200), on_replay)
+        self.assertIn(" 0:28 ", on_replay)
+        self.assertIn(markers.words("claude-chrome.working", 8_000, 24_700), from_visit)
+        self.assertIn(" 0:19 ", from_visit)
+
     def test_an_environment_hit_is_worded_by_its_rule_whatever_it_was_kept_with(self):
         rule = env_rules.load_rules().rule("env.auto.webdriver")
         self.assertEqual(verdict_text.words({"id": rule.id, "text": "old title"}), (rule.title, rule.detail))
@@ -164,21 +175,21 @@ class JudgingFile(unittest.TestCase):
         for key in verdict.JUDGING_KEYS:
             with self.subTest(key):
                 self.assertTrue(words["classes"][key]["how"])
-        self.assertNotIn("agent_named", words["classes"], "D39: a name is level 3, never a class of its own")
+        self.assertNotIn("agent_named", words["classes"], "a name is level 3, never a class of its own")
         self.assertTrue(words["named"]["how"])
-        self.assertNotIn("confidence", words, "D34: the session page says how sure a verdict is as its percent only")
+        self.assertNotIn("confidence", words, "the session page says how sure a verdict is as its percent only")
         self.assertEqual(set(words["verification"]), {"verified", "self_reported", "unverifiable", "impersonation"})
         self.assertEqual(set(words["layers"]), LAYERS)
 
     def test_the_categories_name_every_value_the_api_gives(self):
-        """D39: the verdict (with an Agent session's split) and which agent have a label and a sentence for each value
+        """The verdict (with an Agent session's split) and which agent have a label and a sentence for each value
         data/api.json maps cake's classes to, and Unnamed for an agent no name fits."""
         words, mapped = verdict_text.judging(), datafiles.load("data/api.json")
         self.assertEqual(set(words["verdicts"]), set(mapped["verdicts"].values()))
         self.assertEqual(set(words["turns"]), set(mapped["agent_turns"].values()))
-        self.assertNotIn("kinds", words, "the user dropped the two kinds of agent (D39): they are reasons now")
+        self.assertNotIn("kinds", words, "there are no kinds of agent: they are reasons now")
         self.assertEqual(set(words["names"]), set(mapped["certainty"].values()) | {"unnamed"})
-        self.assertEqual(set(words["evidence"]), set(mapped["evidence"].values()), "D39: thin evidence marks a Human")
+        self.assertEqual(set(words["evidence"]), set(mapped["evidence"].values()), "thin evidence marks a Human")
         self.assertTrue(words["unsure"]["label"] and words["unsure"]["about"], "a stretch that couldn't tell")
         for level in ("verdicts", "turns", "names", "evidence"):
             for key, entry in words[level].items():

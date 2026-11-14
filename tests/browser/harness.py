@@ -1,4 +1,4 @@
-"""Running the browser side of the cake.js tests (plan steps S1.3, S1.4): the collector plus drive.mjs.
+"""Running the browser side of the cake.js tests: the collector plus drive.mjs.
 
 What is needed: node; playwright-core (CAKE_PLAYWRIGHT, or web/node_modules/playwright-core of this checkout); Chromium
 (CAKE_CHROME, or Playwright's cache). missing() says what is not there, so a test can skip and say why.

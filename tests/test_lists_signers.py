@@ -1,4 +1,4 @@
-"""S3.1 and S3.2: the bundled Web Bot Auth signers, read on this computer without any network.
+"""The bundled Web Bot Auth signers, read on this computer without any network.
 
     python3 -I -m unittest discover -s tests -v      (from the cake folder)
 
@@ -6,7 +6,7 @@ Signers resolve to names with their bundled Ed25519 keys; a rolling expiry is no
 kept per signer, as the verifier takes them; every stored directory response still verifies with the keys it carries
 (draft -01 section 5.5.3), which for muse.ai are signatures Meta made itself; Meta's Muse resolves from
 Signature-Agent "https://muse.ai" to its keys; a signer that stopped signing keeps its keys and says so.
-Split from test_lists.py (signers-update, 2026-11-13).
+Split from test_lists.py.
 """
 import base64, hashlib, json, os, sys, unittest
 

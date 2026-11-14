@@ -1,4 +1,4 @@
-"""Night work on replay chunks (S2.2): agentcake/recompress.py.
+"""Night work on replay chunks: agentcake/recompress.py.
 
     python3 -I -m unittest discover -s tests -p test_recompress.py -v      (from the cake folder)
 

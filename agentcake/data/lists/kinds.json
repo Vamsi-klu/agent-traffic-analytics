@@ -1,5 +1,5 @@
 {
-  "$comment": "The kinds a listed name can have, and what each means for a session (D17): an agent is AI or automation working for a human; a bot is a named program that is not an agent. 'row' is the line of the dashboard's Agent block an agent kind is counted in ('ai': AI in a real browser; 'automated': Automated browser). A 'generic' kind names a tool anyone can run, so a more specific name matched in the same User-Agent wins over it. Labels are interface text (English only, D21).",
+  "$comment": "The kinds a listed name can have, and what each means for a session: an agent is AI or automation working for a human; a bot is a named program that is not an agent. 'row' is the line of the dashboard's Agent block an agent kind is counted in ('ai': AI in a real browser; 'automated': Automated browser). A 'generic' kind names a tool anyone can run, so a more specific name matched in the same User-Agent wins over it. Labels are interface text (English only).",
   "kinds": {
     "ai-desktop-app": {"category": "agent", "row": "ai", "label": "AI desktop app's in-app browser"},
     "ai-browser-extension": {"category": "agent", "row": "ai", "label": "AI browser extension"},

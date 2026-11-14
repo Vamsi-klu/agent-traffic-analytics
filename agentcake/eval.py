@@ -1,4 +1,4 @@
-"""`agentcake eval`: how well Agent Cake judges sessions with known answers, and the GOAL gate (plan step S3.9; T12).
+"""`agentcake eval`: how well Agent Cake judges sessions with known answers, and the gate of eval/thresholds.json.
 
     agentcake eval [--gate] [--out DIR] [--sources FILE] [--recordings DIR] [--posthog DIR] [--cake-home DIR]
                    [--truth-goal FILE] [--truth-manual FILE] [--truth-recordings FILE] [--thresholds FILE]
@@ -10,7 +10,7 @@ files of a checkout), judges each session with agentcake.detect and prints the r
 eval.md (the report) and eval.json (every session row and the gated take-over rows: lab run names and 12-hex short
 hashes, no paths) there. --gate makes
 the exit code the verdict of eval/thresholds.json on the thresholds this command measures: 0 when every one passes,
-1 when one fails or has no data (GOAL section 2: what did not run did not pass), 2 for a usage error.
+1 when one fails or has no data (what did not run did not pass), 2 for a usage error.
 It only reads: it writes no verdict anywhere and sends nothing over the network. Thresholds are never in the code:
 A5's hand-off limit, for one, is the A5 value of the thresholds file.
 """

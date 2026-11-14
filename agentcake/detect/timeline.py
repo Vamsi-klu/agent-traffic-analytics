@@ -1,4 +1,4 @@
-"""Who did each action of a session, the human and agent shares by action, and the hand-offs (plan step S3.7).
+"""Who did each action of a session, the human and agent shares by action, and the hand-offs.
 
 Part of the behaviour layer. Input: a session's events in the raw-event format (segment.py; rrweb_events.py
 rebuilds it from rrweb recordings), each a dict with "t" (ms) and "ty"; mousemoves carry "cx", "cy". Output of
@@ -14,9 +14,14 @@ build(events): {"actions", "evidence", "runs", "shares", "handoffs", "marks", "c
   led up to it (no approach, a jump to the target), so the activity before it belongs to whoever acted before.
 - evidence: the scored stretches that are not actions (see build()), with their p and who.
 - shares: {"human", "agent", "unsure"}, each a share of the actions (all "unsure" when there is none).
-- handoffs: [{"t", "from", "to", "after"}]: where a decided run follows a run of the other actor (unsure runs in
-  between are skipped). t is the start of the new actor's first action, after the end of the previous actor's run.
-- marks: the turn spans build() was given (see below), [{"marker", "from", "to", ...}].
+- handoffs: [{"t", "from", "to", "after"}]: where a decided run follows a run of the other actor (unsure runs, and
+  runs with no action of their own, in between are skipped). t is where the new actor first acted, its first
+  action: a click, a key or typed input, or a wheel (visitor_actions.py, data/actions.json; moving the pointer is
+  none), after the end of the previous actor's run ("after"). The steps between the two runs that the smoothing
+  could not decide go to the side their own scores make likeliest, so t is not pushed to the first step the smoothing
+  decided (handoff.py).
+- marks: the turn spans build() was given (see below), [{"marker", "from", "to", ...}], with "held_to" where the
+  indicator decided only up to then (its tail, below).
 - checks: the stretches of the behaviour model's session-level checks build() was given, [{"check", "from", "to"}].
 
 An agent product's indicator (markers.turn_spans: cake.js's watch, or the recorder's check) says when its agent was
@@ -28,11 +33,17 @@ evidence (an indicator's absence is no evidence of a human: other agents draw no
 indicator was lit is the agent's, so an agent run that begins inside a span begins at the first input after the
 indicator lit (the agent may scroll or move for a while before its first click), and a span in which the page saw
 input but no action becomes one step of the agent's ("turn", at that first input; evidence, not an action, so the
-shares do not count it). Hand-offs stay where the runs change sides, at the new side's first input or action, which is
-what GOAL A5 measures against; the indicator's own moment is seconds away from it (it lights while the agent takes its
-first screenshot and thinks, and goes off before the person has reached the page), so a hand-off next to a span
-carries that moment beside it: "marker": {"id", "t"}, when the indicator lit (to the agent) or went off (from the
-agent).
+shares do not count it). The exception is an indicator's tail: it stays lit after the agent's last action while the
+agent checks its work and writes its answer, so a lit indicator says the agent holds the tab, not that it made each
+input. When a span ended with its mark going away while the page view went on (went_off) and the visitor acted after
+it before any indicator lit again, its last indicator_tail ms (behavior_model.json, per product: the shortest gap
+measured between the agent's last action and its indicator going off) are not given to the agent: the steps there are
+judged on their own evidence, smoothed with the steps that follow, as outside any span (_held), so a human who took
+over before the indicator went off is found by what they did. Hand-offs stay where the runs change sides, at the new
+side's first action, which is what threshold A5 measures against; the indicator's own moment is seconds away from it
+(it lights while the agent takes its first screenshot and thinks, and goes off when the agent's turn is over, seconds
+after its last action), so a hand-off next to a span carries that moment beside it: "marker": {"id", "t"}, when the
+indicator lit (to the agent) or went off (from the agent).
 
 The behaviour model's session-level checks (model.py: the typing rhythm, the pointer's move rate, teleport clicks) read
 the session as a whole, so no action's own score shows them; each says which stretch its evidence covers, and
@@ -40,24 +51,25 @@ build(..., checks=spans) gives the steps inside that stretch to the agent the sa
 instead of a marker). They are not an indicator: they make no marks, no "turn" step and no lit or off moment.
 
 The method is cake 0.3.4's per-action judge (its cake.py: rr_actions, p_agent, hmm_smooth; kept as
-tests/judge_0_3_4.py, which tests/test_timeline.py checks this module against), which research note 12 found the most
-accurate on real mixed replays (conclusion 4). It is read from the raw-event format
+tests/judge_0_3_4.py, which tests/test_timeline.py checks this module against), which our study of PostHog replays found the
+most accurate on real mixed replays. It is read from the raw-event format
 instead of rrweb, with the same arithmetic: on the same input it gives 0.3.4's numbers, quirks included (an input
 merged into the previous one moves that action's time, not the start of the next pause). Two changes, both to stop
-a missing signal from deciding (research note 12's missing variant): an action with no pointer position before it
+a missing signal from deciding (the missing-data variant): an action with no pointer position before it
 gets no pointer evidence (no_pointer_no_evidence; false gives 0.3.4's scores), and scrolls and pointer movement,
 which 0.3.4 never scored, enter the smoothing as evidence when they carry some (build()'s evidence), so a stretch
 with no click or typing can still show who was there. Added here as well: each action's first event and approach
 start, the runs' start and mean p, and the hand-offs. smooth() and label() are shared with the session verdict
 (model.py). Parameters: agentcake/data/behavior_model.json ("timeline"; "min_actions" for model.py). A click no
-mouse made gets no pointer evidence either (job borrow-rules B3, after bot-signal's isPointerClick, MIT,
+mouse made gets no pointer evidence either (after bot-signal's isPointerClick, MIT,
 github.com/okasi/bot-signal 25a4e7b0159f; no code copied).
 """
 import bisect
 import math
 
 from agentcake import datafiles
-from agentcake.detect import features as behaviour_features, segment
+from agentcake.detect import features as behaviour_features, segment, visitor_actions
+from agentcake.detect.handoff import handoffs  # noqa: F401 (part of this module's interface)
 from agentcake.units import MS_PER_S
 
 PARAMS_FILE = "data/behavior_model.json"
@@ -82,7 +94,8 @@ def build(events, params=None, session_start=None, evidence=(), turns=(), checks
     evidence: scored stretches that are not actions (model.py: scrolls and pointer movement that carry evidence),
     each {"kind", "t", "first", "start", "score"}. They are smoothed in time order with the actions and shape the
     runs and hand-offs, but the shares count actions only. turns: the spans in which an agent product's indicator
-    said its agent was working (markers.turn_spans), each {"marker", "from", "to"} in ms. checks: the stretches the
+    said its agent was working (markers.turn_spans), each {"marker", "from", "to"} in ms and "went_off" when its mark
+    went away in sight (see the module docstring: the indicator's tail). checks: the stretches the
     behaviour model's session-level checks cover, each {"check", "from", "to"} in ms (see the module docstring).
     """
     p = (params or load_params())["timeline"]
@@ -92,9 +105,11 @@ def build(events, params=None, session_start=None, evidence=(), turns=(), checks
     spans = sorted(turns, key=lambda span: span["from"])
     checked = sorted((dict(check) for check in checks), key=lambda span: span["from"])
     inputs = sorted(e["t"] for e in events if e.get("ty") in segment.INPUT_TYPES) if spans else []
+    acted = visitor_actions.times(events)
+    held, marks = _held(spans, acted, p["indicator_tail"]["ms"])
     steps = acts + [dict(stretch) for stretch in evidence]
-    steps = sorted(steps + _quiet_turns(spans, steps, inputs), key=lambda step: step["t"])
-    for span, group in _by_turn(steps, sorted(spans + checked, key=lambda span: span["from"])):
+    steps = sorted(steps + _quiet_turns(held, steps, inputs), key=lambda step: step["t"])
+    for span, group in _by_turn(steps, sorted(held + checked, key=lambda span: span["from"])):
         if span is not None:
             for step in group:
                 step.update(p=1.0, who="agent", **({"marker": span["marker"]} if "marker" in span else
@@ -107,8 +122,8 @@ def build(events, params=None, session_start=None, evidence=(), turns=(), checks
     _start_lit_runs(runs_, inputs)
     return {"actions": [s for s in steps if s["kind"] in ACTION_KINDS],
             "evidence": [s for s in steps if s["kind"] not in ACTION_KINDS], "runs": runs_,
-            "shares": shares([a["who"] for a in acts]), "handoffs": handoffs(runs_), "marks": spans,
-            "checks": checked}
+            "shares": shares([a["who"] for a in acts]), "handoffs": handoffs(runs_, steps, acted, p["logit_limit"]),
+            "marks": marks, "checks": checked}
 
 
 def _by_turn(steps, spans):
@@ -128,6 +143,28 @@ def _by_turn(steps, spans):
     if current:
         groups.append((key, current))
     return [(spans[k[1]] if k[0] == "in" else None, group) for k, group in groups]
+
+
+def _held(spans, action_times, tail_ms):
+    """(the stretches the spans give to the agent, the spans with "held_to" where that ends early). A span gives all
+    of itself, except the tail_ms of its product (indicator_tail "ms") before its end when it ended with its mark going
+    away (went_off) and the visitor acted after it before any span lit again: the agent's last action comes that long
+    before its indicator goes off at the least, so the steps there are judged on their own evidence. Leaving the page
+    also takes the marks away, but the next page's light again before the agent acts there. A span left with nothing
+    gives nothing. action_times: the session's actions (visitor_actions.times), in order."""
+    held, marks, starts = [], [], [span["from"] for span in spans]
+    for span in spans:
+        tail = tail_ms.get(span.get("product"))
+        if tail is not None and span.get("went_off"):
+            after = bisect.bisect_right(action_times, span["to"])
+            relit = next((start for start in starts if start > span["to"]), None)
+            if after < len(action_times) and (relit is None or action_times[after] < relit):
+                span = dict(span, held_to=span["to"] - tail)
+        marks.append(span)
+        end = span.get("held_to", span["to"])
+        if end >= span["from"]:
+            held.append(dict(span, to=end))
+    return held, marks
 
 
 def _quiet_turns(spans, steps, times):
@@ -160,14 +197,16 @@ def actions(events, params=None, session_start=None):
     """0.3.4's actions: each click, and each input burst (inputs less than input_merge_ms apart), with features.
 
     Returns [{"kind", "t", "start", "features"}]; features as in 0.3.4's rr_actions (see behavior_model.json), plus
-    by_mouse: 0.0 for a click the keyboard, a finger or a pen made (features.mouse_click(); job borrow-rules B3),
-    whose pointer approach p_agent() does not read, else 1.0.
+    by_mouse: 0.0 for a click the keyboard, a finger or a pen made (clicks.mouse_click()), else 1.0, and in_place:
+    1.0 for a mouse click that repeats the one before it in place (clicks.repeats_in_place()), else 0.0; p_agent()
+    reads the pointer approach of neither.
     """
     p = (params or load_params())["timeline"]
     events = sorted(events, key=lambda e: e["t"])
     if session_start is None:
         session_start = events[0]["t"] if events else 0
-    by_mouse = {id(e) for e in behaviour_features.mouse_clicks(events)}
+    index = behaviour_features.SessionIndex(events, segment.load_params()["features"])
+    by_mouse, in_place = {id(e) for e in index.mouse_clicks}, index.in_place
     moves = _Moves()
     acts, leading_up, t_prev = [], [], session_start
     for e in events:
@@ -180,7 +219,8 @@ def actions(events, params=None, session_start=None):
         elif kind in ACTION_KINDS:
             made_by_mouse = kind != CLICK or id(e) in by_mouse
             acts.append({"kind": kind, "t": e["t"], "first": e["t"], "start": _activity_start(e["t"], leading_up, p),
-                         "features": dict(_features(e["t"], t_prev, moves, p), by_mouse=float(made_by_mouse))})
+                         "features": dict(_features(e["t"], t_prev, moves, p), by_mouse=float(made_by_mouse),
+                                          in_place=float(id(e) in in_place))})
             t_prev, leading_up = e["t"], []
         elif kind in segment.INPUT_TYPES:
             leading_up.append(e["t"])
@@ -193,11 +233,13 @@ def p_agent(features, params=None):
     With no_pointer_no_evidence, an action with no pointer position in its window gets nothing from the two pointer
     features that would read the empty window as a jump (no_move_act) and as a straight path (straight): the
     pointer may not have moved at all, or a key made the click. An agent leaves one position, where it jumped to.
-    The same goes for a click no mouse made (by_mouse 0: job borrow-rules B3): the browser's one move at a tapped spot
-    is no jump.
+    The same goes for a click no mouse made (by_mouse 0): the browser's one move at a tapped spot
+    is no jump; and for a click that repeats the one before it in place (in_place 1): the pointer rested on the spot,
+    so its window holds at most the previous click's approach and the hand's jitter.
     """
     p = (params or load_params())["timeline"]
-    no_pointer = features["moves_before_act"] == 0 or not features.get("by_mouse", 1.0)
+    no_pointer = (features["moves_before_act"] == 0 or not features.get("by_mouse", 1.0)
+                  or features.get("in_place", 0.0))
     if p["no_pointer_no_evidence"] and no_pointer:
         features = {**features, **dict.fromkeys(NO_POINTER_FEATURES, 0.0)}
     z = p["bias"] + sum(weight * features[name] for name, weight in p["weights"].items())
@@ -271,24 +313,6 @@ def shares(labels):
     if not labels:
         return {"human": 0.0, "agent": 0.0, "unsure": 1.0}
     return {who: labels.count(who) / len(labels) for who in WHO}
-
-
-def handoffs(runs_):
-    """Where a decided run follows a decided run of the other actor; unsure runs in between are skipped. Next to a
-    turn span, the indicator's moment: when it lit, for a hand-off to an agent run that began inside the span, or
-    when it went off, for one from an agent run that ended inside it."""
-    out, previous = [], None
-    for run in runs_:
-        if run["who"] == "unsure":
-            continue
-        if previous is not None and run["who"] != previous["who"]:
-            handoff = {"t": run["start"], "from": previous["who"], "to": run["who"], "after": previous["end"]}
-            moment = run.get("lit") if run["who"] == "agent" else previous.get("off")
-            if moment:
-                handoff["marker"] = moment
-            out.append(handoff)
-        previous = run
-    return out
 
 
 class _Moves:

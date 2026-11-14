@@ -1,5 +1,5 @@
-/* The test site's look (tests/site/site_server.py): the demo shop's stylesheet as its build script (removed with the shop,
-   D37) last made it from the theme's tokens, frozen; the system fonts stand in for the bundled ones. */
+/* The test site's look (tests/site/site_server.py): the demo shop's stylesheet as its build script (removed with the shop
+   in 0.4.0) last made it from the theme's tokens, frozen; the system fonts stand in for the bundled ones. */
 /* cake · Frosting theme tokens. The ONLY place colours, fonts and shape values are written.
    Names follow shadcn/ui (https://ui.shadcn.com/docs/theming) plus cake's extra tokens.
    Documented in /DESIGN.md §3 (the table there must match this file: npm run check:ui).

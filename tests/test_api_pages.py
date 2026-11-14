@@ -1,4 +1,4 @@
-"""The pages of a session in GET /api/session/<id> (S5.4, agentcake/api/pages.py): in the order they opened, the first
+"""The pages of a session in GET /api/session/<id> (agentcake/api/pages.py): in the order they opened, the first
 the entry page and the last the exit page, each with when it opened, how long the visit stayed, its actions and who
 took them.
 
@@ -8,7 +8,7 @@ Sessions are written into a scratch CAKE_HOME the way collect and judging.py lea
 signals stream, its raw input, a batch row per upload with the page's address then (batches.url), the verdict's
 segments. A page view is a page; a single-page app's new address is a new page from the first batch that carries it;
 a session with nothing to go by has one page, its own address. A page lasts until the next one opens, the last one
-until the session's end. Who acted on a page is named as the session categories name it (D39): a human, an agent
+until the session's end. Who acted on a page is named as the session categories name it: a human, an agent
 only, both (human_agent), unknown; a page without actions takes who acted when it opened. A cake 0.3.x recording's pages are its rrweb
 Meta events. The counts hold every action, not only the ones "Every action" lists. The fixed test library's recorded
 sessions answer the contract with pages that add up.

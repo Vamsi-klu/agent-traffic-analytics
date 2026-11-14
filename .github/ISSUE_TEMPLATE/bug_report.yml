@@ -6,7 +6,7 @@ body:
     attributes:
       value: |
         Do not paste your visitors' data: no replays, IP addresses, e-mail addresses, cookies or site keys.
-        A security vulnerability goes to [SECURITY.md](https://github.com/tartini-ai/agent-behavior-analysis/blob/main/SECURITY.md), not here.
+        A security vulnerability goes to [SECURITY.md](https://github.com/tartini-ai/agent-traffic-analytics/blob/main/SECURITY.md), not here.
   - type: textarea
     id: what-happened
     attributes:
@@ -28,7 +28,7 @@ body:
     attributes:
       label: AgentCake version
       description: What `agentcake --version` prints.
-      placeholder: agentcake 0.4.0
+      placeholder: agentcake 0.4.1
     validations:
       required: true
   - type: dropdown

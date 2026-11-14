@@ -1,5 +1,5 @@
-"""Files sent to browsers: the page script cake.js (S1.3), the rrweb recorder and player from static/ (S1.1), and the
-compiled local pages (S5.1).
+"""Files sent to browsers: the page script cake.js, the rrweb recorder and player from static/, and the
+compiled local pages.
 
 cake.js is built from static/src/ by build_js.py and committed as static/cake.js; it is served with this
 installation's runtime values filled in. The recorder stays at /rrweb-record.min.js for pages that still have a
@@ -24,7 +24,7 @@ CACHE_CONTROL = "Cache-Control"
 
 
 def runtime_values(c):
-    """What cake.js gets from this installation, set on the settings page (S5.5): the site key, whether to watch the
+    """What cake.js gets from this installation, set on the settings page: the site key, whether to watch the
     site's own document lookups, and the parts of its pages never to record; agentcake/data/cakejs.json has the rest."""
     return {"site_key": c.get("site_key"), "hook_dom": bool(c["hook_dom"]), "hide_selectors": c["hide_selectors"]}
 

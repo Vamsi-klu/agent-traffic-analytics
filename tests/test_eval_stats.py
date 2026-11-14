@@ -1,10 +1,10 @@
-"""agentcake/evaluation/stats.py: exact binomial bounds and precision at a prevalence (plan step S3.7, D36).
+"""agentcake/evaluation/stats.py: exact binomial bounds and precision at a prevalence.
 
     python3 -I -m unittest discover -s tests -v
 
-The Clopper–Pearson values are the published ones (two-sided 95%): 0 of 11 allows up to 28.5% (research note 21's
-clean humans), 21 of 23 lies in 72.0%–98.9% (note 21's Claude in Chrome on PostHog), 2 of 10 in 2.5%–55.6% (the
-textbook example). Precision at 1% is note 21's worked example: recall 90%, false positives 5% → 15.4%.
+The Clopper–Pearson values are the published ones (two-sided 95%): 0 of 11 allows up to 28.5% (our
+clean humans), 21 of 23 lies in 72.0%–98.9% (Claude in Chrome on PostHog), 2 of 10 in 2.5%–55.6% (the
+textbook example). Precision at 1%, a worked example: recall 90%, false positives 5% → 15.4%.
 """
 import os
 import sys

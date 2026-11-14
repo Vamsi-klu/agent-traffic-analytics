@@ -1,9 +1,9 @@
-"""agentcake/detect/rrweb_events.py: rrweb recordings turned into the raw-event format of the features (plan S3.6).
+"""agentcake/detect/rrweb_events.py: rrweb recordings turned into the raw-event format of the features.
 
     python3 -I -m unittest discover -s tests -v
 
 The small cases document the mapping. The lab case converts the rrweb half of the 26 lab sessions and compares the
-event counts with research note 12 (rr_vs_raw.json), which used the same conversion.
+event counts with our PostHog study's (rr_vs_raw.json), which used the same conversion.
 """
 import os
 import sys
@@ -97,7 +97,7 @@ class ConversionTest(unittest.TestCase):
 
 
 class RowsTest(unittest.TestCase):
-    """Rows are also the layout of note 12's PostHog downloads, where each row names its browser window
+    """Rows are also the layout of the PostHog study's downloads, where each row names its browser window
     (tests/posthog_fixtures.py makes them)."""
 
     def test_each_event_gets_the_page_of_its_window(self):

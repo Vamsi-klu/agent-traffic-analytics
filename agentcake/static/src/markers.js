@@ -1,5 +1,5 @@
-// Agent Cake page script, part: the marks agent products draw on the page, and when each was there (plan steps S3.3,
-// S3.7; GOAL A5), stream "x".
+// Agent Cake page script, part: the marks agent products draw on the page, and when each was there (threshold A5),
+// stream "x".
 //
 // Some agent products draw on the page while they work: Claude in Chrome a "working" tag and a Stop button, Comet a
 // stop button, Browser Use a box around each action. When such a mark appears and goes away tells cake when the

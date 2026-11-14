@@ -1,6 +1,6 @@
-// The replay player's two files, which cake serves under /static/ (agentcake/assets.py, S1.1): rrweb-player
+// The replay player's two files, which cake serves under /static/ (agentcake/assets.py): rrweb-player
 // 2.0.0-alpha.18 (MIT, THIRD_PARTY.md), read from agentcake/static/. The pages load them at run time instead of
-// bundling an npm copy (S5.4), so the dev, preview, screenshot and test servers answer the same two paths from the same
+// bundling an npm copy, so the dev, preview, screenshot and test servers answer the same two paths from the same
 // files. A connect-style handler like fixture-api.mjs: anything else goes to next().
 import { readFile } from "node:fs/promises"
 import path from "node:path"

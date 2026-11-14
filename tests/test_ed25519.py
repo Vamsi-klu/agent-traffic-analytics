@@ -1,4 +1,4 @@
-"""Ed25519 verification (agentcake.detect.ed25519, S3.2) against RFC 8032.
+"""Ed25519 verification (agentcake.detect.ed25519) against RFC 8032.
 
     python3 -I -m unittest discover -s tests -v      (from the repository root)
 

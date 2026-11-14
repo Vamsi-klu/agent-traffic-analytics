@@ -1,4 +1,4 @@
-"""What the /api tests share (S5.1): a client that asks the local listener's views as the local page does, and the
+"""What the /api tests share: a client that asks the local listener's views as the local page does, and the
 contract's schemas to check every answer against.
 
     Client()                      get(path, **query) and post(path, body, ...) -> Answer(status, body, headers);

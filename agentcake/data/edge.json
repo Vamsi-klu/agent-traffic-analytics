@@ -1,5 +1,5 @@
 {
-  "about": "The server-half token (S4.1): its format, which page requests get one, and what it holds. cake uses these values to read the tokens sites send. They are the Node middleware's values (edge/node/defaults.json, edge/node/headers.json): tests/test_edge_vectors.py checks that the two agree, and tests/vectors/edge_token.json pins the tokens both make.",
+  "about": "The server-half token: its format, which page requests get one, and what it holds. cake uses these values to read the tokens sites send. They are the Node middleware's values (edge/node/defaults.json, edge/node/headers.json): tests/test_edge_vectors.py checks that the two agree, and tests/vectors/edge_token.json pins the tokens both make.",
   "token_prefix": "c1",
   "payload_version": 1,
   "entry_name": "cake",

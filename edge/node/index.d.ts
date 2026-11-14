@@ -1,4 +1,4 @@
-// Types for @agentcake/edge (index.js): the shared core and the token's format. Step S4.1.
+// Types for @agentcake/edge (index.js): the shared core and the token's format.
 
 /** botscent's verdict on a request, as botscent/server's inspect() returns it. */
 export type Verdict = { type: "agent" | "human"; agent_name?: string; reasons: readonly string[] }

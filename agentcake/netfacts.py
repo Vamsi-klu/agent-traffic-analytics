@@ -1,7 +1,7 @@
-"""The network facts of an upload request (S2.3; 0.3.3's server mode): its headers, and what the visitor's address says.
+"""The network facts of an upload request (0.3.3's server mode): its headers, and what the visitor's address says.
 
-Per request (the requests table, written by collect_store; S3.3's env_signals.from_cake reads "headers" and
-"ip_class", S3.4's verdict the lists.match_ip() fields):
+Per request (the requests table, written by collect_store; the environment layer's env_signals.from_cake reads
+"headers" and "ip_class", the verdict the lists.match_ip() fields):
     client_address(headers, c, public) -> address or None   only on the public listener with trust_lb, and only from
                                                              the load balancer's header (data/lb_headers.json)
     look_up(address) -> lists.match_ip() result or None     published agent or bot range; relay, CDN, cloud
@@ -69,7 +69,7 @@ def ip_prefix(ip):
         a = a.ipv4_mapped
     if a.version == IPV4:
         return str(ipaddress.ip_network(f"{a}/{IPV4_PREFIX}", strict=False).network_address) + f"/{IPV4_PREFIX}"
-    # The first three groups from the address's bytes (S4.1): .exploded raises for an address with a zone ("fe80::1%eth0").
+    # The first three groups from the address's bytes: .exploded raises for an address with a zone ("fe80::1%eth0").
     span = IPV6_PREFIX_GROUPS * IPV6_GROUP_BYTES
     g = [int.from_bytes(a.packed[i:i + IPV6_GROUP_BYTES], "big") for i in range(0, span, IPV6_GROUP_BYTES)]
     return ":".join(format(x, "x") for x in g) + f"::/{IPV6_PREFIX}"

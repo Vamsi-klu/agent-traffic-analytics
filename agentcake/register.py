@@ -1,4 +1,4 @@
-"""Registering this AgentCake with Tartini AI, once per data folder (S5.8, D32; PRIVACY.md "Registration").
+"""Registering this AgentCake with Tartini AI, once per data folder (PRIVACY.md "Registration").
 
 The first time the local dashboard opens, it shows a card (web/src/pages/register.tsx) that asks for an e-mail address,
 a company if the owner gives one, and whether to send product update e-mails. Its "See what is sent" shows the JSON
@@ -15,7 +15,7 @@ name and company to PostHog by itself (posthog/urls.py setup_admin, with a key w
                                 sent or the receiver did not accept it
     kept(con) / keep(con, body, now_ms)    what this data folder sent and when, kept in its database
 
-There is no retry and no queue (D32): a registration that cannot be sent is dropped, the page says why and lets the
+There is no retry and no queue: a registration that cannot be sent is dropped, the page says why and lets the
 owner in, and the card asks again the next time the dashboard is opened.
 """
 import json

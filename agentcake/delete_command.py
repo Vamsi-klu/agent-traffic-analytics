@@ -1,4 +1,4 @@
-"""`agentcake delete --session <id> | --visitor <visit id> [--dry-run]` (S6.5; GOAL G12).
+"""`agentcake delete --session <id> | --visitor <visit id> [--dry-run]`.
 
 A session is one visit: cake keeps a visit under the id cake.js keeps in the visitor's browser (`cake_sid` in
 sessionStorage), which is the session id the dashboard shows. --session takes an id read off the dashboard, --visitor

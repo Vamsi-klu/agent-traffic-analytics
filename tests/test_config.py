@@ -1,4 +1,4 @@
-"""Settings and data files (S1.2): every value comes from defaults.json or data/*.json, the user's config.json
+"""Settings and data files: every value comes from defaults.json or data/*.json, the user's config.json
 overrides a default, `config get` says where each value comes from, and bad values are refused as in 0.3.4.
 
     python3 -I -m unittest discover -s tests -v      (from the Agent Cake folder)
@@ -133,7 +133,7 @@ class BadValues(Home):
 
 
 class RetiredSettings(Home):
-    """mask_inputs turned input masking off in 0.3.4. Since S1.4 cake.js masks every input whatever is configured
+    """mask_inputs turned input masking off in 0.3.4. Since 0.4.0 cake.js masks every input whatever is configured
     (data/privacy.json), so setting it is refused with the reason instead of being saved and ignored."""
 
     def test_mask_inputs_cannot_be_set(self):
@@ -194,7 +194,7 @@ class DefaultsDriveBehaviour(Home):
         self.assertEqual(self.session_row("sessJ", "judged_ms"), ((NOW_S + 20) * 1000,))
 
     def test_events_kept_per_post(self):
-        """S2.1: an upload with more records than max_events_per_post is refused and counted (0.3.4 kept its first
+        """An upload with more records than max_events_per_post is refused and counted (0.3.4 kept its first
         ones); one within the limit is kept whole."""
         key = config.ensure_cfg()["site_key"]
         body = lambda sid, n: {"k": key, "s": sid, "u": "https://example.com/", "e": [click(NOW_S * 1000 + i) for i in range(n)]}
@@ -227,7 +227,7 @@ class DataFilesDriveBehaviour(unittest.TestCase):
     """The name lists, the header names and the product name are read from data/*.json."""
 
     def test_user_agent_names_come_from_the_lists(self):
-        # S3.5: the bundled lists (data/lists/names.json) replaced 0.3.4's patterns, whose "Comet|Perplexity" called
+        # the bundled lists (data/lists/names.json) replaced 0.3.4's patterns, whose "Comet|Perplexity" called
         # PerplexityBot Comet; the kind is the list's.
         perplexitybot = ("Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; PerplexityBot/1.0; "
                          "+https://perplexity.ai/perplexitybot)")

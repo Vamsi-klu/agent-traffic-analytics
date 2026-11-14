@@ -1,4 +1,4 @@
-"""Crawler-like patterns (agentcake.detect.crawler, plan step S3.4): weak signals, never a class (D17).
+"""Crawler-like patterns (agentcake.detect.crawler): weak signals, never a class.
 
     python3 -I -m unittest discover -s tests -v      (from the repository root)
 

@@ -1,11 +1,11 @@
-"""Where Agent Cake's files are (S1.1): the data folder $CAKE_HOME and the files that ship inside the package.
+"""Where Agent Cake's files are: the data folder $CAKE_HOME and the files that ship inside the package.
 
 Data lives in $CAKE_HOME (default ~/.cake, the folder 0.3.x used): config.json, cake.db, cake.pid, cake.log and
 srv_secret are named here; replays/ (replay_chunks.py) and lists/ (detect/lists.py, `agentcake lists update`) sit next
 to them. The functions read $CAKE_HOME on every call instead of once at import, so a test, or a process started with
 another CAKE_HOME, gets its own folder without reloading anything. The package's own files (static/, data/, schema.sql)
 sit next to this module, wherever the package was installed. launcher() is the command people are told to run, whichever
-way this copy was installed. The compiled local pages (web/, built with `npm run build`, S5.1) are found by
+way this copy was installed. The compiled local pages (web/, built with `npm run build`) are found by
 web_folder(): $CAKE_WEB_DIR when it is set; else the folder a release carries inside the package (the .pyz's unpacked
 copy too); else web/dist next to the package, as a checkout has it (folder names: data/web.json; read here with json,
 since datafiles.py reads its files through this module). nearest_existing() is where a folder not made yet would be
@@ -44,7 +44,7 @@ def nearest_existing(path):
 
 def archive():
     """The zip the package is imported from, or None. tools/releasing/pyz_main.py runs --version and help from inside
-    agentcake.pyz without unpacking it into CAKE_HOME (S6.6: a coding agent's sandbox cannot write there), and the
+    agentcake.pyz without unpacking it into CAKE_HOME (a coding agent's sandbox may not write there), and the
     package's own files are then read from the zip (datafiles.read)."""
     found = nearest_existing(PACKAGE_DIR)
     return found if found != PACKAGE_DIR and zipfile.is_zipfile(found) else None
@@ -95,7 +95,7 @@ def _command_name():
 
 
 def running_pyz():
-    """The .pyz Agent Cake runs from, by its full path, or None. The .pyz (S6.4) unpacks the package under
+    """The .pyz Agent Cake runs from, by its full path, or None. The .pyz unpacks the package under
     $CAKE_HOME/pyz/ and runs it in the same process, so the script this process was started with is the .pyz; a process
     started from such a run (daemon.start, or a bootstrap that starts a new Python) is told it in $AGENTCAKE_PYZ."""
     for candidate in (sys.argv[0] if sys.argv else "", os.environ.get(PYZ_ENV, "")):
@@ -122,10 +122,10 @@ def bin_script():
 
 
 def launcher():
-    """The command people are told to run, a command line that works from any folder (S6.1): when Agent Cake runs from
+    """The command people are told to run, a command line that works from any folder: when Agent Cake runs from
     its .pyz, this Python and the .pyz, both by their full paths (the unpacked copy has no bin/, `agentcake` may be on
     no PATH, and the python3 on PATH may be too old); bin/agentcake of this release folder or checkout, by its full
-    path; an installed wheel's command by its full path (running_command, M4 clean-up); else the bare command name:
+    path; an installed wheel's command by its full path (running_command); else the bare command name:
     `python3 -m agentcake` started this run, which SERVER.md's alias and docker exec give that name."""
     pyz = running_pyz()
     if pyz:

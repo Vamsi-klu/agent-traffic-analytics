@@ -1,6 +1,6 @@
 <?php
 /**
- * The token's format for the PHP site middleware (step S4.3): which requests get a token, the facts it holds, the JSON
+ * The token's format for the PHP site middleware: which requests get a token, the facts it holds, the JSON
  * the MAC covers, the network key. What tests/vectors/edge_token.json pins, byte for byte the Node middleware's
  * (edge/node/lib/facts.js, mint.js, token.js, netkey.js). cake_edge.php loads this file and does the mounting.
  *

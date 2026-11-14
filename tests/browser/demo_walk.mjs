@@ -1,5 +1,5 @@
-// demo_walk.mjs — a site's server half in a real browser (S2.4, N1). Chromium through Playwright walks the test site's
-// shop (tests/site, AgentCake's demo shop until D37; its pages signed with the secret of its own `agentcake serve`: a
+// demo_walk.mjs — a site's server half in a real browser (N1). Chromium through Playwright walks the test site's
+// shop (tests/site, AgentCake's demo shop until 0.4.0; its pages signed with the secret of its own `agentcake serve`: a
 // scratch CAKE_HOME and a free port): search, Classic T-shirt, Blue
 // and M into the cart, the cart, checkout, done: six page requests. For each it notes the token in the response
 // (Server-Timing), whether its Sec-Fetch values and header names are the ones Chrome sent (as Chrome's DevTools
@@ -41,7 +41,7 @@ const POLL_MS = 50
 const HAND_OVER_TIMEOUT_MS = 10000 // cake.js sends every 2 s while it holds a token
 const SRV_POLL_MS = 200
 const SEC_FETCH = { s: "sec-fetch-site", m: "sec-fetch-mode", d: "sec-fetch-dest", u: "sec-fetch-user" }
-const GZIP_MAGIC = Buffer.from([0x1f, 0x8b]) // cake.js gzips its bigger batches (S1.3); collect knows them by these bytes
+const GZIP_MAGIC = Buffer.from([0x1f, 0x8b]) // cake.js gzips its bigger batches; collect knows them by these bytes
 // The srv rows of one session, read with Python's sqlite3: Node 20 has no SQLite of its own.
 const SRV_ROWS = "import json, sqlite3, sys\ncon = sqlite3.connect(sys.argv[1])\n" +
   "print(json.dumps(con.execute('SELECT id, path FROM srv WHERE session_id=? ORDER BY page_ms', (sys.argv[2],)).fetchall()))"
@@ -290,7 +290,7 @@ function describe(mode, pace, s) {
 }
 
 async function main() {
-  const out = path.resolve(argument("--out", path.join(os.tmpdir(), "agentcake-evidence", today(), "S2.4")))
+  const out = path.resolve(argument("--out", path.join(os.tmpdir(), "agentcake-evidence", today(), "demo-walk")))
   const paces = argument("--paces", "settle,brisk").split(",")
   const modes = argument("--modes", "headless").split(",")
   mkdirSync(out, { recursive: true })

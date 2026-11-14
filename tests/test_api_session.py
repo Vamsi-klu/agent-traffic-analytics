@@ -1,4 +1,4 @@
-"""GET /api/session/<id> and …/replay?chunk=<n> (S5.1, agentcake/api/session.py with reasons.py, actions.py,
+"""GET /api/session/<id> and …/replay?chunk=<n> (agentcake/api/session.py with reasons.py, actions.py,
 replay.py and server_half.py) on the fixed test library.
 
     python3 -I -m unittest discover -s tests -p test_api_session.py -v      (from the Agent Cake folder)
@@ -6,7 +6,7 @@ replay.py and server_half.py) on the fixed test library.
 Every session of the library answers the contract, its four layers in order, its timeline and actions inside its
 length. Its replay chunks, read one by one, give back the session's whole rrweb stream, each event once and in its
 chunk's time. Unknown sessions, self-checks and other sites' uploads are 404, a chunk that is not a number 400, one
-past the last 404. The server half lists the srv rows with S4.2's comparisons and reuses, and says why page views
+past the last 404. The server half lists the srv rows with their comparisons and reuses, and says why page views
 have none. A Mixed session's title follows its turns; its summary tells who acted when on the timeline's clock and
 which layers point to the verdict, with their own percents, never another word for how sure it is; its hand-off and
 length are whole milliseconds, the hand-off where its agent segment starts.
@@ -35,6 +35,14 @@ class Words(unittest.TestCase):
         self.assertEqual(title("agent", "human_agent", "mixed", "Comet", runs[:2] * 2),
                          "A human, then Comet, then the human again, then Comet again")
 
+    def test_with_the_judges_hand_offs_a_turn_no_hand_off_began_is_not_told(self):
+        runs = [(0, 1, "agent"), (2, 3, "human"), (4, 5, "agent"), (6, 9, "human")]  # the first human only moved
+        handoffs = [{"t": 7, "from": "agent", "to": "human", "after": 5}]
+        self.assertEqual(session_api.title("agent", "human_agent", "mixed", "Comet", runs, handoffs=handoffs),
+                         "Comet, then a human")
+        self.assertEqual(session_api.title("agent", "human_agent", "mixed", "Comet", runs),
+                         "Comet, then a human, then Comet again, then the human again", "a verdict kept before")
+
     def test_an_unnamed_agent_takes_turns_in_words(self):
         self.assertEqual(session_api.title("agent", "human_agent", "mixed", None,
                                            [(0, 1, "human"), (2, 3, "agent"), (4, 5, "human"), (6, 7, "agent")]),
@@ -62,6 +70,14 @@ class Words(unittest.TestCase):
         self.assertEqual(session_api.verdict_summary("agent", "human_agent", "mixed", [], story),
                          "Claude in Chrome acted from 0:08 to 0:40. A human took over at 0:47. "
                          "The Environment layer supports the verdict with 90% confidence, and the Behavior layer with 99%.")
+
+    def test_a_take_over_is_told_at_the_judges_hand_off_the_new_actors_first_action(self):
+        epoch = 1_794_608_433_697
+        runs = [(epoch + 8_627, epoch + 40_327, "agent"), (epoch + 47_927, epoch + 84_573, "human")]
+        handoffs = [{"t": epoch + 49_100, "from": "agent", "to": "human", "after": epoch + 40_327}]
+        story = session_api.Story(epoch, runs, "Claude in Chrome", [], handoffs)
+        self.assertEqual(session_api.verdict_summary("agent", "human_agent", "mixed", [], story),
+                         "Claude in Chrome acted from 0:08 to 0:40. A human took over at 0:49.")
 
     def test_three_layers_are_listed_in_one_sentence(self):
         layers = [{"layer": name, "state": "agent", "percent": percent}
@@ -101,7 +117,7 @@ class Words(unittest.TestCase):
             self.assertEqual(session_api.verdict_summary(verdict, turns, None, []), judged[rule]["how"], verdict)
 
     def test_reasons_are_worded_as_they_are_shown(self):
-        """D34: a reason with facts reads in today's words whatever text it was kept with; one without keeps its text."""
+        """A reason with facts reads in today's words whatever text it was kept with; one without keeps its text."""
         kept = dict(verdict_text.reason("behavior.too-little-data", "page", 2, n=2, min=3), text="Old words.")
         handoff = {"id": "behavior.handoff", "layer": "behavior", "tone": "none", "text": "The agent took over."}
         today = verdict_text.reason("behavior.too-little-data", "page", 2, n=2, min=3)["text"]
@@ -112,7 +128,7 @@ class Words(unittest.TestCase):
 
 
 class Layers(unittest.TestCase):
-    """Each layer shows one conclusion and only what fits it (job session-consistency)."""
+    """Each layer shows one conclusion and only what fits it."""
 
     def layers(self, layers, reasons, turns=False, verdict="agent"):
         shown = reasons_api.layers(json.dumps(layers), json.dumps(reasons), None, turns, verdict)

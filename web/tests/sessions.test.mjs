@@ -1,5 +1,5 @@
-// The session list (S5.4) in Chromium, against the built app and the sample list: the pinned Agent filter sits at the far
-// left and the other chips are All and D39's verdicts, Agent rows stand out and bot rows are muted, under Agent the split
+// The session list in Chromium, against the built app and the sample list: the pinned Agent filter sits at the far
+// left and the other chips are All and the verdicts, Agent rows stand out and bot rows are muted, under Agent the split
 // (Agent only, Human + agent) combines with the agent's name (a link to one name shows that agent), and the agent and
 // date filters reach the API. Usage: node --test tests/
 import assert from "node:assert/strict"
@@ -47,7 +47,7 @@ test("Agent is the first filter, and it keeps the Agent rows, every one highligh
   } finally { await tab.close() }
 })
 
-test("under Agent, the split and the agent's name combine and reach /api/sessions; no kind of agent (D39)", async () => {
+test("under Agent, the split and the agent's name combine and reach /api/sessions; no kind of agent", async () => {
   const tab = await open("?filter=agent")
   try {
     assert.equal(await tab.page.locator('[aria-label="Kind of agent"]').count(), 0)
@@ -119,7 +119,7 @@ test("an unnamed agent's row says Unnamed, with no avatar; a named one gives how
   } finally { await tab.close() }
 })
 
-test("the agent and date filters reach /api/sessions and narrow the rows; there is no source filter (D40)", async () => {
+test("the agent and date filters reach /api/sessions and narrow the rows; there is no source filter", async () => {
   const tab = await open()
   try {
     await tab.page.getByRole("combobox", { name: "Agent" }).click()

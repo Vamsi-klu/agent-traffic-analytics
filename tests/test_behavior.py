@@ -1,10 +1,10 @@
-"""The behaviour layer as the verdict step runs it (agentcake.detect.behavior, plan step S3.4).
+"""The behaviour layer as the verdict step runs it (agentcake.detect.behavior).
 
     python3 -I -m unittest discover -s tests -v      (from the repository root)
 
 It counts the action segments before anything else: a phone or tablet, or fewer actions than the model's minimum
 (behavior_model.json), gives "too little data" without calling the model. Otherwise it returns the model's own result
-(S3.7's judge_session). An rrweb-only recording is rebuilt into raw events and read as such (raw_input False). It also
+(model.judge_session). An rrweb-only recording is rebuilt into raw events and read as such (raw_input False). It also
 reads assistive-tool signs: keyboard navigation (cake.js sends a key's class, never the key) without a pointer.
 """
 import os, sys, unittest

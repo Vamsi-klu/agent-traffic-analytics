@@ -1,11 +1,11 @@
-"""Weak signals (agentcake.detect.weak, plan step S3.8): each only adds a reason and never changes a verdict.
+"""Weak signals (agentcake.detect.weak): each only adds a reason and never changes a verdict.
 
     python3 -I -m unittest discover -s tests -v      (from the repository root)
 
 Each signal holds on its pattern and stays quiet on an ordinary session: time zone or languages against the
 address's country, many sessions from one address, a header order the claimed browser does not use (cake.js's real
 uploads from Chrome pass, curl's order does not), a screen that changes, a window that jumps, a script's or an
-AI's rhythm. EXECUTION-BRIEF S3.8: on the 16 control sessions of S3.4 (and the lab's 26), the verdict is the same with
+AI's rhythm. On the verdict's 16 control sessions (and the lab's 26), the verdict is the same with
 and without every weak signal; only reasons are added. tools/build_timezones.py reads the tz database's zone.tab.
 """
 import copy, os, sys, tempfile, unittest
@@ -57,7 +57,7 @@ class EachSignal(unittest.TestCase):
         self.assertEqual(ids(found), {"weak.rhythm-pauses"})
 
     def test_steps_right_after_each_other_are_no_reason(self):
-        """Humans step without a pause as often as agents do (borrow-rules, D34): no "like a script" reason."""
+        """Humans step without a pause as often as agents do: no "like a script" reason."""
         step_ms = 100  # every click a tenth of a second after the previous one
         clicks = [{"t": step_ms * (i + 1), "ty": "click", "tr": 1, "cx": 10, "cy": 10} for i in range(12)]
         found = weak.facts({"pages": []}, [], clicks)
@@ -74,7 +74,7 @@ class EachSignal(unittest.TestCase):
 
 
 class VerdictsUnchanged(unittest.TestCase):
-    """S3.8 "how it is tested": the same verdict with and without every weak signal, only more reasons."""
+    """The same verdict with and without every weak signal, only more reasons."""
 
     def assert_only_reasons_added(self, case, label):
         plain = verdict.decide(dict(case, weak=None))

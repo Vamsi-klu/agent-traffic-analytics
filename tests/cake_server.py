@@ -1,4 +1,4 @@
-"""A real `agentcake serve` for the server-mode tests (S6.3), and the small helpers they share.
+"""A real `agentcake serve` for the server-mode tests, and the small helpers they share.
 
 CakeServer starts one in a scratch CAKE_HOME, its local page and public listener on free ports of 127.0.0.1, with the
 settings SERVER.md tells `agentcake config set` to make, written the way that command writes them (config.coerce,
@@ -7,7 +7,7 @@ commands. A test never opens a port to the network, so the public listener
 binds 127.0.0.1 here where a server binds 0.0.0.0; the code path is the same. test_server_mode.py runs the listeners,
 test_server_docs.py reads SERVER.md and the deploy files; documented_public_routes() is the one reading of SERVER.md's
 table of what the public listener answers that both use. pages_stub() stands in for the compiled local pages
-($CAKE_WEB_DIR, S5.1): the Python tests never build web/, and a real `agentcake serve` answers / with them.
+($CAKE_WEB_DIR): the Python tests never build web/, and a real `agentcake serve` answers / with them.
 """
 import json
 import os
@@ -34,7 +34,7 @@ PREFIX = "/cake"  # the path_prefix SERVER.md uses
 SITE_KEY = "ck_servermode"
 START_TIMEOUT_S = 10
 # How often a test asks whether a server it started answers yet, and how often a test server running in a thread looks
-# for shutdown() (serve_forever's poll_interval): with the default 0.5 s every stop waited about that long (M4 clean-up).
+# for shutdown() (serve_forever's poll_interval): with the default 0.5 s every stop waited about that long.
 POLL_S = 0.01
 
 

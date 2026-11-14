@@ -1,5 +1,5 @@
-"""Made-up sessions for the verdict step's tests (plan step S3.4): builders for each layer's result, and the 16 control
-sessions of EXECUTION-BRIEF S3.4 with the verdict the design table gives each one.
+"""Made-up sessions for the verdict step's tests: builders for each layer's result, and the 16 control
+sessions with the verdict the design table gives each one.
 
 No real visitor is in here: User-Agents are the public forms of each product's, addresses are the first address of a
 range read from the bundled lists at test time (or RFC 5737 documentation addresses), and times are invented.
@@ -116,7 +116,7 @@ def crawl_pages(n, every_s):
 AUTOMATION_HITS = ("env.auto.webdriver", "env.auto.headless-ua", "env.auto.headless-ua-collector",
                    "env.auto.headless-ua-server", "env.auto.collect-no-accept-language")
 
-# The 16 control sessions (EXECUTION-BRIEF S3.4, "how it is tested"), and what the design table says of each:
+# The 16 control sessions, and what the design table says of each:
 # class, Agent row, name, verification, confidence, reasons that must be listed, the behaviour layer's state.
 CONTROLS = [
     ("signed-human", "Web Bot Auth signature of chatgpt.com verified, every action a human's",

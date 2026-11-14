@@ -1,4 +1,4 @@
-"""`doctor`, the lines about the user's website files (S1.1, S6.1): website_checks(c, folder).
+"""`doctor`, the lines about the user's website files: website_checks(c, folder).
 
 Three lines. The website settings are complete (site_domain, site_dir). Every file that must load cake.js does, from
 this Agent Cake's address and with its site key (site_code.py says which files: every page of a static site, the

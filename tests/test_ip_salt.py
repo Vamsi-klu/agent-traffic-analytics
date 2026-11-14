@@ -1,11 +1,11 @@
-"""The salt of the visitors' address hashes (S2.3, M4 clean-up): agentcake/ip_salt.py.
+"""The salt of the visitors' address hashes: agentcake/ip_salt.py.
 
     python3 -I -m unittest discover -s tests -p test_ip_salt.py -v      (from the Agent Cake folder)
 
 One salt per period of ip_salt_days, then a new one. A replaced salt must be gone from the database's files too, not
 only from its settings row: until a checkpoint the old page is still in cake.db and its copies in cake.db-wal, and a
-cell SQLite deletes keeps its bytes unless secure_delete is on (S6.5 found the old salt in the file after a
-replacement). The callers ask for the salt before their transaction's first write, as collect_store and log_match do.
+cell SQLite deletes keeps its bytes unless secure_delete is on (a privacy scan found the old salt in the file
+after a replacement). The callers ask for the salt before their transaction's first write, as collect_store and log_match do.
 """
 import os
 import shutil

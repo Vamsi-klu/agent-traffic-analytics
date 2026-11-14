@@ -1,6 +1,6 @@
-"""tools/releasing/pyz.py and pyz_main.py (plan step S6.4): `python3 agentcake.pyz <command>` unpacks the package once
+"""tools/releasing/pyz.py and pyz_main.py: `python3 agentcake.pyz <command>` unpacks the package once
 into <CAKE_HOME>/pyz/<version>-<hash>/, runs it from there in the same process with sys.argv[0] the .pyz's full path
-(S6.1's launcher reads it), and the real package answers --version, and on an older Python says which it needs.
+(paths.launcher reads it), and the real package answers --version, and on an older Python says which it needs.
 
     python3 -I -m unittest discover -s tests -v      (from the repository root)
 """
@@ -11,6 +11,7 @@ import shutil
 import subprocess
 import sys
 import unittest
+import zipfile
 
 from release_trees import ROOT, VERSION, make_tree, scratch, settings
 
@@ -102,17 +103,45 @@ class Bootstrap(unittest.TestCase):
         ast.parse(bootstrap_source(), feature_version=OLDEST_GRAMMAR)
 
 
+class Licence(unittest.TestCase):
+    """The .pyz carries the project's license files at its top, as the wheel (.dist-info/licenses/) and the release
+    folder do; they are not unpacked, and they do not change the folder the package is unpacked into."""
+
+    def build(self, files=None):
+        return pyz.build(Project(made_up_tree(self, files), settings()), scratch(self), EPOCH, settings())
+
+    def test_the_license_files_are_at_the_top_of_the_zip(self):
+        path = self.build({"LICENSE": "made-up licence text\n", "NOTICE": "made-up notice\n"})
+        with zipfile.ZipFile(path) as archive:
+            names = archive.namelist()
+            self.assertEqual(archive.read("LICENSE"), b"made-up licence text\n")
+        self.assertEqual(names[:3], [pyz.MAIN, "LICENSE", "NOTICE"])
+
+    def test_they_are_not_unpacked_and_leave_the_unpack_folder_as_it_was(self):
+        home = os.path.join(scratch(self), "cake home")
+        for path in (self.build(), self.build({"LICENSE": "made-up licence text\n"})):
+            self.assertEqual(run(path, home=home).returncode, 0)
+        folder, = os.listdir(os.path.join(home, settings()["pyz"]["unpack_folder"]))
+        self.assertEqual(os.listdir(os.path.join(home, settings()["pyz"]["unpack_folder"], folder)), ["agentcake"])
+
+
 class RealPackage(unittest.TestCase):
     def setUp(self):
         self.path = pyz.build(Project(ROOT, settings()), scratch(self), EPOCH, settings())
         self.home = scratch(self)
+
+    def test_the_repositorys_license_files_are_in_it(self):
+        with zipfile.ZipFile(self.path) as archive:
+            names = archive.namelist()
+        for name in ("LICENSE", "THIRD_PARTY.md"):
+            self.assertIn(name, names)
 
     def test_version(self):
         out = run(self.path, "--version", home=self.home)
         self.assertEqual((out.returncode, out.stdout.strip()), (0, f"agentcake {agentcake.__version__}"))
 
     def test_version_and_help_come_from_the_zip_and_leave_no_data_folder(self):
-        """S6.6: a coding agent's sandbox (Codex workspace-write) cannot write CAKE_HOME; checking the version must
+        """A coding agent's sandbox (Codex workspace-write) cannot write CAKE_HOME; checking the version must
         work there all the same, and must not make the data folder anywhere."""
         locked = os.path.join(self.home, "read-only")
         os.makedirs(locked)

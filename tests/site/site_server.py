@@ -1,4 +1,4 @@
-"""A test site for the tests that need a website (D37): the shop that was AgentCake's demo shop until D37, moved here.
+"""A test site for the tests that need a website: the shop that was AgentCake's demo shop until 0.4.0, moved here.
 
 It is a test fixture, never part of AgentCake's package: page.html (the five pages' markup), shop.js (the shop) and
 shop.css (the look it had, frozen from the theme's tokens; the system fonts stand in for the bundled ones). The pages

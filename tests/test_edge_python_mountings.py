@@ -1,4 +1,4 @@
-"""The Python site middleware's mountings (S4.3): CakeEdgeWSGI and CakeEdgeASGI on each page response.
+"""The Python site middleware's mountings: CakeEdgeWSGI and CakeEdgeASGI on each page response.
 
     python3 -I -m unittest discover -s tests -v      (from the cake folder)
 

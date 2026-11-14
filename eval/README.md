@@ -50,28 +50,79 @@ threshold. A data set without a location is skipped and the report says what to 
 when every threshold this command measures passes, 1 when one fails or has no data (what did not run did not pass), and
 2 for a usage error.
 
+A5, the hand-off error, is measured where AgentCake shows hand-offs: in the mixed sessions it judged Human + agent.
+Each of their true hand-offs gets the seconds to the nearest hand-off the timeline marked in the same direction (a
+missed one counts as over the limit), and the gate judges the median. A data set with no session judged Human + agent
+has no samples, which is not a pass. A mixed session whose agent stretch is too short to tell is judged Human and
+shows no hand-off: AgentCake would rather miss an agent than call a human one. Two lines under A5 print, never judged,
+every true hand-off (found, missed, share within the limit, largest error found, extra ones marked) and how many mixed
+sessions were judged Human + agent.
+
 ## README's figures
 
-README's "What it can't tell yet" quotes three figures from one run of `agentcake eval` on the maintainers' data, with
-AgentCake 0.4.0's code on 2026-11-13. That data is real people's sessions, so it is not in this repository and the run
-can't be repeated from here; on your own labelled sessions (`truth_goal.jsonl`), the same measures describe your site.
+README's "It isn't perfect" gives one set of totals, counted on 2026-11-14 with AgentCake 0.4.1's code: one run of
+`agentcake eval` over every data set it reads that has answers, the converted public humans included, and six public
+sets of people that the scripts which converted them judged the same way, apart from `agentcake eval` (the percent a
+session shows is calibrated on what `agentcake eval` reads, so a set kept out of it stays held out). The sessions are
+real people's, so they are not in this repository and the counts can't be repeated from here; on your own labelled
+sessions (`truth_goal.jsonl`), the same measures describe your site.
 
-- **17 of 23 Claude in Chrome replays judged agent.** Data: session replays that PostHog recorded on the maintainers'
-  website, cut to the times a coding agent's log shows Claude in Chrome acting there: 30 replays, 23 of them with
-  enough actions to judge. Counted: the behaviour model's verdict on those 23 (the report's scoreboard, row
-  `posthog / claude-chrome`, "recall (evaluable)").
-- **1 of 39 probably-human replays judged agent.** Data: the same website's replays outside those times, the site
-  owner's own visits and other visitors': 95 replays, 39 of them with enough actions to judge. Counted: the same
-  verdict on those 39 (row `all humans / rrweb`, "false positives (behaviour)"). Probably human, because an agent may
-  have acted when no log shows it.
-- **29.5% of hand-offs found within 3 seconds.** Data: 11 recordings a person made in a fresh browser profile on the
-  maintainers' test pages, each spliced with each of 4 recordings of Claude in Chrome on their test page by the four
-  patterns of `agentcake/data/splice.json` (such as 20 seconds of each, twice, with 1.5 seconds between stretches):
-  176 sessions with 308 true hand-offs. Counted: a true hand-off is found when the session's timeline marks one
-  within 3 seconds of it, as for 91 of the 308; the timeline marks none at all for 125 (the report's A5 line,
-  `recording_splices`).
+| Data set | Whose | What it holds | Agent sessions | Human sessions | People | Websites |
+|---|---|---|---|---|---|---|
+| The recorder | ours | A person's own visits, and their visits with Claude in Chrome, ChatGPT's Chrome extension, Codex's browser, Codex Computer Use and Antigravity's browser, on our test shop and lab page | 52 (5 hand-offs) | 11 | 1 | 2 |
+| Our own agent runs | ours | Claude Code driving Claude in Chrome and 10 browser tools; automation dressed up as a human | 250 | — | — | the same 2 |
+| The lab | ours | Claude in Chrome and Playwright, with every layer | 26 | — | — | the same lab page |
+| The lab's signal recordings and cake.js uploads | ours | 31 more lab runs' environment, with no actions; cake.js's uploads from Playwright | 30 | 3 | not given | the same 2 |
+| PostHog replays | ours | Visits to tartini.ai: Claude in Chrome, Playwright and Meta Muse at the times a log shows them; the rest probably human | 47 | 95 | not given | 1 |
+| PSAI | public, MIT | People doing tasks on real websites | — | 509 | not given | 135 |
+| CaptchaSolve30k | public, Apache-2.0 | People solving captcha games | — | 220 | not given | 1 |
+| motion-attestation | public, MIT | Pointer, touch and key captures | — | 27 | not given | 1 |
+| SERENE | public, CC BY 4.0 | 13 people's own browsing over a month (the parts downloaded) | — | 1,966 | 13 | 220 |
+| AdSERP, Ninawe, KeyRecs, DUX, Chao Shen | public, CC BY 4.0; held out | Search results pages, typing tasks, a web form, a Windows mouse study | — | 4,291 | 389–399 | 4 |
+| **14 data sets** | | | **405** | **7,122** | **at least 403** | **about 350** |
+
+PSAI names 135 websites and SERENE keeps 220 domains; about 14 names are in both, so the total is about 350. Chao
+Shen's sessions come from Windows, not a website. SapiMouse (245 sessions of 120 people, none judged agent) publishes
+no licence, so it is in no total.
+
+- **347 of 405 agent sessions recognized, from 26 tools.** Recognized: the four layers together judged the session
+  Agent, or Human + agent. Every session whose answer is an agent (for the recorder's 5 hand-offs, a human and an
+  agent) counts once: the lab's 26 sessions are also among its signal recordings. A tool is what drove the browser:
+  an AI agent (Claude in Chrome, 53 of its 70 sessions recognized; ChatGPT's Chrome extension, Codex's browser, Codex
+  Computer Use, Antigravity's browser, Meta Muse), a browser tool a coding agent drove (agent-browser, Browser Use,
+  dev-browser, Chrome DevTools MCP, Playwright MCP, ExecuteAutomation's Playwright MCP server, Playwright CLI,
+  Puppeteer MCP server, Rodney, Selenium MCP), or an automation library (Playwright, Puppeteer, a Chrome DevTools
+  Protocol client, and those made to look human: Camoufox, Patchright, ghost-cursor with puppeteer-humanize,
+  human-cursor, HumanCursor, fingerprint-injector, a stealth plugin for Playwright). Running with or without a window,
+  or in another Chrome, is the same tool. Where it falls short:
+  - **Made to look human:** 91 of 104 sessions recognized; the behaviour layer alone recognized 54 of them, the other
+    layers most of the rest. Camoufox passed as human in all 10 of its sessions, Patchright in 3 of 10 (Not sure).
+  - **PostHog's replays** hold behaviour only: no keys, no wheel, nothing the other layers read. 17 of their 47 agent
+    replays were recognized: Claude in Chrome 17 of 30, Playwright 0 of 13, Meta Muse 0 of 2, the other 2 none.
+  - **Too few actions:** in 64 agent sessions the behaviour layer had too few actions to judge, and the lab's signal
+    recordings hold none; the other layers recognized most of them. 12 stayed too little data, which counts as Human
+    with thin evidence: 8 PostHog replays and 4 signal recordings of Claude in Chrome.
+  - **The recorder's agents:** Antigravity's browser 5 of 10 and Codex Computer Use 7 of 12 (the rest Not sure),
+    ChatGPT's Chrome extension 6 of 7.
+- **2 of 7,122 sessions by at least 403 real people judged agent.** Judged agent: Agent, or Human + agent. People are
+  counted where a set says who recorded each session (the recorder's 1, SERENE's 13, the held-out sets' 389–399, as
+  DUX's two files may share people); PSAI, CaptchaSolve30k, motion-attestation, the lab and PostHog's visitors don't
+  say. Held out, never used to write, tune or calibrate anything, are only AdSERP, Ninawe, KeyRecs, DUX and Chao Shen:
+  0 of their 4,291 sessions. The 2 are SERENE's, one person's on one website: presses of 5 to 10 ms, with one pointer
+  move before each click, as a tap on a touchscreen or a trackpad makes (SERENE doesn't record which). SERENE is not
+  held out: its sessions judged agent were studied (8 before 0.4.1's rule for a click repeated in place). PSAI and
+  CaptchaSolve30k calibrate the percents, the recorder's 11 are threshold A1's, and PostHog's 95 are probably human, as
+  an agent may have acted when no log shows it. 2,105 of the 7,122 had too few actions for any layer (Human with thin
+  evidence); sessions with keys only, as in Ninawe and KeyRecs, never reach plain Human.
+- **106 of 159 sessions with a hand-off judged Human + agent, the hand-off a median of 0 seconds off.** Data: 154
+  sessions spliced from 11 recordings a person made and 4 of Claude in Chrome, by the four patterns of
+  `agentcake/data/splice.json` (a splice is left out when one of its stretches holds no action, as 22 of 176 were), and
+  the recorder's 5 real hand-offs. Counted as A5 counts it (above), both sets together: in the 106 sessions judged
+  Human + agent, the median error of their 133 true hand-offs is 0 seconds; 129 were found, 93 within 3 seconds, the
+  farthest 34.8 seconds off. Over all 159 sessions, 129 of 258 true hand-offs were found: when the agent's stretch
+  holds only a few actions, the session is judged Human and shows no hand-off.
 
 PostHog records no keys, no wheel and no `isTrusted`, so on its replays the behaviour model judges from less than
-cake.js records; those replays are a reference, and `thresholds.json` gates none of them. The model fits no threshold
-to any data (the report's "Thresholds set from data"), so its verdicts on these sets are held out. The percent a
-session shows is calibrated on them and on the other sets with known answers, which changes no verdict.
+cake.js records; `thresholds.json` gates none of them. The model fits no threshold to any data (the report's "Held-out
+check of fitted thresholds"). The percent a session shows is calibrated on the sets `agentcake eval` reads, which
+changes no verdict.

@@ -1,6 +1,6 @@
-"""A session's rrweb replay, as cake 0.3.4's judge and replay page read it (S2.1).
+"""A session's rrweb replay, as cake 0.3.4's judge and replay page read it.
 
-Since S2.1 collect keeps rrweb events in chunks (streams.py). A database from cake 0.3.4 still has its replay rows in
+Since 0.4.0 collect keeps rrweb events in chunks (streams.py). A database from cake 0.3.4 still has its replay rows in
 the events table: `agentcake migrate` copies them into chunks and keeps them, and a visit that went on across the
 upgrade has rows and newer chunks. rrweb_texts(con, session_id) gives every rrweb event once, oldest first: the
 chunks, and each 0.3.4 row they do not hold yet (a row and its copy have the same time and the same JSON text; rows of

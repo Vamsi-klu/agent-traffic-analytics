@@ -1,11 +1,11 @@
-"""Where `agentcake eval` finds each data set, and loading what is there (plan step S3.9).
+"""Where `agentcake eval` finds each data set, and loading what is there.
 
     locate(options, settings) -> {key: path or None}
     load(where, settings) -> {"lab", "lab_signals", "uploads", "recordings", "recorded", "selfcollect", "posthog",
                               "store", "named", "public_humans", "notes"}
 
 A location comes from, in this order: the command line; the sources file (--sources, default eval/sources.json
-of a checkout, which git ignores; eval/sources.example.json lists the keys, and S1.5's "out_dir" names the PostHog
+of a checkout, which git ignores; eval/sources.example.json lists the keys, and "out_dir" names the local PostHog
 dataset); for the files a checkout carries, data/eval.json "files" next to the package. Relative paths are read
 from the current folder, like any command's. Data that only lives on one computer (the recorder's folder, the
 PostHog dataset, a CAKE_HOME, the folder of the recorder copy our own runs used) is never guessed: without a
@@ -62,19 +62,19 @@ def load(where, settings):
             notes["recorded"] = ("no agent or hand-off recording yet: the recordings' list (--truth-recordings) names none that "
                                  "the folder has")
     else:
-        notes["recordings"] = "not given (--recordings: the S1.5 recorder's data folder)"
+        notes["recordings"] = "not given (--recordings: the recorder's data folder)"
         notes["recorded"] = notes["recordings"]
     data["selfcollect"] = _self_collected(where, settings, notes)
     data["posthog"] = None
     if where["posthog"] and os.path.isdir(where["posthog"]):
         data["posthog"] = datasets.posthog(where["posthog"], settings)
     else:
-        notes["posthog"] = "not given (--posthog: S1.5's local PostHog dataset, the out_dir of eval/sources.json)"
+        notes["posthog"] = "not given (--posthog: the local PostHog dataset, out_dir in eval/sources.json)"
     data["public_humans"] = _public_humans(where, notes)
     truth = datasets.jsonl(where["truth_goal"])
     data["store"] = store.labelled(truth, settings, where["cake_home"]) if truth else []
     if not truth:
-        notes["store"] = "no session listed yet (eval/truth_goal.jsonl: GOAL T3, T5, T6, T8, T22 runs)"
+        notes["store"] = "no session listed yet in eval/truth_goal.jsonl for cases T3, T5, T6, T8, and T22"
     elif not data["store"]:
         notes["store"] = "none of the listed sessions is in the CAKE_HOME given (--cake-home)"
     data["notes"] = notes
@@ -82,7 +82,7 @@ def load(where, settings):
 
 
 def _self_collected(where, settings, notes):
-    """The recordings we ran ourselves (S9.4: Claude Code with an MCP server, automation dressed up as a human), from
+    """The recordings we ran ourselves (Claude Code with an MCP server, automation dressed up as a human), from
     the recorder copy they were made on: a data set of their own, never added to people's recordings."""
     folder = where["selfcollect"]
     if not (folder and os.path.isdir(folder)):

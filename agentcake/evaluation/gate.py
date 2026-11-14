@@ -1,4 +1,4 @@
-"""The thresholds of GOAL section 6 and the gate that judges measured values against them (plan step S3.9).
+"""The thresholds of eval/thresholds.json and the gate that judges measured values against them.
 
     load(path) -> thresholds        eval/thresholds.json, checked (ThresholdsError when it is malformed)
     judge(thresholds, measurements) -> [verdict per threshold]
@@ -9,7 +9,7 @@ A measurement is one data set's value for one threshold, made by measures.py:
      "groups": {group: {"right", "n"}} (optional, for a per-group minimum), "what": ..., "statistic": ...}
 value None with samples means the statistic could not be made from them (A5: a hand-off the timeline missed), which
 fails. A threshold passes when every measurement of a gated source that has samples passes and at least one has;
-with none it has no data, which the gate does not count as a pass (GOAL section 2: what did not run did not pass).
+with none it has no data, which the gate does not count as a pass (what did not run did not pass).
 Reference sources are carried along and never judged. Thresholds another step measures are listed as "elsewhere".
 """
 import json

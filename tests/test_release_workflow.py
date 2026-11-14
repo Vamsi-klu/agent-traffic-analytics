@@ -1,4 +1,4 @@
-""".github/workflows/release.yml (plan step S6.4): on a v<version> tag it runs the same tools/release.py build twice,
+""".github/workflows/release.yml: on a v<version> tag it runs the same tools/release.py build twice,
 compares the two, and only creates a draft release, with the Python and Node release.json names, every action pinned
 by commit.
 

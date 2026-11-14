@@ -1,4 +1,4 @@
-"""`doctor`, the line about the web server's log import (S4.4, S6.1): logs_checks().
+"""`doctor`, the line about the web server's log import: logs_checks().
 
 No line before the first `agentcake logs import` reached this Agent Cake: most installs never use it. Afterwards one
 line on the last import, whose report log_report.py keeps in cake.db (read here without writing): the log format, when

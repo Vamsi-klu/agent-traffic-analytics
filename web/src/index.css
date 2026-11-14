@@ -142,7 +142,7 @@
 }
 @keyframes avatar-blink { 0%, 91%, 100% { transform: scaleY(1); } 94% { transform: scaleY(.1); } 97% { transform: scaleY(1); } }
 
-/* Replay player (rrweb-player, S5.4; its own stylesheet loads first, from /static/): the frame sits on the stage's
+/* Replay player (rrweb-player; its own stylesheet loads first, from /static/): the frame sits on the stage's
    background, and rrweb's cursor carries the name of who acts at that moment, in that side's colours (data-who and
    data-label, set by lib/replay-engine.ts). The player scales the recorded page down to the stage; --replay-unscale
    (set by the engine from that scale) keeps the label at the interface's size. */

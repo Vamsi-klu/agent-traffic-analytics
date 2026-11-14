@@ -1,14 +1,14 @@
-"""Rebuild the raw-event format of the behaviour features from an rrweb recording (plan step S3.6).
+"""Rebuild the raw-event format of the behaviour features from an rrweb recording.
 
 Sessions without raw DOM events (recorded by cake 0.3.x, or PostHog-style recordings) only have rrweb. rrweb keeps
 sampled mouse positions, mouse interactions, scroll positions, input lengths and page metas. It has no keydown, no
 wheel, no isTrusted, hasFocus or visibility, no screenX/Y, no movementX/Y and no element boxes. The events built
 here say so: trust, focus and visibility are taken as given (tr = hf = vs = 1), movement is unknown (mx = my =
 None), and the features that need keys, wheels or screen positions must be read with
-features.session_features(events, raw_input=False), research note 12's missing variant.
+features.session_features(events, raw_input=False), the model's missing-data variant.
 
-Two steps, as in note 12: interaction_rows() keeps the interaction events as compact rows (the layout of note 12's
-PostHog downloads), events_from_rows() turns rows into events. Ported from our own code:
+Two steps, as in our study of PostHog replays: interaction_rows() keeps the interaction events as compact rows (the
+layout of its PostHog downloads), events_from_rows() turns rows into events. Ported from our own code:
 the PostHog study's phcore.py (compress_rrweb, rr_to_lab, win; 2026-11-12), with one
 change: a press keeps the pointer type rrweb names (phcore read every click as a mouse's). No feature reads it; the
 behaviour model's mouse check does (model.mouse_pointer: a finger's slow pointer is no agent's).
@@ -42,7 +42,7 @@ CLICK_POINTER = POINTER_TYPES[0]
 NO_COORDINATE = -1
 
 # Row layouts by their second field. t is in ms after t0; window is the browser window the row came from (rows
-# made here have None: one recording is one window; note 12's PostHog downloads name it).
+# made here have None: one recording is one window; the PostHog study's downloads name it).
 ROW_FIELDS = {
     "m": ("t", "row", "x", "y", "window"),  # mouse move or drag position
     "t": ("t", "row", "x", "y", "window"),  # touch move position

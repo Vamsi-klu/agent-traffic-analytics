@@ -1,14 +1,14 @@
-"""Where visits come from, for the settings page (S5.5): each source's state and when it last sent something, where the
+"""Where visits come from, for the settings page: each source's state and when it last sent something, where the
 website's visits arrive, and what the server half says about the site's server.
 
     sources(con, c, now_ms) -> {"sources", "last_seen", "route", "server_half"}, the Settings fields of these names
 
-The sources are the website and its server half (D37 removed the demo shop; the sessions it recorded are not a source
+The sources are the website and its server half (0.4.0 removed the demo shop; the sessions it recorded are not a source
 any more). A source is receiving when something arrived in the last data/api.json receiving_days, waiting when it is
 set up and nothing came lately, and not connected otherwise: the website once site_domain or site_dir is set or a visit
 came, the server half once server mode has the secret it shares with the site's server, or a token or a log import
 came. A first visit is receiving in the very next answer, and the open page
-asks again every refresh_ms (I3). last_seen is each source's latest moment in words (periods.when), None before any.
+asks again every refresh_ms. last_seen is each source's latest moment in words (periods.when), None before any.
 route says where the website's visits arrive: this computer's local listener, or in server mode the public listener
 under path_prefix on the site's own domain (SERVER.md).
 server_half: missing names the request headers (written as people write them) that none of the website's latest

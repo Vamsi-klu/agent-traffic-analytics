@@ -1,9 +1,9 @@
-"""GET /api/health and /healthz (S5.1, agentcake/api/health.py).
+"""GET /api/health and /healthz (agentcake/api/health.py).
 
     python3 -I -m unittest discover -s tests -p test_api_health.py -v      (from the Agent Cake folder)
 
-/api/health answers the contract (cake 0.3.4's fields, and the disk S2.5 added); real_sessions leaves out self-checks
-and uploads from another site (S2.1). /healthz is the load balancer's: "ok".
+/api/health answers the contract (cake 0.3.4's fields, and the disk 0.4.0 added); real_sessions leaves out self-checks
+and uploads from another site. /healthz is the load balancer's: "ok".
 """
 import os
 import sys
@@ -31,14 +31,14 @@ class Health(unittest.TestCase):
 
     def test_real_sessions_leave_out_self_checks_and_other_sites(self):
         con = store.db()
-        rows = [("site", "site", 0), ("demo", "demo", 0), ("check", "site", 1), ("copy", "other", 0)]  # demo: before D37
+        rows = [("site", "site", 0), ("demo", "demo", 0), ("check", "site", 1), ("copy", "other", 0)]  # demo: before 0.4.0
         con.executemany("INSERT INTO sessions(id, start_ms, end_ms, origin, is_test) VALUES(?, ?, ?, ?, ?)",
                         [(sid, T0, T0, origin, test) for sid, origin, test in rows])
         con.commit()
         con.close()
         body = Client().get("/api/health").body
         self.assertEqual((body["sessions"], body["real_sessions"], body["selfcheck_visits"]), (4, 2, 1))
-        self.assertNotIn("demo_sessions", body, "D37: no demo shop")
+        self.assertNotIn("demo_sessions", body, "no demo shop")
 
     def test_the_public_health_check_says_ok(self):
         view = routes.resolve(routes.PUBLIC, "GET", "/healthz")

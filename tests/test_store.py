@@ -1,4 +1,4 @@
-"""Opening the database (S1.1, S2.2): agentcake/store.py's db().
+"""Opening the database: agentcake/store.py's db().
 
     python3 -I -m unittest discover -s tests -p test_store.py -v      (from the Agent Cake folder)
 
@@ -7,8 +7,8 @@ and the newer columns, in WAL mode, and is marked with PRAGMA user_version = sto
 already marked is opened without running them again: every upload request opens the database, and the script and
 the column checks were most of what that cost. The version is derived from schema.sql and ADDED_COLUMNS, so a cake
 whose schema changed sets every older database up once more, with nothing to raise by hand. A database of cake 0.3.4,
-of S2.2 (before S2.1's batches and refusals, S2.3's requests.pv, S3.4's verdict columns and S4.2's srv columns), from
-before the S3.4 wiring and from before S4.2 ends up with every table, column, index and trigger a new database has.
+or of an earlier development build of 0.4.0 (before the batches and refusals, requests.pv, the verdict columns and the
+srv columns), ends up with every table, column, index and trigger a new database has.
 """
 import os
 import sqlite3
@@ -23,7 +23,7 @@ from agentcake import paths, store  # noqa: E402  (needs the path above)
 from test_migrate import SCHEMA_034  # noqa: E402
 
 SIGNED_32_BITS = 2 ** 31  # PRAGMA user_version holds a signed 32-bit integer
-# the sessions columns the S3.4 wiring added, and the srv columns of S4.2
+# the sessions columns the verdict added, and the srv columns that keep reuses and comparisons
 VERDICT_COLUMNS = ("verdict_class", "agent_row", "agent_name", "confidence", "reasons", "layers", "verdict_detail")
 SRV_COLUMNS = ("pv", "ua_match", "lang_match", "reuses")
 
@@ -136,9 +136,9 @@ class Upgrade(unittest.TestCase):
         change_file(SCHEMA_034)  # 0.3.4 never set user_version: it is 0
         self.assertEqual(self.upgraded(), self.new_layout())
 
-    def test_a_database_from_s2_2(self):
-        # before S2.1's batches, refusals and events_refused, S2.3's requests.pv, S3.4's and S4.2's columns; S2.2's
-        # cake did not set user_version either
+    def test_a_database_from_the_first_chunk_storage(self):
+        # before the batches, refusals and events_refused, requests.pv, the verdict and srv columns; that development
+        # build did not set user_version either
         self.older_database({"sessions": VERDICT_COLUMNS + ("events_refused",), "requests": ("pv",),
                              "srv": SRV_COLUMNS}, tables=("batches", "refusals"), version=0)
         self.assertEqual(self.upgraded(), self.new_layout())
@@ -149,7 +149,7 @@ class Upgrade(unittest.TestCase):
         self.assertEqual(upgraded, self.new_layout())
         self.assertLessEqual(set(VERDICT_COLUMNS), set(upgraded[0]["sessions"]))
 
-    def test_a_database_from_before_s4_2(self):
+    def test_a_database_from_before_the_srv_reuse_columns(self):
         self.older_database({"srv": SRV_COLUMNS})
         upgraded = self.upgraded()
         self.assertEqual(upgraded, self.new_layout())

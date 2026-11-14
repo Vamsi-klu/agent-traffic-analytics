@@ -1,12 +1,12 @@
-"""Which agent or bot a session is (agentcake.detect.attribute, plan step S3.5), through the whole verdict.
+"""Which agent or bot a session is (agentcake.detect.attribute), through the whole verdict.
 
     python3 -I -m unittest discover -s tests -v      (from the repository root)
 
-Name priority (D5): a verified signature or published range > a page product rule > a self-reported name > an
-extension's own trace > an automation tool's trace > a category only. EXECUTION-BRIEF S3.5: the lab's 4 Claude in
+Name priority: a verified signature or published range > a page product rule > a self-reported name > an
+extension's own trace > an automation tool's trace > a category only. The lab's 4 Claude in
 Chrome runs are "likely Claude in Chrome" (the attribute-less div); its 22 Playwright runs are Agent · Automated
 browser and named only where a trace names the tool; a signed request is named after its signer; the 10 User-Agents of
-GOAL A7 get the right name and category; GOAL T22's listed bots are Bots and its cloud script an Agent that looks like
+threshold A7 get the right name and category; case T22's listed bots are Bots and its cloud script an Agent that looks like
 a crawler (A9).
 """
 import os, sys, unittest
@@ -15,7 +15,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 sys.path.insert(0, os.path.join(ROOT, "tests"))
 
-from test_lists import A7  # noqa: E402  (the 10 User-Agents of GOAL A7, as S3.1 tests them)
+from test_lists import A7  # noqa: E402  (the 10 User-Agents of threshold A7, as the list tests use them)
 from verdict_cases import (AGENT_RUN, AUTOMATION_HITS, CHROME_LINUX, GOOGLEBOT, HEADLESS, HUMAN_RUN, MANUS,  # noqa: E402
                            T0, UPTIMEROBOT, S, behavior, crawl_pages, evidence, first_address, hit, too_little,
                            verified)
@@ -105,7 +105,7 @@ class AutomatedBrowsers(unittest.TestCase):
                                                  behavior_result=behavior("agent", AGENT_RUN)))
                 self.assertEqual((result["row"], naming(result)), ("automated", (tool, "likely", None)))
                 self.assertEqual(result["judging"], "agent_automated")
-                self.assertIn("env.automated", ids(result))  # D17's sentence, named tool or not
+                self.assertIn("env.automated", ids(result))  # the automated-browser sentence, named tool or not
                 self.assertIn("name.tool", ids(result))
 
     def test_tool_named_by_its_user_agent_token(self):
@@ -129,7 +129,7 @@ class AutomatedBrowsers(unittest.TestCase):
 
 
 class GoalA7(unittest.TestCase):
-    """The 10 User-Agents of GOAL A7, judged on this computer (self-reported only, D17)."""
+    """The 10 User-Agents of threshold A7, judged on this computer (self-reported only)."""
 
     def test_ten_user_agents_named_and_classed(self):
         for ua, list_id, category, kind in A7:
@@ -141,7 +141,7 @@ class GoalA7(unittest.TestCase):
 
 
 class GoalT22(unittest.TestCase):
-    """GOAL T22, with addresses as a load balancer would give them (the first address of a published range)."""
+    """Case T22, with addresses as a load balancer would give them (the first address of a published range)."""
 
     def test_googlebot_three_ways(self):
         verified_bot = verdict.decide(evidence(uas=GOOGLEBOT, address=first_address("google-common-crawlers")))

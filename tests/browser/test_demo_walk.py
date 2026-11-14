@@ -1,4 +1,4 @@
-"""A site's server half in a real browser (plan step S2.4, N1): tests/browser/demo_walk.mjs, run from the suite.
+"""A site's server half in a real browser (N1): tests/browser/demo_walk.mjs, run from the suite.
 
 demo_walk.mjs starts its own `agentcake serve` (a scratch CAKE_HOME, a free port, a secret), walks the test site's
 shop (tests/site, signed with that secret) in Chromium at two paces (settle and brisk: six page requests each) and writes demo-walk.json. Every page request

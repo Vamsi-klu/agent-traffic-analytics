@@ -1,10 +1,10 @@
-"""cake.js served by cake itself (plan step S1.3, once the package split S1.1 is in): a site's pages to database.
+"""cake.js served by cake itself: a site's pages to database.
 
 One `agentcake serve` runs in a scratch CAKE_HOME on a free port. /cake.js must be the built script with this
 installation's site key and the page script's settings filled in. Then Chromium buys a shirt the direct way (drive.mjs)
 in the test site's shop (tests/site, on a port of its own, its pages loading cake.js from cake as a dev server's do),
 and cake's database must hold one visit from the site with every page's meta event and full snapshot among its replay
-events, each page view's under its own id (S2.1: rrweb chunks, streams.read_events): the collector takes cake.js's
+events, each page view's under its own id (rrweb chunks, streams.read_events): the collector takes cake.js's
 gzipped batches.
 
 Skipped, saying what is missing, without node, playwright-core or Chromium (see harness.py).
@@ -45,7 +45,7 @@ class CakeServesCakeJs(unittest.TestCase):
         cls.env.pop("CAKE_PORT", None)
         port = free_port()
         cls.base = f"http://127.0.0.1:{port}"
-        # replays are stored whatever this computer's free disk (K2, disk_min_free_mb, is tested in test_space)
+        # replays are stored whatever this computer's free disk (disk_min_free_mb, is tested in test_space)
         for key, value in (("port", port), ("site_key", SITE_KEY), ("disk_min_free_mb", 0)):
             subprocess.run(AGENTCAKE + ["config", "set", key, str(value)], env=cls.env, check=True, capture_output=True)
         cls.server = subprocess.Popen(AGENTCAKE + ["serve"], env=cls.env, stdout=subprocess.DEVNULL,
@@ -89,7 +89,7 @@ class CakeServesCakeJs(unittest.TestCase):
 
     def test_cake_js_is_the_built_script_with_the_site_key(self):
         self.assertIn("Agent Cake page script (cake.js)", self.script)
-        # with the page script's two settings as a fresh installation has them (S5.5): hook_dom off, nothing hidden
+        # with the page script's two settings as a fresh installation has them: hook_dom off, nothing hidden
         self.assertIn('/*cake:runtime*/{"hide_selectors":"","hook_dom":false,"site_key":"%s"}/*cake:runtime*/' % SITE_KEY,
                       self.script)
 

@@ -1,4 +1,4 @@
-"""cake.js is built from agentcake/static/src/ by agentcake/build_js.py (plan step S1.3).
+"""cake.js is built from agentcake/static/src/ by agentcake/build_js.py.
 
     python3 -I -m unittest discover -s tests -v      (from the repository root)
 
@@ -22,7 +22,7 @@ from agentcake import build_js  # noqa: E402  (the repository root is put on sys
 
 PACKAGE = os.path.join(ROOT, "agentcake")
 CONFIG_PATH = os.path.join(PACKAGE, "data", "cakejs.json")
-LINE_LIMIT_DEFAULT = 400  # tools/limits.json (plan step S1.2) is the authority once it exists
+LINE_LIMIT_DEFAULT = 400  # tools/limits.json is the authority once it exists
 ALLOWED_NUMBERS = {"0", "1"}  # -1 is the unary minus applied to 1
 
 

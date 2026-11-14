@@ -6,7 +6,8 @@ folder `agentcake-<version>/`) that is `<this folder>/bin/agentcake`. End with `
 the local page to open (`http://127.0.0.1:7878/`) and that, after they register, it shows how to connect their website. The first
 time the user opens the local page it asks them to register: that is theirs to do. Give them the address; never fill in
 their e-mail address or press "Register & Continue" for them. Connect the user's own website
-(`agentcake setup --print --site`) only if they ask.
+(`agentcake setup --print --site`) only if they ask. Answer in the user's language. If you start a program yourself (a
+site's dev server for doctor), note its process ID and stop only that process, never by port or name.
 
 Any change to AgentCake's interface (local pages, dashboard, sessions, replay, settings, or any new page): read `DESIGN.md`
 first and follow it. The UI is shadcn/ui components + the Frosting theme in `web/` (tokens only in `web/src/styles/tokens.css`).

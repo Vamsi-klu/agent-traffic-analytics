@@ -1,4 +1,4 @@
-"""The signature on POST /edge (S4.4; its own module in the M4 clean-up): what `agentcake logs import` signs each batch
+"""The signature on POST /edge: what `agentcake logs import` signs each batch
 with (logs.py) and what Agent Cake checks before it reads one (edge_api.py), one implementation for both ends.
 
 The header HEADER holds <prefix>.<time in ms>.<base64url HMAC-SHA256 of "<prefix>.<time>." followed by the body>,

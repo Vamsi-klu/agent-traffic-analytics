@@ -1,5 +1,5 @@
 {
-  "_about": "How sure a verdict is, as percents (agentcake/detect/confidence.py, plan step S3.7, decision D36): the chance each layer's evidence gives, combined by adding log-likelihood ratios as if humans and agents were equally common, each percent held inside clamp. agentcake eval checks them against sessions with known answers (its calibration table: per bin of predicted chance, the actual share; and the Brier score).",
+  "_about": "How sure a verdict is, as percents (agentcake/detect/confidence.py): the chance each layer's evidence gives, combined by adding log-likelihood ratios as if humans and agents were equally common, each percent held inside clamp. agentcake eval checks them against sessions with known answers (its calibration table: per bin of predicted chance, the actual share; and the Brier score).",
   "clamp": [
     0.01,
     0.99
@@ -7,43 +7,43 @@
   "behaviour": {
     "_about": "The isotonic map from the behaviour score (the mean log-odds of the behaviour model's smoothed segment scores, each held inside -score_limit..score_limit) to the chance that an agent acted, both classes weighted alike, each block shrunk towards even by eval.json calibration.prior_count sessions of each class. blocks: [upper score, chance], in order; a score above the last upper bound takes the last chance. Fitted by the maintainers' calibration script on the sessions with known answers (the fit's data sets and date in fitted); agentcake eval refits it without each data set to check it held out.",
     "score_limit": 12,
-    "fitted": "2026-11-13: lab 26 agents and 0 people, recordings 0 agents and 11 people, recorded 32 agents and 0 people, selfcollect 10 agents and 0 people, public_humans 0 agents and 629 people, posthog 50 agents and 16 people",
+    "fitted": "2026-11-14: lab 26 agents and 0 people, recordings 0 agents and 11 people, recorded 32 agents and 0 people, selfcollect 19 agents and 0 people, public_humans 0 agents and 629 people, posthog 50 agents and 16 people",
     "blocks": [
       [
         -5.7507,
-        0.0255
+        0.0237
       ],
       [
         -5.2235,
-        0.0715
+        0.0668
       ],
       [
         -3.3644,
-        0.104
+        0.0974
       ],
       [
         -2.3475,
-        0.1563
+        0.1469
       ],
       [
         -2.0125,
-        0.3212
+        0.3055
       ],
       [
         -0.4664,
-        0.4523
+        0.4344
       ],
       [
         -0.4266,
-        0.7681
+        0.7549
       ],
       [
         0.5357,
-        0.8206
+        0.8096
       ],
       [
         1.281,
-        0.8679
+        0.8594
       ],
       [
         8.2704,
@@ -52,13 +52,14 @@
     ]
   },
   "layers": {
-    "_about": "Declared, not fitted (few people in our data show any of these, so no fit is possible yet): the chance of what the layer names (an agent, or a bot for a listed bot's name) when it found it. verified: a name a signature or published addresses confirm, and a verified signature; impersonation: a name a check proved false (an automation lying about what it is); self_reported: a name nothing confirms; env_hard: a hard automation or spoofing trace (never seen on people: 0 of our 11 clean recordings, botscent 0 of 44 to 90); env_counted: soft traces that count with another one; env_soft_alone: soft traces alone, which a person's own extensions can leave; typing_cadence: the session's typing ends at bot (agentcake/detect/cadence.py), added to the behaviour layer's own chance: 7 of the lab's 14 agents that typed 20 keys end at bot and 0 of 416 people (the recorder's 8 and the CMU keystroke benchmark's 408 sittings), a chance of 0.986 at the people's 95% upper bound, declared lower because those people typed a password, not free text.",
+    "_about": "Declared, not fitted (few people in our data show any of these, so no fit is possible yet): the chance of what the layer names (an agent, or a bot for a listed bot's name) when it found it. verified: a name a signature or published addresses confirm, and a verified signature; impersonation: a name a check proved false (an automation lying about what it is); self_reported: a name nothing confirms; env_hard: a hard automation or spoofing trace (never seen on people: 0 of our 11 clean recordings, botscent 0 of 44 to 90); env_counted: soft traces that count with another one; env_soft_alone: soft traces alone, which a person's own extensions can leave; typing_cadence: the session's typing ends at bot (agentcake/detect/cadence.py), added to the behaviour layer's own chance: 7 of the lab's 14 agents that typed 20 keys end at bot and 0 of 416 people (the recorder's 8 and the CMU keystroke benchmark's 408 sittings), a chance of 0.986 at the people's 95% upper bound, declared lower because those people typed a password, not free text; fast_arrivals: with raw input and a mouse, enough of the session's aimed movements arrive at their target without slowing down (agentcake/detect/arrival.py), added the same way: held out by generator, 16 of 30 sessions of human-imitating automation and 0 of the 96 people with 8 aimed movements or more (PSAI, CaptchaSolve30k and the recorder's), a chance of 0.94 at the people's 95% upper bound, declared lower because so few people had that many movements; only automation made to look human action by action trips it (no person and no other agent product in our data), so when it holds the action scores that point to a person say nothing against an agent and do not lower the behaviour's chance: the map's chance counts only above even, and this strength is added to that (agentcake/detect/confidence.py).",
     "verified": 0.999,
     "impersonation": 0.99,
     "self_reported": 0.9,
     "env_hard": 0.999,
     "env_counted": 0.9,
     "env_soft_alone": 0.75,
-    "typing_cadence": 0.95
+    "typing_cadence": 0.95,
+    "fast_arrivals": 0.9
   }
 }

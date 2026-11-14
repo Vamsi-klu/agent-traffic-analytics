@@ -1,4 +1,4 @@
-"""What cake.js must never record, and that it records only after consent (plan step S1.4; GOAL G4, G12, T10, S1).
+"""What cake.js must never record, and that it records only after consent.
 
     python3 -I -m unittest discover -s tests -v      (from the repository root; needs CAKE_PLAYWRIGHT, see below)
 
@@ -7,14 +7,14 @@ input, a data-cake-private input, a password, a payment card field, a textarea, 
 payment form in a frame) and a made-up card number only this run knows into the card fields, then checks out in the
 demo shop with the canary and the test card 4242 4242 4242 4242. Every upload the stand-in collector received is then
 searched: the canary, this run's card number and 4242 4242 4242 4242 appear nowhere (the shop's checkout no longer
-prints a card number, S5.6, so the search makes no exception); no record holds a key's name or a typed value; private
-fields send nothing typed. Then GOAL T10's three cases on a page with
+prints a card number, so the search makes no exception); no record holds a key's name or a typed value; private
+fields send nothing typed. Then the three consent cases on a page with
 a consent bar (data-consent="required"): refused at once, nothing is sent; accepted and refused later, from the
 moment the click on Reject reaches the page cake.js makes no batch and starts no upload, and the visit id is gone;
 accepted, every page is recorded. The refusal's moment and the uploads the page started are taken in the page itself,
 on the clock cake.js stamps its batches with (tests/browser/consent.mjs, watchRefusal): a mark taken by the driver
 before it clicks is up to a second early under load, which once made a batch from before the refusal look like one from
-after it. And refusals while uploads are under way (GOAL G12, "refused = stopped and forgotten"): a gzip or an upload
+after it. And refusals while uploads are under way ("refused = stopped and forgotten"): a gzip or an upload
 that fails after the refusal sends nothing and parks nothing in sessionStorage, a batch parked before it is dropped,
 and a "yes" on the next page starts a new visit that carries nothing from before.
 
@@ -94,7 +94,7 @@ class PrivacyRecording(unittest.TestCase):
     def raw_records(self, kinds):
         return [r for view in self.views.values() for r in view["r"] if r.get("ty") in kinds]
 
-    # ---------------------------------------------------------------- never recorded (G4, S1)
+    # ---------------------------------------------------------------- never recorded
     def test_the_privacy_visit_was_recorded(self):
         visit = self.runs["privacy-1"]
         self.assertIsNotNone(visit)
@@ -147,7 +147,7 @@ class PrivacyRecording(unittest.TestCase):
             for record in view["r"]:
                 self.assertNotIn(record.get("s"), PRIVATE_FIELDS)
 
-    # ---------------------------------------------------------------- consent (G12, T10)
+    # ---------------------------------------------------------------- consent
     def test_refused_at_once_nothing_is_sent(self):
         log = self.logs["consent_reject-1"]
         self.assertEqual(self.entries_during("consent_reject-1"), [])
@@ -214,7 +214,7 @@ class PrivacyRecording(unittest.TestCase):
 
 
 class HiddenByTheOwner(unittest.TestCase):
-    """What the site owner hides in AgentCake's settings (S5.5: hide_selectors, carried by /cake.js like cake serves it)
+    """What the site owner hides in AgentCake's settings (hide_selectors, carried by /cake.js like cake serves it)
     is recorded as cake.js's own private elements are: an empty box in the replay, nothing typed kept. A list the browser
     cannot read is left out, said in a fault, and the page is still recorded."""
     OWNER = ".account, #owner-note"

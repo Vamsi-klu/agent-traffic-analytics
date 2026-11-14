@@ -1,4 +1,4 @@
-"""`agentcake doctor`, the line about the web server's log import (S4.4, S6.1): agentcake/doctor_logs.py.
+"""`agentcake doctor`, the line about the web server's log import: agentcake/doctor_logs.py.
 
     python3 -I -m unittest discover -s tests -p test_doctor_logs.py -v      (from the Agent Cake folder)
 

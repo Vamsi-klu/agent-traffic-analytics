@@ -1,20 +1,20 @@
-"""Night work on the replay chunks (S2.2): recompress old sessions, and give back the disk of dropped chunks.
+"""Night work on the replay chunks: recompress old sessions, and give back the disk of dropped chunks.
 
 run(now_ms) recompresses up to recompress_sessions_per_run sessions whose newest chunk is recompress_after_days old
 and that have chunks not yet archived and no open window: each stream of the session becomes one chunk at the
-codec's archive level (zstd-19, zlib-9). A whole session compresses much better than its 10-second pieces (note 5:
-zstd-19 is 21-69% smaller than zstd-3, more again on whole sessions). The lines are copied as stored, style
+codec's archive level (zstd-19, zlib-9). A whole session compresses much better than its 10-second pieces (measured on
+recorded sessions: zstd-19 is 21-69% smaller than zstd-3, more again on whole sessions). The lines are copied as stored, style
 references and page views included, so a read gives back exactly the same events. The slow compression runs without
 store.LOCK; the lock is taken only to append the new chunk and swap the rows, and a session that changed meanwhile is
 left for the next night.
 
 reclaim(con, now_ms) gives the space of dropped or replaced chunks back: a file no chunk points into is deleted; a
 file at least compact_min_dead_share dead (with every_dead, any file with dead bytes: after freeing for the disk's
-floor, space.py, K2) has its live chunks copied, unchanged, into the current hour's file and is deleted; then
+floor, space.py) has its live chunks copied, unchanged, into the current hour's file and is deleted; then
 styles.gc_styles() drops stylesheets no chunk refers to. The current hour's file is never touched. The caller holds
 store.LOCK and has committed; reclaim commits after moving each file's chunks, before deleting it. maintenance.py
 runs both at night, and space.reclaim_if_due() runs reclaim() at its next round, by day too, once chunks were dropped
-(space freed, a retention: S2.5). chunk_files(root) lists the chunk files and their sizes (space.dead_bytes too).
+(space freed, a retention). chunk_files(root) lists the chunk files and their sizes (space.dead_bytes too).
 """
 import os
 from collections import namedtuple

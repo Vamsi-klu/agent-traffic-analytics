@@ -1,4 +1,4 @@
-"""Reading a website's code folder (S6.1): which framework it uses, which of its files must carry the cake.js line,
+"""Reading a website's code folder: which framework it uses, which of its files must carry the cake.js line,
 which file makes the app, and where the server half's middleware is mounted.
 
 SiteCode(folder) walks the folder once (never into data/site_files.json's skip_dirs: installed packages, build output,

@@ -1,5 +1,5 @@
-// Drives Chromium through the test site's shop (tests/site; AgentCake's demo shop until D37) for the cake.js browser
-// tests (plan steps S1.3, S1.4) and writes down what it
+// Drives Chromium through the test site's shop (tests/site; AgentCake's demo shop until 0.4.0) for the cake.js browser
+// tests and writes down what it
 // did, so the Python side (tests/browser/test_capture.py) can check that cake.js delivered all of it to the stand-in
 // collector (tests/browser/collector.py).
 //
@@ -11,13 +11,13 @@
 //   humanlike  curved mouse paths with jitter, pauses, wheel scrolling, typing key by key
 //   bounce     24 pages, each left 0.3–0.8 s after it opened
 //   timing     the same pages with and without cake.js, to measure what cake.js adds (writes timing.json)
-//   hidden     types --canary into an ordinary field and one the site owner hides (pages/hidden.html, S5.5)
+//   hidden     types --canary into an ordinary field and one the site owner hides (pages/hidden.html)
 //   privacy    types --canary (a made-up string) and the test card number into every kind of field, then checks out
-//   consent_…  GOAL T10's cases on a page with a consent bar, and refusals while uploads are under way (consent.mjs)
+//   consent_…  the consent cases on a page with a consent bar, and refusals while uploads are under way (consent.mjs)
 // Writes <out>/<scenario>-<run>.json: the pages in the order they opened and every click (with the page it was on and
 // whether its target is inside an element cake.js must not record, which the replay therefore does not show).
 // playwright-core comes from CAKE_PLAYWRIGHT or web/node_modules/playwright-core, Chromium from CAKE_CHROME or the
-// local Playwright cache (as web/scripts/shots.mjs does). Only made-up details are typed (GOAL section 4).
+// local Playwright cache (as web/scripts/shots.mjs does). Only made-up details are typed.
 // CAKE_CPU_THROTTLE=<n> runs the scenarios' pages n times slower (Chromium's CPU throttling, as in DevTools): a loaded
 // machine, made repeatable.
 import { existsSync } from 'node:fs'
@@ -263,7 +263,7 @@ async function privacy(page, log) {
   await settled(page)
 }
 
-// ---------------------------------------------------------------- hidden: what the site owner hides (S5.5)
+// ---------------------------------------------------------------- hidden: what the site owner hides
 // pages/hidden.html, with the collector's cake.js carrying hide_selectors (test_privacy_recording.py): the canary typed
 // into an ordinary field and into one the owner hides.
 async function hidden(page, log) {

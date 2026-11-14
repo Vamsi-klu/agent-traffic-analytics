@@ -1,4 +1,4 @@
-"""One session's evidence read from the database (agentcake.evidence, plan step S3.4 wiring).
+"""One session's evidence read from the database (agentcake.evidence).
 
     python3 -I -m unittest discover -s tests -v      (from the repository root)
 

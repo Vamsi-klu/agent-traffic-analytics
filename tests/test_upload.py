@@ -1,4 +1,4 @@
-"""Reading one upload from cake.js (S2.1): agentcake/upload.py, upload format version 1 (docs/collect-format.md).
+"""Reading one upload from cake.js: agentcake/upload.py, upload format version 1 (docs/collect-format.md).
 
     python3 -I -m unittest discover -s tests -p test_upload.py -v      (from the Agent Cake folder)
 

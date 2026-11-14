@@ -1,4 +1,4 @@
-"""SERVER.md, deploy/cake.service, Dockerfile and .dockerignore against the code (S6.3).
+"""SERVER.md, deploy/cake.service, Dockerfile and .dockerignore against the code.
 
     python3 -I -m unittest discover -s tests -v      (from the Agent Cake folder)
 
@@ -175,7 +175,7 @@ class DocumentsMatchCode(unittest.TestCase):
 
     def test_the_least_python_is_read_however_it_is_written(self):
         """SERVER.md once said "`python3` 3.9 or newer" after the minimum had become 3.11, and the check above,
-        which only knew "Python X.Y or newer", did not see it (found in S6.4)."""
+        which only knew "Python X.Y or newer", did not see it (found while building a release)."""
         for sentence, version in (("AgentCake needs Python 3.11 or newer", "3.11"),
                                   ("You need systemd, `python3` 3.9 or newer (Debian 12 has 3.11)", "3.9"),
                                   ("it runs with python3 3.12 or newer", "3.12"),

@@ -1,4 +1,4 @@
-// GOAL T10's consent cases for the cake.js browser tests (plan step S1.4, GOAL G12; checked by
+// The consent cases for the cake.js browser tests (checked by
 // tests/test_privacy_recording.py), run by drive.mjs on tests/browser/pages/consent.html: a consent bar whose Accept
 // calls window.cake.start() and whose Reject calls window.cake.stop() (cake.js has data-consent="required").
 //   consent_reject                refused at once

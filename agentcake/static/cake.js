@@ -1,4 +1,4 @@
-/*! Agent Cake page script (cake.js), upload format v1, build fd9973afe7c8. Made by agentcake/build_js.py from agentcake/static/src/ and agentcake/data/cakejs.json; do not edit. Bundles rrweb record, BotD, botscent page half, whose licences follow. */
+/*! Agent Cake page script (cake.js), upload format v1, build 37ff7833d733. Made by agentcake/build_js.py from agentcake/static/src/ and agentcake/data/cakejs.json; do not edit. Bundles rrweb record, BotD, botscent page half, whose licences follow. */
 /*! rrweb record 2.0.0-alpha.18 (rrweb-io/rrweb, record UMD build as shipped with cake 0.3.x (local source checked at commit 3339038d)):
 MIT License
 
@@ -73,9 +73,9 @@ SOFTWARE.
   if (window.cake && window.cake.version) return // cake.js is already running on this page
   var STARTED = performance.now() // cake.js reports how long its own first task took
   var TAG = document.currentScript
-  var CFG = {"format_version":1,"collect_path":"collect","attr":{"site":"data-site","consent":"data-consent"},"consent":{"required":"required","commands":{"start":"start","stop":"stop"}},"defaults":{"hook_dom":false,"hide_selectors":""},"storage":{"session":"cake_sid","page_number":"cake_pn","pending":"cake_pending","frames_done":"cake_frames"},"id_bytes":16,"time_precision":10,"idle_timeout_ms":1000,"idle_gap_ms":50,"content_type":"text/plain","gzip_query":"?z=gzip","token":{"entry":"cake"},"batch":{"max_bytes":51200,"interval_min_ms":2000,"interval_max_ms":10000,"interval_growth":2,"keepalive_max_bytes":60000,"compress_min_bytes":2048,"pending_max_bytes":1048576,"max_record_bytes":4194304,"retry_statuses":[408,429,500,502,503,504]},"limits":{"records_per_page":{"e":100000,"r":200000,"x":5000},"error_chars":200},"rrweb":{"sampling":{"mousemove":50,"scroll":150,"input":"last"}},"raw":{"events":["pointermove","pointerdown","pointerup","pointerover","mousemove","mousedown","mouseup","mouseover","click","dblclick","contextmenu","wheel","keydown","keyup","input","change","focus","blur","touchstart","touchend"],"target_events":["pointerdown","pointerup","click","mouseover","focus","blur","input","keydown","keyup","mousedown","mouseup","change","dblclick","contextmenu","wheel"],"target_selector":"a,button,input,select,textarea,label,summary,[role=button],[role=link]","geo_poll_ms":500,"dom_scan_delay_ms":5000,"dom_attr_names_max":8},"env":{"frame_history_writes":300,"frame_burst_writes":50,"frame_burst_gap_ms":20,"probe_attr":"data-cake-probe","cdp_rounds":3,"cdp_message":"cake probe","cdp_round_ms":100,"cdp_name_lookups_per_round":1.5,"stack_chars":400,"distinctive_globals":{"awesomium":["awesomium"],"cef":["RunPerfTest"],"cefsharp":["CefSharp"],"coachjs":["emit"],"fminer":["fmget_targets"],"geb":["geb"],"nightmare":["__nightmare","nightmare"],"phantomas":["__phantomas"],"phantomjs":["callPhantom","_phantom"],"rhino":["spawn"],"selenium":["_Selenium_IDE_Recorder","_selenium","calledSelenium"],"wdio":["wdioElectron"],"webdriver":["webdriver","__webdriverFunc","__lastWatirAlert","__lastWatirConfirm","__lastWatirPrompt","_WEBDRIVER_ELEM_CACHE","ChromeDriverw","__driver_evaluate","__webdriver_evaluate","__selenium_evaluate","__fxdriver_evaluate","__driver_unwrapped","__webdriver_unwrapped","__selenium_unwrapped","__fxdriver_unwrapped","__webdriver_script_func","__webdriver_script_fn"],"domAutomation":["domAutomation","domAutomationController"]},"global_patterns":{"selenium_cdc_window":["^cdc_|^\\$cdc_|^([a-z]){3}_.*_(Array|Promise|Symbol)$",""],"selenium_cdc_document":["^\\$cdc_|^\\$wdc_|selenium|webdriver|driver",""],"playwright":["^__pw|playwright","i"],"puppeteer":["^puppeteer_|^__puppeteer","i"]},"hook":{"methods":["getElementById","querySelector","querySelectorAll","getElementsByClassName"],"markers":{"pptr":"pptr:","utilityScript":"UtilityScript.","puppeteerEval":"__puppeteer_evaluation_script__"},"checks_max":2000,"hits_max":20,"arg_chars":60,"stack_frames":5}},"probes":{"timeout_ms":3000,"source_chars":60,"high_entropy_hints":["fullVersionList","platformVersion","architecture","model","bitness"],"native_getters":{"Navigator":["webdriver","userAgent","platform","languages","plugins","hardwareConcurrency"]},"native_methods":{"Permissions":["query"],"WebGLRenderingContext":["getParameter"],"Function":["toString"]},"fonts":["Ubuntu","Droid Sans","Cambria","DejaVu Sans","Liberation Sans"],"font_bases":["monospace","serif","sans-serif"],"font_sample":"mmmmmmmmmmlli0123456789","font_px":32},"botscent":{"sample_ms":3000},"privacy":{"mask_all_inputs":true,"private_selector":"[data-cake-private], input[type=password], [autocomplete^=\"cc-\"]","mask_text_selector":"[contenteditable]:not([contenteditable=\"false\"])","private_dropped_events":["keydown","keyup","input","change"],"private_dropped_fields":["s","r"],"key_classes":{"single_character":[{"class":"digit","pattern":"\\d","flags":""},{"class":"space","pattern":"\\s","flags":""},{"class":"letter","pattern":"[a-z]","flags":"i"}],"single_character_other":"symbol","named":{"Backspace":"delete","Delete":"delete","Enter":"enter","Tab":"tab","Shift":"modifier","Control":"modifier","Alt":"modifier","Meta":"modifier","CapsLock":"modifier","Unidentified":"unidentified","":"unidentified"},"prefixes":{"Arrow":"arrow"},"other":"other"}},"markers":{"version":"2026-11-13","every_ms":250,"host":{"tag":"DIV","parents":["body","html"],"display":"contents"},"attributes":["id","rel","href","data-codex-favicon-badge","data-browser-use-highlight","data-browser-use-interaction-highlight","data-browser-use-coordinate-highlight","data-stagehand-mask","data-skyvern-otp-box","unique_id"],"markers":[{"id":"claude-chrome.working","spots":[{"x":0.5,"top":12},{"x":0.5,"bottom":12}]},{"id":"claude-chrome.waiting","spots":[{"x":0.5,"top":56}]},{"id":"claude-chrome.bottom","spots":[{"x":0.5,"bottom":52}]},{"id":"claude-chrome.page-dom","ids":["claude-agent-stop-container","claude-agent-stop-button","claude-agent-glow-border","claude-phantom-cursor","claude-static-indicator-container"]},{"id":"claude-chrome.styles","ids":["claude-agent-animation-styles"]},{"id":"comet.overlay","selector":"[id^=\"pplx-agent\"]"},{"id":"chatgpt-chrome.badge","selector":"head [data-codex-favicon-badge], head link[rel~=\"icon\"][href*=\"data-codex-favicon-badge\"]"},{"id":"fellou.highlight","ids":["eko-highlight-container"]},{"id":"browser-use.highlight","ids":["browser-use-debug-highlights","browser-use-demo-panel"],"selector":"[data-browser-use-highlight], [data-browser-use-interaction-highlight], [data-browser-use-coordinate-highlight]"},{"id":"stagehand.overlay","ids":["__v3_cursor_overlay__"],"selector":"[data-stagehand-mask]"},{"id":"skyvern.overlay","ids":["boundingBoxContainer"],"selector":"[data-skyvern-otp-box]"},{"id":"skyvern.ids","selector":"[unique_id]"}]}}
+  var CFG = {"format_version":1,"collect_path":"collect","attr":{"site":"data-site","consent":"data-consent"},"consent":{"required":"required","commands":{"start":"start","stop":"stop"}},"defaults":{"hook_dom":false,"hide_selectors":""},"storage":{"session":"cake_sid","page_number":"cake_pn","pending":"cake_pending","frames_done":"cake_frames"},"id_bytes":16,"time_precision":10,"idle_timeout_ms":1000,"idle_gap_ms":50,"content_type":"text/plain","gzip_query":"?z=gzip","token":{"entry":"cake"},"batch":{"max_bytes":51200,"interval_min_ms":2000,"interval_max_ms":10000,"interval_growth":2,"keepalive_max_bytes":60000,"compress_min_bytes":2048,"pending_max_bytes":1048576,"max_record_bytes":4194304,"retry_statuses":[408,429,500,502,503,504]},"limits":{"records_per_page":{"e":100000,"r":200000,"x":5000},"error_chars":200},"rrweb":{"sampling":{"mousemove":50,"scroll":150,"input":"last"}},"raw":{"events":["pointermove","pointerdown","pointerup","pointerover","mousemove","mousedown","mouseup","mouseover","click","dblclick","contextmenu","wheel","keydown","keyup","input","change","focus","blur","touchstart","touchend"],"target_events":["pointerdown","pointerup","click","mouseover","focus","blur","input","keydown","keyup","mousedown","mouseup","change","dblclick","contextmenu","wheel"],"target_selector":"a,button,input,select,textarea,label,summary,[role=button],[role=link]","geo_poll_ms":500,"dom_scan_delay_ms":5000,"dom_attr_names_max":8},"env":{"frame_history_writes":300,"frame_burst_writes":50,"frame_burst_gap_ms":20,"probe_attr":"data-cake-probe","cdp_rounds":3,"cdp_message":"cake probe","cdp_round_ms":100,"cdp_name_lookups_per_round":1.5,"stack_chars":400,"distinctive_globals":{"awesomium":["awesomium"],"cef":["RunPerfTest"],"cefsharp":["CefSharp"],"coachjs":["emit"],"fminer":["fmget_targets"],"geb":["geb"],"nightmare":["__nightmare","nightmare"],"phantomas":["__phantomas"],"phantomjs":["callPhantom","_phantom"],"rhino":["spawn"],"selenium":["_Selenium_IDE_Recorder","_selenium","calledSelenium"],"wdio":["wdioElectron"],"webdriver":["webdriver","__webdriverFunc","__lastWatirAlert","__lastWatirConfirm","__lastWatirPrompt","_WEBDRIVER_ELEM_CACHE","ChromeDriverw","__driver_evaluate","__webdriver_evaluate","__selenium_evaluate","__fxdriver_evaluate","__driver_unwrapped","__webdriver_unwrapped","__selenium_unwrapped","__fxdriver_unwrapped","__webdriver_script_func","__webdriver_script_fn"],"domAutomation":["domAutomation","domAutomationController"]},"global_patterns":{"selenium_cdc_window":["^cdc_|^\\$cdc_|^([a-z]){3}_.*_(Array|Promise|Symbol)$",""],"selenium_cdc_document":["^\\$cdc_|^\\$wdc_|selenium|webdriver|driver",""],"playwright":["^__pw|playwright","i"],"puppeteer":["^puppeteer_|^__puppeteer","i"]},"hook":{"methods":["getElementById","querySelector","querySelectorAll","getElementsByClassName"],"markers":{"pptr":"pptr:","utilityScript":"UtilityScript.","puppeteerEval":"__puppeteer_evaluation_script__"},"checks_max":2000,"hits_max":20,"arg_chars":60,"stack_frames":5}},"probes":{"timeout_ms":3000,"source_chars":60,"high_entropy_hints":["fullVersionList","platformVersion","architecture","model","bitness"],"native_getters":{"Navigator":["webdriver","userAgent","platform","languages","plugins","hardwareConcurrency"]},"native_methods":{"Permissions":["query"],"WebGLRenderingContext":["getParameter"],"Function":["toString"]},"fonts":["Ubuntu","Droid Sans","Cambria","DejaVu Sans","Liberation Sans"],"font_bases":["monospace","serif","sans-serif"],"font_sample":"mmmmmmmmmmlli0123456789","font_px":32,"system_font_names":{"keywords":["-apple-system","BlinkMacSystemFont"],"apple_claim":"Macintosh|iPhone|iPad|iPod|MacIntel|Mac OS X","other_claim":"Windows NT|Win32|Win64|X11|Linux|Android|CrOS"}},"botscent":{"sample_ms":3000},"privacy":{"mask_all_inputs":true,"private_selector":"[data-cake-private], input[type=password], [autocomplete^=\"cc-\"]","mask_text_selector":"[contenteditable]:not([contenteditable=\"false\"])","private_dropped_events":["keydown","keyup","input","change"],"private_dropped_fields":["s","r"],"key_classes":{"single_character":[{"class":"digit","pattern":"\\d","flags":""},{"class":"space","pattern":"\\s","flags":""},{"class":"letter","pattern":"[a-z]","flags":"i"}],"single_character_other":"symbol","named":{"Backspace":"delete","Delete":"delete","Enter":"enter","Tab":"tab","Shift":"modifier","Control":"modifier","Alt":"modifier","Meta":"modifier","CapsLock":"modifier","Unidentified":"unidentified","":"unidentified"},"prefixes":{"Arrow":"arrow"},"other":"other"}},"markers":{"version":"2026-11-13","every_ms":250,"host":{"tag":"DIV","parents":["body","html"],"display":"contents"},"attributes":["id","rel","href","data-codex-favicon-badge","data-browser-use-highlight","data-browser-use-interaction-highlight","data-browser-use-coordinate-highlight","data-stagehand-mask","data-skyvern-otp-box","unique_id"],"markers":[{"id":"claude-chrome.working","spots":[{"x":0.5,"top":12},{"x":0.5,"bottom":12}]},{"id":"claude-chrome.waiting","spots":[{"x":0.5,"top":56}]},{"id":"claude-chrome.bottom","spots":[{"x":0.5,"bottom":52}]},{"id":"claude-chrome.page-dom","ids":["claude-agent-stop-container","claude-agent-stop-button","claude-agent-glow-border","claude-phantom-cursor","claude-static-indicator-container"]},{"id":"claude-chrome.styles","ids":["claude-agent-animation-styles"]},{"id":"comet.overlay","selector":"[id^=\"pplx-agent\"]"},{"id":"chatgpt-chrome.badge","selector":"head [data-codex-favicon-badge], head link[rel~=\"icon\"][href*=\"data-codex-favicon-badge\"]"},{"id":"fellou.highlight","ids":["eko-highlight-container"]},{"id":"browser-use.highlight","ids":["browser-use-debug-highlights","browser-use-demo-panel"],"selector":"[data-browser-use-highlight], [data-browser-use-interaction-highlight], [data-browser-use-coordinate-highlight]"},{"id":"stagehand.overlay","ids":["__v3_cursor_overlay__"],"selector":"[data-stagehand-mask]"},{"id":"skyvern.overlay","ids":["boundingBoxContainer"],"selector":"[data-skyvern-otp-box]"},{"id":"skyvern.ids","selector":"[unique_id]"}]}}
   var RUNTIME = /*cake:runtime*/{}/*cake:runtime*/
-  var BUILD = "fd9973afe7c8"
+  var BUILD = "37ff7833d733"
   var C = {}
   var SCOPE = {}
   // ---- static/rrweb-record.min.js
@@ -194,13 +194,13 @@ return module.exports;
   // ---- static/src/botd.js
   ;(function () {
 /*
- * BotD, vendored for Agent Cake's page script (S1.3).
+ * BotD, vendored for Agent Cake's page script.
  * Source: @fingerprintjs/botd 2.0.0 on npm, dist/botd.esm.js (sha256 f438ed251dc7414ece9d4a2b6941441ad9ffae1a1905817f5f0c7366e701dd86);
  * the same 19 sources and detectors as github.com/fingerprintjs/BotD at commit 193c471a (package version 2.0.0).
  * Licence: MIT, Copyright (c) 2025 FingerprintJS, Inc (full text: botd.LICENSE.txt, also bundled into cake.js).
  * Changes from the npm file, and nothing else:
  *   1. removed monitor() and load()'s `monitoring` option: the original sends a usage request to FingerprintJS's
- *      monitoring host on 1 in 1,000 loads; cake.js sends nothing anywhere but to cake (G13);
+ *      monitoring host on 1 in 1,000 loads; cake.js sends nothing anywhere but to cake;
  *   2. removed the trailing `export { ... }` statement: build_js.py concatenates this file into cake.js inside a
  *      function and hands load() to cake's parts directly.
  */
@@ -999,7 +999,7 @@ var index = { load };
   }
   // ---- static/src/util.js
   ;(function () {
-// Agent Cake page script, part: small shared helpers (plan step S1.3).
+// Agent Cake page script, part: small shared helpers.
 //
 // build_js.py concatenates the parts in agentcake/static/src/ into agentcake/static/cake.js, each inside its own
 // function, and gives them in the enclosing scope:
@@ -1134,7 +1134,7 @@ C.stopAll = function () {
   }).call(SCOPE)
   // ---- static/src/schedule.js
   ;(function () {
-// Agent Cake page script, part: running the detectors after the page has loaded, a little at a time (plan step S1.3).
+// Agent Cake page script, part: running the detectors after the page has loaded, a little at a time.
 //
 // A site that adds cake.js must not get slower. So only what has to see the page from its first moment runs when
 // cake.js starts (the input listeners, the replay's first snapshot); every detector waits for the page's load event
@@ -1202,7 +1202,7 @@ C.schedule = {
   }).call(SCOPE)
   // ---- static/src/transport.js
   ;(function () {
-// Agent Cake page script, part: batches, sequence numbers and sending (plan step S1.3; format: docs/collect-format.md).
+// Agent Cake page script, part: batches, sequence numbers and sending (format: docs/collect-format.md).
 //
 // Every record the other parts make goes through C.push(stream, record) into this page view's buffer. The streams
 // are "e" (rrweb events), "r" (raw input records) and "x" (signal records). C.flush(why) sends the buffer as one or
@@ -1498,7 +1498,7 @@ function sendParked() {
   }).call(SCOPE)
   // ---- static/src/edge_token.js
   ;(function () {
-// Agent Cake page script, part: the server-half token (plan steps S1.3, S4.2).
+// Agent Cake page script, part: the server-half token.
 //
 // As in cake 0.3.3: the site's server (its cake middleware) puts a signed token in
 // the Server-Timing header of the response that opened this page (`Server-Timing: cake;desc="c1.<body>.<sig>"`).
@@ -1506,8 +1506,8 @@ function sendParked() {
 // accepted one batch that carried it (a 2xx answer). The token is signed by the server and never opened here.
 // A single-page app's route change (history.pushState) stays in this page view, whose token went already. A page the
 // browser shows from its cache carries the token stored with it (after a 304, the 304's own new one; going back to a
-// stored page, that page's earlier one): it goes all the same, and collect answers reuse and keeps it once (S4.2,
-// checked in Chromium, WebKit and Firefox). A page the back-forward cache restores is the same page view: nothing new.
+// stored page, that page's earlier one): it goes all the same, and collect answers reuse and keeps it once
+// (checked in Chromium, WebKit and Firefox). A page the back-forward cache restores is the same page view: nothing new.
 
 var token = null
 
@@ -1535,13 +1535,13 @@ C.token = {
   }).call(SCOPE)
   // ---- static/src/raw.js
   ;(function () {
-// Agent Cake page script, part: raw input events and page-structure changes (plan step S1.3), stream "r".
+// Agent Cake page script, part: raw input events and page-structure changes, stream "r".
 //
 // Ported from the research lab's raw.js (our research code, 11/11;
 // our own code). It records raw values only; cake judges later. The field names are the lab's, so the lab's
-// behaviour features (plan step S3.6) read cake's data unchanged. Added here: pointerId, tilt and the number of
-// coalesced pointer samples (signals sig-057, sig-058 of the signal audit).
-// Privacy (plan step S1.4, rules in agentcake/data/privacy.json): never which key was pressed, only the time, a key
+// behaviour features read cake's data unchanged. Added here: pointerId, tilt and the number of
+// coalesced pointer samples.
+// Privacy (rules in agentcake/data/privacy.json): never which key was pressed, only the time, a key
 // class and whether event.code is empty; never what was typed, only the input type and the field's length; nothing
 // typed into a private element (data-cake-private, passwords, payment card fields) at all, and no selector or box of
 // a private element on any other event.
@@ -1786,10 +1786,10 @@ C.raw = {
   }).call(SCOPE)
   // ---- static/src/replay.js
   ;(function () {
-// Agent Cake page script, part: the session replay recorder (plan step S1.3), stream "e".
+// Agent Cake page script, part: the session replay recorder, stream "e".
 //
 // rrweb's record (bundled into cake.js unchanged, see THIRD_PARTY.md) with the privacy rules of
-// agentcake/data/privacy.json (plan step S1.4): every input masked (the replay keeps its length), text typed into
+// agentcake/data/privacy.json: every input masked (the replay keeps its length), text typed into
 // editable elements masked, private elements (data-cake-private, passwords, payment card fields, and what the site
 // owner hides in AgentCake's settings) not recorded at all.
 // Each full snapshot is sent as soon as rrweb has emitted it (with the page record and whatever else is buffered), so
@@ -1824,7 +1824,7 @@ C.replay = {
   }).call(SCOPE)
   // ---- static/src/automation.js
   ;(function () {
-// Agent Cake page script, part: probes for a browser driven over the DevTools protocol (plan step S1.3), stream "x".
+// Agent Cake page script, part: probes for a browser driven over the DevTools protocol, stream "x".
 //
 // The ideas of these checks come from rebrowser-bot-detector (github.com/rebrowser/rebrowser-bot-detector, commit
 // 55fa59b); the code is our own. That repository declares MIT in its package.json but has no licence file, so none of
@@ -1839,7 +1839,7 @@ C.replay = {
 //   4. Code a DevTools client evaluates in the page leaves its own frames on the call stack (Puppeteer's pptr: URLs,
 //      Playwright's UtilityScript), visible from inside the page's DOM lookups. Off unless the site owner turns it
 //      on, since it wraps the site's own DOM methods.
-// Field names follow the research lab's (runtimeEnableLeak, ipcFlooding.all300, …): cake's environment rules (S3.3)
+// Field names follow the research lab's (runtimeEnableLeak, ipcFlooding.all300, …): cake's environment rules
 // read them.
 
 // ---------------------------------------------------------------- 1. the logged-error probe
@@ -2029,11 +2029,11 @@ C.automation = {
   }).call(SCOPE)
   // ---- static/src/env.js
   ;(function () {
-// Agent Cake page script, part: the environment of a page view and the globals automation leaves (plan step S1.3),
+// Agent Cake page script, part: the environment of a page view and the globals automation leaves,
 // stream "x".
 //
 // Ported from the research lab's env.js (our research code, 11/11;
-// our own code): raw values only, cake judges later, field names as the lab's (cake's environment rules, S3.3, read
+// our own code): raw values only, cake judges later, field names as the lab's (cake's environment rules read
 // them). The table of distinctive globals is BotD's (MIT, in cakejs.json env.distinctive_globals); the error-stack
 // read is BotD's errorTrace idea. The two CDP-binding scans (exposed_installed, unnamed_native_globals) follow ideas of
 // rebrowser-bot-detector, in our own code (see automation.js for why none of its code is used).
@@ -2223,12 +2223,13 @@ C.env = {
   }).call(SCOPE)
   // ---- static/src/probes.js
   ;(function () {
-// Agent Cake page script, part: the asynchronous environment probes of a page view (plan step S1.3), stream "x".
+// Agent Cake page script, part: the asynchronous environment probes of a page view, stream "x".
 //
 // The research lab's asynchronous checks (env.js, 11/11), in our own code: the worker-consistency and
 // native-tampering ideas come from rebrowser-bot-detector (no code of it is used, see automation.js). Added: the
-// media-device counts (signal sig-040, and the evaluation's superline comparison) and a font check (sig-030, with
-// botscent's width-measuring idea). Every probe has a time limit; all results go to cake in one
+// media-device counts (for the evaluation's superline comparison too), a font check (with
+// botscent's width-measuring idea) and the system font names a browser maps only on Apple's systems, read against the
+// system the browser says it runs on (one answer leaves the page). Every probe has a time limit; all results go to cake in one
 // record. Nothing here asks the visitor for a permission: enumerateDevices without a grant gives kinds, no labels,
 // and only the counts per kind are kept.
 
@@ -2373,12 +2374,13 @@ function mediaDeviceCounts() {
   })
 }
 
-// Whether a font is installed: a sample's width in that font differs from at least one generic fallback.
-function hasFont(context, font) {
+// Whether a font family resolves: a sample's width in it differs from at least one generic fallback. family is CSS
+// text: a quoted font name, or a keyword such as -apple-system.
+function resolves(context, family) {
   return CFG.probes.font_bases.some(function (base) {
     context.font = CFG.probes.font_px + 'px ' + base
     var fallback = context.measureText(CFG.probes.font_sample).width
-    context.font = CFG.probes.font_px + 'px "' + font + '",' + base
+    context.font = CFG.probes.font_px + 'px ' + family + ',' + base
     return context.measureText(CFG.probes.font_sample).width !== fallback
   })
 }
@@ -2388,9 +2390,27 @@ function fonts() {
   if (!context) return Promise.resolve(null)
   var found = {}
   CFG.probes.fonts.forEach(function (font) {
-    found[font] = hasFont(context, font)
+    found[font] = resolves(context, '"' + font + '"')
   })
   return Promise.resolve(found)
+}
+
+// The system font names engines map only on Apple's systems (Gecko and WebKit -apple-system, Blink
+// BlinkMacSystemFont), unless the system gives the name an alias (fontconfig can on Linux), against the system the
+// browser says it runs on: 'disagree' when
+// it says another system (user agent and platform both) and one of the names resolves, 'agree' when it says an Apple
+// system or none resolves, 'unknown' when it names no system or there is no canvas. Only this answer is sent.
+function systemFontNames() {
+  var said = navigator.userAgent + ' ' + navigator.platform
+  var names = CFG.probes.system_font_names
+  if (new RegExp(names.apple_claim).test(said)) return Promise.resolve('agree')
+  if (!new RegExp(names.other_claim).test(said)) return Promise.resolve('unknown')
+  var context = document.createElement('canvas').getContext('2d')
+  if (!context) return Promise.resolve('unknown')
+  var apple = names.keywords.some(function (keyword) {
+    return resolves(context, keyword)
+  })
+  return Promise.resolve(apple ? 'disagree' : 'agree')
 }
 
 var PROBES = {
@@ -2399,7 +2419,8 @@ var PROBES = {
   nativeTampering: nativeTampering,
   uaFullVersion: uaFullVersion,
   mediaDevices: mediaDeviceCounts,
-  fonts: fonts
+  fonts: fonts,
+  systemFontNames: systemFontNames
 }
 
 var results = null
@@ -2442,8 +2463,8 @@ C.probes = {
   }).call(SCOPE)
   // ---- static/src/markers.js
   ;(function () {
-// Agent Cake page script, part: the marks agent products draw on the page, and when each was there (plan steps S3.3,
-// S3.7; GOAL A5), stream "x".
+// Agent Cake page script, part: the marks agent products draw on the page, and when each was there (threshold A5),
+// stream "x".
 //
 // Some agent products draw on the page while they work: Claude in Chrome a "working" tag and a Stop button, Comet a
 // stop button, Browser Use a box around each action. When such a mark appears and goes away tells cake when the
@@ -2660,7 +2681,7 @@ C.markers = {
   }).call(SCOPE)
   // ---- static/src/detectors.js
   ;(function () {
-// Agent Cake page script, part: what the two bundled detectors find in the page (plan step S1.3), stream "x".
+// Agent Cake page script, part: what the two bundled detectors find in the page, stream "x".
 //
 // BotD (FingerprintJS, MIT) and botscent's page half (MIT) run in the page; neither sends anything anywhere (cake's
 // copy of BotD has its telemetry request removed, botscent has no network code). cake keeps what they report, raw:
@@ -2743,13 +2764,13 @@ C.detectors = {
   }).call(SCOPE)
   // ---- static/src/cake_main.js
   ;(function () {
-// Agent Cake page script, part: start, stop and window.cake (plan steps S1.3, S1.4).
+// Agent Cake page script, part: start, stop and window.cake.
 //
 // As in cake 0.3.3, a site adds one line:
 // <script src="https://<cake>/cake.js" data-site="<key>" defer></script>.
 // cake.js sends to the address it was loaded from (…/cake.js → …/collect) and keeps the visit id in sessionStorage
 // (a visit ends with the tab).
-// Consent, as PostHog 1.0 left it to the site (plan step S1.4, GOAL G12): a site that asks first either adds the tag
+// Consent, as PostHog 1.0 left it to the site: a site that asks first either adds the tag
 // only after the visitor agreed, or adds it with data-consent="required" and calls window.cake.start() once they
 // agree; until then cake.js does nothing at all (no listener, no storage, no request). window.cake.stop() (the
 // visitor said no) ends recording and sending on this page for good, drops what was not sent yet and forgets the
@@ -2764,7 +2785,7 @@ Object.keys(CFG.defaults).forEach(function (key) {
   settings[key] = key in RUNTIME ? RUNTIME[key] : CFG.defaults[key]
 })
 
-// What is never recorded (plan step S5.5): privacy.json's private elements, and the parts of the page the site owner
+// What is never recorded: privacy.json's private elements, and the parts of the page the site owner
 // lists in AgentCake's settings (hide_selectors). A list this browser cannot read is left out, and said so in the
 // upload's faults, rather than stopping the recorders; AgentCake's settings page saves only lists a browser reads.
 C.privateSelector = (function (owned) {

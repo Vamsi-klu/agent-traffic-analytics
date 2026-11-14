@@ -1,4 +1,4 @@
-"""Reading a website's code folder (S6.1): agentcake/site_code.py.
+"""Reading a website's code folder: agentcake/site_code.py.
 
     python3 -I -m unittest discover -s tests -p test_site_code.py -v      (from the Agent Cake folder)
 

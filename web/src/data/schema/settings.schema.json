@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "settings.schema.json",
   "title": "Settings",
-  "description": "GET /api/settings, and the answer to POST /api/settings : everything the settings page shows (S5.1, S5.5).",
+  "description": "GET /api/settings, and the answer to POST /api/settings : everything the settings page shows.",
   "type": "object",
   "additionalProperties": false,
   "required": ["site_domain", "site_key", "script_tag", "sources", "last_seen", "route", "server_half", "refresh_ms", "lists", "retention_days", "retention_choices", "budget_mb", "budget_choices_mb", "auto_free", "storage", "hook_dom", "hide_selectors", "layers", "database"],

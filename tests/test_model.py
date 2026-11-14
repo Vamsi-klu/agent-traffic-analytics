@@ -1,8 +1,8 @@
-"""agentcake/detect/model.py: the whole session's verdict, the main model's missing variant (plan step S3.7).
+"""agentcake/detect/model.py: the whole session's verdict, the main model's missing variant.
 
     python3 -I -m unittest discover -s tests -v
 
-The small cases document the rules, the fallback, "too little data" and the interface S3.4 reads. The cases on the
+The small cases document the rules, the fallback, "too little data" and the interface the verdict reads. The cases on the
 lab's 26 sessions and on PostHog replays are kept with that data, outside the published repository.
 """
 import json
@@ -29,13 +29,17 @@ def sigmoid(z):
     return 1 / (1 + math.exp(-z))
 
 
+TARGET_STEP_PX = 120  # jump_clicks()' targets side by side, 100 px wide
+
+
 def jump_clicks(n, gap_ms=5000, t0=1000):
-    """Claude in Chrome: one move onto the target, a click a few ms later, centred on its box."""
+    """Claude in Chrome: one move onto the target, a click a few ms later, centred on its box. Each click is on a
+    target of its own: the same spot pressed again would repeat the click in place, which shows no approach."""
     out = []
     for k in range(n):
-        t = t0 + k * gap_ms
-        out += [ev(t - 5, "mousemove", cx=400, cy=300),
-                ev(t, "click", cx=400, cy=300, d=1, pt="mouse", r=[350, 280, 100, 40])]
+        t, x = t0 + k * gap_ms, 400 + TARGET_STEP_PX * k
+        out += [ev(t - 5, "mousemove", cx=x, cy=300),
+                ev(t, "click", cx=x, cy=300, d=1, pt="mouse", r=[x - 50, 280, 100, 40])]
     return out
 
 
@@ -47,6 +51,16 @@ def hand_clicks(n, gap_ms=5000, t0=1000):
         out += [ev(t - (20 - j) * 50, "mousemove", cx=300 + 5 * j, cy=250 + (j * j) % 23) for j in range(20)]
         out.append(ev(t, "click", cx=395, cy=290, d=1, pt="mouse", r=[350, 280, 100, 40]))
     return out
+
+
+def clicks_in_place(n, t0, gap_ms=800):
+    """A person paging through pictures: n more clicks on the spot hand_clicks() pressed, the pointer at rest."""
+    return [ev(t0 + k * gap_ms, "click", cx=395, cy=290, d=1, pt="mouse", r=[350, 280, 100, 40]) for k in range(n)]
+
+
+def even_keys(t0, n=4, gap_ms=100):
+    """A short word typed in one go, its keys evenly apart."""
+    return [ev(t0 + k * gap_ms, "keydown", kc="letter") for k in range(n)]
 
 
 def straight_glides_and_scrolls(n, t0=1000):
@@ -118,7 +132,7 @@ class RuleTest(unittest.TestCase):
         self.assertEqual(model.rule_score(dict(NO_EVIDENCE, scroll_no_wheel=1.0))[1], ["scroll_without_wheel"])
 
     def test_even_typing_needs_nine_keys_unless_it_is_very_even(self):
-        # borrow-rules B2: the lab's spread (< 0.15) from 9 keys on (agent-detector's uniform typing: 8 gaps), and
+        # the lab's spread (< 0.15) from 9 keys on (agent-detector's uniform typing: 8 gaps), and
         # under 9 keys only a spread below 0.08 (bot-signal's linear typing). The clean humans' typing segments this
         # fires on went from 9 to 5; every lab agent segment fires as before.
         def fired(keys, spread):
@@ -161,13 +175,22 @@ class FallbackTest(unittest.TestCase):
         self.assertEqual(model.teleport_click_share(events), 0.0)
 
     def test_a_click_the_keyboard_made_is_no_teleport(self):
-        # borrow-rules B3: Enter or Space on a button clicks with detail 0, the pointer anywhere
+        # Enter or Space on a button clicks with detail 0, the pointer anywhere
         self.assertIsNone(model.teleport_click_share([ev(0, "click", cx=5, cy=5, d=0)]))
 
     def test_a_tapped_click_is_no_teleport(self):
-        # borrow-rules B3: a tap's first click has no move before it but the one the browser adds at the spot
+        # a tap's first click has no move before it but the one the browser adds at the spot
         for pointer in ("touch", "pen"):
             self.assertIsNone(model.teleport_click_share(tap(0, pointer)), pointer)
+
+    def test_a_click_again_in_place_is_no_teleport_of_its_own(self):
+        # the jump before the first click is the only one: a label's click on its input and a second press on the
+        # same spot came with no pointer movement
+        jump = [ev(0, "mousemove", cx=0, cy=0), ev(30, "mousemove", cx=500, cy=0), ev(80, "click", cx=500, cy=0)]
+        label = [ev(80, "click", cx=500, cy=0)]
+        again = [ev(1080, "click", cx=501, cy=1)]
+        self.assertEqual(model.teleport_clicks(jump + label + again), [80.0])
+        self.assertEqual(model.teleport_click_share(jump + label + again), 1.0)
 
     def test_no_clicks_no_teleport_share(self):
         self.assertIsNone(model.teleport_click_share([ev(0, "mousemove", cx=0, cy=0)]))
@@ -209,6 +232,14 @@ class VerdictTest(unittest.TestCase):
         result = model.judge_session(hand_clicks(6))
         self.assertEqual((result["verdict"], result["confidence"], result["basis"]), ("human", 1.0, ["rules"]))
 
+    def test_clicking_again_in_place_is_no_agent_evidence(self):
+        # one approach, then the same spot pressed again and again: no approach to read, however many times; with
+        # the even keys of one short word as a second kind of evidence, such people were judged agents
+        events = hand_clicks(1) + clicks_in_place(10, t0=1800) + even_keys(12000)
+        result = model.judge_session(events)
+        self.assertEqual(result["verdict"], "human")
+        self.assertNotIn("few_moves_before_click", result["evidence"]["rule_hits"])
+
     def test_no_evidence_either_way_is_unsure(self):
         result = model.judge_session(straight_glides_and_scrolls(4), raw_input=False)
         self.assertEqual((result["verdict"], result["basis"]), ("unsure", []))
@@ -233,7 +264,7 @@ class VerdictTest(unittest.TestCase):
         self.assertEqual((result["verdict"], result["basis"]), ("unsure", []))
 
     def test_a_mouse_that_barely_moved_is_no_agent_for_its_pointer_rate(self):
-        # borrow-rules B1, after agent-detector ("missing is not negative"): one move, then wheel and keys only,
+        # after agent-detector ("missing is not negative"): one move, then wheel and keys only,
         # leaves no movement to measure, which says nothing about who moved it
         result = model.judge_session([ev(500, "mousemove", cx=10, cy=10)] + scrolls_and_typing())
         self.assertIsNone(result["evidence"]["active_move_rate"])
@@ -292,7 +323,7 @@ class VerdictTest(unittest.TestCase):
 
 
 def switches_off():
-    """The packaged parameters with both of S3.7's timeline changes off: the first version (0.3.4's judge)."""
+    """The packaged parameters with both of the timeline's changes off: the first version (0.3.4's judge)."""
     params = json.loads(json.dumps(model.load_params()))
     params["timeline"]["no_pointer_no_evidence"] = False
     params["timeline"]["movement_evidence"] = False

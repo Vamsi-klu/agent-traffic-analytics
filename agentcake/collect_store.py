@@ -1,4 +1,4 @@
-"""Keeping one accepted upload (S2.1, S2.3): its request's facts, the batch's key, the visit, the token, the records,
+"""Keeping one accepted upload: its request's facts, the batch's key, the visit, the token, the records,
 and what was refused.
 
 record(con, batch, visit, now_ms, c) writes, in the caller's transaction (store.LOCK held, the caller commits):
@@ -11,10 +11,10 @@ record(con, batch, visit, now_ms, c) writes, in the caller's transaction (store.
    batch has no key and is always kept;
 2. the session row: first and last seen, URL, User-Agent, automation flag, Sec-Fetch headers, self-check flag, where
    the visit came from (site_origin.py; once "other", it stays "other"), the load balancer's network facts;
-3. the server-half token (edge_token.take_token, S4.2), which also puts the id of a token it verified on the batch's
+3. the server-half token (edge_token.take_token), which also puts the id of a token it verified on the batch's
    row: that links each page view to its server half, also a page view that reused an earlier page view's token;
 4. each stream's records with their page view (streams.append), up to max_events_per_session per stream; the
-   rrweb replay only while the disk budget and the disk's free space allow (space.room_for_replay, S2.5), else
+   rrweb replay only while the disk budget and the disk's free space allow (space.room_for_replay), else
    counted in sessions.events_dropped as in 0.3.4. Raw input and signals are kept either way: judging needs
    them. Records over the limit are counted in sessions.events_refused and the refusals table.
 

@@ -1,4 +1,4 @@
-"""Replay chunk files (S2.2): $CAKE_HOME/replays/<YYYY-MM-DD>/<HH>.bin, named after the UTC date and hour of writing.
+"""Replay chunk files: $CAKE_HOME/replays/<YYYY-MM-DD>/<HH>.bin, named after the UTC date and hour of writing.
 
 A file is a run of chunks, appended and never changed in place. Each chunk describes itself, so a file can be read,
 and the chunks table rebuilt, without the database:
@@ -10,7 +10,7 @@ and the chunks table rebuilt, without the database:
 
 The payload is JSON Lines, one event per line, oldest first: {"t": <ms>, "e": <the event, byte for byte>}, with
 "css": [[position, hash], ...] before "e" when styles.py took stylesheets out of the event, and "p": <page view> after
-"t" when the event came from a page of cake.js (S2.1: the page view id of its upload; two tabs of one visit interleave
+"t" when the event came from a page of cake.js (the page view id of its upload; two tabs of one visit interleave
 in time). A reader that does not know "p" still reads the line. The database's chunks table keeps (file,
 byte_offset, byte_length) of each chunk (streams.py).
 
@@ -34,7 +34,7 @@ FORMAT = 1  # protocol: the chunk format version written into every header
 HEADER_LENGTH = struct.Struct(">I")  # protocol: header length, 4 bytes big-endian
 PREFIX = len(MAGIC) + HEADER_LENGTH.size
 EVENT_KEY = ',"e":'
-PAGE_KEY = "p"  # protocol: chunk format 1's optional page view of an event (S2.1)
+PAGE_KEY = "p"  # protocol: chunk format 1's optional page view of an event
 NEWLINE = "\n"
 
 ChunkRef = namedtuple("ChunkRef", "file offset length raw_bytes")
