@@ -67,6 +67,9 @@ def plant(con, sid, canary, sealed_at, padding):
                 (sid, "Claude", "page", "ua", "self", json.dumps([canary]), NOW))
     con.execute("INSERT INTO requests(session_id, recv_ms, seq, facts, pv) VALUES(?,?,?,?,?)",
                 (sid, t0, 0, json.dumps({"country": canary}), "pv1"))
+    con.execute("INSERT INTO session_web(session_id, tab_id, visitor, referring_domain, utm_campaign, city) "
+                "VALUES(?,?,?,?,?,?)", (sid, sid, canary, f"{canary}.example", canary, canary))
+    con.execute("INSERT INTO web_paths(session_id, path, views) VALUES(?,?,?)", (sid, f"/{canary}", 1))
     for n, at in enumerate(sealed_at):
         ts = t0 + n * SETTINGS["chunk_ms"]
         pad = canary + secrets.token_hex(padding)  # random: compression cannot shrink it

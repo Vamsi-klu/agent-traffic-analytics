@@ -7,7 +7,9 @@ in [`docs/privacy-notice-template.md`](docs/privacy-notice-template.md). Neither
 ## What AgentCake is for
 
 For each visit to a website, AgentCake tells whether a human or an AI agent was using the page, and which agent. It
-does not try to find out who a visitor is, and it keeps nothing that names one.
+does not try to find out who a visitor is, and it keeps nothing that names one. A site that signs its visitors in can
+have each of them counted once across browsers and devices: AgentCake then keeps a one-way hash of the site's own id
+for the visitor, never the id ("Counting a signed-in visitor once", below).
 
 ## What the page script records
 
@@ -30,7 +32,21 @@ The page script, `cake.js`, is the one line a site adds. It records:
   font names or sizes leave the page), and when an agent product's own
   marks (such as Claude in Chrome's "working" tag) appeared on the page and went away: which mark and when, nothing
   else of the page.
-- **The server-half token** the site's own server puts in the page's response, when the site runs AgentCake's
+- **Where the visit came from**: the domain of the page that linked to yours (the host of `document.referrer`, such
+  as `www.google.com`, never that page's address), the campaign parameters in the address of the page the visitor
+  arrived on (`utm_source`, `utm_medium`, `utm_campaign`, `utm_content`, `utm_term` and `gad_source`, each cut to 200
+  characters), and which ad-click parameters that address carries (`gclid`, `fbclid`, `msclkid` and the others listed
+  in `agentcake/data/cakejs.json`): their names only. (The page's address, which every upload carries, still holds
+  its whole query string, values included, as it always has.) With them, the browser's language and its time zone offset, which the
+  environment record above also holds.
+- **A visitor id**: a random id the script keeps in the visitor's browser (localStorage) and sends with each upload,
+  so that AgentCake can count visitors. It is made from nothing about the device or the visitor, and it expires a
+  year after the visitor's last page view on your site ("What the script keeps in the visitor's browser", below).
+- **An identify hash, only when your site calls `window.cake.identify(id)`** (after a visitor signs in, with your own
+  id for them): the SHA-256 hash of your site key, a colon and that id, made in the visitor's browser. Only the hash is
+  sent; the id itself never leaves the browser. The script keeps it with the visitor id and sends it with every later
+  upload from that browser ("Counting a signed-in visitor once", below).
+- **The server middleware token** the site's own server puts in the page's response, when the site runs AgentCake's
   middleware (below).
 
 The rules are in `agentcake/data/privacy.json` and are not settings: no configuration turns input masking off or makes
@@ -43,28 +59,36 @@ them; when one does, it records the method, its first argument and the calls tha
 - **The visit**: when it began and when it was last seen, the page's address, the browser's User-Agent, whether the
   browser said it is automated (`navigator.webdriver`), the `Sec-Fetch-*` headers of the upload request, and whether
   the upload came from your site or from another one (another site's uploads are kept, but left out of the dashboard).
+  A visit is one session of one browser tab: after 30 minutes without activity, or after 24 hours, the tab's next
+  activity begins a new session, and AgentCake applies the same rules to an older page script that does not.
+- **What the dashboard groups sessions by**: the visitor id and, when the session's uploads carried one, the
+  identify hash; where the session came from (the referring domain, the
+  campaign parameters, the names of the ad-click parameters, and the channel these make, such as Organic Search); the
+  browser, operating system and device type read from the User-Agent; the language and time zone offset; and, on a
+  server with `trust_lb` on, the country, region and city your load balancer gives.
 - **Each upload's header**: when it was made and when it arrived, the page's address at that moment, why it was sent,
   how many records of each kind it held, and what `cake.js` itself had to drop.
 - **Each upload request**: the values of a few of its headers (`User-Agent`, `Accept-Language`, the low-entropy client
   hints `Sec-CH-UA`, `Sec-CH-UA-Mobile` and `Sec-CH-UA-Platform`, `Origin`, the `Sec-Fetch-*` headers and the Web Bot
   Auth headers), the names of all its headers in the order they came, and where it came from. Of every other header
-  only the name is kept: never the value of a cookie, a credential, the `Referer` or anything a proxy adds.
-- **On a server, with `trust_lb` on**: what your load balancer says about the connection: the country, the published
-  network range the address belongs to (an AI provider's published agent ranges, for example) and the kind of network
+  only the name is kept: never the value of a cookie, a credential, the `Referer` or anything a proxy adds. (The
+  domain of the page the visitor came from is what the page script sends, above; the address is never sent.)
+- **On a server, with `trust_lb` on**: what your load balancer says about the connection: the country, the region and
+  city (when it sends them), the published network range the address belongs to (an AI provider's published agent ranges, for example) and the kind of network
   (a relay such as iCloud Private Relay, a CDN, a cloud provider), the TLS fingerprint (JA4), the protocol, and the Web
   Bot Auth signature headers the request carried. And two salted hashes: of the address, and of its /24 (IPv4) or /48
   (IPv6) network. They are HMACs with a random salt that AgentCake keeps in its database and replaces every
   `ip_salt_days` (30 by default): within one period they tell whether two uploads came from the same address or
   network; once the salt is replaced, nothing can match them to an address any more.
 - **Refused uploads**: only how many, per reason.
-- **Verdicts**: AgentCake's own conclusions: which stretches of the visit a human or an agent acted in, the agent's
-  name and the evidence for it.
+- **Classifications**: AgentCake's own conclusions: which stretches of the visit a human or an agent acted in, the
+  agent's name and the evidence for it.
 
 The visitor's IP address is never stored. On a server AgentCake uses it for a moment, to look up which published range
-holds it, to hash it with the salt and to compare networks with the server half, then drops it. Without `trust_lb` (on
-your own computer) the collector does not read it at all.
+holds it, to hash it with the salt and to compare networks with the server middleware's token, then drops it. Without
+`trust_lb` (on your own computer) the collector does not read it at all.
 
-## The server half
+## The server middleware
 
 When your site's server runs AgentCake's middleware (`edge/`), it signs a token into each page's response and
 `cake.js` forwards it. AgentCake keeps each token it verifies: when your server saw the request, the path (without
@@ -88,8 +112,9 @@ verifies. Never the address, the query, cookies or credentials ([`SERVER.md`](SE
 ## What it never records
 
 What is typed, which keys are pressed, passwords, card numbers, the content of private elements, cookies (the script
-reads none and sends its uploads without credentials, and the collector reads no cookie header), authorization
-headers, the visitor's IP address, and anything the site stores in the visitor's browser.
+reads none, sets none and sends its uploads without credentials, and the collector reads no cookie header),
+authorization headers, the visitor's IP address, the address of the page the visitor came from (only its domain), the
+id your site gives `window.cake.identify()` (only its hash), and anything the site stores in the visitor's browser.
 
 ## Where it goes, and what goes online
 
@@ -99,7 +124,7 @@ What visitors' browsers send goes only to your own AgentCake: the address `cake.
 and no analytics service receives it, the makers of AgentCake included.
 
 AgentCake sends no installation event, no usage data, no update checks and no crash reports, and nothing about your
-site or its visits. Apart from the registration below, sent once when you press "Register & Continue", it makes no
+site or its visits. Apart from the registration below, sent once when you press "Register and continue", it makes no
 request to the internet while it runs. The local page loads nothing from the internet (its fonts and icons are
 bundled). The lists AgentCake names agents and published networks from come with each release. Only `agentcake lists
 update`, which you run by hand, downloads newer copies, from the public sources listed in
@@ -124,7 +149,7 @@ sent.
   the version of the consent text you were shown. Nothing else: no installation id, no AgentCake version, no usage
   data, nothing of your website's traffic, no session replay, not your site's domain. As with any request on the
   internet, the receiving server sees the network address the request comes from.
-- **When**: once, when you press "Register & Continue". Nothing is sent before that, and nothing afterwards. That you
+- **When**: once, when you press "Register and continue". Nothing is sent before that, and nothing afterwards. That you
   registered, and the text that was sent, are kept in AgentCake's own database, once for each data folder, so that
   the settings page can show them.
 - **Where**: to Tartini AI (tartini.ai), whose server records it in its log, kept for 30 days, and once a day sends
@@ -153,19 +178,61 @@ The site decides when a visit may be recorded. Either:
    nothing at all: no listener, no storage, no request.
 
 When the visitor says no, call `window.cake.stop()`: from then on nothing is recorded or sent from that page, what had
-not been sent yet is dropped, and the visit id is forgotten. Consent code that may run before `cake.js` has loaded can
+not been sent yet is dropped, and the visit id, the visitor id and its identify hash are deleted from the browser. Consent code that may run before `cake.js` has loaded can
 queue the call: `window.cake = window.cake || []; window.cake.push('start')` (or `'stop'`).
 
 What was recorded before a refusal stays in AgentCake: the script sends nothing after `stop()`, so AgentCake is not
 told about the refusal. To delete that visit too, your consent code can read the visit id (`sessionStorage` key
 `cake_sid`) before it calls `window.cake.stop()` and hand it to your server, which runs
-`agentcake delete --visitor <that id>` (below).
+`agentcake delete --visitor <that id>` (below). The id names the tab's current session; a session that ended more
+than 30 minutes earlier had an id of its own.
 
 ## What the script keeps in the visitor's browser
 
-Only `sessionStorage`, which ends with the browser tab: `cake_sid` (the visit id, random), `cake_pn` (the number of
-pages seen in the visit), `cake_frames` (a once-per-visit check is done) and `cake_pending` (uploads waiting to be sent
-again). No cookies and no `localStorage`. `window.cake.stop()` removes them.
+In `sessionStorage`, which ends with the browser tab: `cake_sid` (the visit id, random; a new one after 30 minutes
+without activity or 24 hours), `cake_clock` (when that session began and when it last saw activity), `cake_pn` (the
+number of pages seen in the visit), `cake_frames` (a once-per-visit check is done) and `cake_pending` (uploads waiting
+to be sent again).
+
+In `localStorage`, one key: `cake_vid`, the visitor id (random), when it was last used and, after your site called
+`window.cake.identify()`, the identify hash. It is replaced by a new one, without the hash, once a year has passed
+without a page view on your site, and when your site calls `window.cake.reset()`. AgentCake uses it only to count
+visitors (Visitors on the dashboard); it is not a cookie and is never sent to your site's server. Where the browser
+refuses `localStorage`, the id and the hash live only as long as the page.
+
+No cookies. `window.cake.stop()` removes all of them.
+
+## Counting a signed-in visitor once
+
+Without it, every browser is a visitor of its own: one person who visits your site on a laptop and a phone counts
+twice. A site with sign-in can tell AgentCake which visits belong to the same signed-in visitor:
+
+```js
+// after a visitor signs in, with your own id for them
+window.cake.identify(user.id)
+// when they sign out
+window.cake.reset()
+```
+
+Code that may run before `cake.js` has loaded can queue the calls: `window.cake = window.cake || [];
+window.cake.push(['identify', user.id])` (or `'reset'`). Calling `identify()` is your site's choice; nothing calls it
+for you.
+
+- **What is sent**: the visitor's browser makes the SHA-256 hash of your site key, a colon and the id (with the
+  browser's SubtleCrypto, so only on https pages and on localhost; elsewhere `identify()` does nothing) and sends only
+  the hash. The id never leaves the browser, and AgentCake keeps only the hash, with each session that carried it.
+  AgentCake accepts nothing else in its place: a value that is not a SHA-256 hash in hexadecimal is dropped.
+- **What it is used for**: only to count visitors. A session counts as the visitor whose hash it carried, or whose hash
+  its browser's visitor id was first sent with, sessions from before the sign-in included, so a visitor who signs in on
+  two browsers counts once. `window.cake.reset()` deletes the hash from the browser and starts a new visitor id and a
+  new session, so the next person who signs in on a shared computer counts as another visitor. The dashboard shows no
+  hash and no id, and AgentCake keeps no profile of a visitor.
+- **What it is not**: anonymous. A hash can't be turned back into the id, but your site key is in your pages, so
+  anyone who knows an id, or can guess it, can make the same hash and compare. Your site, which knows its visitors'
+  ids, can find a signed-in visitor's sessions that way, and so could anyone who got a copy of AgentCake's data folder,
+  for ids that are easy to guess. Pass an internal id that is hard to guess: not an e-mail address, not a name, not a
+  number that counts up. Mention it in your privacy notice ([`docs/privacy-notice-template.md`](docs/privacy-notice-template.md)).
+- **Deleting**: `agentcake delete` deletes a visit's hash with the rest of the visit (below).
 
 ## Where it is stored, and for how long
 
@@ -174,7 +241,7 @@ server set up as [`SERVER.md`](SERVER.md) says).
 
 | File | What it holds |
 |---|---|
-| `cake.db` (with `cake.db-wal`, `cake.db-shm`) | visits, uploads' headers, verdicts, the server half's tokens, the index of the replay chunks |
+| `cake.db` (with `cake.db-wal`, `cake.db-shm`) | visits, uploads' headers, classifications, the server middleware's tokens, the index of the replay chunks |
 | `replays/` | replays, raw input and browser signals as compressed chunks |
 | `backups/` | the copy of `cake.db` that `agentcake migrate` makes before it changes anything (only after a migration) |
 | `srv_secret` | the secret shared with your site's server (only after `agentcake secret init`), readable by its owner only |
@@ -182,12 +249,11 @@ server set up as [`SERVER.md`](SERVER.md) says).
 | `config.json`, `lists/` | settings; lists downloaded by `agentcake lists update` |
 
 Everything is kept until you delete it. You can choose to delete visits older than 30 or 90 days (`retention_days`).
-When the disk budget (`budget_mb`) is full and `auto_free` is on (the default), AgentCake removes only the replays of
-the oldest visits that were human all the way, keeping their verdicts; a visit an agent took part in is never removed
-to keep the budget. When the disk itself has less than `disk_min_free_mb` free (10 GB by default), AgentCake removes
-the oldest replays of any visit, those of human-only visits first, so that new visits are still recorded with their
-replays; when other files fill the disk and removing all of those would not make room, it removes none and records new
-visits without their replays until there is room. Verdicts and timelines always stay (SERVER.md, "Disk budget").
+When less than 10% of the disk budget (`budget_mb`) is left and `auto_free` is on (the default), AgentCake deletes
+visits' replays, oldest first, across all kinds of visit, until it is back under 90% of the budget; a replay still
+being recorded waits until the visit is quiet. When the disk itself has less than `disk_min_free_mb` free (10 GB by
+default), AgentCake deletes nothing and records new visits without their replays until there is room.
+Classifications and timelines always stay (SERVER.md, "Disk budget").
 
 ## Deleting
 
@@ -195,7 +261,8 @@ One visit, everywhere in the data folder:
 
 ```sh
 agentcake delete --session <id>          # the id the dashboard shows for the visit
-agentcake delete --visitor <visit id>    # the same visit, by the id the visitor's browser keeps (cake_sid)
+agentcake delete --visitor <visit id>    # the same visit, by the id the visitor's browser keeps (cake_sid), with
+                                         # every session AgentCake cut from it after 30 minutes or 24 hours
 agentcake delete --session <id> --dry-run   # first see what would go
 ```
 

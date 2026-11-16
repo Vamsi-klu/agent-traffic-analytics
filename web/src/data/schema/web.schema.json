@@ -1,0 +1,180 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "web.schema.json",
+  "title": "WebAnalytics",
+  "description": "GET /api/web?range= : the dashboard's visitors and page views (all, and by verdict), active time spent, the Trends chart's series, Top agents, the Path table and the Sources, Devices and Geography tables (the tables count the range's Human and Agent sessions, not bots).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["visitors", "page_views", "active_time", "trends", "agents", "paths", "tables", "shown", "place"],
+  "properties": {
+    "visitors": {
+      "description": "Distinct visitors: all of the range's sessions, and those with an Agent, a Human or a Bot session (a visitor can be in several, so they don't add up to all); null when none has a visitor id. A session counts as the identify hash it carried, else the hash its visitor id was first sent with, else its visitor id (window.cake.identify()).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["all", "agent", "human", "bot", "without"],
+      "properties": {
+        "all": { "$ref": "#/$defs/Visitors" },
+        "agent": { "$ref": "#/$defs/Visitors" },
+        "human": { "$ref": "#/$defs/Visitors" },
+        "bot": { "$ref": "#/$defs/Visitors" },
+        "without": { "description": "Sessions of the range without a visitor id (recorded before the page script kept one).", "$ref": "common.schema.json#/$defs/Count" }
+      }
+    },
+    "page_views": {
+      "description": "Page views (each page load and each new path, as PostHog counts $pageview) of all the range's sessions, bots included, and of its Agent, Human and Bot sessions.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["all", "agent", "human", "bot"],
+      "properties": {
+        "all": { "$ref": "common.schema.json#/$defs/Count" },
+        "agent": { "$ref": "common.schema.json#/$defs/Count" },
+        "human": { "$ref": "common.schema.json#/$defs/Count" },
+        "bot": { "$ref": "common.schema.json#/$defs/Count" }
+      }
+    },
+    "active_time": {
+      "description": "Active time spent (a session's time less the time its page was hidden), averaged over all the range's sessions, its Agent, its Human and its Bot ones; null without any.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["all", "agent", "human", "bot"],
+      "properties": {
+        "all": { "$ref": "#/$defs/ActiveTime" },
+        "agent": { "$ref": "#/$defs/ActiveTime" },
+        "human": { "$ref": "#/$defs/ActiveTime" },
+        "bot": { "$ref": "#/$defs/ActiveTime" }
+      }
+    },
+    "trends": {
+      "description": "The Trends chart: the Agent and the Human sessions of each local hour (today), day (7 and 30 days) or month (all time) of the range, from its first to the current one, counted as the cards count them.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["interval", "points"],
+      "properties": {
+        "interval": { "enum": ["hour", "day", "month"] },
+        "points": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["label", "agent", "human"],
+            "properties": {
+              "label": { "$ref": "common.schema.json#/$defs/Text" },
+              "agent": { "$ref": "#/$defs/TrendNumbers" },
+              "human": { "$ref": "#/$defs/TrendNumbers" }
+            }
+          }
+        }
+      }
+    },
+    "agents": {
+      "description": "Top agents: the range's Agent sessions (Agent only and Human + agent, never a bot) by agent name, most sessions first, then the name, as /api/overview's agents_seen; each counted as the cards count it.",
+      "type": "array",
+      "items": { "$ref": "#/$defs/AgentNumbers" }
+    },
+    "paths": {
+      "description": "The Path table over the range's Human and Agent sessions, most sessions first.",
+      "type": "array",
+      "items": { "$ref": "#/$defs/PathRow" }
+    },
+    "tables": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sources", "devices", "geography"],
+      "properties": {
+        "sources": { "type": "array", "items": { "$ref": "#/$defs/Dimension" } },
+        "devices": { "type": "array", "items": { "$ref": "#/$defs/Dimension" } },
+        "geography": { "type": "array", "items": { "$ref": "#/$defs/Dimension" } }
+      }
+    },
+    "shown": { "description": "How many rows a table shows before Show all.", "type": "integer", "minimum": 1 },
+    "place": { "description": "Whether the load balancer gives sessions their country, region and city (server mode with trust_lb).", "type": "boolean" }
+  },
+  "$defs": {
+    "Visitors": { "description": "Distinct visitors (visitor ids, merged by the identify hash they were sent with); null when none of the sessions counted has a visitor id.", "type": ["integer", "null"], "minimum": 0 },
+    "ActiveTime": {
+      "description": "Average active time and average time of a session, whole ms; null without sessions.",
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["active_ms", "total_ms"],
+      "properties": {
+        "active_ms": { "$ref": "common.schema.json#/$defs/Count" },
+        "total_ms": { "$ref": "common.schema.json#/$defs/Count" }
+      }
+    },
+    "TrendNumbers": {
+      "description": "The sessions of one verdict that began in an interval: how many, their distinct visitor ids (0 without sessions, null when none has one), their page views, their average active time (ms; null without a time) and page views per session (null without sessions).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sessions", "visitors", "page_views", "active_ms", "pages_per_session"],
+      "properties": {
+        "sessions": { "$ref": "common.schema.json#/$defs/Count" },
+        "visitors": { "$ref": "#/$defs/Visitors" },
+        "page_views": { "$ref": "common.schema.json#/$defs/Count" },
+        "active_ms": { "type": ["integer", "null"], "minimum": 0 },
+        "pages_per_session": { "type": ["number", "null"], "minimum": 0 }
+      }
+    },
+    "AgentNumbers": {
+      "description": "One agent's Agent sessions in the range (name null: the ones no name fits, Unnamed): how many, their distinct visitor ids (null when none has one), their page views, their average active time (ms; null without a time) and page views per session.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "sessions", "visitors", "page_views", "active_ms", "pages_per_session"],
+      "properties": {
+        "name": { "$ref": "common.schema.json#/$defs/NullableText" },
+        "sessions": { "$ref": "common.schema.json#/$defs/Count" },
+        "visitors": { "$ref": "#/$defs/Visitors" },
+        "page_views": { "$ref": "common.schema.json#/$defs/Count" },
+        "active_ms": { "type": ["integer", "null"], "minimum": 0 },
+        "pages_per_session": { "type": ["number", "null"], "minimum": 0 }
+      }
+    },
+    "PathRow": {
+      "description": "One path (location.pathname of a page view): the sessions that viewed it, their distinct visitor ids and their page views of it, in all, Agent and Human.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "agent", "human", "visitors", "agent_visitors", "human_visitors", "page_views", "agent_page_views", "human_page_views"],
+      "properties": {
+        "path": { "$ref": "common.schema.json#/$defs/Text" },
+        "agent": { "$ref": "common.schema.json#/$defs/Count" },
+        "human": { "$ref": "common.schema.json#/$defs/Count" },
+        "visitors": { "$ref": "#/$defs/Visitors" },
+        "agent_visitors": { "$ref": "#/$defs/Visitors" },
+        "human_visitors": { "$ref": "#/$defs/Visitors" },
+        "page_views": { "$ref": "common.schema.json#/$defs/Count" },
+        "agent_page_views": { "$ref": "common.schema.json#/$defs/Count" },
+        "human_page_views": { "$ref": "common.schema.json#/$defs/Count" }
+      }
+    },
+    "DimensionKey": {
+      "enum": ["channel", "referring_domain", "utm_source", "utm_medium", "utm_campaign", "device_type", "browser", "os", "country", "region", "city", "timezone", "language"]
+    },
+    "Dimension": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["dimension", "rows"],
+      "properties": {
+        "dimension": { "$ref": "#/$defs/DimensionKey" },
+        "rows": { "type": "array", "items": { "$ref": "#/$defs/Row" } }
+      }
+    },
+    "Row": {
+      "description": "One value of a dimension, most sessions first.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["key", "value", "country", "agent", "human", "visitors", "agent_visitors", "human_visitors", "page_views", "agent_page_views", "human_page_views"],
+      "properties": {
+        "key": { "description": "What /api/sessions?dimension=&key= takes; null for the sessions without a value.", "type": ["string", "null"] },
+        "value": { "description": "What the row shows (a region by its English name); null when not set. An empty referring domain is a visit without a referrer.", "type": ["string", "null"] },
+        "country": { "description": "The ISO country code a region or a city is in; null otherwise.", "type": ["string", "null"] },
+        "agent": { "$ref": "common.schema.json#/$defs/Count" },
+        "human": { "$ref": "common.schema.json#/$defs/Count" },
+        "visitors": { "description": "Distinct visitor ids of the row's sessions.", "$ref": "#/$defs/Visitors" },
+        "agent_visitors": { "description": "Distinct visitor ids of the row's Agent sessions.", "$ref": "#/$defs/Visitors" },
+        "human_visitors": { "description": "Distinct visitor ids of the row's Human sessions.", "$ref": "#/$defs/Visitors" },
+        "page_views": { "$ref": "common.schema.json#/$defs/Count" },
+        "agent_page_views": { "$ref": "common.schema.json#/$defs/Count" },
+        "human_page_views": { "$ref": "common.schema.json#/$defs/Count" }
+      }
+    }
+  }
+}

@@ -94,6 +94,10 @@ class TableTest(unittest.TestCase):
                              "enabled not a bool": {"enabled": "yes"}}.items():
             with self.subTest(name), self.assertRaises(EnvRulesError):
                 parse_rules(merge(good, {"rules": [dict(first, **change)]}))
+        for name, change in {"a setting cake.js does not record": {"enabled": False, "setting": "no_such_setting"},
+                             "a setting on a rule that is on anyway": {"enabled": True, "setting": "hook_dom"}}.items():
+            with self.subTest(name), self.assertRaisesRegex(EnvRulesError, "setting is for a rule that is off"):
+                parse_rules(merge(good, {"rules": [dict(first, **change)]}))
         with self.assertRaises(EnvRulesError):
             parse_rules(merge(good, {"rules": [first, first]}))
 
@@ -149,6 +153,17 @@ class EvaluateTest(unittest.TestCase):
                             {"env.auto.webdriver": False})
         self.assertNotIn("env.auto.webdriver", [hit.rule for hit in silenced.hits])
         self.assertIn("env.auto.webdriver", silenced.off)
+
+    def test_the_dom_watch_rule_runs_on_visits_recorded_with_hook_dom_on(self):
+        rule = "env.auto.main-world-eval-stack"
+        self.assertEqual(self.table.rule(rule).setting, "hook_dom")
+        page = merge(self.page, {"auto": {"hookHits": [{"fn": "querySelector", "pptr": True}]}})
+        recorded_on = {"pages": [page], "script_settings": {"hook_dom": True}}
+        result = evaluate(recorded_on, self.table)
+        self.assertIn(rule, [hit.rule for hit in result.hits])
+        self.assertIn("env.ext.extension-probe", result.off)  # waits for no setting: stays off
+        self.assertIn(rule, evaluate({"pages": [page], "script_settings": {"hook_dom": False}}, self.table).off)
+        self.assertIn(rule, evaluate(recorded_on, self.table, {rule: False}).off)  # the config's switch wins
 
     def test_a_page_rule_lists_every_page_it_held_on(self):
         flagged = merge(self.page, {"env": {"webdriver": True}})

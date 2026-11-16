@@ -1,7 +1,7 @@
 # AgentCake site middleware for PHP
 
 AgentCake records visits through its page script, `cake.js`. Some facts about a page request are seen only by your
-site's server: the Web Bot Auth signature an agent such as ChatGPT agent adds, and the fetch metadata of the very first
+site's server: the Web Bot Auth signature an agent such as ChatGPT adds, and the fetch metadata of the very first
 page. This middleware packs them into one signed token and sets it on that page's own response:
 
 ```text
@@ -10,9 +10,9 @@ Server-Timing: cake;desc="c1.<base64url JSON>.<base64url HMAC-SHA256>"
 
 `cake.js` reads the token from the page's navigation entry and sends it with the visit. AgentCake checks the signature
 with the secret it shares with your server, accepts each token once and only for 15 minutes, and shows what your server
-saw on the session's page ("Server half"). The token is the one AgentCake's Node middleware (`edge/node`) makes for the
-same request, byte for byte. The Web Bot Auth headers go into it as sent; AgentCake verifies the signature, not your
-server.
+saw on the session's page ("Server middleware"). The token is the one AgentCake's Node middleware (`edge/node`) makes
+for the same request, byte for byte. The Web Bot Auth headers go into it as sent; AgentCake verifies the signature,
+not your server.
 
 - PHP 7.4 or newer. Nothing to install: it uses only the parts of PHP that are always on (hash, JSON, PCRE,
   `random_bytes`).
@@ -143,7 +143,7 @@ listed once and its values come joined the server's way.
 By default the middleware leaves your caching headers alone. Two cases need a choice:
 
 - **A CDN or shared cache stores your HTML.** Every visitor then gets the same stored token, and AgentCake accepts a
-  token once, so only one of those visits has a server half. Mark the HTML `private`, or turn on `noStore`.
+  token once, so only one of those visits has server middleware data. Mark the HTML `private`, or turn on `noStore`.
 - **Your HTML is revalidated** (`Cache-Control: no-cache` with an `ETag` or `Last-Modified`, answered with `304 Not
   Modified`). The 304 carries a new token, and browsers show the page that new token (below). `noStore: true` avoids
   304s for HTML altogether.
@@ -155,9 +155,9 @@ site with and without `noStore`, through the Node middleware, which makes the sa
   reloads a page with a plain request (a 200 with a new token) where the other two send a 304.
 - **Going back or forward** to a page they stored, without asking your server, they show the token stored with it.
   AgentCake keeps every token once: another page view of the same visit bringing it again is counted as a reuse (one
-  server half, not a replay, no error); another visit bringing it (a new tab) is refused as a replay, and a token older
-  than 15 minutes as stale, so that page view has no server half. A page the back-forward cache keeps alive (Chrome's,
-  even with `noStore`) is the same page view and sends nothing new.
+  server middleware record, not a replay, no error); another visit bringing it (a new tab) is refused as a replay, and
+  a token older than 15 minutes as stale, so that page view has no server middleware data. A page the back-forward
+  cache keeps alive (Chrome's, even with `noStore`) is the same page view and sends nothing new.
 
 ## Check it
 

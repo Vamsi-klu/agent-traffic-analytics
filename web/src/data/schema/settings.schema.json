@@ -5,7 +5,7 @@
   "description": "GET /api/settings, and the answer to POST /api/settings : everything the settings page shows.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["site_domain", "site_key", "script_tag", "sources", "last_seen", "route", "server_half", "refresh_ms", "lists", "retention_days", "retention_choices", "budget_mb", "budget_choices_mb", "auto_free", "storage", "hook_dom", "hide_selectors", "layers", "database"],
+  "required": ["site_domain", "site_key", "script_tag", "sources", "last_seen", "route", "server_half", "refresh_ms", "lists", "retention_days", "retention_choices", "budget_mb", "budget_choices_mb", "auto_free", "storage", "hook_dom", "hide_selectors", "database"],
   "properties": {
     "site_domain": { "type": "string" },
     "site_key": { "type": ["string", "null"], "minLength": 1 },
@@ -81,17 +81,6 @@
     },
     "hook_dom": { "type": "boolean" },
     "hide_selectors": { "type": "string" },
-    "layers": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["name", "verify", "environment", "behavior"],
-      "properties": {
-        "name": { "type": "boolean" },
-        "verify": { "type": "boolean" },
-        "environment": { "type": "boolean" },
-        "behavior": { "type": "boolean" }
-      }
-    },
     "database": {
       "type": "object",
       "additionalProperties": false,

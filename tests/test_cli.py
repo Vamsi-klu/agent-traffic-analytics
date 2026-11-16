@@ -48,6 +48,20 @@ def run(command, env, *args, cwd=None):
     return subprocess.run(command + list(args), env=env, cwd=cwd, capture_output=True, text=True)
 
 
+class Sentence(unittest.TestCase):
+    """`agentcake sentence` prints the sentence the local page shows, in English, as the page does."""
+
+    def test_it_prints_the_english_sentence(self):
+        env = scratch_env()
+        self.addCleanup(shutil.rmtree, env["CAKE_HOME"], True)
+        out = run(AGENTCAKE, env, "sentence")
+        self.assertEqual(out.returncode, 0, out.stderr)
+        first = wording.text("site_sentence", launcher="LAUNCHER").split("LAUNCHER")[0]
+        self.assertTrue(out.stdout.startswith(first), out.stdout[:120])
+        self.assertIn(" setup --print --site`", out.stdout)
+        self.assertFalse(any("\u4e00" <= ch <= "\u9fff" for ch in out.stdout), "no Chinese")
+
+
 class Version(unittest.TestCase):
     def setUp(self):
         self.env = scratch_env()

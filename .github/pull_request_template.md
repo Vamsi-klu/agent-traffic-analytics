@@ -1,7 +1,7 @@
 ## What and why
 
 <!-- One change per pull request. Link the issue it fixes, and say what it touches: the detection, the page script,
-the local pages, the server half or the documents. -->
+the local pages, the server middleware or the documents. -->
 
 ## Checklist
 

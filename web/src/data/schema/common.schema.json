@@ -6,7 +6,7 @@
     "Verdict": { "enum": ["human", "agent", "bot"] },
     "Actor": { "enum": ["human", "agent", "unsure"] },
     "AgentTurns": { "enum": ["agent_only", "human_agent"] },
-    "Certainty": { "enum": ["verified", "likely", "possible"] },
+    "Certainty": { "enum": ["verified", "likely"] },
     "Count": { "type": "integer", "minimum": 0 },
     "Ms": { "type": "integer", "minimum": 0 },
     "Percent": { "type": "integer", "minimum": 0, "maximum": 100 },
@@ -60,12 +60,13 @@
         "evidence": { "enum": ["thin", null] },
         "agent_turns": { "enum": ["agent_only", "human_agent", null] },
         "agent": { "type": ["string", "null"], "minLength": 1 },
-        "certainty": { "enum": ["verified", "likely", "possible", null] },
+        "certainty": { "enum": ["verified", "likely", null] },
         "when": { "$ref": "#/$defs/Text" },
         "duration_ms": { "$ref": "#/$defs/Ms" },
         "pages": { "$ref": "#/$defs/Count" },
         "share": { "$ref": "#/$defs/Share" },
-        "segments": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/Segment" } }
+        "segments": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/Segment" } },
+        "demo_shop": { "description": "Set only on a session an earlier AgentCake's demo shop recorded, not the website.", "const": true }
       }
     },
     "SessionCounts": {
@@ -94,6 +95,6 @@
         "low": { "type": "boolean" }
       }
     },
-    "ReplaysStopped": { "enum": ["disk", "disk_full_other", "budget", null] }
+    "ReplaysStopped": { "enum": ["disk", "budget", null] }
   }
 }

@@ -171,9 +171,8 @@ class OtherSites(CollectCase):
         client = Client()
         listing = client.get("/api/sessions").body
         dashboard = client.get("/api/overview").body
-        for rows in (listing["results"], dashboard["latest"]):
-            self.assertEqual([row["id"] for row in rows], ["fromsite"])
-        self.assertEqual((listing["counts"]["all"], dashboard["counts"]["all"]), (1, 1))
+        self.assertEqual([row["id"] for row in listing["results"]], ["fromsite"])
+        self.assertEqual((listing["counts"]["all"], dashboard["counts"]["all"]), (1, 1), "the dashboard counts only the site's")
         self.assertEqual(client.get("/api/session/elsewhere").status, 404)
 
 

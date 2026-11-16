@@ -2,25 +2,22 @@
 
 python_check(): the Python that runs Agent Cake and whether it has compression.zstd (without it replays are stored
 with zlib and take more disk). disk_check(c): the free space on the disk of the data folder (or of the folder it
-will be made in) against disk_min_free_mb (space.disk_space): below it the oldest replays are deleted to
-make room, a WARN; with auto_free off, or when deleting every old replay would not make room because other files fill
-the disk (none is deleted; space.disk_room, read from the database without changing it), new replays are not
-stored until there is room, a FAIL; the line gives the floor and the free space and says how to lower the floor.
+will be made in) against disk_min_free_mb (space.disk_space): below it new replays are not stored until there is
+room, and none is deleted for it, a FAIL; the line gives the floor and the free space and says how to free space or
+lower the floor.
 lists_check(): the age of the name and address lists in use (detect/lists.py) against max_age_days:
 older is a WARN naming `agentcake lists update`, the one command that goes online, or an upgrade. path_check():
 every `agentcake` on PATH, as `which -a` lists them: when the first is not this installation, typing the command runs
 another program, which is a WARN (the instructions run this one by its full path).
 """
 import os
-import pathlib
 import platform
-import sqlite3
 import sys
 
 from agentcake import codecs, paths
 from agentcake.detect import lists
 from agentcake.doctor_lines import WARN
-from agentcake.space import disk_room, disk_space
+from agentcake.space import disk_space
 from agentcake.units import BYTES_PER_MB
 from agentcake.wording import product, text
 
@@ -47,34 +44,11 @@ def disk_check(c, usage=None):
     values = {"free": _mb(disk["free"]), "floor": _mb(disk["min_free"]), "folder": paths.tilde(paths.home())}
     if not disk["min_free"]:
         return text("doctor_disk"), True, text("doctor_disk_off_info", off=text("doctor_disk_off"), **values)
+    stop = text("doctor_disk_replays_stop")
     if not disk["low"]:
-        below = text("doctor_disk_frees") if c["auto_free"] else text("doctor_disk_replays_stop")
-        return text("doctor_disk"), True, text("doctor_disk_ok", below=below, **values)
-    launcher, stop = paths.launcher(), text("doctor_disk_replays_stop")
-    if not c["auto_free"]:
-        return text("doctor_disk"), False, text("doctor_disk_low", why=text("doctor_disk_auto_free_off"), replays_stop=stop,
-                                                fix=text("doctor_disk_fix_auto_free", launcher=launcher), **values)
-    if _room_left(c, disk):
-        return text("doctor_disk"), WARN, text("doctor_disk_freeing", frees=text("doctor_disk_frees"),
-                                               launcher=launcher, **values)
-    return text("doctor_disk"), False, text("doctor_disk_full_other",
-                                            other_files=text("doctor_disk_other_files", floor=values["floor"]),
-                                            replays_stop=stop, resume=text("doctor_disk_replays_resume"),
-                                            fix=text("doctor_disk_fix", launcher=launcher), **values)
-
-
-def _room_left(c, disk):
-    """Whether deleting old replays can make room (space.disk_room), read from the database without changing it: not
-    before there is a database."""
-    if not os.path.exists(paths.db_file()):
-        return False
-    con = sqlite3.connect(pathlib.Path(paths.db_file()).as_uri() + "?mode=ro", uri=True)
-    try:
-        return disk_room(con, c, disk)
-    except sqlite3.OperationalError:  # a cake 0.3.4 database the running cake has not opened yet: it decides then
-        return True
-    finally:
-        con.close()
+        return text("doctor_disk"), True, text("doctor_disk_ok", below=stop, **values)
+    return text("doctor_disk"), False, text("doctor_disk_low", replays_stop=stop, resume=text("doctor_disk_replays_resume"),
+                                            fix=text("doctor_disk_fix", launcher=paths.launcher()), **values)
 
 
 def lists_check(today=None):

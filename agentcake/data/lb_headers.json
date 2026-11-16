@@ -1,4 +1,5 @@
 {
-  "about": "Request headers the load balancer sets in server mode (trust_lb): the visitor's address, country, TLS JA4 fingerprint and protocol. A Google Cloud load balancer overwrites a header of the same name a client sends.",
-  "headers": {"ip": "X-Cake-Client-IP", "region": "X-Cake-Region", "ja4": "X-Cake-JA4", "proto": "X-Cake-Proto"}
+  "about": "Request headers the load balancer sets in server mode (trust_lb): the visitor's address, country, region (a CLDR subdivision id such as USCA) and city, TLS JA4 fingerprint and protocol. A Google Cloud load balancer overwrites a header of the same name a client sends.",
+  "headers": {"ip": "X-Cake-Client-IP", "region": "X-Cake-Region", "subdivision": "X-Cake-Subdivision",
+              "city": "X-Cake-City", "ja4": "X-Cake-JA4", "proto": "X-Cake-Proto"}
 }

@@ -9,50 +9,6 @@
     "thin": 0
   },
   "agent_last_week": 0,
-  "share_by_day": [
-    {
-      "day": "Fri",
-      "human": 0,
-      "agent": 0,
-      "unsure": 0
-    },
-    {
-      "day": "Sat",
-      "human": 0,
-      "agent": 0,
-      "unsure": 0
-    },
-    {
-      "day": "Sun",
-      "human": 0,
-      "agent": 0,
-      "unsure": 0
-    },
-    {
-      "day": "Mon",
-      "human": 0,
-      "agent": 0,
-      "unsure": 0
-    },
-    {
-      "day": "Tue",
-      "human": 0,
-      "agent": 100,
-      "unsure": 0
-    },
-    {
-      "day": "Wed",
-      "human": 0,
-      "agent": 0,
-      "unsure": 0
-    },
-    {
-      "day": "Thu",
-      "human": 0,
-      "agent": 85,
-      "unsure": 15
-    }
-  ],
   "agents_seen": [
     {
       "name": null,
@@ -63,228 +19,18 @@
       "sessions": 4
     }
   ],
-  "top_pages": [
-    {
-      "path": "/",
-      "agent": 26,
-      "human": 0
-    },
-    {
-      "path": "/docs",
-      "agent": 26,
-      "human": 0
-    },
-    {
-      "path": "/pricing",
-      "agent": 26,
-      "human": 0
-    },
-    {
-      "path": "/task",
-      "agent": 26,
-      "human": 0
-    },
-    {
-      "path": "/demo",
-      "agent": 2,
-      "human": 0
-    },
-    {
-      "path": "/demo/cart",
-      "agent": 2,
-      "human": 0
-    },
-    {
-      "path": "/demo/checkout",
-      "agent": 2,
-      "human": 0
-    },
-    {
-      "path": "/demo/done",
-      "agent": 2,
-      "human": 0
-    },
-    {
-      "path": "/demo/product?id=classic-tee",
-      "agent": 2,
-      "human": 0
-    },
-    {
-      "path": "/demo?q=classic",
-      "agent": 2,
-      "human": 0
-    }
-  ],
-  "latest": [
-    {
-      "id": "79c3ffe7336e40b88b873e96971a4a3d",
-      "verdict": "agent",
-      "evidence": null,
-      "agent_turns": "agent_only",
-      "agent": null,
-      "certainty": null,
-      "when": "Today 09:28",
-      "duration_ms": 1669,
-      "pages": 6,
-      "share": {
-        "human": 0,
-        "agent": 84,
-        "unsure": 16
-      },
-      "segments": [
-        {
-          "who": "unsure",
-          "start_ms": 187,
-          "end_ms": 513
-        },
-        {
-          "who": "agent",
-          "start_ms": 682,
-          "end_ms": 1312
-        }
-      ]
-    },
-    {
-      "id": "8b2209261998404792d3a7bd018411ae",
-      "verdict": "agent",
-      "evidence": null,
-      "agent_turns": "agent_only",
-      "agent": null,
-      "certainty": null,
-      "when": "Today 09:28",
-      "duration_ms": 1606,
-      "pages": 6,
-      "share": {
-        "human": 0,
-        "agent": 96,
-        "unsure": 4
-      },
-      "segments": [
-        {
-          "who": "unsure",
-          "start_ms": 90,
-          "end_ms": 90
-        },
-        {
-          "who": "agent",
-          "start_ms": 169,
-          "end_ms": 169
-        },
-        {
-          "who": "agent",
-          "start_ms": 171,
-          "end_ms": 526
-        },
-        {
-          "who": "agent",
-          "start_ms": 564,
-          "end_ms": 564
-        },
-        {
-          "who": "agent",
-          "start_ms": 614,
-          "end_ms": 1148
-        }
-      ]
-    },
-    {
-      "id": "7d82a5c8ac905b49858057fc4efc0d05",
-      "verdict": "agent",
-      "evidence": null,
-      "agent_turns": "agent_only",
-      "agent": null,
-      "certainty": null,
-      "when": "Tue 20:56",
-      "duration_ms": 73058,
-      "pages": 4,
-      "share": {
-        "human": 0,
-        "agent": 100,
-        "unsure": 0
-      },
-      "segments": [
-        {
-          "who": "agent",
-          "start_ms": 13704,
-          "end_ms": 63773
-        }
-      ]
-    },
-    {
-      "id": "48fdcf593f807f90ddfcca6f9a907ec5",
-      "verdict": "agent",
-      "evidence": null,
-      "agent_turns": "agent_only",
-      "agent": null,
-      "certainty": null,
-      "when": "Tue 20:04",
-      "duration_ms": 42495,
-      "pages": 4,
-      "share": {
-        "human": 0,
-        "agent": 100,
-        "unsure": 0
-      },
-      "segments": [
-        {
-          "who": "agent",
-          "start_ms": 2803,
-          "end_ms": 38344
-        }
-      ]
-    },
-    {
-      "id": "d393388e358b8660b162219bdc3513d9",
-      "verdict": "agent",
-      "evidence": null,
-      "agent_turns": "agent_only",
-      "agent": null,
-      "certainty": null,
-      "when": "Tue 20:04",
-      "duration_ms": 44379,
-      "pages": 4,
-      "share": {
-        "human": 0,
-        "agent": 100,
-        "unsure": 0
-      },
-      "segments": [
-        {
-          "who": "agent",
-          "start_ms": 3603,
-          "end_ms": 40442
-        }
-      ]
-    },
-    {
-      "id": "fa8e5c88f4c4f9b98780f83cbc36e0c7",
-      "verdict": "agent",
-      "evidence": null,
-      "agent_turns": "agent_only",
-      "agent": "Claude in Chrome",
-      "certainty": "likely",
-      "when": "Tue 20:03",
-      "duration_ms": 15674,
-      "pages": 4,
-      "share": {
-        "human": 0,
-        "agent": 100,
-        "unsure": 0
-      },
-      "segments": [
-        {
-          "who": "agent",
-          "start_ms": 1963,
-          "end_ms": 14195
-        },
-        {
-          "who": "agent",
-          "start_ms": 14203,
-          "end_ms": 14377
-        }
-      ]
-    }
-  ],
+  "page_views": {
+    "all": 116,
+    "human": 0,
+    "agent": 116,
+    "bot": 0
+  },
+  "pages_per_session": {
+    "all": 4.142857142857143,
+    "human": null,
+    "agent": 4.142857142857143,
+    "bot": null
+  },
   "latest_agent": [
     {
       "id": "79c3ffe7336e40b88b873e96971a4a3d",
@@ -381,20 +127,13 @@
       ]
     }
   ],
-  "average_length": {
-    "ms": {
-      "human": null,
-      "agent_only": 62995,
-      "human_agent": null
-    },
-    "about": "Measured from a session's first activity to its last, where activity is a page opening or any input, including pointer moves. Time a tab stays open afterward doesn't count. The session list shows each recording's full length, from its start to its last event."
-  },
   "storage": {
-    "used_bytes": 1695433,
+    "used_bytes": 1724105,
     "budget_mb": 10240,
     "warn_at_pct": 80,
-    "days_left": 44324.99523661507,
+    "days_left": 43587.750714138645,
     "auto_free": true,
+    "free_to_pct": 90,
     "disk": {
       "total": 494384795648,
       "free": 171798691840,
@@ -404,66 +143,9 @@
     "replays_stopped": null
   },
   "coverage": {
-    "title": "What AgentCake records",
-    "lead": "AgentCake classifies each session on this computer, when new activity arrives and again when the session goes inactive. It doesn't call any AI service.",
-    "columns": {
-      "what": "Visitor",
-      "shown_as": "Classification",
-      "how": "Decision method"
-    },
-    "rows": [
-      {
-        "what": "A human",
-        "verdict": "human",
-        "shown_as": "The comparison group",
-        "how": "There are no automation traces and no agent name, and the behavior model judges the actions to be human."
-      },
-      {
-        "what": "A browser extension, an AI browser, or a cloud agent, like Claude in Chrome, Comet, or ChatGPT agent",
-        "verdict": "agent",
-        "shown_as": "Agent, named when the evidence identifies it",
-        "how": "There are agent traces in the page or the browser, and the behavior model judges the actions to be an agent's. Traces include an extension acting on the page or a cloud computer's fixed setup. The name comes from a verified signature, the product's own traces, or the User-Agent."
-      },
-      {
-        "what": "The built-in browser of an AI desktop app, or a cloud agent that gives its name",
-        "verdict": "agent",
-        "shown_as": "Agent, identified by name, such as Codex browser",
-        "how": "The User-Agent contains a name, or a verified signature names the visitor. The behavior model still splits the session into stretches."
-      },
-      {
-        "what": "An automated browser that doesn't give its name, like Playwright, Puppeteer, or Selenium",
-        "verdict": "agent",
-        "shown_as": "Agent, identified by the tool's name when its traces show it, otherwise Unnamed",
-        "how": "The browser shows automation markers, such as webdriver, a headless browser, or requests without a language header. The behavior model splits the session into stretches. Crawler-like patterns only go into the reasons."
-      },
-      {
-        "what": "A program that gives its name and isn't an agent: a search engine, a monitor, a link preview",
-        "verdict": "bot",
-        "shown_as": "Counted only; “Verified” when a signature or the operator's published address range confirms it",
-        "how": "The User-Agent or a signature matches the list of programs that aren't agents. It's marked “Verified” when a published address range or a signature confirms it. The behavior model doesn't run."
-      },
-      {
-        "what": "A human and an agent taking turns",
-        "verdict": "agent",
-        "shown_as": "Human + agent, split at each hand-off",
-        "how": "The behavior model finds both a human and an agent in the same session and marks the hand-off where the actions change."
-      },
-      {
-        "what": "Too few actions, or a phone or tablet",
-        "verdict": "human",
-        "shown_as": "Human, marked Thin evidence, with the reason",
-        "how": "There are fewer actions than the behavior model needs, or the visit comes from a phone or tablet, so no guess is made. A setting controls how many actions the model needs."
-      },
-      {
-        "what": "Evidence that's too weak or points both ways",
-        "verdict": "human",
-        "shown_as": "Human, marked Thin evidence, with the reason",
-        "how": "The evidence is too weak or points both ways. Examples include a trace that open DevTools also leave and keyboard navigation like an assistive tool's."
-      }
-    ],
     "bot": {
-      "question": "What counts as a bot",
-      "answer": "A bot is a program that names itself and is known to have no human behind it, such as a search engine, a monitor, or a link preview. A visitor that only seems automated counts as an Agent, never a Bot."
+      "question": "What counts as a bot?",
+      "answer": "A bot is a program that identifies itself and is known to run without a human. Examples include search engines, monitors, and link previews. Visitors that only appear automated count as Agent sessions."
     }
   }
 }

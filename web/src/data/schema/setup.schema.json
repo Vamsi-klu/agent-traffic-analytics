@@ -2,20 +2,12 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "setup.schema.json",
   "title": "Setup",
-  "description": "GET /api/setup : the home page's ways to connect a website (from `agentcake sentence` and `setup --print`), its example preview, and what has been recorded so far.",
+  "description": "GET /api/setup : the home page's ways to connect a website (the sentence for a coding agent, in English, and the commands of `setup --print`), its example preview, and what has been recorded so far.",
   "type": "object",
   "additionalProperties": false,
   "required": ["sentence", "terminal", "server", "example", "recorded"],
   "properties": {
-    "sentence": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["en", "zh"],
-      "properties": {
-        "en": { "$ref": "common.schema.json#/$defs/Text" },
-        "zh": { "$ref": "common.schema.json#/$defs/Text" }
-      }
-    },
+    "sentence": { "$ref": "common.schema.json#/$defs/Text" },
     "terminal": { "$ref": "common.schema.json#/$defs/Text" },
     "server": { "$ref": "common.schema.json#/$defs/Text" },
     "example": {
@@ -28,12 +20,13 @@
       }
     },
     "recorded": {
-      "description": "Sessions the lists show, at any time, and how many of them are human + agent.",
+      "description": "At any time: the sessions the lists show, how many of them the website sent (all but those an earlier AgentCake's demo shop recorded: the website is connected once it has sent one), and how many are Agent sessions.",
       "type": "object",
       "additionalProperties": false,
-      "required": ["sessions", "agent"],
+      "required": ["sessions", "site", "agent"],
       "properties": {
         "sessions": { "$ref": "common.schema.json#/$defs/Count" },
+        "site": { "$ref": "common.schema.json#/$defs/Count" },
         "agent": { "$ref": "common.schema.json#/$defs/Count" }
       }
     }

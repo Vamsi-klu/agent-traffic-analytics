@@ -19,6 +19,7 @@ import statistics
 
 from agentcake.detect import model, rrweb_events, timeline
 from agentcake.evaluation import scoring, splice
+from agentcake.evaluation.stats import median, tally
 from agentcake.units import MS_PER_S, PERCENT
 
 VERDICTS = ("agent", "human", "unsure", "too_little_data")
@@ -92,15 +93,15 @@ def splices(agents, humans, params, raw_input, handoff_limit_s):
                     rows.append({"agent": agent_name, "human": human_name, "pattern": pattern_name,
                                  **_splice_row(spliced, raw_input)})
     judged = [r for r in rows if r["verdict"] != "too_little_data"]
-    summary = {"splices": len(rows), "judged": len(judged), "verdicts": _count(r["verdict"] for r in rows),
+    summary = {"splices": len(rows), "judged": len(judged), "verdicts": tally(r["verdict"] for r in rows),
                "agent_or_mixed": sum(1 for r in judged if r["verdict"] == "agent" or r["timeline_handoffs"]),
                "all": _splice_summary(judged, handoff_limit_s),
                "every_stretch_has_an_action": _splice_summary([r for r in judged if r["every_stretch_has_an_action"]],
                                                               handoff_limit_s)}
     summary["by_pattern"] = {name: {"splices": len(members),
-                                    "timeline_share_error_pp_median": _median(
+                                    "timeline_share_error_pp_median": median(
                                         [m["timeline"]["share_error_pp"] for m in members]),
-                                    "timeline_handoff_error_s_median": _median(
+                                    "timeline_handoff_error_s_median": median(
                                         [e for m in members for e in m["timeline_handoff_errors_s"]])}
                              for name, members in _by(judged, "pattern").items()}
     return {"rows": rows, "summary": summary}
@@ -185,11 +186,11 @@ def _action_summary(scores):
             "accuracy_decided": scoring.summary([s["accuracy_decided"] for s in scores]),
             "accuracy_all_mean": _mean([s["accuracy_all"] for s in scores]),
             "share_error_pp": scoring.summary([s["share_error_pp"] for s in scores]),
-            "unsure_share_median": _median([s["unsure_share"] for s in scores])}
+            "unsure_share_median": median([s["unsure_share"] for s in scores])}
 
 
 def _verdict_counts(results):
-    counts = _count(r["verdict"] for r in results)
+    counts = tally(r["verdict"] for r in results)
     judged = [r for r in results if r["verdict"] != "too_little_data"]
     return {"units": len(results), **{v: counts.get(v, 0) for v in VERDICTS},
             "agent_or_mixed": sum(1 for r in judged if r["verdict"] == "agent" or r["timeline_handoffs"]),
@@ -215,15 +216,6 @@ def _by(rows, key):
     for row in rows:
         out.setdefault(row[key], []).append(row)
     return out
-
-
-def _count(values):
-    return dict(collections.Counter(values))
-
-
-def _median(values):
-    values = [v for v in values if v is not None]
-    return statistics.median(values) if values else None
 
 
 def _mean(values):

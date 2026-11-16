@@ -1,8 +1,5 @@
 {
-  "sentence": {
-    "en": "In this website's code folder, run `agentcake setup --print --site`, follow the steps it prints to connect AgentCake to this website, then run `agentcake doctor` and tell me the result and what is left for me to do.",
-    "zh": "在这个网站的代码目录里运行 `agentcake setup --print --site`，按它打印的步骤把 AgentCake 接到这个网站上，最后运行 `agentcake doctor`，告诉我结果和还剩什么要我做。"
-  },
+  "sentence": "Connect this website to AgentCake. First, ask the site owner for the website's address and where AgentCake should run. Also ask for any details that the code doesn't include. Suggest a server that the website can reach. Visitors to a public website can't connect to this computer. This computer only works for a site that runs locally. If AgentCake runs on a server, follow SERVER.md. Then, in the website's project folder, run `agentcake setup --print --site` and follow the steps that it prints. Run `agentcake doctor` last, and report its result and any remaining steps to the site owner.",
   "terminal": "cd <your-site-folder>\nagentcake setup --print --site\nagentcake doctor",
   "server": "agentcake config set public_listen 0.0.0.0:8080\nagentcake config set path_prefix /cake\nagentcake config set site_key <your-site-key>\nagentcake secret init\nagentcake serve",
   "example": {
@@ -116,6 +113,7 @@
   },
   "recorded": {
     "sessions": 28,
+    "site": 28,
     "agent": 28
   }
 }

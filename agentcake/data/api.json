@@ -2,9 +2,7 @@
   "$comment": "The JSON API's numbers and mappings (agentcake/api/). The words of its answers are in api.en.json, the dashboard's coverage note in coverage.en.json, the home page's example in example.json. Times in ms unless the key says otherwise.",
 
   "page_size": 20,
-  "latest": 6,
   "latest_agent": 3,
-  "top_pages": 10,
   "range_days": {"today": 1, "7d": 7, "30d": 30},
   "compare_days": 7,
   "weekday_label_days": 7,
@@ -18,7 +16,7 @@
                "too_little_data": "human", "unsure": "human"},
   "agent_turns": {"agent": "agent_only", "mixed": "human_agent"},
   "evidence": {"not_sure": "thin", "too_little_data": "thin", "unsure": "thin"},
-  "certainty": {"certain": "verified", "likely": "likely", "possible": "possible"},
+  "certainty": {"certain": "verified", "likely": "likely"},
   "layer_states": {"human": "human", "agent": "agent", "mixed": "human_agent", "unsure": "unknown", "bot": "bot",
                    "no_hit": "no_hit", "off": "off", "not_sure": "unknown", "too_little_data": "unknown"},
 
@@ -56,8 +54,7 @@
   },
 
   "settings": {
-    "$comment": "The settings page. layers: the four layers that judge, which run always and are not settings (verify runs only in server mode, where visits do not all come from 127.0.0.1). refresh_ms: how often the open page asks again where visits come from, so that the first visit shows as connected within 10 s. server_half_tokens: how many of the latest server-half tokens tell which request headers never reached the site's server (none of them had it: something in front of the server removes it). server_half_headers: those headers, by their role in edge.json; a browser sends them on every page request over HTTPS, which Sec-Fetch-User is not (only after a click).",
-    "layers": {"name": true, "environment": true, "behavior": true},
+    "$comment": "The settings page. refresh_ms: how often the open page asks again where visits come from, so that the first visit shows as connected within 10 s. server_half_tokens: how many of the latest server-half tokens tell which request headers never reached the site's server (none of them had it: something in front of the server removes it). server_half_headers: those headers, by their role in edge.json; a browser sends them on every page request over HTTPS, which Sec-Fetch-User is not (only after a click).",
     "refresh_ms": 5000,
     "server_half_tokens": 200,
     "server_half_headers": {"sec_fetch_site": "s", "sec_fetch_mode": "m", "sec_fetch_dest": "d"}

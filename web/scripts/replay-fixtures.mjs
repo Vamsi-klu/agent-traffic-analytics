@@ -34,7 +34,7 @@ const web = path.join(here, ".."), repo = path.join(web, "..")
 const fixtures = path.join(web, "src", "data", "fixtures")
 const readJson = (file) => JSON.parse(readFileSync(file, "utf8"))
 const LOOPBACK = "127.0.0.1" // protocol: the local page only ever listens on the loopback address
-const CARD_HINT = ["Any made-up number works, e.g. 4242 4242 4242 4242.", "Any made-up card number works."] // the shop's wording
+const CARD_HINT = ["Any made-up number works, e.g. 4242 4242 4242 4242.", "You can enter any sample card number."] // the shop's wording
 const POLL_MS = 500, SETTLE_POLLS = 3, START_TIMEOUT_MS = 15000
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 

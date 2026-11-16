@@ -4,13 +4,13 @@ chunks without loosening any of their assertions, and the rules 0.4.0 adds.
     python3 -I -m unittest discover -s tests -p test_space.py -v      (from the Agent Cake folder)
 
 Each test runs in its own CAKE_HOME. Sessions of every kind are mixed together, each with a replay (the rrweb stream)
-plus raw input and environment signals, sealed into chunk files, and the budget is made tiny, so cake is "full"; then:
-only the oldest human-only sessions lose their replay, down to 90% of the budget; their raw input, environment
-signals, verdicts, shares, timelines and server-half rows stay, and no session an agent took part in loses anything.
-With auto_free off a full cake still records the visit and its verdict but stores no new replay events. Nothing is
-deleted by age by default; a chosen retention deletes whole old sessions, chunks included. With less free disk than
-disk_min_free_mb new replays stop and nothing is freed (the disk is a stand-in for shutil.disk_usage: nothing is
-filled). Dropped chunks give their file bytes back at the next maintenance round.
+plus raw input and environment signals, sealed into chunk files, and the budget is made small, so cake has reached
+90% of it; then the oldest replays go, whatever the kind of session, until cake's data is under 90% of the budget; a
+replay still being recorded stays; raw input, environment signals, verdicts, shares, timelines and server-half rows
+stay. With auto_free off a full cake still records the visit and its verdict but stores no new replay events. Nothing
+is deleted by age by default; a chosen retention deletes whole old sessions, chunks included. With less free disk than
+disk_min_free_mb new replays stop and nothing is deleted, auto_free on or off (the disk is a stand-in for
+shutil.disk_usage: nothing is filled). Dropped chunks give their file bytes back at the next maintenance round.
 """
 import json
 import os
@@ -29,11 +29,12 @@ sys.path[:0] = [os.path.dirname(TESTS), TESTS]
 from agentcake import config, recompress, replay_chunks, space, streams  # noqa: E402  (needs the path above)
 from api_client import Client  # noqa: E402
 from agentcake.storage_config import SETTINGS  # noqa: E402
-from space_sessions import (DAY, MB, RAW_EVENTS, ROOMY, add_mix, add_session, chunk_file_bytes,  # noqa: E402
+from space_sessions import (DAY, MB, MIX, RAW_EVENTS, ROOMY, add_mix, add_session, chunk_file_bytes,  # noqa: E402
                             disk_with, fresh_cake, recorded, replay)
 
 HUMANS = ["human1", "human2", "human3", "human4"]  # the human-only sessions, oldest first
-KEPT = ("agent1", "agent2", "mixed1", "mixed2", "unsure1", "named1", "humanLive")
+OLDEST_FIRST = [sid for sid, *_ in MIX]  # every kind of session, oldest first
+QUIET = OLDEST_FIRST[:-1]  # all but humanLive, which is still being recorded
 SERVER_POLL_S = 0.01  # how often a test server's loop checks for shutdown(); each tearDown waited out the default 0.5 s
 # The storage settings with the night recompression at the live level: for a test of what recompression does to the
 # rows, not of how small zstd-19 makes them (tests/test_recompress.py checks that); level 19 takes seconds here.
@@ -74,7 +75,7 @@ class Space(unittest.TestCase):
         self.assertEqual(c["retention_days"], 0)
         self.assertTrue(c["auto_free"])
         self.assertEqual(c["budget_mb"], 10240)
-        self.assertEqual(c["disk_min_free_mb"], 10240, "below 10 GB of free disk the oldest replays make room")
+        self.assertEqual(c["disk_min_free_mb"], 10240, "below 10 GB of free disk new replays stop")
         everything = {sid: recorded(self.con, sid) for (sid,) in self.con.execute("SELECT id FROM sessions").fetchall()}
         self.cake.prune(self.con, c["retention_days"])
         self.assertEqual(self.con.execute("SELECT COUNT(*) FROM sessions").fetchone()[0], 11, "nothing deleted by age by default")
@@ -82,20 +83,20 @@ class Space(unittest.TestCase):
         self.assertEqual(self.con.execute("SELECT COUNT(*) FROM sessions").fetchone()[0], 11, "all are under 30 days old")
         self.assertEqual({sid: recorded(self.con, sid) for sid in everything}, everything, "and every recorded event stays")
 
-    def test_full_frees_only_oldest_person_only_replays(self):
+    def test_from_the_freeing_share_the_oldest_replays_go_whatever_the_kind_of_session(self):
         # a budget cake is over: about 60% of what it holds now, so freeing has to remove some but not all
         c = dict(self.cake.load_cfg(), budget_mb=self.used * 0.6 / MB)
-        before = {sid: recorded(self.con, sid) for sid in KEPT}
+        before = {sid: recorded(self.con, sid) for sid in OLDEST_FIRST}
         verdicts = dict(self.con.execute("SELECT id, verdict || '/' || agent_pct || '/' || segs FROM sessions"))
         freed = self.cake.free_space(self.con, c, self.now)
         self.con.commit()
-        self.assertGreater(freed, 0)
-        # oldest human-only first: human1 goes before human2, human2 before human3...
-        gone = [s for s in HUMANS if self.events(s) == 0]
-        self.assertEqual(gone, HUMANS[:len(gone)], "oldest first")
-        self.assertTrue(gone)
-        for sid, events in before.items():  # every stream, event for event
-            self.assertEqual(recorded(self.con, sid), events, f"{sid}: never removed automatically")
+        gone = [s for s in OLDEST_FIRST if self.events(s) == 0]
+        self.assertEqual(freed, len(gone))
+        self.assertEqual(gone, OLDEST_FIRST[:len(gone)], "oldest first, whatever the kind")
+        self.assertIn("agent1", gone, "an agent's replay goes in its turn")
+        self.assertLess(len(gone), len(QUIET), "no more than needed")
+        for sid in OLDEST_FIRST[len(gone):]:  # every stream, event for event
+            self.assertEqual(recorded(self.con, sid), before[sid], f"{sid}: younger, kept")
         # verdicts, shares, timelines and server half all stay
         self.assertEqual(dict(self.con.execute("SELECT id, verdict || '/' || agent_pct || '/' || segs FROM sessions")), verdicts)
         self.assertEqual(self.con.execute("SELECT COUNT(*) FROM sessions").fetchone()[0], 11)
@@ -107,12 +108,17 @@ class Space(unittest.TestCase):
         self.assertEqual(self.con.execute("SELECT verdict, segs FROM sessions WHERE id='human1'").fetchone()[0], "human")
         self.assertNotEqual(self.con.execute("SELECT segs FROM sessions WHERE id='human1'").fetchone()[0], "[]")
 
-    def test_when_nothing_person_only_is_left_agent_sessions_still_stay(self):
+    def test_only_a_replay_still_being_recorded_is_left_when_every_other_has_gone(self):
         self.cake.free_space(self.con, self.tiny(), self.now)
-        for sid in HUMANS:
-            self.assertEqual(self.events(sid), 0)
-        for sid in KEPT:
-            self.assertEqual(self.events(sid), 60, sid)
+        self.assertEqual({sid: self.events(sid) for sid in OLDEST_FIRST}, {**dict.fromkeys(QUIET, 0), "humanLive": 60})
+
+    def test_a_replay_waits_for_the_verdict_on_its_last_data(self):
+        # data newer than its verdict (judging failed or is behind): rejudge() never judges a freed replay again, so
+        # freeing it now would leave the verdict without its last data (a session never judged would stay Human)
+        oldest, next_oldest = OLDEST_FIRST[0], OLDEST_FIRST[1]
+        self.con.execute("UPDATE sessions SET judged_ms=end_ms - 1 WHERE id=?", (oldest,))
+        self.cake.free_space(self.con, self.tiny(), self.now)
+        self.assertEqual((self.events(oldest) > 0, self.events(next_oldest)), (True, 0))
 
     def test_status_and_meter(self):
         c = dict(self.cake.load_cfg(), budget_mb=self.used / 0.85 / MB)
@@ -128,31 +134,39 @@ class Space(unittest.TestCase):
             self.assertEqual(storage["used_bytes"] >= storage["warn_at_pct"] / 100 * budget_mb * MB, warns)
             self.assertIsNotNone(storage["days_left"])
 
-    def test_freeing_stops_at_the_target_share_of_the_budget(self):
-        # full, and removing the two oldest human-only replays is just enough to get under 90% of the budget
-        first, second = (streams.replay_bytes(self.con, sid) for sid in HUMANS[:2])
+    def test_freeing_stops_under_the_target_share_of_the_budget(self):
+        # full, and removing the two oldest replays is just enough to get under 90% of the budget
+        first, second = (streams.replay_bytes(self.con, sid) for sid in OLDEST_FIRST[:2])
         c = dict(self.cake.load_cfg(), budget_mb=(self.used - first - second / 2) / 0.9 / MB)
         self.assertGreaterEqual(self.used, space.budget_bytes(c), "the budget is full")
         self.assertTrue(space.room_for_replay(self.con, c, self.now, usage=ROOMY))
-        self.assertEqual([self.events(s) for s in HUMANS], [0, 0, 60, 60], "no more than needed")
-        self.assertLessEqual(self.cake.used_bytes(self.con), c["auto_free_target_ratio"] * space.budget_bytes(c))
+        self.assertEqual([self.events(s) for s in OLDEST_FIRST[:3]], [0, 0, 60], "no more than needed")
+        self.assertLess(self.cake.used_bytes(self.con), c["auto_free_target_ratio"] * space.budget_bytes(c))
+
+    def test_freeing_starts_at_the_target_share_before_the_budget_is_full(self):
+        c = dict(self.cake.load_cfg(), budget_mb=self.used / 0.95 / MB)  # 95% used: past 90%, not full
+        self.assertTrue(space.room_for_replay(self.con, c, self.now, usage=ROOMY))
+        self.assertEqual(self.events(OLDEST_FIRST[0]), 0, "the oldest replay went")
+        self.assertLess(self.cake.used_bytes(self.con), c["auto_free_target_ratio"] * space.budget_bytes(c))
+        c = dict(c, budget_mb=self.cake.used_bytes(self.con) / 0.85 / MB)  # 85%: under the share, nothing goes
+        kept = {sid: self.events(sid) for sid in OLDEST_FIRST}
+        self.assertTrue(space.room_for_replay(self.con, c, self.now, usage=ROOMY))
+        self.assertEqual({sid: self.events(sid) for sid in OLDEST_FIRST}, kept)
 
     def test_a_freed_session_keeps_its_raw_input_and_environment_signals(self):
-        kept = {sid: recorded(self.con, sid, ["raw", "env"]) for sid in HUMANS}
+        kept = {sid: recorded(self.con, sid, ["raw", "env"]) for sid in QUIET}
         self.cake.free_space(self.con, self.tiny(), self.now)
-        for sid in HUMANS:
+        for sid in QUIET:
             self.assertEqual(self.events(sid), 0)
             self.assertEqual(recorded(self.con, sid, ["raw", "env"]), kept[sid], f"{sid}: verdicts are made from these")
 
-    def test_a_session_with_an_agent_stretch_or_an_agent_name_is_never_freed(self):
-        # human-only by 0.3.4's columns, but the newer tables say an agent was there
+    def test_an_agent_stretch_or_an_agent_name_keeps_no_replay_from_its_turn(self):
         self.con.execute("INSERT INTO segments(session_id, t_start, t_end, actor) VALUES('human1', 1, 2, 'agent')")
-        self.con.execute("INSERT INTO labels(session_id, name, layer) VALUES('human2', 'Operator', 'names')")
-        self.con.execute("INSERT INTO segments(session_id, t_start, t_end, actor) VALUES('human3', 1, 2, 'unsure')")
-        self.cake.free_space(self.con, self.tiny(), self.now)
-        self.assertEqual([self.events(s) for s in HUMANS], [60, 60, 0, 0])
+        self.con.execute("INSERT INTO labels(session_id, name, layer) VALUES('human1', 'Operator', 'names')")
+        self.cake.free_space(self.con, dict(self.cake.load_cfg(), budget_mb=self.used * 0.6 / MB), self.now)
+        self.assertEqual(self.events("human1"), 0, "the oldest goes first, whoever acted in it")
 
-    def test_a_human_only_session_without_a_replay_is_not_marked_freed(self):
+    def test_a_session_without_a_replay_is_not_marked_freed(self):
         add_session(self.cake, self.con, "noreplay", verdict="human", agent_pct=0, group="H1/L?", end_ms=self.now - 20 * DAY, n_events=0)
         self.cake.free_space(self.con, self.tiny(), self.now)
         self.assertIsNone(self.con.execute("SELECT replay_freed_ms FROM sessions WHERE id='noreplay'").fetchone()[0])
@@ -182,15 +196,15 @@ class Space(unittest.TestCase):
         self.assertEqual(total(), chunks())
 
     def test_the_files_give_back_the_bytes_of_freed_replays(self):
-        on_disk, dropped = chunk_file_bytes(), sum(streams.replay_bytes(self.con, sid) for sid in HUMANS)
-        raw = {sid: recorded(self.con, sid, ["raw", "env"]) for sid in HUMANS}
+        on_disk, dropped = chunk_file_bytes(), sum(streams.replay_bytes(self.con, sid) for sid in QUIET)
+        raw = {sid: recorded(self.con, sid, ["raw", "env"]) for sid in QUIET}
         self.cake.free_space(self.con, self.tiny(), self.now)
         self.con.commit()
         self.assertEqual(chunk_file_bytes(), on_disk, "dropping deletes rows; the files change at the next round")
         self.assertIsNotNone(space.reclaim_if_due(self.con, self.now))
         self.assertEqual(chunk_file_bytes(), on_disk - dropped)
         self.assertIsNone(space.reclaim_if_due(self.con, self.now), "once, until something is dropped again")
-        self.assertEqual({sid: recorded(self.con, sid, ["raw", "env"]) for sid in HUMANS}, raw, "moved, not lost")
+        self.assertEqual({sid: recorded(self.con, sid, ["raw", "env"]) for sid in QUIET}, raw, "moved, not lost")
 
     def test_a_chosen_retention_deletes_whole_old_sessions_with_their_chunks(self):
         # an agent session too: a retention is the user's own choice, unlike freeing space
@@ -211,12 +225,13 @@ class Space(unittest.TestCase):
         space.reclaim_if_due(self.con, self.now)
         self.assertFalse(os.path.exists(os.path.join(replay_chunks.replay_dir(), replay_chunks.file_for(old))))
 
-    def test_a_nearly_full_disk_with_auto_free_off_stops_new_replays_and_frees_nothing(self):
-        # with auto_free on the oldest replays make room instead (tests/test_space_disk.py)
+    def test_a_nearly_full_disk_stops_new_replays_and_frees_nothing_whatever_auto_free_says(self):
         c = dict(self.cake.load_cfg(), budget_mb=self.used * 0.8 / MB)  # the budget is full as well
         floor = c["disk_min_free_mb"] * MB
-        self.assertFalse(space.room_for_replay(self.con, dict(c, auto_free=False), self.now, usage=disk_with(floor - 1)))
-        self.assertEqual([self.events(s) for s in HUMANS], [60] * 4, "nothing freed for a replay that is not stored")
+        for auto_free in (False, True):
+            self.assertFalse(space.room_for_replay(self.con, dict(c, auto_free=auto_free), self.now, usage=disk_with(floor - 1)))
+        self.assertEqual({sid: self.events(sid) for sid in OLDEST_FIRST}, dict.fromkeys(OLDEST_FIRST, 60),
+                         "nothing freed for a replay that is not stored")
         self.assertTrue(space.room_for_replay(self.con, c, self.now, usage=disk_with(floor)), "at the floor the budget rules")
         self.assertTrue(space.room_for_replay(self.con, dict(c, disk_min_free_mb=0), self.now, usage=disk_with(0)), "0: off")
 
@@ -226,12 +241,13 @@ class Space(unittest.TestCase):
         low = space.space_status(self.con, dict(c, auto_free=False), self.now, usage=disk_with(floor - 1))
         self.assertEqual(low["disk"], {"total": 2 * (floor - 1), "free": floor - 1, "min_free": floor, "low": True})
         self.assertEqual(low["replays_stopped"], "disk")
-        freeing = space.space_status(self.con, c, self.now, usage=disk_with(floor - 1))
-        self.assertIsNone(freeing["replays_stopped"], "with auto_free on the oldest replays make room")
+        self.assertEqual(space.space_status(self.con, c, self.now, usage=disk_with(floor - 1))["replays_stopped"], "disk",
+                         "auto_free deletes nothing for the disk")
         self.assertIsNone(space.space_status(self.con, c, self.now, usage=ROOMY)["replays_stopped"], "it frees first")
         self.assertEqual(space.space_status(self.con, dict(c, auto_free=False), self.now, usage=ROOMY)["replays_stopped"], "budget")
         self.cake.free_space(self.con, self.tiny(), self.now)
-        self.assertEqual(space.space_status(self.con, c, self.now, usage=ROOMY)["replays_stopped"], "budget", "nothing left to free")
+        self.assertEqual(space.space_status(self.con, self.tiny(), self.now, usage=ROOMY)["replays_stopped"], "budget",
+                         "full, and only a replay still being recorded is left")
 
 
 class FullOverHttp(unittest.TestCase):
@@ -287,7 +303,7 @@ class FullOverHttp(unittest.TestCase):
         """The rrweb events collect kept for a visit: since 0.4.0 in chunks, no longer in the events table."""
         con = self.cake.db(); v = streams.event_count(con, sid, "rrweb"); con.close(); return v
 
-    def test_auto_free_on_makes_room_from_the_person_only_replay(self):
+    def test_auto_free_on_makes_room_from_the_oldest_replay(self):
         self.set_cfg(budget_mb=self.used * 0.7 / MB, auto_free=True)
         self.assertEqual(self.post("newvisit"), 204)
         self.assertEqual(self.replay("oldhuman"), 0)
@@ -303,16 +319,17 @@ class FullOverHttp(unittest.TestCase):
         self.assertEqual(self.count("SELECT events_dropped FROM sessions WHERE id='newvisit'"), 5)
         self.assertEqual(self.replay("oldhuman"), 200, "nothing removed")
 
-    def test_a_nearly_full_disk_with_auto_free_off_keeps_the_visit_but_no_new_replay(self):
-        # with auto_free on the new replay is stored (tests/test_space_disk.py, FloorOverHttp)
-        self.set_cfg(auto_free=False)
+    def test_a_nearly_full_disk_keeps_the_visit_but_no_new_replay_and_removes_nothing(self):
         floor = self.cake.load_cfg()["disk_min_free_mb"] * MB  # the budget has room
-        with mock.patch("shutil.disk_usage", disk_with(floor - 1)):
-            self.assertEqual(self.post("newvisit"), 204, "the visit is not refused")
-        self.assertIsNotNone(self.count("SELECT verdict FROM sessions WHERE id='newvisit'"), "and it is judged")
-        self.assertEqual(self.replay("newvisit"), 0)
-        self.assertEqual(self.count("SELECT events_dropped FROM sessions WHERE id='newvisit'"), 5)
-        self.assertEqual(self.replay("oldhuman"), 200, "nothing removed")
+        for n, auto_free in enumerate((False, True)):
+            self.set_cfg(auto_free=auto_free)
+            sid = f"newvisit{n}"
+            with mock.patch("shutil.disk_usage", disk_with(floor - 1)):
+                self.assertEqual(self.post(sid), 204, "the visit is not refused")
+            self.assertIsNotNone(self.count("SELECT verdict FROM sessions WHERE id=?", sid), "and it is judged")
+            self.assertEqual(self.replay(sid), 0, f"auto_free {auto_free}")
+            self.assertEqual(self.count("SELECT events_dropped FROM sessions WHERE id=?", sid), 5)
+        self.assertEqual((self.replay("oldhuman"), self.replay("oldagent")), (200, 200), "nothing removed")
 
     def test_health_reports_the_disk(self):
         self.set_cfg(auto_free=False)  # stopped only with auto_free off or nothing left to free

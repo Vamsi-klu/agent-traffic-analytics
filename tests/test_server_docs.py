@@ -31,12 +31,12 @@ PYPROJECT = os.path.join(ROOT, "pyproject.toml")
 STORAGE_FILE = os.path.join(paths.PACKAGE_DIR, "data", "storage.json")
 LONG_RUNNING = {"serve"}  # SERVER.md commands that do not return; test_server_mode.py runs `serve` itself
 SHELL_OPERATORS = ("|", "||", "&&", ";")
-MINIMUM_PYTHON = re.compile(r"`?\b[Pp]ython3?`?\s+(\d+\.\d+) or newer")
+MINIMUM_PYTHON = re.compile(r"`?\b[Pp]ython3?`?\s+(\d+\.\d+) or (?:newer|later)")
 
 
 def minimum_pythons(markdown):
     """The Python versions a text gives as the least it needs, however it names Python: "Python 3.11 or newer",
-    "`python3` 3.11 or newer", "python3 3.11 or newer"."""
+    "Python 3.11 or later", "`python3` 3.11 or newer", "python3 3.11 or newer"."""
     return set(MINIMUM_PYTHON.findall(markdown))
 
 

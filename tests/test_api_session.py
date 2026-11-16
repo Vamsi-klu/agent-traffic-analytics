@@ -17,8 +17,10 @@ import sys
 import unittest
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import verdict_cases  # noqa: E402
 from agentcake.api import actions as actions_api, answers, reasons as reasons_api, session as session_api  # noqa: E402
-from agentcake.detect import verdict_text  # noqa: E402
+from agentcake.detect import verdict, verdict_text  # noqa: E402
+from agentcake.wording import product  # noqa: E402
 
 LAYERS = ["name", "verify", "environment", "behavior"]
 ACTION_WORDS = ("Open ", "Click", "Type", "Scroll", "Tap")
@@ -55,9 +57,9 @@ class Words(unittest.TestCase):
         self.assertEqual(session_api.title("agent", "agent_only", "agent", "Codex browser", []), "Codex browser")
         self.assertEqual(session_api.title("agent", "agent_only", "agent", None, []), "An unnamed agent")
         self.assertEqual(session_api.title("bot", None, "bot", "Googlebot", []), "Googlebot")
-        self.assertEqual(session_api.title("human", None, "too_little_data", None, [], "thin"), "Too few actions to tell")
-        self.assertEqual(session_api.title("human", None, "not_sure", None, [], "thin"), "Can't tell who acted")
-        self.assertEqual(session_api.title("human", None, None, None, [], "thin"), "Can't tell who acted")
+        self.assertEqual(session_api.title("human", None, "too_little_data", None, [], "thin"), "Not enough actions to classify")
+        self.assertEqual(session_api.title("human", None, "not_sure", None, [], "thin"), "Actor not identified")
+        self.assertEqual(session_api.title("human", None, None, None, [], "thin"), "Actor not identified")
 
     def test_a_human_agent_summary_tells_who_acted_when_and_which_layers_point_to_it(self):
         epoch = 1_794_608_433_697
@@ -68,8 +70,8 @@ class Words(unittest.TestCase):
                   {"layer": "behavior", "state": "human_agent", "percent": 99}]
         story = session_api.Story(epoch, runs, "Claude in Chrome", layers)
         self.assertEqual(session_api.verdict_summary("agent", "human_agent", "mixed", [], story),
-                         "Claude in Chrome acted from 0:08 to 0:40. A human took over at 0:47. "
-                         "The Environment layer supports the verdict with 90% confidence, and the Behavior layer with 99%.")
+                         "Claude in Chrome was active from 0:08 to 0:40. A human took over at 0:47. "
+                         "Layers that reached the same classification: Environment (90% confidence) and Behavior (99% confidence).")
 
     def test_a_take_over_is_told_at_the_judges_hand_off_the_new_actors_first_action(self):
         epoch = 1_794_608_433_697
@@ -77,32 +79,32 @@ class Words(unittest.TestCase):
         handoffs = [{"t": epoch + 49_100, "from": "agent", "to": "human", "after": epoch + 40_327}]
         story = session_api.Story(epoch, runs, "Claude in Chrome", [], handoffs)
         self.assertEqual(session_api.verdict_summary("agent", "human_agent", "mixed", [], story),
-                         "Claude in Chrome acted from 0:08 to 0:40. A human took over at 0:49.")
+                         "Claude in Chrome was active from 0:08 to 0:40. A human took over at 0:49.")
 
     def test_three_layers_are_listed_in_one_sentence(self):
         layers = [{"layer": name, "state": "agent", "percent": percent}
                   for name, percent in (("name", 90), ("environment", 99), ("behavior", 98))]
         story = session_api.Story(0, [(13_000, 63_000, "agent")], None, layers)
         self.assertEqual(session_api.verdict_summary("agent", "agent_only", "agent_automated", [], story),
-                         "An unnamed agent acted from 0:13 to 1:03. The Name layer supports the verdict with 90% "
-                         "confidence, the Environment layer with 99%, and the Behavior layer with 98%.")
+                         "An unnamed agent was active from 0:13 to 1:03. Layers that reached the same "
+                         "classification: Name (90% confidence), Environment (99% confidence) and Behavior (98% confidence).")
 
     def test_turns_name_who_comes_back_and_an_unnamed_agent(self):
         runs = [(0, 5_000, "human"), (6_000, 9_000, "agent"), (12_500, 20_000, "human"), (21_000, 30_000, "agent")]
         story = session_api.Story(0, runs, None, [])
         self.assertEqual(session_api.verdict_summary("agent", "human_agent", "mixed", [], story),
-                         "A human acted from 0:00 to 0:05. An unnamed agent took over at 0:06. "
+                         "A human was active from 0:00 to 0:05. An unnamed agent took over at 0:06. "
                          "The human took over again at 0:12. The agent took over again at 0:21.")
         self.assertEqual(session_api.verdict_summary("human", None, "human", [], session_api.Story(
             0, [(1_000, 64_000, "human")], None, [{"layer": "behavior", "state": "human", "percent": 97}])),
-                         "A human acted from 0:01 to 1:04. The Behavior layer supports the verdict with 97% confidence.")
+                         "A human was active from 0:01 to 1:04. Layers that reached the same classification: Behavior (97% confidence).")
 
     def test_without_turns_to_tell_the_deciding_reason_stands_and_no_confidence_word(self):
         reasons = [{"id": "name.ua", "layer": "name", "tone": "agent", "text": "The User-Agent declares X."}]
         bot = session_api.Story(0, [], "Googlebot", [{"layer": "name", "state": "bot", "percent": 60},
                                                      {"layer": "environment", "state": "agent", "percent": 99}])
         self.assertEqual(session_api.verdict_summary("bot", None, "bot", reasons, bot),
-                         "The User-Agent declares X. The Name layer supports the verdict with 60% confidence.")
+                         "The User-Agent declares X. Layers that reached the same classification: Name (60% confidence).")
         self.assertEqual(session_api.verdict_summary("agent", "agent_only", "agent_ai", reasons),
                          "The User-Agent declares X.")
         self.assertIn("behavior model", session_api.verdict_summary("human", None, None, []))
@@ -112,9 +114,12 @@ class Words(unittest.TestCase):
 
     def test_a_session_judged_before_its_reasons_were_kept_gets_its_classs_rule(self):
         judged = verdict_text.judging()["classes"]
+        name = product()["name"]
         for verdict, turns, rule in (("agent", "human_agent", "mixed"), ("agent", "agent_only", "agent_ai"),
-                                     ("human", "thin", "not_sure"), ("bot", None, "bot")):
-            self.assertEqual(session_api.verdict_summary(verdict, turns, None, []), judged[rule]["how"], verdict)
+                                     ("human", "thin", "not_sure"), ("bot", None, "bot"), ("human", None, "human")):
+            said = session_api.verdict_summary(verdict, turns, None, [])
+            self.assertEqual(said, judged[rule]["how"].replace("{name}", name), verdict)
+            self.assertNotIn("{", said, "a placeholder never reaches the page")
 
     def test_reasons_are_worded_as_they_are_shown(self):
         """A reason with facts reads in today's words whatever text it was kept with; one without keeps its text."""
@@ -150,7 +155,7 @@ class Layers(unittest.TestCase):
         agent = verdict_text.reason("behavior.agent", "page", ["rules"], basis=["rules"], kinds=["approach"])
         took_turns = self.layers({"behavior": {"state": "agent", "leans": "agent", "percent": 99}}, [agent], turns=True)
         self.assertEqual(took_turns["behavior"]["state"], "human_agent")
-        self.assertEqual(took_turns["behavior"]["reasons"][0]["text"], "A human and an agent took turns.")
+        self.assertEqual(took_turns["behavior"]["reasons"][0]["text"], "A human and an agent took turns in this session.")
         whole_way = self.layers({"behavior": {"state": "mixed", "leans": "agent", "percent": 71}}, [agent])
         self.assertEqual((whole_way["behavior"]["state"], whole_way["behavior"]["percent"]), ("agent", 71))
         self.assertNotIn("took turns", whole_way["behavior"]["reasons"][0]["text"])
@@ -174,6 +179,14 @@ class Layers(unittest.TestCase):
     def test_a_layers_percent_is_shown_only_for_its_own_conclusion(self):
         said = self.layers({"environment": {"state": "unsure", "leans": "agent", "percent": 60}}, [])["environment"]
         self.assertEqual((said["state"], said["percent"]), ("unknown", None))
+
+    def test_an_impersonated_bots_name_layer_reads_agent_with_the_name_it_gave(self):
+        """Googlebot's User-Agent from outside Google's ranges is an Agent: its name layer reads Agent, not Bot, and
+        still says which name the visitor gave."""
+        judged = verdict.decide(verdict_cases.evidence(uas=verdict_cases.GOOGLEBOT, platform="Linux x86_64"))
+        said = self.layers(judged["layers"], judged["reasons"])["name"]
+        self.assertEqual((said["state"], said["percent"]), ("agent", 99))
+        self.assertEqual([r["text"] for r in said["reasons"]], ["This visitor identifies itself as Googlebot."])
 
 
 class Share(unittest.TestCase):

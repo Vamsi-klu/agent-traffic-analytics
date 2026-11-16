@@ -8,24 +8,61 @@ already marked is opened without running them again: every upload request opens 
 the column checks were most of what that cost. The version is derived from schema.sql and ADDED_COLUMNS, so a cake
 whose schema changed sets every older database up once more, with nothing to raise by hand. A database of cake 0.3.4,
 or of an earlier development build of 0.4.0 (before the batches and refusals, requests.pv, the verdict columns and the
-srv columns), ends up with every table, column, index and trigger a new database has.
+srv columns), ends up with every table, column, index and trigger a new database has. A new database opened by several
+connections at the same moment (the threads answering a page's first requests, and a command run meanwhile in another
+process) is set up by one connection of each process at most, and every connection gets it set up: none meets
+"database is locked".
 """
 import os
+import shutil
 import sqlite3
+import subprocess
 import sys
 import tempfile
+import threading
 import unittest
 from unittest import mock
 
 TESTS = os.path.dirname(os.path.abspath(__file__))
-sys.path[:0] = [os.path.dirname(TESTS), TESTS]
-from agentcake import paths, store  # noqa: E402  (needs the path above)
+ROOT = os.path.dirname(TESTS)
+sys.path[:0] = [ROOT, TESTS]
+from agentcake import config, paths, store  # noqa: E402  (needs the path above)
 from test_migrate import SCHEMA_034  # noqa: E402
 
 SIGNED_32_BITS = 2 ** 31  # PRAGMA user_version holds a signed 32-bit integer
 # the sessions columns the verdict added, and the srv columns that keep reuses and comparisons
 VERDICT_COLUMNS = ("verdict_class", "agent_row", "agent_name", "confidence", "reasons", "layers", "verdict_detail")
 SRV_COLUMNS = ("pv", "ua_match", "lang_match", "reuses")
+THREADS = 8  # more than the requests a browser sends at once for the first page
+SET_UP = "set up"  # what OpenedAtOnce.set_ups() records for a set-up that finished
+LOCKED = "database is locked"  # SQLite's words for SQLITE_BUSY
+SHORT_TIMEOUT_S = 0.1  # db_timeout_s of the test whose other process never lets go of the lock
+# Other processes on the same CAKE_HOME, as commands run while the server answers; argv[1] is this repository. Each
+# prints a line once it has done its part, then waits for one before the next.
+HOLDS_THE_WRITE_LOCK = """\
+import sqlite3, sys
+sys.path.insert(0, sys.argv[1])
+from agentcake import paths, store
+con = sqlite3.connect(paths.db_file())
+con.execute("BEGIN IMMEDIATE")  # the write lock, as a set-up holds it while it writes the new database
+print("holding", flush=True)
+then = sys.stdin.readline().strip()
+con.rollback()
+if then == "set up":
+    store.db().close()
+print("done", flush=True)
+"""
+OPENS_THE_DATABASE = """\
+import sqlite3, sys
+sys.path.insert(0, sys.argv[1])
+from agentcake import store
+print("ready", flush=True)
+sys.stdin.readline()
+try:
+    print(store.db().execute("PRAGMA user_version").fetchone()[0], flush=True)
+except sqlite3.OperationalError as error:
+    print(error, flush=True)
+"""
 
 
 def table_names(con):
@@ -47,6 +84,35 @@ def change_file(*statements):
         con.executescript(";\n".join(statements))
     finally:
         con.close()
+
+
+def user_version(con):
+    return con.execute("PRAGMA user_version").fetchone()[0]
+
+
+class OtherProcess:
+    """A Python process running `code` on this CAKE_HOME with this repository importable; the test and it take turns
+    line by line. It ends with the test."""
+
+    def __init__(self, test, code):
+        self.process = subprocess.Popen([sys.executable, "-I", "-c", code, ROOT], stdin=subprocess.PIPE,
+                                        stdout=subprocess.PIPE, text=True)
+        test.addCleanup(self.end)
+
+    def say(self, line):
+        self.process.stdin.write(line + "\n")
+        self.process.stdin.flush()
+
+    def hear(self):
+        return self.process.stdout.readline().strip()
+
+    def ask(self, line):
+        self.say(line)
+        return self.hear()
+
+    def end(self):
+        self.process.kill()  # nothing happens to one that has ended
+        self.process.communicate()  # waits for it and closes the pipes
 
 
 class SetUpOnce(unittest.TestCase):
@@ -175,6 +241,109 @@ class Upgrade(unittest.TestCase):
         store.db().close()
         self.later_cake(schema=store.SCHEMA + "\nCREATE TABLE IF NOT EXISTS later(session_id TEXT, at_ms INT);\n")
         self.assertEqual(self.upgraded()[0]["later"], ["at_ms", "session_id"])
+
+
+class OpenedAtOnce(unittest.TestCase):
+    """A new database opened by several connections at the same moment. The change of journal mode a set-up begins
+    with turns a read lock into a write lock, which SQLite does not wait for (two connections could wait for each
+    other forever): a set-up doing it while another one writes meets "database is locked" at once, whatever
+    db_timeout_s says."""
+
+    def setUp(self):
+        home = tempfile.mkdtemp(prefix="cake-test-")
+        self.addCleanup(shutil.rmtree, home, True)
+        patch = mock.patch.dict(os.environ, {"CAKE_HOME": home})
+        patch.start()
+        self.addCleanup(patch.stop)
+
+    def opened(self):
+        con = store.db()
+        self.addCleanup(con.close)
+        return con
+
+    def set_ups(self, when_locked=None):
+        """store._set_up, recorded: one entry per set-up begun, SET_UP or the error that ended it. when_locked() runs
+        when the first set-up ends in an error, before the error goes on: another process acts then."""
+        outcomes, real = [], store._set_up
+
+        def recorded(con):
+            try:
+                real(con)
+            except sqlite3.OperationalError as error:
+                outcomes.append(str(error))
+                if when_locked and len(outcomes) == 1:
+                    when_locked()
+                raise
+            outcomes.append(SET_UP)
+
+        patch = mock.patch.object(store, "_set_up", recorded)
+        patch.start()
+        self.addCleanup(patch.stop)
+        return outcomes
+
+    def open_at_once(self, threads, go=None):
+        """Open the database in `threads` threads at the same moment, go() just before it; per thread, the
+        user_version of the database it got, or the error it met."""
+        barrier, found = threading.Barrier(threads + 1), [None] * threads
+
+        def open_one(index):
+            barrier.wait()
+            try:
+                con = store.db()
+            except sqlite3.OperationalError as error:
+                found[index] = str(error)
+                return
+            try:
+                found[index] = user_version(con)
+            finally:
+                con.close()
+
+        workers = [threading.Thread(target=open_one, args=(index,)) for index in range(threads)]
+        for worker in workers:
+            worker.start()
+        if go:
+            go()
+        barrier.wait()
+        for worker in workers:
+            worker.join()
+        return found
+
+    def holding_the_write_lock(self):
+        """Another process holding the write lock of the new database, as one setting it up does while it writes."""
+        other = OtherProcess(self, HOLDS_THE_WRITE_LOCK)
+        self.assertEqual(other.hear(), "holding")
+        return other
+
+    def test_threads_opening_a_new_database_at_once_set_it_up_once(self):
+        set_ups = self.set_ups()
+        self.assertEqual(self.open_at_once(THREADS), [store.SCHEMA_VERSION] * THREADS)
+        self.assertEqual(set_ups, [SET_UP], "one thread sets it up; the others wait their turn and find it set up")
+
+    def test_threads_and_another_process_opening_a_new_database_at_once_all_get_it_set_up(self):
+        other = OtherProcess(self, OPENS_THE_DATABASE)
+        self.assertEqual(other.hear(), "ready")
+        set_ups = self.set_ups()
+        self.assertEqual(self.open_at_once(THREADS, go=lambda: other.say("go")), [store.SCHEMA_VERSION] * THREADS)
+        self.assertEqual(other.hear(), str(store.SCHEMA_VERSION))
+        self.assertLessEqual(set_ups.count(SET_UP), 1, "the threads take turns: one set-up at most in this process")
+
+    def test_a_set_up_that_meets_another_process_writing_waits_for_it_then_sets_the_database_up(self):
+        other = self.holding_the_write_lock()
+        set_ups = self.set_ups(when_locked=lambda: other.ask("let go"))
+        self.assertEqual(user_version(self.opened()), store.SCHEMA_VERSION)
+        self.assertEqual(set_ups, [LOCKED, SET_UP])
+
+    def test_a_database_another_process_set_up_meanwhile_is_not_set_up_again(self):
+        other = self.holding_the_write_lock()
+        set_ups = self.set_ups(when_locked=lambda: other.ask("set up"))
+        self.assertEqual(user_version(self.opened()), store.SCHEMA_VERSION)
+        self.assertEqual(set_ups, [LOCKED], "the version is looked at again before trying again")
+
+    def test_a_write_lock_held_past_db_timeout_s_ends_in_database_is_locked(self):
+        self.holding_the_write_lock()  # never let go of
+        config.save_user(db_timeout_s=SHORT_TIMEOUT_S)
+        with self.assertRaisesRegex(sqlite3.OperationalError, LOCKED):
+            store.db()
 
 
 if __name__ == "__main__":

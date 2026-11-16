@@ -26,11 +26,12 @@
   --border: #e6d8c4;
   --input: #e6d8c4;
   --ring: #2a78d6;
-  --chart-1: #2a78d6;
-  --chart-2: #eb6834;
-  --chart-3: #8a8780;
-  --chart-4: #1f8a4c;
-  --chart-5: #a8660b;
+  /* chart colours are the verdict and status colours themselves, defined once below (their dark values follow) */
+  --chart-1: var(--human);
+  --chart-2: var(--agent);
+  --chart-3: var(--unsure);
+  --chart-4: var(--ok);
+  --chart-5: var(--warn);
   --radius: 0.875rem;
   /* cake extras: cartoon frame (used by every framed component, never one-off) */
   --line: #2b2118;
@@ -38,7 +39,7 @@
   --faint-foreground: #75685b;
   --highlight: #ffd45c;
   --highlight-foreground: #2b2118;
-  /* cake extras: the four verdicts + bot */
+  /* cake extras: the verdict colours: human, agent, and the grey of bot and unknown */
   --human: #2a78d6;
   --human-soft: #dcebfc;
   --human-foreground: #1c5cab;
@@ -94,11 +95,6 @@
   --border: #3a3129;
   --input: #3a3129;
   --ring: #6ea8f0;
-  --chart-1: #3987e5;
-  --chart-2: #e0682f;
-  --chart-3: #8f8a82;
-  --chart-4: #4cc27f;
-  --chart-5: #e3a63c;
   --line: #5a4d40;
   --shadow-color: #0b0806;
   --faint-foreground: #a99a88;

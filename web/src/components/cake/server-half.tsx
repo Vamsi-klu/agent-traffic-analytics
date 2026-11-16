@@ -20,9 +20,10 @@ function signatureText(s: ServerPage["signature"]) {
 
 const sameText = (same: boolean | null) => (same === null ? NONE : same ? "Same" : "Different")
 
-function networkText(n: Network) {
-  return [["country", n.country], ["published range", n.range], ["TLS JA4", n.ja4], ["", n.protocol]]
-    .filter(([, value]) => value).map(([name, value]) => (name ? `${name} ${value}` : value)).join(" · ")
+/** "Country: US", "Published IP range: 203.0.113.0/24", "TLS JA4: t13d…", "Protocol: HTTP/2": each part only when known. */
+function networkParts(n: Network) {
+  return [["Country", n.country], ["Published IP range", n.range], ["TLS JA4", n.ja4], ["Protocol", n.protocol]]
+    .filter(([, value]) => value).map(([name, value]) => `${name}: ${value}`)
 }
 
 export function ServerHalfTable({ server }: { server: ServerHalf }) {
@@ -34,14 +35,14 @@ export function ServerHalfTable({ server }: { server: ServerHalf }) {
   return (
     <div className="flex flex-col gap-2">
       {server.network && (
-        <p className="flex items-center gap-2 text-sm text-muted-foreground"><NetworkIcon className="size-4 shrink-0" aria-hidden />Network: {networkText(server.network)}</p>
+        <p className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground"><NetworkIcon className="size-4 shrink-0" aria-hidden />{networkParts(server.network).map((part) => <span key={part}>{part}</span>)}</p>
       )}
       <Card className="py-0">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Time</TableHead><TableHead>Page</TableHead><TableHead className="max-md:hidden">Sec-Fetch site · mode · dest · user</TableHead>
-              <TableHead className="max-md:hidden">Signature</TableHead><TableHead>cake.js network match</TableHead>
+              <TableHead>Time</TableHead><TableHead>Page</TableHead><TableHead className="max-md:hidden">Sec-Fetch: site/mode/dest/user</TableHead>
+              <TableHead className="max-md:hidden">Signature</TableHead><TableHead>Same network as cake.js</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>{server.pages.map((p, i) => (

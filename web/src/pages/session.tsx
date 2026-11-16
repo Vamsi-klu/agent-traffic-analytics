@@ -27,7 +27,7 @@ export function SessionPage() {
   const detail = useApi((signal) => api.session(id, signal), [id])
   return (
     <div className="flex flex-col gap-5">
-      <div><Button variant="link" size="sm" asChild><Link to="/sessions"><ArrowLeft aria-hidden />Sessions</Link></Button></div>
+      <div><Button variant="link" size="sm" asChild><Link to="/sessions"><ArrowLeft aria-hidden />{WORDS.sessionsPage}</Link></Button></div>
       <Loaded state={detail} what="this session">{(d) => <SessionBody key={d.session.id} d={d} />}</Loaded>
     </div>
   )
@@ -56,7 +56,7 @@ function SessionBody({ d }: { d: SessionDetail }) {
           {s.agent && <AgentTag name={s.agent} certainty={s.certainty} />}{s.verdict === "agent" && !s.agent && <UnnamedTag />}
         </div>
         <h1 className="text-3xl font-semibold">{d.title}</h1>
-        <p className="text-sm text-muted-foreground">{s.when} · {duration(d.timeline.duration_ms)} · {d.pages.length} page{d.pages.length === 1 ? "" : "s"} · session <span className="font-mono">{s.id}</span></p>
+        <p className="text-sm text-muted-foreground">{s.when} · {duration(d.timeline.duration_ms)} · {d.pages.length} page{d.pages.length === 1 ? "" : "s"} · Session ID <span className="font-mono">{s.id}</span></p>
       </div>
       <Columns ratio="3-2">
         <div className="flex flex-col gap-5">
@@ -67,22 +67,22 @@ function SessionBody({ d }: { d: SessionDetail }) {
           {replay.missing === "dropped" && <Alert variant="warn"><AlertDescription>{missingText("dropped")}</AlertDescription></Alert>}
           {replay.noPage && <Alert variant="info" data-replay-note="no-page"><AlertDescription>{WORDS.replayNoPage}</AlertDescription></Alert>}
           <Card>
-            <CardHeader><CardTitle className="flex items-center gap-2"><Timer className="size-5" aria-hidden />Who acted, when</CardTitle><CardAction><Legend /></CardAction></CardHeader>
+            <CardHeader><CardTitle className="flex items-center gap-2"><Timer className="size-5" aria-hidden />Activity timeline</CardTitle><CardAction><Legend /></CardAction></CardHeader>
             <CardContent className="flex flex-col gap-4">
               <SessionTimeline {...timelineView(d.timeline, { playheadMs: live ? replay.timeMs : undefined })}
                 seek={live && replay.status === "ready" ? { durationMs: d.timeline.duration_ms, valueMs: replay.timeMs, valueText: positionText(d, replay.timeMs), onSeek: replay.seek } : undefined} />
               {acted ? <>
                 <MiniTimeline human={s.share.human} agent={s.share.agent} unsure={s.share.unsure} segs={segsInTimeOrder(d.timeline.segments, s.share)} size="lg" />
-                <p className="text-sm text-muted-foreground">{`${VERDICTS.human.label} ${s.share.human}% · ${VERDICTS.agent.label} ${s.share.agent}% · ${VERDICTS.unknown.label} ${s.share.unsure}% of actions`}</p>
+                <p className="text-sm text-muted-foreground">{`${WORDS.shareOfActions} ${VERDICTS.human.label} ${s.share.human}%, ${VERDICTS.agent.label} ${s.share.agent}%, ${VERDICTS.unknown.label} ${s.share.unsure}%`}</p>
               </> : <p className="text-sm text-muted-foreground">{WORDS.noActions}</p>}
             </CardContent>
           </Card>
           <SessionPages pages={d.pages} onJump={replay.status === "ready" ? replay.jumpTo : undefined} />
         </div>
         <Card>
-          <CardHeader><CardTitle className="flex items-center gap-2"><Search className="size-5" aria-hidden />Why this verdict</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="flex items-center gap-2"><Search className="size-5" aria-hidden />Why this classification</CardTitle></CardHeader>
           <CardContent className="flex flex-col gap-3">
-            <Alert variant="info"><Sparkles aria-hidden /><AlertDescription className="text-foreground"><span><b>{`${VERDICTS[s.verdict].label}.`}</b>{` ${d.summary}`}</span></AlertDescription></Alert>
+            <Alert variant="info"><Sparkles aria-hidden /><AlertDescription className="text-foreground"><span>{d.summary}</span></AlertDescription></Alert>
             {d.layers.map((layer) => <ReasonLayer key={layer.layer} layer={layer} />)}
           </CardContent>
         </Card>
@@ -101,7 +101,7 @@ function Actions({ d, replay }: { d: SessionDetail; replay: ReplayState }) {
   const canSeek = replay.status === "ready"
   return (
     <div>
-      <SectionTitle aside={<span className="text-xs text-faint-foreground">Inputs are masked.</span>}>Every action</SectionTitle>
+      <SectionTitle aside={<span className="text-xs text-faint-foreground">Text that visitors enter is masked.</span>}>All actions</SectionTitle>
       <Card className="py-0">
         <Table>
           <TableHeader><TableRow><TableHead>Time</TableHead><TableHead>Actor</TableHead><TableHead>Action</TableHead><TableHead className="max-md:hidden">Page</TableHead></TableRow></TableHeader>

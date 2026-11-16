@@ -39,7 +39,7 @@ function agentcake_register_settings(): void
     add_settings_field('agentcake_cake_url', __('AgentCake address', 'agentcake'), 'agentcake_field_cake_url', $page, 'agentcake_script', ['label_for' => 'agentcake_cake_url']);
     add_settings_field('agentcake_site_key', __('Site key', 'agentcake'), 'agentcake_field_site_key', $page, 'agentcake_script', ['label_for' => 'agentcake_site_key']);
     add_settings_field('agentcake_insert_script', __('cake.js line', 'agentcake'), 'agentcake_field_insert_script', $page, 'agentcake_script');
-    add_settings_section('agentcake_server_half', __('Server half', 'agentcake'), 'agentcake_section_server_half', $page);
+    add_settings_section('agentcake_server_half', __('Server middleware', 'agentcake'), 'agentcake_section_server_half', $page);
     add_settings_field('agentcake_secret', __('Secret', 'agentcake'), 'agentcake_field_secret', $page, 'agentcake_server_half');
     add_settings_field('agentcake_client_ip', __('Visitor address', 'agentcake'), 'agentcake_field_client_ip', $page, 'agentcake_server_half', ['label_for' => 'agentcake_client_ip']);
     add_settings_field('agentcake_no_store', __('Page caching', 'agentcake'), 'agentcake_field_no_store', $page, 'agentcake_server_half');
@@ -145,5 +145,5 @@ function agentcake_field_client_ip(): void
 function agentcake_field_no_store(): void
 {
     printf('<label><input type="checkbox" name="%s" value="1"%s> %s</label>', agentcake_input_name('no_store'), checked(agentcake_settings()['no_store'], true, false), esc_html__('Keep pages out of caches (Cache-Control: private, no-store, and DONOTCACHEPAGE for page cache plugins)', 'agentcake'));
-    echo '<p class="description">' . esc_html__('A page served from a cache carries no token, or the same token for every visitor, which AgentCake accepts once. Turn this on if every page view should have a server half; clear the page cache afterwards. See the plugin\'s README.', 'agentcake') . '</p>';
+    echo '<p class="description">' . esc_html__('A page served from a cache carries no token, or the same token for every visitor, which AgentCake accepts once. Turn this on if every page view should have server middleware data; clear the page cache afterwards. See the plugin\'s README.', 'agentcake') . '</p>';
 }

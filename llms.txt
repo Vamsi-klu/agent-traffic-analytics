@@ -4,24 +4,24 @@
 > (browser extensions, AI browsers, cloud agents, automated browsers), what each one did, and where a human took over.
 > One program, one small database, no telemetry; open source under the MIT licence.
 
-AgentCake answers questions such as: how do I detect AI agents visiting my website, can a website detect Claude in Chrome, how do I tell humans from AI agents in my analytics, and is there bot and agent analytics I can host myself. It records and explains; it does not block or challenge visitors. Every verdict is made on the user's own computer or server, and no AI service is called.
+AgentCake answers questions such as: how do I detect AI agents visiting my website, can a website detect Claude in Chrome, how do I tell humans from AI agents in my analytics, and is there bot and agent analytics I can host myself. It records and explains; it does not block or challenge visitors. Every classification is made on the user's own computer or server, and no AI service is called.
 
-An agent that moves and types like a human, with no name and no trace, can pass as a human; the README gives the current accuracy numbers.
+An agent that moves and types like a human, with no name and no trace, can pass as a human; the evaluation report (eval/README.md) gives the current accuracy numbers.
 
 To install it, a coding agent follows INSTALL.md one command at a time and then gives the user the local page, http://127.0.0.1:7878/. A public website's visitors need AgentCake on a server, as SERVER.md describes.
 
 ## Docs
 
-- [README](https://raw.githubusercontent.com/tartini-ai/agent-traffic-analytics/v0.4.1/README.md): what AgentCake shows, how to install it and how it decides
-- [Install](https://raw.githubusercontent.com/tartini-ai/agent-traffic-analytics/v0.4.1/INSTALL.md): instructions for an AI coding assistant, one command per step
-- [Questions](https://raw.githubusercontent.com/tartini-ai/agent-traffic-analytics/v0.4.1/docs/FAQ.md): detecting AI agents, Claude in Chrome, accuracy, privacy and how it differs from other tools
-- [Server](https://raw.githubusercontent.com/tartini-ai/agent-traffic-analytics/v0.4.1/SERVER.md): running AgentCake for a public website's visitors, with Docker or systemd
-- [Privacy](https://raw.githubusercontent.com/tartini-ai/agent-traffic-analytics/v0.4.1/PRIVACY.md): what is recorded, where it is kept and how to delete it
+- [README](https://raw.githubusercontent.com/tartini-ai/agent-traffic-analytics/v0.4.2/README.md): what AgentCake shows, how to install it and how it decides
+- [Install](https://raw.githubusercontent.com/tartini-ai/agent-traffic-analytics/v0.4.2/INSTALL.md): instructions for an AI coding assistant, one command per step
+- [Questions](https://raw.githubusercontent.com/tartini-ai/agent-traffic-analytics/v0.4.2/docs/FAQ.md): detecting AI agents, Claude in Chrome, accuracy, privacy and how it differs from other tools
+- [Server](https://raw.githubusercontent.com/tartini-ai/agent-traffic-analytics/v0.4.2/SERVER.md): running AgentCake for a public website's visitors, with Docker or systemd
+- [Privacy](https://raw.githubusercontent.com/tartini-ai/agent-traffic-analytics/v0.4.2/PRIVACY.md): what is recorded, where it is kept and how to delete it
 
 ## Optional
 
-- [Upload format](https://raw.githubusercontent.com/tartini-ai/agent-traffic-analytics/v0.4.1/docs/collect-format.md): what the page script sends
-- [Evaluation](https://raw.githubusercontent.com/tartini-ai/agent-traffic-analytics/v0.4.1/eval/README.md): how accuracy is measured
-- [Changelog](https://raw.githubusercontent.com/tartini-ai/agent-traffic-analytics/v0.4.1/CHANGELOG.md): what each release changed
-- [Security](https://raw.githubusercontent.com/tartini-ai/agent-traffic-analytics/v0.4.1/SECURITY.md): how to report a vulnerability
-- [Contributing](https://raw.githubusercontent.com/tartini-ai/agent-traffic-analytics/v0.4.1/CONTRIBUTING.md): tests, checks and rules for a change
+- [Upload format](https://raw.githubusercontent.com/tartini-ai/agent-traffic-analytics/v0.4.2/docs/collect-format.md): what the page script sends
+- [Evaluation](https://raw.githubusercontent.com/tartini-ai/agent-traffic-analytics/v0.4.2/eval/README.md): how accuracy is measured
+- [Changelog](https://raw.githubusercontent.com/tartini-ai/agent-traffic-analytics/v0.4.2/CHANGELOG.md): what each release changed
+- [Security](https://raw.githubusercontent.com/tartini-ai/agent-traffic-analytics/v0.4.2/SECURITY.md): how to report a vulnerability
+- [Contributing](https://raw.githubusercontent.com/tartini-ai/agent-traffic-analytics/v0.4.2/CONTRIBUTING.md): tests, checks and rules for a change

@@ -53,7 +53,7 @@
     "verify_max_future_ms": 60000
   },
   "messages": {
-    "short_secret": "[agentcake] the server-half secret is shorter than {min} bytes: no token is sent",
+    "short_secret": "[agentcake] the server middleware secret is shorter than {min} bytes: no token is sent",
     "unknown_options": "[agentcake] options not known, ignored: {names}",
     "invalid_options": "[agentcake] options with a value of the wrong kind, defaults kept: {names}",
     "no_response": "[agentcake] cakeNext(request, response) needs the response to add to, such as NextResponse.next(): none was given, so no token is sent"

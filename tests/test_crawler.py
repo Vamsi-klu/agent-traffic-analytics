@@ -51,12 +51,12 @@ class Patterns(unittest.TestCase):
         found = crawler.patterns([T0], network(first_address("aws")), visits=three_earlier)
         self.assertEqual((found["fixed_interval"], found["every_of"], found["every_s"]), (True, "visits", 3600))
         self.assertTrue(crawler.looks_like_crawler(found))
-        self.assertIn("comes back every 60 min", crawler.reason(found)["detail"])
+        self.assertIn("returns every 60 minutes", crawler.reason(found)["detail"])
 
     def test_page_loads_at_fixed_intervals_are_said_as_such(self):
         found = crawler.patterns(every(12, 2), network(first_address("aws")))
         self.assertEqual(found["every_of"], "pages")
-        self.assertIn("loads a page every 2 s", crawler.reason(found)["detail"])
+        self.assertIn("loads a page every 2 seconds", crawler.reason(found)["detail"])
 
     def test_reason_names_the_patterns_found(self):
         found = crawler.patterns(every(12, 2), network(first_address("aws")))

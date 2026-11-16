@@ -17,9 +17,13 @@
 //                                say "user" for a visitor ("user agent" is fine).
 //  Crumb (DESIGN.md §7): its outline and limbs (--cake-line) reach 3:1 on the page and the face (--cake-outline) 3:1 on
 //                                the white body, light and dark; the white body and frosting stand out (colour or outline).
+//  hover text (DESIGN.md §6, §11; scripts/hover-text.mjs): no title= hover box (a heading component's title prop
+//                                excepted) and no SVG <title> in pages and components; TooltipContent and
+//                                ChartTooltipContent take no className outside src/components/ui.
 import { readFileSync, readdirSync, statSync } from "node:fs"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
+import { hoverTextProblems } from "./hover-text.mjs"
 
 const web = path.join(path.dirname(fileURLToPath(import.meta.url)), "..")
 const repo = path.join(web, "..")
@@ -53,6 +57,12 @@ for (const f of walk(path.join(web, "src/pages"))) scan(f, { raw: true, style: "
 for (const f of walk(path.join(web, "src/components/cake"))) scan(f, { raw: true, style: "data" })
 for (const f of walk(path.join(web, "src/components/ui"))) scan(f, { style: "ignore", colorSelectorsOk: true })
 scan(path.join(web, "src/index.css"), { style: "ignore" })
+
+// hover text: one tooltip, never the browser's own title box
+for (const f of ["src/pages", "src/components/cake", "src/components/ui"].flatMap((d) => walk(path.join(web, d))).filter((f) => f.endsWith(".tsx"))) {
+  const s = readFileSync(f, "utf8")
+  for (const { index, message } of hoverTextProblems(f, s)) err(f, s, index, message)
+}
 
 // tokens.css <-> DESIGN.md
 const tokensCss = readFileSync(path.join(web, "src/styles/tokens.css"), "utf8").replace(/\/\*[\s\S]*?\*\//g, "")
@@ -145,6 +155,6 @@ for (const [f, names] of [[path.join(web, "src/index.css"), known]]) {
 }
 
 if (errors.length) { console.log(`check:ui FAIL (${errors.length})`); for (const e of errors) console.log("  " + e); process.exit(1) }
-console.log(`check:ui OK · ${Object.keys(light).length} tokens (${Object.keys(dark).length} with dark values) match DESIGN.md · pages use components and tokens only`)
+console.log(`check:ui OK · ${Object.keys(light).length} tokens (${Object.keys(dark).length} with dark values) match DESIGN.md · pages use components and tokens only · hover text only in the theme tooltip`)
 console.log(`  ${avatarTokens.length} avatar colours vs the verdict colours: ${avatarReport.join(" · ")}`)
 console.log(`  Crumb (outline and limbs on the page, face on the white body: each >= 3:1): ${crumbReport.join(" · ")}`)

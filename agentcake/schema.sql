@@ -105,6 +105,29 @@ CREATE TABLE IF NOT EXISTS batches(session_id TEXT NOT NULL, pv TEXT NOT NULL, s
 CREATE TABLE IF NOT EXISTS refusals(reason TEXT PRIMARY KEY, posts INT NOT NULL, records INT NOT NULL,
     last_ms INT NOT NULL) WITHOUT ROWID;
 
+-- What the web analytics tables group a session by (web_props.py), one row per session: the tab's id cake.js sent and
+-- the activity clock the collector cuts sessions by (session_split.py: a continuation of a tab's session gets an id of
+-- its own, tab_id keeps the id cake.js sent); the visitor id; the entry source (the referring domain, '' for none, the
+-- campaign parameters, the ad-click parameters that were there, space-separated, never their values; entry_t: when the
+-- record they came from was made, NULL until one was read) and its channel; browser, system and device type; country,
+-- region (a CLDR subdivision id) and city from the load balancer; the browser's language and time zone offset; the
+-- first and last time of its records and how long its page was hidden (hidden_since: since when it is hidden now; vis_t:
+-- the time of the latest change of visibility followed; vis_pv: the page view that is the tab's after it), which its
+-- active time is made of (web_time.py); person: the
+-- identify hash the session's uploads carried (the
+-- SHA-256 of the site key and the id a site gave window.cake.identify(), never the id), which visitors are counted by.
+CREATE TABLE IF NOT EXISTS session_web(session_id TEXT PRIMARY KEY, tab_id TEXT NOT NULL, active_from REAL,
+    active_last REAL, visitor TEXT, entry_t REAL, referring_domain TEXT, utm_source TEXT, utm_medium TEXT,
+    utm_campaign TEXT, utm_content TEXT, utm_term TEXT, gad_source TEXT, click_ids TEXT, channel TEXT, browser TEXT,
+    os TEXT, device_type TEXT, country TEXT, subdivision TEXT, city TEXT, language TEXT, tz_offset INT,
+    first_t REAL, last_t REAL, hidden_ms REAL NOT NULL DEFAULT 0, hidden_since REAL,
+    person TEXT, vis_t REAL, vis_pv TEXT) WITHOUT ROWID;
+CREATE INDEX IF NOT EXISTS session_web_tab ON session_web(tab_id, active_from);
+-- A session's page views by path, as PostHog counts $pageview (web_time.py): each page load and each new path
+-- within it; a session's page views are the sum of its rows.
+CREATE TABLE IF NOT EXISTS web_paths(session_id TEXT NOT NULL, path TEXT NOT NULL, views INT NOT NULL,
+    PRIMARY KEY(session_id, path)) WITHOUT ROWID;
+
 -- The database's own state as JSON values: schema version, what `agentcake migrate` did. A person's settings stay
 -- in config.json.
 CREATE TABLE IF NOT EXISTS settings(key TEXT PRIMARY KEY, value TEXT NOT NULL, updated_ms INT NOT NULL) WITHOUT ROWID;

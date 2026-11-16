@@ -24,7 +24,9 @@ def help_text():
 
     return text("help", version=__version__, port=DEFAULTS["port"], budget_mb=DEFAULTS["budget_mb"],
                 disk_min_free_mb=DEFAULTS["disk_min_free_mb"],
-                warn_pct=round(DEFAULTS["budget_warn_ratio"] * PERCENT), lb_headers=", ".join(lb_headers().values()))
+                warn_pct=round(DEFAULTS["budget_warn_ratio"] * PERCENT),
+                free_left_pct=round((1 - DEFAULTS["auto_free_target_ratio"]) * PERCENT),
+                lb_headers=", ".join(lb_headers().values()))
 
 
 def secret_command(args):

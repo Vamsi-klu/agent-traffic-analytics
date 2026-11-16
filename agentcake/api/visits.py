@@ -2,23 +2,21 @@
 
 Lists and counts leave out self-check visits (is_test), uploads from another site (origin "other") and prefetches
 the browser never showed (the verdict class "excluded"). Sessions that an earlier AgentCake's demo shop recorded
-(origin "demo", until 0.4.0 removed the shop) count as any other: they stay in the database and open as they did. A
-session is sorted as judging.en.json names it:
+(origin "demo", until 0.4.0 removed the shop) are listed and counted as any other and open as they did, marked as the
+demo shop's (demo_shop), but they aren't the website's: from_site() leaves them out, so they never say the website is
+connected (onboarding.py). A session is sorted as judging.en.json names it:
   1 its verdict, the four layers' class as the contract names it (data/api.json "verdicts"): human, agent (cake's agent
     and mixed) or bot; a session cake 0.3.4 judged and nobody opened since keeps 0.3.4's verdict column. A session cake
     can't tell (Not sure, Too little data, 0.3.4's unsure, not judged yet) is human with evidence "thin" (the
     reasons say why). An Agent session is Agent only or Human + agent (agent_turns: a human and an agent took turns,
     cake's mixed);
-  2 its agent: the product's or the automation tool's name and how sure it is (certainty: verified, likely or
-    possible), or none when no name fits (the interface says Unnamed; what kind of agent it is and where it runs are in
+  2 its agent: the product's or the automation tool's name and how sure it is (certainty: verified or likely), or
+    none when no name fits (the interface says Unnamed; what kind of agent it is and where it runs are in
     its reasons: the Agent row stays inside the verdict). A bot's agent is the program's name.
 
 A session's length on the lists is its recording's (recording_length): from its first recorded event, where its
 replay, its timeline and every moment of its page start, to its last action, replay event or segment, whichever is
-later: the player's length, as PostHog's replay list shows each recording's. The dashboard's average session length
- is another measure: from a session's first to its last recorded action (activity.py, kept with each verdict;
-LENGTH), so a tab left open afterwards adds nothing; one judged before that runs from its first to its last recorded
-event. Its share is each actor's share of the actions its page lists under Every action (actions.session_share, the
+later: the player's length, as PostHog's replay list shows each recording's. Its share is each actor's share of the actions its page lists under Every action (actions.session_share, the
 function the session page uses), whole percents that add up to 100, all 0 without an action; its segments, when the
 behaviour model split it into runs, place each run on its recording's clock; its pages are the pages its page lists
 (page_count: each page view, and each new address a single-page app shows in one; a cake 0.3.4 visit has one).
@@ -29,7 +27,7 @@ cake_certainty(verdict, detail).
 
     connect()                          a database connection with those functions
     Scope()                            the WHERE of a query over `sessions s`, built with between(), group(), agent(),
-                                       before(); every scope starts from the sessions that count
+                                       from_site(), before(); every scope starts from the sessions that count
     total(con, scope)                  how many sessions a scope holds
     page(con, scope, limit, now)       ([SessionSummary], [(start_ms, id)]): newest first
     counts(con, scope)                 SessionCounts
@@ -65,21 +63,21 @@ THIN = "cake_evidence(s.verdict_class, s.verdict)"
 AGENT = f"cake_agent({VERDICT}, s.verdict_detail)"
 CERTAINTY = f"cake_certainty({VERDICT}, s.verdict_detail)"
 SHOWN = f"s.is_test = 0 AND COALESCE(s.origin, 'site') != 'other' AND {VERDICT} IS NOT NULL"
+DEMO_SHOP = "demo"  # the origin of the sessions an earlier AgentCake's demo shop recorded (until 0.4.0)
+FROM_SITE = f"COALESCE(s.origin, 'site') != '{DEMO_SHOP}'"  # of the shown sessions, the website's own
 IN_AGENT = f"{VERDICT} = '{AGENT_VERDICT}'"
 _RECORDED = ("(SELECT {agg}(t) FROM (SELECT {agg}({chunk}) AS t FROM chunks WHERE session_id = s.id "
              "UNION ALL SELECT {agg}({chunk}) FROM open_chunks WHERE session_id = s.id "
              "UNION ALL SELECT {agg}(ts) FROM events WHERE session_id = s.id))")
 FIRST_EVENT = _RECORDED.format(agg="MIN", chunk="t_start")
-LAST_EVENT = _RECORDED.format(agg="MAX", chunk="t_end")
-LENGTH = f"MAX(0, COALESCE(s.last_action_ms - s.first_action_ms, {LAST_EVENT} - {FIRST_EVENT}, s.end_ms - s.start_ms, 0))"
 EPOCH = f"COALESCE({FIRST_EVENT}, s.start_ms)"  # where a session's recording, and its clock, start
 REPLAY_END = (f"(SELECT MAX(t) FROM (SELECT MAX(t_end) AS t FROM chunks WHERE session_id = s.id AND stream = '{STREAM}' "
               f"UNION ALL SELECT MAX(t_end) FROM open_chunks WHERE session_id = s.id AND stream = '{STREAM}'))")
 SEGMENTS_END = "(SELECT MAX(t_end) FROM segments WHERE session_id = s.id)"
 RECORDING = f"{EPOCH}, s.last_action_ms, {REPLAY_END}, {SEGMENTS_END}"  # recording_length()'s epoch and ends
-BEHAVIOR_STATE = "json_extract(s.layers, '$.behavior.state')"
-COLUMNS = f"s.id, s.start_ms, {VERDICT}, {TURN}, {THIN}, {AGENT}, {CERTAINTY}, {RECORDING}"
-Row = namedtuple("Row", "id start_ms verdict turns evidence agent certainty epoch last_action replay_end segments_end")
+COLUMNS = f"s.id, s.start_ms, s.origin, {VERDICT}, {TURN}, {THIN}, {AGENT}, {CERTAINTY}, {RECORDING}"
+Row = namedtuple("Row", "id start_ms origin verdict turns evidence agent certainty epoch last_action replay_end "
+                 "segments_end")
 
 
 def connect():
@@ -123,7 +121,7 @@ def agent_of(verdict, detail):
 
 
 def certainty_of(verdict, detail):
-    """How sure the name is (level 3): verified, likely or possible; None without a name."""
+    """How sure the name is (level 3): verified or likely; None without a name."""
     named = _named(verdict, detail)
     return numbers()["certainty"].get(named.get("name_certainty")) if named else None
 
@@ -156,6 +154,10 @@ class Scope:
 
     def agent(self, name):
         return self.where(f"{AGENT} = ?", name) if name else self
+
+    def from_site(self):
+        """Only the website's own sessions: not those an earlier AgentCake's demo shop recorded."""
+        return self.where(FROM_SITE)
 
     def before(self, key):
         """After the row (start_ms, id) in newest-first order: the next page."""
@@ -256,6 +258,8 @@ def _summaries(con, rows, now):
                    "share": actions.session_share(con, row.id, row.verdict, row.turns, runs.get(row.id, []))}
         if runs.get(row.id):
             summary["segments"] = relative(runs[row.id], row.epoch, length)
+        if row.origin == DEMO_SHOP:
+            summary["demo_shop"] = True
         out.append(summary)
     return out
 

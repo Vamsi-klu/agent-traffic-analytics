@@ -1,6 +1,6 @@
 // The registration card end to end, driven by tests/browser/test_register_walk.py: a real AgentCake with
 // the built local pages, opened in Chromium. Usage: node register_walk.mjs --base <AgentCake's local page> --out <dir>
-//   --scenario sent      fill the card, open "See what's sent", note its text, press "Register & Continue", wait for
+//   --scenario sent      fill the card, open "View registration data", note its text, press "Register and continue", wait for
 //                        the pages (the home page's onboarding)
 //   --scenario not-sent  fill the card, press, wait for the card to say why it wasn't sent, press Continue, wait for
 //                        the pages, open the page again and wait for the card
@@ -45,20 +45,20 @@ try {
   await page.getByLabel('Company (optional)').fill(COMPANY)
   if (args.scenario === 'sent') {
     await page.getByRole('checkbox').check()
-    await page.getByRole('button', { name: "See what's sent" }).click()
-    report.shown = await page.getByLabel("What's sent").locator('pre').innerText()
+    await page.getByRole('button', { name: "View registration data" }).click()
+    report.shown = await page.getByLabel("Registration data").locator('pre').innerText()
     await step('what-is-sent')
-    await page.getByRole('button', { name: 'Register & Continue' }).click()
-    await page.getByRole('heading', { name: 'Copy to your coding agent' }).waitFor({ timeout: WAIT_MS })
+    await page.getByRole('button', { name: 'Register and continue' }).click()
+    await page.getByRole('heading', { name: 'Install with your AI agent' }).waitFor({ timeout: WAIT_MS })
     await step('pages')
   } else {
-    await page.getByRole('button', { name: 'Register & Continue' }).click()
+    await page.getByRole('button', { name: 'Register and continue' }).click()
     const alert = page.getByRole('form').getByRole('alert')
     await alert.waitFor({ timeout: WAIT_MS })
     report.alert = await alert.innerText()
     await step('not-sent')
     await page.getByRole('button', { name: 'Continue' }).click()
-    await page.getByRole('heading', { name: 'Copy to your coding agent' }).waitFor({ timeout: WAIT_MS })
+    await page.getByRole('heading', { name: 'Install with your AI agent' }).waitFor({ timeout: WAIT_MS })
     await step('pages')
     await page.reload()
     await welcome().waitFor({ timeout: WAIT_MS })

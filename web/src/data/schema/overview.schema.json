@@ -5,24 +5,10 @@
   "description": "GET /api/overview?range= : the dashboard.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["counts", "agent_last_week", "share_by_day", "agents_seen", "top_pages", "latest", "latest_agent", "average_length", "storage", "coverage"],
+  "required": ["counts", "agent_last_week", "agents_seen", "page_views", "pages_per_session", "latest_agent", "storage", "coverage"],
   "properties": {
     "counts": { "$ref": "common.schema.json#/$defs/SessionCounts" },
-    "agent_last_week": { "$ref": "common.schema.json#/$defs/Count" },
-    "share_by_day": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": ["day", "human", "agent", "unsure"],
-        "properties": {
-          "day": { "$ref": "common.schema.json#/$defs/Text" },
-          "human": { "$ref": "common.schema.json#/$defs/Percent" },
-          "agent": { "$ref": "common.schema.json#/$defs/Percent" },
-          "unsure": { "$ref": "common.schema.json#/$defs/Percent" }
-        }
-      }
-    },
+    "agent_last_week": { "description": "Agent sessions in the same range a week earlier; null for all time, which has no earlier range.", "type": ["integer", "null"], "minimum": 0 },
     "agents_seen": {
       "type": "array",
       "items": {
@@ -35,93 +21,59 @@
         }
       }
     },
-    "top_pages": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": ["path", "agent", "human"],
-        "properties": {
-          "path": { "$ref": "common.schema.json#/$defs/Text" },
-          "agent": { "$ref": "common.schema.json#/$defs/Count" },
-          "human": { "$ref": "common.schema.json#/$defs/Count" }
-        }
+    "page_views": {
+      "description": "How many times a page opened in the range's sessions: all of them, and by the session's verdict (they add up to all).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["all", "human", "agent", "bot"],
+      "properties": {
+        "all": { "$ref": "common.schema.json#/$defs/Count" },
+        "human": { "$ref": "common.schema.json#/$defs/Count" },
+        "agent": { "$ref": "common.schema.json#/$defs/Count" },
+        "bot": { "$ref": "common.schema.json#/$defs/Count" }
       }
     },
-    "latest": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/SessionSummary" } },
+    "pages_per_session": { "$ref": "#/$defs/PagesPerSession" },
     "latest_agent": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/SessionSummary" } },
-    "average_length": { "$ref": "#/$defs/AverageLength" },
     "storage": { "$ref": "#/$defs/Storage" },
     "coverage": { "$ref": "#/$defs/Coverage" }
   },
   "$defs": {
-    "Length": { "type": ["integer", "null"], "minimum": 0 },
-    "AverageLength": {
-      "description": "The average length of a session, its first to its last recorded action, in ms; null when the range has no such session.",
+    "Pages": { "type": ["number", "null"], "minimum": 0 },
+    "PagesPerSession": {
+      "description": "Page views divided by sessions: of all sessions and of each verdict's; null when the range has no such session.",
       "type": "object",
       "additionalProperties": false,
-      "required": ["ms", "about"],
+      "required": ["all", "human", "agent", "bot"],
       "properties": {
-        "ms": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": ["human", "agent_only", "human_agent"],
-          "properties": {
-            "human": { "$ref": "#/$defs/Length" },
-            "agent_only": { "$ref": "#/$defs/Length" },
-            "human_agent": { "$ref": "#/$defs/Length" }
-          }
-        },
-        "about": { "$ref": "common.schema.json#/$defs/Text" }
+        "all": { "$ref": "#/$defs/Pages" },
+        "human": { "$ref": "#/$defs/Pages" },
+        "agent": { "$ref": "#/$defs/Pages" },
+        "bot": { "$ref": "#/$defs/Pages" }
       }
     },
     "Storage": {
       "description": "The disk budget and what cake's data uses of it, whatever the filters: the settings page's numbers (storage, budget_mb, auto_free), with the disk under it and why new replays are stopped, if they are.",
       "type": "object",
       "additionalProperties": false,
-      "required": ["used_bytes", "budget_mb", "warn_at_pct", "days_left", "auto_free", "disk", "replays_stopped"],
+      "required": ["used_bytes", "budget_mb", "warn_at_pct", "days_left", "auto_free", "free_to_pct", "disk", "replays_stopped"],
       "properties": {
         "used_bytes": { "$ref": "common.schema.json#/$defs/Count" },
         "budget_mb": { "type": "integer", "minimum": 1 },
         "warn_at_pct": { "$ref": "common.schema.json#/$defs/Percent" },
         "days_left": { "type": ["number", "null"], "minimum": 0 },
         "auto_free": { "type": "boolean" },
+        "free_to_pct": { "$ref": "common.schema.json#/$defs/Percent" },
         "disk": { "$ref": "common.schema.json#/$defs/Disk" },
         "replays_stopped": { "$ref": "common.schema.json#/$defs/ReplaysStopped" }
       }
     },
     "Coverage": {
+      "description": "What counts as a bot: the Bot number's \"?\".",
       "type": "object",
       "additionalProperties": false,
-      "required": ["title", "lead", "columns", "rows", "bot"],
+      "required": ["bot"],
       "properties": {
-        "title": { "$ref": "common.schema.json#/$defs/Text" },
-        "lead": { "$ref": "common.schema.json#/$defs/Text" },
-        "columns": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": ["what", "shown_as", "how"],
-          "properties": {
-            "what": { "$ref": "common.schema.json#/$defs/Text" },
-            "shown_as": { "$ref": "common.schema.json#/$defs/Text" },
-            "how": { "$ref": "common.schema.json#/$defs/Text" }
-          }
-        },
-        "rows": {
-          "type": "array",
-          "minItems": 1,
-          "items": {
-            "type": "object",
-            "additionalProperties": false,
-            "required": ["what", "verdict", "shown_as", "how"],
-            "properties": {
-              "what": { "$ref": "common.schema.json#/$defs/Text" },
-              "verdict": { "$ref": "common.schema.json#/$defs/Verdict" },
-              "shown_as": { "$ref": "common.schema.json#/$defs/Text" },
-              "how": { "$ref": "common.schema.json#/$defs/Text" }
-            }
-          }
-        },
         "bot": {
           "type": "object",
           "additionalProperties": false,

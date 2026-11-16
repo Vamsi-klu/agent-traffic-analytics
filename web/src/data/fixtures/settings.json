@@ -21,6 +21,5 @@
                "free_to_pct": 90 },
   "hook_dom": false,
   "hide_selectors": ".account-email, #address",
-  "layers": { "name": true, "verify": true, "environment": true, "behavior": true },
   "database": { "path": "/var/lib/cake/cake.db", "sessions": 150 }
 }

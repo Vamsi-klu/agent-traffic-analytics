@@ -3,13 +3,13 @@
 // frontend/src/Api.js (MIT): one small fetch wrapper that turns the server's error body into an error. No code copied.
 import { useEffect, useState, type DependencyList } from "react"
 import { PRODUCT_NAME } from "@/lib/product"
-import type { Overview, OverviewQuery, Registration, ReplayChunk, SessionDetail, SessionsPage, SessionsQuery, Settings, SettingsUpdate, Setup } from "./types"
+import type { Overview, OverviewQuery, Registration, ReplayChunk, SessionDetail, SessionsPage, SessionsQuery, Settings, SettingsUpdate, Setup, WebAnalytics, WebQuery } from "./types"
 
 /** Relative to the page, like the built assets (vite base "./"), so the pages work under any path. */
 const BASE = "api/"
 
 /** What a page says when cake doesn't answer at all. */
-export const UNREACHABLE = `Can't reach ${PRODUCT_NAME}. Check that it's running, then try again.`
+export const UNREACHABLE = `Can't reach ${PRODUCT_NAME}. Make sure it's running, and then try again.`
 
 /** A request that failed. status 0 = cake could not be reached; message = what to show. */
 export class ApiError extends Error {
@@ -21,9 +21,9 @@ export class ApiError extends Error {
   }
 }
 
-/** "?a=1&b=2" from the parameters that are set. */
+/** "?a=1&b=2" from the parameters that are set; one set to "" goes as "key=" (a table row's empty key: no referrer). */
 function query(params: Record<string, string | undefined>) {
-  const q = new URLSearchParams(Object.entries(params).filter((p): p is [string, string] => Boolean(p[1])))
+  const q = new URLSearchParams(Object.entries(params).filter((p): p is [string, string] => p[1] !== undefined))
   const s = q.toString()
   return s ? `?${s}` : ""
 }
@@ -41,11 +41,11 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   try {
     body = JSON.parse(text)
   } catch {
-    throw new ApiError(`${PRODUCT_NAME} sent a response this page can't read. HTTP status: ${response.status}. Try again.`, response.status)
+    throw new ApiError(`${PRODUCT_NAME} returned an unexpected response (HTTP status ${response.status}). Try again.`, response.status)
   }
   if (!response.ok) {
     const said = typeof body === "object" && body !== null && "error" in body && typeof body.error === "string" ? body.error : null
-    throw new ApiError(said ?? `${PRODUCT_NAME} returned HTTP ${response.status}. Try again.`, response.status)
+    throw new ApiError(said ?? `${PRODUCT_NAME} returned HTTP status ${response.status}. Try again.`, response.status)
   }
   return body as T
 }
@@ -53,6 +53,7 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
 /** One function per endpoint; web/README.md and ./types.ts describe them. */
 export const api = {
   overview: (q: OverviewQuery, signal?: AbortSignal) => request<Overview>("overview" + query(q), { signal }),
+  web: (q: WebQuery, signal?: AbortSignal) => request<WebAnalytics>("web" + query(q), { signal }),
   sessions: (q: SessionsQuery, signal?: AbortSignal) => request<SessionsPage>("sessions" + query(q), { signal }),
   session: (id: string, signal?: AbortSignal) => request<SessionDetail>(`session/${encodeURIComponent(id)}`, { signal }),
   replayChunk: (id: string, chunk: number, signal?: AbortSignal) =>
@@ -65,7 +66,7 @@ export const api = {
   deleteEverything: () =>
     request<unknown>("delete", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ all: true }) }),
   registration: (signal?: AbortSignal) => request<Registration>("register", { signal }),
-  /** The press of "Register & Continue": body is the very text "See what is sent" showed (src/lib/registration.ts). */
+  /** The press of "Register and continue": body is the very text "View registration data" showed (src/lib/registration.ts). */
   register: (body: string) =>
     request<Registration>("register", { method: "POST", headers: { "Content-Type": "application/json" }, body }),
 }

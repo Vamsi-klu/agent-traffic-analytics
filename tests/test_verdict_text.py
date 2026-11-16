@@ -15,6 +15,7 @@ sys.path.insert(0, os.path.join(ROOT, "tests"))
 
 from verdict_cases import hit  # noqa: E402
 from agentcake import datafiles  # noqa: E402
+from agentcake.api import settings as settings_api  # noqa: E402
 from agentcake.detect import env_rules, markers, reasons_past, verdict, verdict_text, webbotauth  # noqa: E402
 from tools.reasons_past import FACTS_COMMIT  # noqa: E402
 
@@ -70,7 +71,8 @@ class ReasonsFile(unittest.TestCase):
 
     def test_facts_fill_the_text_and_unknown_facts_say_so(self):
         filled = verdict_text.reason("behavior.too-little-data", "page", n=2, min=3)
-        self.assertEqual((filled["text"], filled["detail"]), ("The behavior model doesn't judge the session because there are too few actions.", "The session has 2 actions; the model needs 3."))
+        self.assertEqual((filled["text"], filled["detail"]), ("The behavior model doesn't classify this session because it has too few actions.",
+                                                              "The session has 2 actions, and the model needs at least 3."))
         self.assertEqual((filled["layer"], filled["source"], filled["tone"]), ("behavior", "page", "none"))
         self.assertIn("unknown", verdict_text.reason("behavior.too-little-data")["detail"])
 
@@ -133,9 +135,9 @@ class KeptFacts(unittest.TestCase):
                                    marker="claude-chrome.working", from_ms=8_000, to_ms=24_700, until_ms=19_800)
         on_replay, from_visit = verdict_text.words(kept, T_EPOCH)[0], verdict_text.words(kept)[0]
         self.assertIn(markers.words("claude-chrome.working", 16_500, 33_200), on_replay)
-        self.assertIn(" 0:28 ", on_replay)
+        self.assertRegex(on_replay, r"\b0:28\b")
         self.assertIn(markers.words("claude-chrome.working", 8_000, 24_700), from_visit)
-        self.assertIn(" 0:19 ", from_visit)
+        self.assertRegex(from_visit, r"\b0:19\b")
 
     def test_an_environment_hit_is_worded_by_its_rule_whatever_it_was_kept_with(self):
         rule = env_rules.load_rules().rule("env.auto.webdriver")
@@ -176,10 +178,11 @@ class JudgingFile(unittest.TestCase):
             with self.subTest(key):
                 self.assertTrue(words["classes"][key]["how"])
         self.assertNotIn("agent_named", words["classes"], "a name is level 3, never a class of its own")
-        self.assertTrue(words["named"]["how"])
         self.assertNotIn("confidence", words, "the session page says how sure a verdict is as its percent only")
-        self.assertEqual(set(words["verification"]), {"verified", "self_reported", "unverifiable", "impersonation"})
         self.assertEqual(set(words["layers"]), LAYERS)
+        # every part is read: the pages' build (web/vite.config.ts), the session summary (classes), the layers' names
+        self.assertEqual(set(words) - {"$comment"}, {"title", "counted", "verdicts", "unsure", "evidence", "turns",
+                                                     "names", "classes", "layers"})
 
     def test_the_categories_name_every_value_the_api_gives(self):
         """The verdict (with an Agent session's split) and which agent have a label and a sentence for each value
@@ -195,12 +198,19 @@ class JudgingFile(unittest.TestCase):
             for key, entry in words[level].items():
                 with self.subTest(level, key=key):
                     self.assertTrue(entry["label"] and entry["about"])
-        self.assertTrue(words["title"] and words["lead"], "the dashboard's categories block: the verdicts and the split")
+        self.assertTrue(words["title"] and words["counted"], "the dashboard's categories block and which visits it counts")
+        self.assertNotIn("lead", words, "the block says which visits get a session, not that each gets a verdict")
 
-    def test_when_the_model_runs_names_both_settings(self):
-        joined = " ".join(verdict_text.judging()["when_model_runs"])
-        self.assertIn("{quiet}", joined)
-        self.assertIn("{interval}", joined)
+    def test_too_little_data_does_not_say_its_minimum_can_be_changed(self):
+        """The behaviour model's minimum number of actions comes with the release (behavior_model.json): neither
+        defaults.json nor the settings page (api/settings.py SAVED) has it, so the class's sentence must not say it can
+        be set."""
+        self.assertIn("min_actions", datafiles.load("data/behavior_model.json"))
+        self.assertNotIn("min_actions", datafiles.load("defaults.json"))
+        self.assertNotIn("min_actions", settings_api.SAVED)
+        how = verdict_text.judging()["classes"]["too_little_data"]["how"]
+        self.assertNotRegex(how, r"(?i)configur")
+        self.assertIn("too few actions", how)  # the rule itself is still said
 
     def test_interface_text_never_says_person_people_or_user(self):
         for name in ("reasons.json", "judging.en.json"):

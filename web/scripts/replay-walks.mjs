@@ -175,7 +175,7 @@ export const WALKS = [
       await at(84500); await human.wander(0.6, 0.55, 1300)
       await at(87000); await human.scroll(-600, "Scroll back up")
       await at(89500); await human.scroll(900)
-      await at(91500); await human.click("#agree", "Tick “I understand this is a demo”", 1300)
+      await at(91500); await human.click("#agree", "Tick “Confirm that this is a demo”", 1300)
       await at(94000); await human.wander(0.55, 0.7, 1500)
     },
   },

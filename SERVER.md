@@ -27,7 +27,7 @@ visitor's browser on https://example.com/, after the visitor agreed to analytics
   |  POST /cake/collect, every 2 s
   v
 your load balancer: path rules send only those paths to AgentCake, everything else to your site as before;
-  |  it adds X-Cake-Client-IP, X-Cake-Region, X-Cake-JA4 and X-Cake-Proto
+  |  it adds X-Cake-Client-IP, X-Cake-Region, X-Cake-Subdivision, X-Cake-City, X-Cake-JA4 and X-Cake-Proto
   v
 the AgentCake server, whose firewall admits the load balancer only
   0.0.0.0:8080     public listener: the page script, collect and a health check, under /cake
@@ -47,7 +47,7 @@ else:
 | GET | `/cake/c.js` | the same script by its short name |
 | GET | `/cake/rrweb-record.min.js` | the session recorder of cake 0.3.x, for pages that still load it with a tag of its own (the page script has had it inside since 0.4.0); content blockers block this file by its name |
 | POST | `/cake/collect` | what the page script sends |
-| POST | `/cake/edge` | page requests from your web server's log, signed with the server half's secret (Server logs, below) |
+| POST | `/cake/edge` | page requests from your web server's log, signed with the server middleware's secret (Server logs, below) |
 | GET | `/cake/healthz` | the load balancer's health check: `ok` |
 
 - The dashboard, sessions, replay, settings and the JSON API are never served there, under any path.
@@ -97,7 +97,7 @@ pathMatchers:
 
 AgentCake's backend service: HTTP to an instance group whose named port is 8080, the health check `/cake/healthz` on
 port 8080, request logging off (collect arrives every 2 s from every visitor, and the load balancer's log would keep
-each visitor's address), and the four headers of the next section as custom request headers.
+each visitor's address), and the six headers of the next section as custom request headers.
 
 nginx in front of your site, inside your site's `server` block:
 
@@ -107,6 +107,8 @@ location ~ ^/cake/(cake\.js|collect)$ {
     proxy_set_header X-Cake-Client-IP $remote_addr;
     proxy_set_header X-Cake-Proto $server_protocol;
     proxy_set_header X-Cake-Region "";                 # nginx knows no country: an empty value drops a visitor's own
+    proxy_set_header X-Cake-Subdivision "";            # nor a region
+    proxy_set_header X-Cake-City "";                   # nor a city
     proxy_set_header X-Cake-JA4 "";                    # nor a TLS fingerprint
     client_max_body_size 1m;
 }
@@ -117,12 +119,14 @@ proxy's address: then set `X-Cake-Client-IP` to `""` as well.
 
 ## Which headers AgentCake trusts
 
-Only on the public listener, only with `trust_lb` on, and only these four, which your load balancer sets:
+Only on the public listener, only with `trust_lb` on, and only these six, which your load balancer sets:
 
 | Header | Google Cloud custom request header | What AgentCake keeps |
 |---|---|---|
 | `X-Cake-Client-IP` | `X-Cake-Client-IP:{client_ip_address}` | which published range holds the address, and whether it is iCloud Private Relay, a CDN or a cloud (`agentcake/data/lists/ip_ranges.json`: the ranges AI, search, CDN and cloud companies publish); two salted hashes, of the address and of its /24 or /48, whose salt is replaced every `ip_salt_days`; never the address |
 | `X-Cake-Region` | `X-Cake-Region:{client_region}` | the country |
+| `X-Cake-Subdivision` | `X-Cake-Subdivision:{client_region_subdivision}` | the region (a CLDR subdivision id such as `USCA`), for the dashboard's Geography table |
+| `X-Cake-City` | `X-Cake-City:{client_city}` | the city, for the dashboard's Geography table |
 | `X-Cake-JA4` | `X-Cake-JA4:{tls_ja4_fingerprint}` | the TLS fingerprint |
 | `X-Cake-Proto` | `X-Cake-Proto:{client_protocol}` | the HTTP version |
 
@@ -130,18 +134,21 @@ Only on the public listener, only with `trust_lb` on, and only these four, which
 gcloud compute backend-services update <AgentCake's backend service> --global \
   --custom-request-header='X-Cake-Client-IP:{client_ip_address}' \
   --custom-request-header='X-Cake-Region:{client_region}' \
+  --custom-request-header='X-Cake-Subdivision:{client_region_subdivision}' \
+  --custom-request-header='X-Cake-City:{client_city}' \
   --custom-request-header='X-Cake-JA4:{tls_ja4_fingerprint}' \
   --custom-request-header='X-Cake-Proto:{client_protocol}'
 ```
 
 - Nothing else counts: `X-Forwarded-For`, `Forwarded` and `X-Real-IP` are never read. A visitor can write anything into
   them, and how many proxies to skip differs from one setup to the next; AgentCake trusts the one layer you set up.
-- The four are only true when two things hold. Your load balancer sets or empties each of them on every request it
+- The six are only true when two things hold. Your load balancer sets or empties each of them on every request it
   forwards: Google Cloud's custom request headers replace a header of the same name that a client sent, and a header
   that a load balancer neither sets nor empties passes through from the visitor unchanged. And the firewall lets only
   the load balancer reach the public port, so that nobody can connect directly with headers of their own.
-- If your load balancer cannot set them, leave `trust_lb` off. AgentCake then keeps no country, range, JA4 or protocol;
-  everything else works the same.
+- If your load balancer cannot set them, leave `trust_lb` off. AgentCake then keeps no country, region, city, range, JA4
+  or protocol, and the dashboard's Geography table shows time zones and languages only; everything else works the same.
+  A load balancer that knows the country but not the region or city sets those two to an empty value.
 - The address is looked up and dropped: it is not stored, not logged and not shown.
 
 ## The dashboard: 127.0.0.1 only, through a tunnel
@@ -282,19 +289,19 @@ Restart after changing a setting: `sudo systemctl restart cake`, or `docker rest
 |---|---|---|
 | `public_listen` | `0.0.0.0:8080` | the public listener's address and port; empty, the default, turns server mode off |
 | `path_prefix` | `/cake` | the path of your site that the load balancer sends to AgentCake (how to choose it: Load balancer path rules) |
-| `trust_lb` | `true` | read the load balancer's four headers on the public listener; off by default |
+| `trust_lb` | `true` | read the load balancer's six headers on the public listener; off by default |
 | `site_key` | made on first use | the key in your pages' script tag; collect refuses any other |
 | `site_domain` | `example.com` | your site's domain: the dashboard's title, and where uploads should come from (uploads from another site are kept, but left out of the dashboard) |
 | `port` | `7878`, the default | the local page's port, always on 127.0.0.1 |
 | `budget_mb` | see Disk budget | the disk budget of the database and the replay chunks, in MB |
-| `auto_free` | `true`, the default | free space by removing old replays: the oldest human-only ones when the budget is full, the oldest of any session when the disk is below `disk_min_free_mb` |
-| `disk_min_free_mb` | `10240`, the default | keep this much of the disk free: below it the oldest replays go and new ones are still stored, unless other files fill the disk (see Disk budget) |
+| `auto_free` | `true`, the default | free space in the budget: when less than 10% of it is left, delete session replays, oldest first, across all session types |
+| `disk_min_free_mb` | `10240`, the default | keep this much of the disk free: below it new replays aren't stored and none is deleted, until there is room (see Disk budget) |
 | `retention_days` | `0`, the default | 0 keeps everything; 30 or 90 deletes whole sessions older than that |
 | `public_max_body_bytes` | `1000000`, the default | the largest POST the public listener reads |
 | `max_events_per_session` | `200000`, the default | the records a session keeps at most in each stream (replay, raw input, signals); later ones are counted, not kept |
 | `public_judge_interval_ms` | `15000`, the default | how often a session is judged at most while it sends |
 | `ip_salt_days` | `30`, the default | how long one salt of the visitors' address hashes is used; then a new one replaces it |
-| `token_max_age_ms` | `900000`, the default | a server-half token older than this is refused |
+| `token_max_age_ms` | `900000`, the default | a server middleware token older than this is refused |
 
 `agentcake config get` prints every value in use; `agentcake/defaults.json` lists every setting with its default and
 what it does.
@@ -308,16 +315,22 @@ Add this to your pages once a visitor has agreed to analytics (your consent bann
 <script src="/cake/cake.js" data-site="ck_…" defer></script>
 ```
 
-When a visitor declines later, call `window.cake.stop()`: recording and sending stop, and the visit id is forgotten.
+When a visitor declines later, call `window.cake.stop()`: recording and sending stop, and the visit id, the visitor id
+and its identify hash are forgotten.
 
-## The server half
+If your site has sign-in, it can have each signed-in visitor counted once across browsers and devices: call
+`window.cake.identify(user.id)` after they sign in, with an internal ID that is hard to guess (not an e-mail address or
+a number that counts up), and `window.cake.reset()` when they sign out. The browser sends only a SHA-256 hash of your
+site key and the ID ([`PRIVACY.md`](PRIVACY.md), "Counting a signed-in visitor once").
+
+## The server middleware
 
 Optional. Your site's server can tell AgentCake what only it saw of a page's request, such as the request's headers and
 an agent's signature. It signs a token for each page, `Server-Timing: cake;desc="c1.<payload>.<mac>"` (HMAC-SHA256 with
 the secret in `srv_secret`); the page script forwards it; AgentCake accepts each token once, within 15 minutes, and
-shows it on the replay page under "Server half". For a Node site, `edge/node/` is that middleware (its README says how
-to add it). `agentcake secret init` (Settings, above) makes the secret. Hand it to your site's server through a pipe,
-never by pasting it; for example, from your computer into Google Cloud's Secret Manager:
+shows it on the replay page under "Server middleware". For a Node site, `edge/node/` is that middleware (its README
+says how to add it). `agentcake secret init` (Settings, above) makes the secret. Hand it to your site's server through
+a pipe, never by pasting it; for example, from your computer into Google Cloud's Secret Manager:
 
 ```sh
 gcloud compute ssh <vm> --zone=<zone> --tunnel-through-iap \
@@ -342,7 +355,7 @@ agentcake logs formats
 ```
 
 2. When the log is written on another machine than AgentCake's (the load balancer of "Load balancer path rules"),
-   install AgentCake there too and give it the server half's secret through a pipe, from your computer:
+   install AgentCake there too and give it the server middleware's secret through a pipe, from your computer:
 
 ```sh
 ssh <the AgentCake server> 'sudo -u cake env CAKE_HOME=/var/lib/cake python3 -I /opt/cake/app/agentcake/__main__.py secret print' \
@@ -377,8 +390,8 @@ How it works:
   credentials.
 - The log stays yours: it is read line by line where it lies, never copied, and only page requests leave the machine:
   a GET of a page, not a redirect or a static file.
-- `/cake/edge` hears only a sender with the server half's secret: each request carries the HMAC of its time and body,
-  and anything else gets 403. No path rule forwards it from the internet.
+- `/cake/edge` hears only a sender with the server middleware's secret: each request carries the HMAC of its time and
+  body, and anything else gets 403. No path rule forwards it from the internet.
 
 ## The data folder
 
@@ -389,10 +402,10 @@ computer. It is the only place AgentCake writes: the service may write nowhere e
 | File | What |
 |---|---|
 | `config.json` | the settings |
-| `cake.db` | the database (SQLite in WAL mode, with `cake.db-wal` and `cake.db-shm` beside it): sessions, verdicts, events, the index of the replay chunks, the server half's tokens |
+| `cake.db` | the database (SQLite in WAL mode, with `cake.db-wal` and `cake.db-shm` beside it): sessions, classifications, events, the index of the replay chunks, the server middleware's tokens |
 | `replays/` | replays as compressed 10-second chunks, appended to `replays/<date>/<hour>.bin` (UTC) |
 | `backups/` | the copy of `cake.db` that `agentcake migrate` makes before it changes anything |
-| `srv_secret` | the server half's secret, readable by its owner only |
+| `srv_secret` | the server middleware's secret, readable by its owner only |
 | `cake.log`, `cake.pid` | only with `agentcake start` on your own computer; the service logs to the journal |
 | `lists/` | newer name and address lists, only after `agentcake lists update`; otherwise the release's own are used |
 
@@ -413,28 +426,20 @@ logs. Back up to a snapshot or another disk, not to this one.
 
 - From 80% of the budget, the dashboard and the settings show a warning and how long until it is full at last week's
   pace.
-- When the budget is full and `auto_free` is on (the default), AgentCake removes the replays of the oldest human-only
-  sessions until its data is at 90% of the budget. A human-only session was judged human all the way: no agent share,
-  no agent name, no automation flag, no agent verdict from the server half, no agent address range, and quiet for an
-  hour. Its verdict, shares, timeline and server half stay, and so do the input timing and browser signals the verdict
-  was made from. A session an agent took part in is never removed to keep the budget, and neither is one AgentCake is
-  not sure about. The chunk files give the space back at the next upkeep round, within a minute.
-- With `auto_free` off, a full AgentCake stops storing new replay events; each visit and its verdict are still
+- When less than 10% of the budget is left and `auto_free` is on (the default), AgentCake deletes session replays,
+  oldest first, across all session types, until its data is under 90% of the budget (`auto_free_target_ratio`). A
+  replay still being recorded (its session active in the last hour) waits until the session is quiet. Only replays
+  go: every classification, share, timeline and server middleware record stays, and so do the input timing and
+  browser signals the classification was made from; the session page says the replay was deleted to make room. The
+  chunk files give the space back at the next upkeep round, within a minute.
+- With `auto_free` off, a full AgentCake stops storing new replay events; each visit and its classification are still
   recorded.
-- Whatever the budget, AgentCake keeps `disk_min_free_mb` of the disk free (10240, 10 GB, by default). Below it, new
-  replays are still stored, and with `auto_free` on AgentCake removes the oldest replays until the disk has that much
-  free again: those of human-only sessions first, then those of any other session, an agent's too, oldest first; a
-  session with activity in the last hour keeps its replay. Only replays go: every verdict, share, timeline and server
-  half stays, and the session page says the replay was deleted to make room. The next upkeep round gives the bytes
-  back, rewriting each chunk file a removed replay was in. Before removing any, AgentCake checks that removing every
-  replay it may (those of sessions quiet for an hour) would get the disk back to the floor; when it would not, other
-  files fill the disk and AgentCake removes none, since a deletion cannot be undone and would not free the disk. Then,
-  or with `auto_free` off, AgentCake stops storing new replays until there is room again and then starts on its own;
-  each visit and its verdict are still recorded, `/api/health`, the settings page and the dashboard say why
-  (`"replays_stopped"` is `"disk_full_other"` when other files fill the disk, `"disk"` when `auto_free` is off), and
-  `agentcake doctor` fails its disk line, with the floor and the free space (while old replays are being removed it
-  warns). The floor counts everything on the disk, not only AgentCake, so with the sizes above it comes about 3 GB
-  (Debian's share) before the budget is full.
+- Whatever the budget, AgentCake keeps `disk_min_free_mb` of the disk free (10240, 10 GB, by default). Below it,
+  AgentCake stores no new replays and deletes none, since a deletion cannot be undone and would not free a disk other
+  files fill; it starts storing them again on its own once there is room. Each visit and its classification are still
+  recorded, `/api/health`, the settings page and the dashboard say why (`"replays_stopped"` is `"disk"`), and
+  `agentcake doctor` fails its disk line, with the floor and the free space. The floor counts everything on the disk,
+  not only AgentCake, so with the sizes above it comes about 3 GB (Debian's share) before the budget is full.
 
 ## Backups
 

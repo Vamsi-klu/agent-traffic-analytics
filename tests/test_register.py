@@ -2,7 +2,7 @@
 
     python3 -I -m unittest discover -s tests -p test_register.py -v      (from the AgentCake folder)
 
-A POST body is a registration only in the one form the page writes (the JSON "See what's sent" shows: two-space
+A POST body is a registration only in the one form the page writes (the JSON "View registration data" shows: two-space
 indent, the fields in order, company only when given), with an e-mail address and a company that pass the rules in
 data/register.json; anything else is Invalid, naming what is wrong. send() makes one POST of those bytes to the
 receiving address and nothing more: no redirect followed, no retry; a receiver that is down, refuses, redirects or
@@ -21,7 +21,7 @@ from receiver import Receiver, closed_url  # noqa: E402
 from agentcake import config, register, store  # noqa: E402
 from agentcake.wording import product  # noqa: E402
 
-VERSION = "2026-11-13"
+VERSION = "2026-11-15"
 
 
 def written(**fields):

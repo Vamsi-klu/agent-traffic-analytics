@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="referrer" content="unsafe-url">
+<title>Referring page · cake.js browser test</title>
+<script src="/cake.js" data-site="{{SITE_KEY}}" defer></script>
+</head>
+<body>
+<p>Another site's page that links to the test site. Opened as localhost with ?nocake=1 (no cake.js), its referrer
+policy hands its whole address, query string included, to the page it links to; cake.js on that page may keep only its
+domain (tests/browser/test_web_metrics.py).</p>
+<p><a id="out" href="#">To the test site</a></p>
+<script>
+  // The test site on the other origin (127.0.0.1), with campaign parameters and an ad click id in its address.
+  var target = location.origin.replace('localhost', '127.0.0.1') + '/pages/plain.html' +
+    '?utm_source=newsletter&utm_medium=email&utm_campaign=spring&gclid=CLICKIDVALUE999'
+  document.getElementById('out').href = target
+</script>
+</body>
+</html>

@@ -44,8 +44,8 @@ README_ZH = os.path.join(ROOT, "docs", "locales", "zh-CN", "README.md")
 AGENTS_MD = os.path.join(ROOT, "AGENTS.md")
 CLAUDE_MD = os.path.join(ROOT, "CLAUDE.md")
 SHOWN_TO_AGENTS = (INSTALL_MD, README_MD, README_ZH, AGENTS_MD)
-# Each README, the heading of its Install and Connect sections, and whether its sentences are Chinese.
-READMES = ((README_MD, "Install", "Connect your website", False), (README_ZH, "安装", "接入你的网站", True))
+# Each README, the heading of its Install section, and whether its sentences are Chinese.
+READMES = ((README_MD, "Install", False), (README_ZH, "安装", True))
 
 SHELL_SYNTAX = ("&", ";", "|", ">", "<", "$", "`")  # chaining, pipes, redirection, variables, command substitution
 ASSIGNMENT = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*=")
@@ -196,7 +196,7 @@ class InstallDocuments(unittest.TestCase):
     def test_a_private_preview_is_downloaded_with_gh_and_checked_the_same_way(self):
         """While the repository is private, curl gets a 404 for its release; INSTALL.md's step 2 checks that the GitHub
         CLI is signed in and downloads the release into this folder with it, and the one shasum line comes after both
-        ways of downloading. Both READMEs' Install give the same command, as their "Private preview" item."""
+        ways of downloading. Both READMEs' Install give the same command, in the sentence for a private preview."""
         download = gh_download(self.tag, self.repository())
         step = section(self.install, "Step 2. Download the release and check it")
         commands = [block[0] for block in code_blocks(step)]
@@ -205,7 +205,7 @@ class InstallDocuments(unittest.TestCase):
         checksum = commands.index("shasum -a 256 -c SHA256SUMS --ignore-missing")
         self.assertLess(commands.index(download), checksum)
         self.assertLess(max(i for i, command in enumerate(commands) if command.startswith("curl ")), checksum)
-        for path, install_heading, _, _ in READMES:
+        for path, install_heading, _ in READMES:
             install = section(read(path), install_heading)
             self.assertIn(f"`{download}`", install, path)
 
@@ -253,7 +253,7 @@ class InstallDocuments(unittest.TestCase):
     def test_the_least_python_is_pyproject_requires_python(self):
         for path in (INSTALL_MD, README_MD):
             self.assertEqual(minimum_pythons(read(path)), {required_python()}, path)
-        self.assertEqual(re.findall(r"Python (\d+\.\d+) 或更新", self.readme_zh), [required_python()])
+        self.assertEqual(re.findall(r"Python (\d+\.\d+) 或更高版本", self.readme_zh), [required_python()])
 
     def test_the_local_page_is_on_the_default_port(self):
         for path in SHOWN_TO_AGENTS:
@@ -263,7 +263,7 @@ class InstallDocuments(unittest.TestCase):
     # ---------------------------------------------------------------------------------------- what the agent says
     def test_the_installing_agent_never_registers_for_the_user(self):
         """The local page asks the user to register; the agent gives the address and nothing more."""
-        for words in ("never fill in their e-mail address", 'press "Register & Continue" for them'):
+        for words in ("never fill in their e-mail address", 'press "Register and continue" for them'):
             self.assertIn(words, " ".join(self.install.split()))
             self.assertIn(words, " ".join(self.agents.split()))
 

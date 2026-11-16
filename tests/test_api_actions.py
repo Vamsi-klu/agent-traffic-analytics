@@ -44,7 +44,7 @@ class EveryAction(Recorded):
         records = [rec(1000, "keydown", kc="enter", s="#search"),
                    rec(4000, "keydown", kc="tab", s="#email"),
                    rec(4005, "keydown", kc="tab", s="#email")]
-        self.assertEqual(self.raw("keys", records), ["Press a key on #search", "Press a key on #email"])
+        self.assertEqual(self.raw("keys", records), ["Key press on #search", "Key press on #email"])
 
     def test_a_wheel_and_the_scrolling_it_causes_are_one_scroll(self):
         records = [rec(1000, "wheel", dy=120, s="#main"), rec(1040, "scroll", y=120),

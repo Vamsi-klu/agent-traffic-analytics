@@ -2,10 +2,9 @@
 
     python3 -I -m unittest discover -s tests -p test_doctor_machine.py -v      (from the Agent Cake folder)
 
-Python and compression.zstd; the free disk space against disk_min_free_mb (below it the oldest replays are
-deleted to make room, a warning; with auto_free off, or when deleting every old replay would not make room because
-other files fill the disk (then none is deleted), new replays are not stored, a failure; either way doctor says
-how to change it), with shutil.disk_usage replaced by a nearly full disk; the age of the name
+Python and compression.zstd; the free disk space against disk_min_free_mb (below it new replays are not stored and
+none is deleted for it, a failure that says they start again on their own and how to change it), with
+shutil.disk_usage replaced by a nearly full disk; the age of the name
 and address lists against their age limit (over max_age_days: a warning naming `agentcake lists update`); and every `agentcake` on
 PATH (`which -a`): one that is not this installation coming first is named.
 """
@@ -93,7 +92,7 @@ class Disk(ScratchHome):
         self.assertIn(wording.text("doctor_disk_off"), info)
 
     def old_replay(self):
-        """A human-only session that ended a day ago; returns the bytes of its replay."""
+        """A session that ended a day ago; returns the bytes of its replay."""
         con = store.db()
         try:
             add_session(None, con, "old", verdict="human", agent_pct=0, group="H1/L?",
@@ -103,40 +102,21 @@ class Disk(ScratchHome):
         finally:
             con.close()
 
-    def test_below_the_floor_with_old_replays_to_delete_it_warns_that_they_go(self):
-        # new replays are still stored while the oldest ones make room
-        self.settings(disk_min_free_mb=2000)
-        short_mb = self.old_replay() / 2 / BYTES_PER_MB  # deleting the old replay gets the disk back above the floor
-        _, ok, info = self.disk_line(2000 - short_mb)
-        self.assertEqual(ok, doctor_lines.WARN)
-        self.assertIn("1,999 MB", info)
-        self.assertIn(wording.text("doctor_disk_frees"), info)
-        self.assertIn("config set disk_min_free_mb", info)
-
-    def test_below_the_floor_by_more_than_every_old_replay_it_fails_and_deletes_none(self):
-        # other files fill the disk, and deleting replays would not change that
-        self.settings(disk_min_free_mb=2000)
+    def test_below_the_floor_it_fails_says_new_replays_resume_on_their_own_and_deletes_none(self):
         self.old_replay()
-        _, ok, info = self.disk_line(1500)
-        self.assertIs(ok, False)
-        self.assertIn("only 1,500 MB free", info)
-        self.assertIn("(2,000 MB)", info)
-        self.assertIn(wording.text("doctor_disk_other_files", floor="2,000"), info)
-        self.assertIn(wording.text("doctor_disk_replays_stop"), info)
-        self.assertIn(wording.text("doctor_disk_replays_resume"), info)
-        self.assertIn("config set disk_min_free_mb", info)
-        con = store.db()
-        try:
-            self.assertEqual(replay(con, "old"), 60, "doctor only looks")
-        finally:
-            con.close()
-
-    def test_below_the_floor_with_auto_free_off_it_fails_and_names_the_switch(self):
-        self.settings(disk_min_free_mb=2000, auto_free=False)
-        _, ok, info = self.disk_line(1500)
-        self.assertIs(ok, False)
-        self.assertIn(wording.text("doctor_disk_replays_stop"), info)
-        self.assertIn("config set auto_free on", info)
+        for auto_free in (True, False):
+            self.settings(disk_min_free_mb=2000, auto_free=auto_free)
+            _, ok, info = self.disk_line(1999.5)
+            self.assertIs(ok, False, auto_free)
+            self.assertIn("below the 2,000 MB set in disk_min_free_mb", info)
+            self.assertIn(wording.text("doctor_disk_replays_stop"), info)
+            self.assertIn(wording.text("doctor_disk_replays_resume"), info)
+            self.assertIn("config set disk_min_free_mb", info)
+            con = store.db()
+            try:
+                self.assertEqual(replay(con, "old"), 60, "doctor only looks, and nothing is deleted for the disk")
+            finally:
+                con.close()
 
     def test_before_the_data_folder_exists_the_line_is_about_the_disk_it_will_be_on(self):
         with mock.patch.dict(os.environ, {"CAKE_HOME": os.path.join(self.home, "not", "there")}):

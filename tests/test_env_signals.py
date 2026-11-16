@@ -273,6 +273,17 @@ class CakeFormatTest(unittest.TestCase):
         self.assertEqual(auto["hookHits"], [{"fn": "querySelector", "pptr": False, "utilityScript": True,
                                              "puppeteerEval": False}])
 
+    def test_the_page_records_say_how_the_site_owner_had_set_the_page_script(self):
+        def page_view(pv, n, **page):
+            return batch(pv, 0, 10.5 + n, x=[{"t": 10 + n, "ty": "page", "n": n, **page}])
+
+        off, on = page_view("pv-1", 1, hook_dom=False), page_view("pv-2", 2, hook_dom=True)
+        self.assertEqual(env_signals.from_cake([off, on])["script_settings"], {"hook_dom": True})  # on for one view
+        self.assertEqual(env_signals.from_cake([off])["script_settings"], {"hook_dom": False})
+        self.assertNotIn("script_settings", env_signals.from_cake([page_view("pv-3", 1)]))  # not said: unknown
+        lab = env_report("load", "/", auto={"hookHits": []})  # the lab's own script always watched, unasked
+        self.assertNotIn("script_settings", env_signals.from_lab([lab]))
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -3,7 +3,8 @@
 delete_sessions(ids, now_ms) is the one way to delete, run by the process that owns the data folder: the command line
 calls it when cake is not running (delete_command.py), and the running cake calls it for POST /api/delete (api.py),
 which the settings page and `agentcake delete` use while it runs. It holds store.LOCK, so collect, the judging and the
-maintenance thread wait until it is done. For the given ids it:
+maintenance thread wait until it is done. For the given ids, and the sessions the collector cut from a tab one of them
+names (session_split.with_continuations: an id kept in the visitor's browser names them all), it:
 
 1. checks that each chunk the chunks table gives a visit is that visit's (the chunk's header names it), then
    overwrites those bytes with zeros where they are. A chunk file is otherwise only appended to; the zeros are dead
@@ -35,7 +36,7 @@ import os
 import re
 import sqlite3
 
-from agentcake import paths, replay_chunks, space, store, streams, styles
+from agentcake import paths, replay_chunks, session_split, space, store, streams, styles
 from agentcake.config import load_cfg
 from agentcake.datafiles import sizes
 from agentcake.storage_config import SETTINGS, now_ms as clock_ms
@@ -64,6 +65,7 @@ def delete_sessions(ids, now_ms=None, cfg=SETTINGS):
         con = store.db()
         try:
             con.execute("PRAGMA secure_delete=ON")
+            ids = session_split.with_continuations(con, ids)
             found = _delete_rows(con, ids, now_ms, cfg)
             reclaim = space.reclaim_if_due(con, now_ms, cfg)
             database = _rewrite(con)
@@ -79,6 +81,7 @@ def preview(ids, cfg=SETTINGS):
     ids = _checked(ids)
     con = store.db()
     try:
+        ids = session_split.with_continuations(con, ids)
         found = [_found(con, sid, _chunk_refs(con, sid)) for sid in ids]
     finally:
         con.close()
@@ -166,7 +169,8 @@ def _check_chunks(sid, chunks, cfg):
     for rel, offset, length in chunks:
         owner = _chunk_owner(rel, offset, length, cfg)
         if owner not in (sid, WIPED, None):
-            raise WipeRefused(f"{rel}@{offset} is not a chunk of {sid}: the chunks table and the file disagree")
+            raise WipeRefused(f"The replay data at {rel}@{offset} doesn't match the chunks table for session {sid}. "
+                              "Nothing was deleted.")
 
 
 def _chunk_owner(rel, offset, length, cfg):

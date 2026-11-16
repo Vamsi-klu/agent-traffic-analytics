@@ -46,8 +46,8 @@ class IndicatorReasons(unittest.TestCase):
         (reason,) = said([span(20000, 40000, held_to=35100)], steps)
         self.assertEqual((reason["id"], reason["value"]), ("behavior.indicator-tail", [20000, 40000, 35100]))
         self.assertEqual(reason["facts"]["until_ms"], 31100)
-        self.assertEqual(reason["text"], "Claude in Chrome was working from 0:16 to 0:36, so the actions until 0:31 are "
-                                         "the agent's.")
+        self.assertEqual(reason["text"], "Claude in Chrome was active from 0:16 to 0:36. Actions up to 0:31 are counted "
+                                         "as the agent's actions.")
         self.assertEqual(reason["grade"], markers.load_table().markers[WORKING]["grade"])
 
     def test_an_unsure_step_or_evidence_in_the_tail_counts_too(self):

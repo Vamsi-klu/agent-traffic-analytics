@@ -1,11 +1,13 @@
-// The session list in Chromium, against the built app and the sample list: the pinned Agent filter sits at the far
-// left and the other chips are All and the verdicts, Agent rows stand out and bot rows are muted, under Agent the split
-// (Agent only, Human + agent) combines with the agent's name (a link to one name shows that agent), and the agent and
-// date filters reach the API. Usage: node --test tests/
+// The session list (Session replay) in Chromium, against the built app and the sample list: the verdict chips are All
+// (picked by default), Agent, Human and Bot, each verdict in its badge's colours by one rule; Agent rows stand out and
+// bot rows are muted, under Agent the split (Agent only, Human + agent) combines with the agent's name (a link to one
+// name shows that agent), the count names one session in the singular, and the agent and date filters reach the API.
+// Usage: node --test tests/
 import assert from "node:assert/strict"
 import { readFileSync } from "node:fs"
 import { after, before, test } from "node:test"
-import { openTab, sample, startApp } from "./app.mjs"
+import { WORDS } from "../src/lib/words.ts"
+import { avatarLooks, openTab, sample, startApp, unsureGrey } from "./app.mjs"
 
 const judging = JSON.parse(readFileSync(new URL("../../agentcake/data/judging.en.json", import.meta.url), "utf8"))
 
@@ -21,29 +23,112 @@ const sessionsAsked = (requests) => requests.map((u) => new URL(u)).filter((u) =
 async function open(query = "") {
   const tab = await openTab(app)
   await tab.page.goto(app.url(`#/sessions${query}`))
-  await tab.page.waitForSelector('[aria-label="Verdict"]', { timeout: WAIT_MS })
+  await tab.page.waitForSelector('[aria-label="Session type"]', { timeout: WAIT_MS })
   return tab
 }
 
-test("the chips are the pinned Agent, then All and the other verdicts, each with its count", async () => {
+test("the page is Session replay, and the chips are All, picked by default, then Agent, Human and Bot, each with its count", async () => {
   const tab = await open()
   try {
-    const chips = (await tab.page.locator('[aria-label="Verdict"] > *').allInnerTexts()).map((t) => t.replace(/\s+/g, " "))
+    await tab.page.getByRole("heading", { name: WORDS.sessionsPage, level: 1 }).waitFor({ timeout: WAIT_MS })
+    const chips = tab.page.locator('[aria-label="Session type"] > *')
     const { verdicts } = judging
-    assert.deepEqual(chips, [`${verdicts.agent.label} ${list.counts.agent}`, `All ${list.counts.all}`, `${verdicts.human.label} ${list.counts.human}`,
-      `${verdicts.bot.label} ${list.counts.bot}`])
+    assert.deepEqual((await chips.allInnerTexts()).map((t) => t.replace(/\s+/g, " ")), [`All ${list.counts.all}`, `${verdicts.agent.label} ${list.counts.agent}`,
+      `${verdicts.human.label} ${list.counts.human}`, `${verdicts.bot.label} ${list.counts.bot}`])
+    assert.deepEqual(await chips.evaluateAll((els) => els.map((el) => el.dataset.state)), ["on", "off", "off", "off"])
+    assert.equal(await tab.page.getByRole("link", { name: WORDS.sessionsPage }).count(), 1, "the top bar names the page the same way")
   } finally { await tab.close() }
 })
 
-test("Agent is the first filter, and it keeps the Agent rows, every one highlighted", async () => {
+test("the title has no description under it: the Bot chip and the rows themselves say what the list holds", async () => {
   const tab = await open()
   try {
-    const chips = tab.page.locator('[aria-label="Verdict"] > *')
-    await chips.first().click()
+    const header = tab.page.getByRole("heading", { name: WORDS.sessionsPage, level: 1 }).locator("xpath=..")
+    assert.equal(await header.locator("p").count(), 0)
+  } finally { await tab.close() }
+})
+
+test("each verdict chip has its badge's colours, by one rule picked or not; All is neutral", async () => {
+  const tab = await open()
+  try {
+    const looks = async () => {
+      const chips = await tab.page.locator('[aria-label="Session type"] > *').evaluateAll((els) => els.map((el) => {
+        const style = getComputedStyle(el)
+        return { variant: el.dataset.variant, background: style.backgroundColor, color: style.color }
+      }))
+      const badges = await tab.page.evaluate(() => Object.fromEntries(["human", "agent", "bot"].map((v) => {
+        const probe = document.createElement("span")
+        probe.className = { human: "bg-human-soft text-human-foreground", agent: "bg-agent-soft text-agent-foreground", bot: "bg-unsure-soft text-unsure-foreground" }[v]
+        document.body.append(probe)
+        const style = getComputedStyle(probe), out = { background: style.backgroundColor, color: style.color, strong: "" }
+        probe.className = { human: "bg-human-foreground", agent: "bg-agent-foreground", bot: "bg-unsure-foreground" }[v]
+        out.strong = getComputedStyle(probe).backgroundColor
+        probe.remove()
+        return [v, out]
+      })))
+      return { chips, badges }
+    }
+    let { chips, badges } = await looks()
+    assert.deepEqual(chips.map((c) => c.variant), ["outline", "agent", "human", "bot"])
+    for (const chip of chips.slice(1)) assert.deepEqual([chip.background, chip.color], [badges[chip.variant].background, badges[chip.variant].color], chip.variant)
+    for (const [index, verdict] of [[1, "agent"], [2, "human"], [3, "bot"]]) {
+      await tab.page.locator('[aria-label="Session type"] > *').nth(index).click()
+      await tab.page.waitForURL(new RegExp(`filter=${verdict}`))
+      // the chip eases into its picked colours: wait for them to settle rather than read them mid-way
+      await tab.page.waitForFunction(([i, want]) => getComputedStyle(document.querySelectorAll('[aria-label="Session type"] > *')[i]).backgroundColor === want,
+        [index, badges[verdict].strong], { timeout: WAIT_MS })
+      ;({ chips } = await looks())
+      assert.equal(chips[index].background, badges[verdict].strong, `${verdict} picked: its text colour as the background`)
+    }
+  } finally { await tab.close() }
+})
+
+test("the filter bar is one height: its dropdowns are pills as tall as the verdict chips, and the small chips under them are pills", async () => {
+  const tab = await open("?filter=agent")
+  try {
+    const shapes = (selector) => tab.page.locator(selector).evaluateAll((els) => els.map((el) => {
+      const box = el.getBoundingClientRect()
+      return { height: Math.round(box.height), pill: parseFloat(getComputedStyle(el).borderTopLeftRadius) >= box.height / 2 }
+    }))
+    assert.deepEqual(await shapes('[data-slot="select-trigger"]'), Array(2).fill({ height: 32, pill: true }), "the agent and date dropdowns")
+    assert.deepEqual(await shapes('[aria-label="Session type"] > *'), Array(4).fill({ height: 32, pill: true }), "All, Agent, Human and Bot")
+    assert.ok((await shapes('[aria-label="Human involvement"] > *')).every((chip) => chip.pill), "the small chips are pills too")
+  } finally { await tab.close() }
+})
+
+test("one session is counted in the singular", async () => {
+  const tab = await openTab(app)
+  try {
+    await tab.page.route("**/api/sessions**", (route) => route.fulfill({ json: { ...list, results: list.results.slice(0, 1), total: 1, next: null } }))
+    await tab.page.goto(app.url("#/sessions"))
+    await tab.page.getByText("1 session, sorted from newest to oldest", { exact: true }).waitFor({ timeout: WAIT_MS })
+  } finally { await tab.close() }
+})
+
+test("Agent keeps the Agent rows, every one highlighted", async () => {
+  const tab = await open()
+  try {
+    const chips = tab.page.locator('[aria-label="Session type"] > *')
+    await chips.nth(1).click()
     await tab.page.waitForURL(/filter=agent/)
     await tab.page.waitForFunction((n) => document.querySelectorAll('a[href^="#/sessions/"]').length === n, list.results.filter((s) => s.verdict === "agent").length)
     const rows = await tab.page.$$eval('a[href^="#/sessions/"]', (els) => els.map((el) => el.dataset.highlight))
     assert.ok(rows.every((h) => h === "true"), "every Agent row is highlighted")
+  } finally { await tab.close() }
+})
+
+test("each Agent row's Crumb is named for screen readers and says what it marks in the tooltip on hover, never in an SVG title", async () => {
+  const tab = await open("?filter=agent")
+  try {
+    const agents = list.results.filter((s) => s.verdict === "agent").length
+    await tab.page.waitForFunction((n) => document.querySelectorAll('a[href^="#/sessions/"]').length === n, agents)
+    const marks = await tab.page.$$eval("a[data-highlight] svg.crumb:not(.avatar)", (els) => els.map((el) => ({
+      title: el.querySelector(":scope > title")?.textContent ?? null, ariaLabel: el.getAttribute("aria-label"),
+    })))
+    assert.deepEqual(marks, Array(agents).fill({ title: null, ariaLabel: WORDS.rowMarker }), "an SVG <title> would open the browser's own box")
+    assert.equal(await tab.page.getByRole("img", { name: WORDS.rowMarker }).count(), agents, "screen readers read it as its name")
+    await tab.page.locator("a[data-highlight] svg.crumb:not(.avatar)").first().hover()
+    await tab.page.locator('[data-slot="tooltip-content"]').filter({ hasText: WORDS.rowMarker }).waitFor({ timeout: WAIT_MS })
   } finally { await tab.close() }
 })
 
@@ -90,30 +175,33 @@ test("bot rows are muted and say there is no human behind them", async () => {
     await tab.page.waitForFunction((n) => document.querySelectorAll('a[href^="#/sessions/"]').length === n, bots.length)
     assert.deepEqual(await ids(tab.page), bots)
     for (const row of await tab.page.$$('a[href^="#/sessions/"]')) {
-      assert.match(await row.innerText(), /No human behind it · counted only/)
+      assert.match(await row.innerText(), /Bot sessions are counted but don't show a timeline\./)
       assert.equal(await row.getAttribute("data-highlight"), null)
     }
   } finally { await tab.close() }
 })
 
-test("a link to one agent's name shows that agent's sessions, with the pinned filter on", async () => {
-  const tab = await open(`?filter=agent&agent=${encodeURIComponent("Meta Muse")}`)
+test("a link to one agent's name shows that agent's sessions, with the Agent filter on", async () => {
+  const tab = await open(`?filter=agent&agent=${encodeURIComponent("Muse")}`)
   try {
-    assert.equal(await tab.page.locator('[aria-label="Verdict"] > *').first().getAttribute("data-state"), "on")
+    assert.equal(await tab.page.locator('[aria-label="Session type"] > *').nth(1).getAttribute("data-state"), "on")
     await tab.page.waitForFunction(() => document.querySelectorAll('a[href^="#/sessions/"]').length === 1)
-    assert.deepEqual(await ids(tab.page), list.results.filter((s) => s.agent === "Meta Muse").map((s) => s.id))
+    assert.deepEqual(await ids(tab.page), list.results.filter((s) => s.agent === "Muse").map((s) => s.id))
   } finally { await tab.close() }
 })
 
-test("an unnamed agent's row says Unnamed, with no avatar; a named one gives how sure its name is inside its name's tag", async () => {
+test("an unnamed agent's row says Unnamed in its tag with the one grey avatar; a named one gives how sure its name is inside its name's tag", async () => {
   const tab = await open("?filter=agent")
   try {
     const unnamed = list.results.find((s) => s.verdict === "agent" && !s.agent)
     const named = list.results.find((s) => s.verdict === "agent" && s.agent && s.certainty)
     await tab.page.waitForSelector(`a[href$="/${unnamed.id}"]`, { timeout: WAIT_MS })
     const row = tab.page.locator(`a[href$="/${unnamed.id}"]`)
-    assert.match(await row.innerText(), new RegExp(judging.names.unnamed.label))
-    assert.equal(await row.locator("svg.avatar").count(), 0)
+    const tag = row.locator("[data-slot=badge]").filter({ hasText: new RegExp(`^${judging.names.unnamed.label}$`) })
+    const avatars = await avatarLooks(tag)
+    assert.equal(avatars.length, 1, "Unnamed's tag holds its avatar, as a named agent's does")
+    assert.equal(avatars[0].fill, await unsureGrey(tab.page), "the grey Bot and Unknown use")
+    assert.equal(await row.locator("svg.avatar").count(), 1)
     assert.match(await tab.page.locator(`a[href$="/${named.id}"] [data-slot=badge]`).filter({ hasText: named.agent }).innerText(),
       new RegExp(`${named.agent}\\s*·\\s*${judging.names[named.certainty].label.toLowerCase()}`))
   } finally { await tab.close() }
@@ -123,20 +211,28 @@ test("the agent and date filters reach /api/sessions and narrow the rows; there 
   const tab = await open()
   try {
     await tab.page.getByRole("combobox", { name: "Agent" }).click()
-    await tab.page.getByRole("option", { name: "Meta Muse" }).click()
+    await tab.page.getByRole("option", { name: "Muse" }).click()
     await tab.page.waitForFunction(() => document.querySelectorAll('a[href^="#/sessions/"]').length === 1)
-    assert.deepEqual(await ids(tab.page), list.results.filter((s) => s.agent === "Meta Muse").map((s) => s.id))
+    assert.deepEqual(await ids(tab.page), list.results.filter((s) => s.agent === "Muse").map((s) => s.id))
     // The list already has one row, so wait for the request itself: on a busy machine it can come after the URL changes.
     const askedToday = tab.page.waitForRequest((r) => {
       const u = new URL(r.url())
-      return u.pathname === "/api/sessions" && u.searchParams.get("agent") === "Meta Muse" && u.searchParams.get("range") === "today"
+      return u.pathname === "/api/sessions" && u.searchParams.get("agent") === "Muse" && u.searchParams.get("range") === "today"
     }, { timeout: WAIT_MS })
-    await tab.page.getByRole("combobox", { name: "Date" }).click()
+    await tab.page.getByRole("combobox", { name: "Date range" }).click()
     await tab.page.getByRole("option", { name: "Today" }).click()
     await tab.page.waitForURL(/range=today/)
     await askedToday
     await tab.page.waitForFunction(() => document.querySelectorAll('a[href^="#/sessions/"]').length === 1)
-    assert.ok(sessionsAsked(tab.requests).some((q) => q.agent === "Meta Muse" && q.range === "today"))
+    assert.ok(sessionsAsked(tab.requests).some((q) => q.agent === "Muse" && q.range === "today"))
     assert.equal(await tab.page.getByRole("combobox", { name: "Source" }).count(), 0)
+  } finally { await tab.close() }
+})
+
+test("a table row's empty key (a referring domain without a referrer) reaches /api/sessions as key=, not as no key", async () => {
+  const tab = await open(`?${new URLSearchParams({ dimension: "referring_domain", key: "", label: WORDS.web.direct })}`)
+  try {
+    await tab.page.getByText(`${WORDS.web.dimensions.referring_domain}: ${WORDS.web.direct}`).waitFor({ timeout: WAIT_MS })
+    assert.ok(sessionsAsked(tab.requests).some((q) => q.dimension === "referring_domain" && q.key === ""))
   } finally { await tab.close() }
 })

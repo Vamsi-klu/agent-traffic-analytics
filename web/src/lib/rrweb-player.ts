@@ -50,7 +50,7 @@ export function loadPlayer(): Promise<PlayerClass> {
     // First in <head>, so the theme's rules for the player (index.css, "Replay player") come later and win.
     document.head.prepend(styles)
     const script = Object.assign(document.createElement("script"), { src: SCRIPT, async: true })
-    const fail = () => { loading = null; script.remove(); styles.remove(); reject(new Error("The replay player didn't load. Reload the page.")) }
+    const fail = () => { loading = null; script.remove(); styles.remove(); reject(new Error("The replay player didn't load. Reload the page to try again.")) }
     script.onerror = fail
     script.onload = () => {
       const Player = (window as Window & { rrwebPlayer?: { Player?: PlayerClass } }).rrwebPlayer?.Player

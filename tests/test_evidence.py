@@ -119,6 +119,57 @@ class Pages(EvidenceCase):
         self.assertEqual((self.evidence()[0]["touch"], self.evidence(OTHER)[0]["touch"]), (True, False))
 
 
+DOM_WATCH_RULE = "env.auto.main-world-eval-stack"
+PPTR_LOOKUP = {"fn": "querySelector", "arg": "#buy", "t": T0 + 40, "pptr": True, "utilityScript": False,
+               "puppeteerEval": False, "stack": "at pptr:evaluate;file:///script.js:3:9"}
+
+
+def watched_page_view(hook_dom, lookups):
+    """One page view: its first batch, whose page record says how the site owner had set hook_dom, and its exit
+    batch, whose globals record carries what the DOM-lookup watch saw (hookHits: only lookups with an automation
+    frame on the call stack, so a human's page sends none)."""
+    first = page_batch(PV1, 1, T0)
+    first["x"][0]["hook_dom"] = hook_dom
+    seen = {"t": T0 + 50, "ty": "globals", "globalsAtEnd": {}, "hookHits": lookups,
+            "lookups": {"total": 4, "checked": 4}}
+    return first, dict(first, seq=1, t=T0 + 50, why="pagehide", r=[], x=[seen])
+
+
+class DomWatch(EvidenceCase):
+    """The page script's hook_dom setting turns on the environment rule that reads its DOM-lookup watch."""
+
+    def post_page_view(self, hook_dom, lookups):
+        for batch in watched_page_view(hook_dom, lookups):
+            self.post(batch, batch["t"])
+
+    def test_the_rule_holds_on_a_visit_recorded_with_hook_dom_on(self):
+        self.post_page_view(True, [PPTR_LOOKUP])
+        hit = next((hit for hit in self.evidence()[0]["env"].hits if hit.rule == DOM_WATCH_RULE), None)
+        self.assertIsNotNone(hit)
+        self.assertEqual((hit.strength, hit.pages), ("hard", (0,)))
+
+    def test_the_rule_stays_off_on_a_visit_recorded_with_hook_dom_off(self):
+        self.post_page_view(False, [PPTR_LOOKUP])
+        env = self.evidence()[0]["env"]
+        self.assertNotIn(DOM_WATCH_RULE, [hit.rule for hit in env.hits])
+        self.assertIn(DOM_WATCH_RULE, env.off)
+
+    def test_the_setting_a_visit_was_recorded_with_counts_not_the_current_one(self):
+        self.post_page_view(True, [PPTR_LOOKUP])
+        config.save_user(hook_dom=False)  # turned off after the visit: what it recorded still counts
+        self.assertIn(DOM_WATCH_RULE, [hit.rule for hit in self.evidence()[0]["env"].hits])
+        config.save_user(hook_dom=True)  # turned on after a visit recorded without it
+        earlier = page_batch(PV2, 1, T0, sid=OTHER)
+        earlier["x"][0]["hook_dom"] = False
+        self.post(earlier, T0)
+        self.assertIn(DOM_WATCH_RULE, self.evidence(OTHER)[0]["env"].off)
+
+    def test_a_human_page_with_the_watch_on_is_checked_and_does_not_match(self):
+        self.post_page_view(True, [])
+        env = self.evidence()[0]["env"]
+        self.assertNotIn(DOM_WATCH_RULE, [hit.rule for hit in env.hits] + list(env.unknown) + list(env.off))
+
+
 class ServerMode(EvidenceCase):
     def setUp(self):
         super().setUp()

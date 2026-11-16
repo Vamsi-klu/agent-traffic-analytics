@@ -1,12 +1,15 @@
-// The session page around the replay in Chromium, against the built app and the samples: every reason layer is
-// shown and one that is off says why, a replay deleted to make room says so while the verdict and timeline stay, a
-// replay cut short says so and still plays, the server half has a row per page request, and Pages visited names the
-// entry and exit page, then each page in order (at 485 px without scrolling sideways). Usage: node --test tests/
+// The session page around the replay in Chromium, against the built app and the samples: an unnamed agent's header
+// names it Unnamed with the one grey avatar, every reason layer is shown and one that is off says why, a replay
+// deleted to make room says so while the verdict and timeline stay, a replay cut short says so and still plays, the
+// server half has a row per page request, and Pages visited names the entry and exit page, then each page in order (at
+// 485 px without scrolling sideways). Usage: node --test tests/
 import assert from "node:assert/strict"
+import { readFileSync } from "node:fs"
 import { after, before, test } from "node:test"
-import { openTab, sessionSample, startApp } from "./app.mjs"
+import { avatarLooks, openTab, sessionSample, startApp, unsureGrey } from "./app.mjs"
 
-const MIXED = "7f3a-c1", FREED = "2b9e-c4"
+const judging = JSON.parse(readFileSync(new URL("../../agentcake/data/judging.en.json", import.meta.url), "utf8"))
+const MIXED = "7f3a-c1", FREED = "2b9e-c4", UNNAMED_AGENT = "19fc-90"
 /** The server half's table: the first table outside Pages visited, which comes earlier on the page. */
 const SERVER_HALF = "table:not([data-pages] *) >> nth=0"
 const WAIT_MS = 15000
@@ -22,6 +25,28 @@ async function open(id, detail, width) {
   return tab
 }
 
+test("an unnamed agent's header says Unnamed in its tag with the one grey avatar, as a named agent's tag holds its avatar", async () => {
+  const d = sessionSample(UNNAMED_AGENT)
+  assert.ok(d.session.verdict === "agent" && !d.session.agent, "the sample is an Agent session with no name")
+  const tab = await open(UNNAMED_AGENT)
+  try {
+    const header = tab.page.locator("h1").locator("xpath=..")
+    const tag = header.locator('[data-slot="badge"]').filter({ hasText: new RegExp(`^${judging.names.unnamed.label}$`) })
+    assert.equal(await tag.getAttribute("title"), null, "its sentence is in the tooltip, never the browser's own box")
+    await tag.focus() // standing alone in the header, the tag takes focus, so its sentence opens from the keyboard too
+    await tab.page.locator('[data-slot="tooltip-content"]').filter({ hasText: judging.names.unnamed.about }).waitFor({ timeout: WAIT_MS })
+    const avatars = await avatarLooks(tag)
+    assert.equal(avatars.length, 1)
+    assert.equal(avatars[0].fill, await unsureGrey(tab.page), "the grey Bot and Unknown use")
+  } finally { await tab.close() }
+  const named = await open(MIXED)
+  try {
+    const avatars = await avatarLooks(named.page.locator("h1").locator("xpath=.."))
+    assert.equal(avatars.length, 1, "the named agent's tag holds its avatar")
+    assert.notEqual(avatars[0].fill, await unsureGrey(named.page), "a named agent is never grey")
+  } finally { await named.close() }
+})
+
 test("all four layers are shown, and the layer that is off shows the reason cake gave", async () => {
   const d = sessionSample(MIXED), tab = await open(MIXED)
   try {
@@ -29,7 +54,7 @@ test("all four layers are shown, and the layer that is off shows the reason cake
     const off = d.layers.find((layer) => layer.state === "off")
     const shown = tab.page.locator(`[data-layer="${off.layer}"]`)
     assert.equal(await shown.getAttribute("data-state"), "off")
-    assert.match(await shown.innerText(), /Off here/)
+    assert.match(await shown.innerText(), /Not used/)
     for (const reason of off.reasons) assert.ok((await shown.innerText()).includes(reason.text), reason.text)
   } finally { await tab.close() }
 })
@@ -50,7 +75,7 @@ test("the verdict and each layer that judged say how sure cake is, bold on the h
   try {
     const badges = thin.page.locator("h1").locator("xpath=..").locator('[data-slot="badge"]')
     assert.equal((await badges.first().innerText()).replace(/\s+/g, " "), "Human · 55%")
-    assert.equal((await badges.nth(1).innerText()).trim(), "Thin evidence")
+    assert.equal((await badges.nth(1).innerText()).trim(), "Limited evidence")
   } finally { await thin.close() }
 })
 
@@ -60,7 +85,7 @@ test("a layer that is off with no reason given still says it didn't run", async 
   const tab = await open(MIXED, { ...d, layers })
   try {
     const off = layers.find((layer) => layer.state === "off")
-    assert.match(await tab.page.locator(`[data-layer="${off.layer}"]`).innerText(), /This layer didn't run for this session\./)
+    assert.match(await tab.page.locator(`[data-layer="${off.layer}"]`).innerText(), /This layer wasn't used to classify this session\./)
   } finally { await tab.close() }
 })
 
@@ -70,7 +95,7 @@ test("a replay deleted to make room says so, reads no chunk, and keeps the verdi
     assert.equal(d.replay.missing, "freed")
     const stage = tab.page.locator("[data-replay]")
     assert.equal(await stage.getAttribute("data-replay"), "missing")
-    assert.match(await stage.innerText(), /This replay was deleted to free disk space\. The verdict and the timeline are still here\./)
+    assert.match(await stage.innerText(), /This replay was deleted to free up disk space\. You can still see the session's classification and timeline\./)
     assert.equal(tab.requests.filter((u) => u.includes("/replay?chunk=")).length, 0)
     assert.equal(await tab.page.locator("[data-segment]").count(), d.timeline.segments.length)
     assert.equal(await tab.page.locator("[data-layer]").count(), 4)
@@ -85,7 +110,7 @@ test("a replay cut short while the disk was full says so and plays what is left"
   const d = sessionSample(MIXED), tab = await open(MIXED, { ...d, replay: { ...d.replay, missing: "dropped" } })
   try {
     await tab.page.waitForSelector('[data-replay="ready"]', { timeout: WAIT_MS })
-    assert.ok(await tab.page.getByText("Part of this replay wasn't stored because the disk budget was full then.").isVisible())
+    assert.ok(await tab.page.getByText("Part of this replay wasn't saved because the disk space limit was reached at the time.").isVisible())
   } finally { await tab.close() }
 })
 
@@ -93,7 +118,7 @@ test("the server half has one row per page request: when, which page, its Sec-Fe
   const d = sessionSample(MIXED), tab = await open(MIXED)
   try {
     const table = tab.page.locator(SERVER_HALF)
-    assert.match(await table.locator("thead").innerText(), /cake\.js network match/)
+    assert.match(await table.locator("thead").innerText(), /Same network as cake\.js/)
     const rows = await table.locator("tbody tr").evaluateAll((trs) => trs.map((tr) => [...tr.querySelectorAll("td")].map((td) => td.innerText)))
     assert.deepEqual(rows.map((cells) => cells[1]), d.server.pages.map((p) => p.path))
     assert.deepEqual(rows.map((cells) => cells[2]), d.server.pages.map((p) => [p.fetch.site, p.fetch.mode, p.fetch.dest, p.fetch.user].map((v) => v ?? "—").join(" · ")))

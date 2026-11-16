@@ -62,6 +62,21 @@ class WhichCount(Visits):
         self.assertEqual(list(self.listed()), ["visit"])
         self.assertEqual(visits.counts(self.con, visits.Scope())["all"], 1)
 
+    def test_a_demo_shop_session_is_listed_and_marked_as_the_demo_shops(self):
+        self.put("visit", verdict_class="human")
+        self.put("demo", verdict_class="human", origin="demo")  # an earlier AgentCake's demo shop recorded it
+        rows = self.listed()
+        self.assertEqual(set(rows), {"visit", "demo"})
+        self.assertIs(rows["demo"]["demo_shop"], True)
+        self.assertNotIn("demo_shop", rows["visit"])
+
+    def test_the_website_scope_leaves_out_the_demo_shops_sessions(self):
+        self.put("visit", verdict_class="human")
+        self.put("old-row", verdict_class="agent", agent_row="ai", origin=None)  # before origin had a default
+        self.put("demo", verdict_class="human", origin="demo")
+        self.assertEqual(visits.total(self.con, visits.Scope()), 3)
+        self.assertEqual(visits.total(self.con, visits.Scope().from_site()), 2)
+
 
 class Verdicts(Visits):
     def test_three_verdicts_mixed_is_an_agent_session_and_what_cake_cant_tell_is_human_on_thin_evidence(self):

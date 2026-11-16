@@ -190,9 +190,9 @@ class IndicatorTail(unittest.TestCase):
 
 
 HOST = {"tag": "DIV", "nattr": 0, "attrs": [], "open_shadow": 0, "disp": "contents", "parent": "body", "how": "added"}
-INDICATOR_TAIL_TEXT = "Claude in Chrome was working {span}, so the actions until {until} are the agent's."
-INDICATOR_TAIL_DETAIL = ("Its “working” indicator was on screen {span}. It stays on for a few seconds after the agent's "
-                         "last action, so later actions are judged by their behavior.")
+INDICATOR_TAIL_TEXT = "Claude in Chrome was active {span}. Actions up to {until} are counted as the agent's actions."
+INDICATOR_TAIL_DETAIL = ("Claude in Chrome's “working” indicator appears on the screen {span}. The indicator stays on for a few "
+                         "seconds after the agent stops. Actions after that point are classified by the behavior model.")
 
 
 def hand_off_session(indicator=True):
@@ -218,8 +218,8 @@ class ThroughTheVerdict(unittest.TestCase):
         reasons = {r["id"]: r for r in result["reasons"]}
         self.assertIn("env.product.claude-chrome-indicator", reasons)
         said = reasons["behavior.indicator"]
-        self.assertEqual(said["text"], "Claude in Chrome was working from 0:16 to 0:33, so the actions in that time "
-                                       "are the agent's.")
+        self.assertEqual(said["text"], "Claude in Chrome was active from 0:16 to 0:33. All actions during this time "
+                                       "count as agent actions.")
         self.assertEqual(said["grade"], markers.load_table().markers[WORKING]["grade"])
 
     def test_without_the_indicator_the_host_alone_needs_company(self):

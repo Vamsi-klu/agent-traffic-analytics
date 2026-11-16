@@ -53,14 +53,17 @@ function ToggleGroup({
   )
 }
 
+/** Frosting: an item can carry a hint (a Tooltip trigger around it, cake's Hint), whose own data-state would replace
+ *  the item's on / off, which its picked look reads: the item keeps its own. */
 function ToggleGroupItem({
   className,
   children,
   variant = "default",
   size = "default",
+  "data-state": _tooltipState,
   ...props
 }: React.ComponentProps<typeof ToggleGroupPrimitive.Item> &
-  VariantProps<typeof toggleVariants>) {
+  VariantProps<typeof toggleVariants> & { "data-state"?: string }) {
   const context = React.useContext(ToggleGroupContext)
 
   return (

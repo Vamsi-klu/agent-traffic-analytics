@@ -1,6 +1,6 @@
 # Contributing to AgentCake
 
-Thank you for helping. Bugs, wrong verdicts and ideas go to
+Thank you for helping. Bugs, wrong classifications and ideas go to
 [GitHub Issues](https://github.com/tartini-ai/agent-traffic-analytics/issues); security vulnerabilities go to
 [`SECURITY.md`](SECURITY.md), not to an issue.
 
@@ -9,8 +9,8 @@ Thank you for helping. Bugs, wrong verdicts and ideas go to
 - **Open an issue first** for anything larger than a small fix, so that we agree on it before you write it.
 - **AgentCake stays small.** One Python process, one SQLite database, the standard library only at run time, and no
   telemetry. A change that needs a dependency or a network call while AgentCake runs won't be merged.
-- **A wrong verdict is worth a report on its own.** Say which agent or browser it was and what the session page's
-  reasons said; that helps more than a guess at the rule to change.
+- **A wrong classification is worth a report on its own.** Say which agent or browser it was and what the session
+  page's reasons said; that helps more than a guess at the rule to change.
 
 ## Run it from source
 
@@ -81,5 +81,5 @@ npm run visual
 
 - **One change per pull request**, with a test that fails without it.
 - **Commit messages in English**, saying what changed and why.
-- **Name what it touches** in the description: the detection, the page script, the local pages, the server half or the
-  documents.
+- **Name what it touches** in the description: the detection, the page script, the local pages, the server middleware
+  or the documents.

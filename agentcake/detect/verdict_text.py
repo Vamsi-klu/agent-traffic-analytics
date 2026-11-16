@@ -14,8 +14,8 @@ facts back from its own text (reasons_past.py), else keeps the text it was given
     env_reason(hit, table=None) -> the same for an env_rules.Hit, with its "strength" and "pages"
     words(kept, origin=None) -> (text, detail): a kept reason in today's words; its moments on the replay's clock
                        when origin (the replay's start) is given
-    half(name) -> how a half is named in a reason ("the page", "cake.js's requests", "the page request")
     reasons(), judging() -> reasons.json and judging.en.json as dicts
+    class_rule(name) -> how a class of verdict.py is decided (judging.en.json "classes"), {name} the product's name
 
 Facts are plain values (they are kept as JSON). A few name a phrase instead of holding words, and are put into words
 with it:
@@ -60,6 +60,7 @@ ENV_LAYER = "environment"
 WEAK = "weak"
 AGENT_TONE, NO_TONE = "agent", "none"
 PRODUCT_FACT = "product"
+PRODUCT_NAME = "{name}"  # judging.en.json's placeholder for the product's name
 RULES_BASIS, RULES_ONE, RULES_UNNAMED = "rules", "rules_one", "rules_unnamed"  # behavior_basis: kinds, one kind, none
 # The facts that say a reason's moments, in the order its value keeps them (epoch ms on the events' clock, verdict.py)
 MOMENTS = {"behavior.handoff": ("at",), "behavior.indicator": ("from_ms", "to_ms"),
@@ -73,6 +74,12 @@ def reasons():
 
 def judging():
     return datafiles.load(JUDGING_FILE)
+
+
+def class_rule(name):
+    """The sentence on how a class is decided, with {name}, the product's name, filled in as the pages' build fills
+    judging.en.json's words (web/vite.config.ts)."""
+    return judging()["classes"][name]["how"].replace(PRODUCT_NAME, product()["name"])
 
 
 class _Facts(dict):
@@ -182,14 +189,14 @@ def _phrases(facts):
     if "basis" in facts:
         kinds = [table["behavior_kinds"].get(kind) for kind in facts.get("kinds") or ()]
         seen = {"kinds": _joined(kinds), "kinds_n": len([kind for kind in kinds if kind])}
-        said["basis"] = "; ".join(_fill(table["behavior_basis"][_basis_phrase(name, seen)], {**facts, **seen})
-                                  for name in facts["basis"] or () if name in table["behavior_basis"]) or None
+        said["basis"] = _joined([_fill(table["behavior_basis"][_basis_phrase(name, seen)], {**facts, **seen})
+                                 for name in facts["basis"] or () if name in table["behavior_basis"]])
     if "kind" in facts:
         said["kind"] = table["behavior_kinds"].get(facts["kind"])
     if "signals" in facts:
         every = {"pages": facts.get("pages"), "every": duration(facts.get("every_s"))}
-        said["signals"] = ", ".join(_fill(table["crawler_signals"][key], every) for key in facts["signals"] or ()
-                                    if key in table["crawler_signals"]) or None
+        said["signals"] = _joined([_fill(table["crawler_signals"][key], every) for key in facts["signals"] or ()
+                                   if key in table["crawler_signals"]])
     if "marker" in facts:
         for key, field in (("marker", "text"), ("marker_detail", "detail")):
             said[key] = markers.words(facts["marker"], facts.get("from_ms"), facts.get("to_ms"), field)
@@ -211,30 +218,24 @@ def _basis_phrase(name, seen):
 
 
 def _joined(words):
+    """Words as a list: "a", "a and b", "a, b, and c" (the serial comma, as the interface writes lists); None for none."""
     found = [word for word in words if word]
     if len(found) <= 1:
         return found[0] if found else None
-    return ", ".join(found[:-1]) + " and " + found[-1]
-
-
-def half(name):
-    return reasons()["halves"][name]
+    head, last = found[:-1], found[-1]
+    return f"{head[0]} and {last}" if len(head) == 1 else ", ".join(head) + ", and " + last
 
 
 def halves_words(names):
-    """One half or a list of them in words: "the page", "the page and the page request", "a, b and c"."""
-    found = [reasons()["halves"].get(name) for name in ([names] if isinstance(names, str) else names or ())]
-    found = [word for word in found if word]
-    if len(found) <= 1:
-        return found[0] if found else None
-    return ", ".join(found[:-1]) + " and " + found[-1]
+    """One half or a list of them in words: "the page", "the page and the page request", "a, b, and c"."""
+    return _joined([reasons()["halves"].get(name) for name in ([names] if isinstance(names, str) else names or ())])
 
 
 def duration(seconds):
-    """A gap as the reasons say it: whole minutes from a minute up, whole seconds below; None when not known."""
+    """A gap as the reasons say it: whole minutes from a minute up, whole seconds below, the unit in the number's
+    form ("1 minute", "5 minutes"); None when not known."""
     if seconds is None:
         return None
     units = reasons()["durations"]
-    if seconds >= S_PER_MIN:
-        return units["minutes"].format(n=round(seconds / S_PER_MIN))
-    return units["seconds"].format(n=round(seconds))
+    n, unit = (round(seconds / S_PER_MIN), "minute") if seconds >= S_PER_MIN else (round(seconds), "second")
+    return units[unit if n == 1 else unit + "s"].format(n=n)

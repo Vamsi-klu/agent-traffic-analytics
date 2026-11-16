@@ -20,7 +20,7 @@
   },
   "spans": {
     "closed": "from {from} to {to}",
-    "open": "from {from}"
+    "open": "from {from} onward"
   },
   "turn_kinds": ["indicator"],
   "recorder": {"overlay": "claude-chrome.recorder"},
@@ -60,8 +60,8 @@
       "evidence": "1.0.107's agent-visual-indicator.js: the 'Claude is working here' tag (#claude-page-tag, data-state working), 47 px high, centred at the top edge or, when the agent's next target is under it, at the bottom edge; pointer-events auto; inside the host's closed shadow root. It is shown while the agent works and removed when it stops; for a screenshot it is made transparent, not removed, so that it stays in elementFromPoint. Lab 2026-11-11 (1.0.106): the host, an attribute-less <div> with display: contents under <body>, on 13 of 13 pages. Not yet in a recording of 1.0.107: re-grade after the hand-off recordings (handoff-cic).",
       "sources": ["claude-chrome-1.0.107", "lab"],
       "collisions": "Another extension that draws a clickable mark at the same spot from an attribute-less display: contents host (none known; untested). While the page is hidden the extension draws nothing, and cake.js does not look.",
-      "text": "Claude in Chrome was working {span}",
-      "detail": "Its “working” indicator was on screen {span}."
+      "text": "Claude in Chrome was active {span}",
+      "detail": "Claude in Chrome's “working” indicator appears on the screen {span}."
     },
     "claude-chrome.waiting": {
       "product": "claude-chrome",
@@ -73,7 +73,7 @@
       "sources": ["claude-chrome-1.0.107"],
       "collisions": "At the bottom edge the tag covers the spot of claude-chrome.bottom instead, and this spot sees nothing.",
       "text": "Claude in Chrome was waiting for human input {span}",
-      "detail": "Its waiting indicator was on screen {span}."
+      "detail": "Claude in Chrome's waiting indicator appears on the screen {span}."
     },
     "claude-chrome.bottom": {
       "product": "claude-chrome",
@@ -85,7 +85,7 @@
       "sources": ["claude-chrome-1.0.107"],
       "collisions": "Which of the three marks it was is not known.",
       "text": "Claude in Chrome showed its tab controls {span}",
-      "detail": "Its stop button or tab pill was on screen {span}."
+      "detail": "Claude in Chrome's stop button or tab pill appears on the screen {span}."
     },
     "claude-chrome.page-dom": {
       "product": "claude-chrome",
@@ -96,8 +96,8 @@
       "evidence": "botscent's claude.marker.active: these ids are on the page while the agent acts and gone before the human's first click (measured by botscent on 2026-10-02). From 1.0.105 the extension draws them inside its closed shadow root: lab 2026-11-11, 0 of 4 sessions of 1.0.106.",
       "sources": ["botscent", "agent-detector", "cheq", "lab"],
       "collisions": "A site's own element with one of these ids.",
-      "text": "Claude in Chrome was working {span}",
-      "detail": "Its indicator from an older version was on the page {span}."
+      "text": "Claude in Chrome was active {span}",
+      "detail": "An indicator from an older version of Claude in Chrome appears on the page {span}."
     },
     "claude-chrome.styles": {
       "product": "claude-chrome",
@@ -108,8 +108,8 @@
       "evidence": "CHEQ: the extension adds this <style> element with its stop container, and it stays after the agent stops; agent-detector counts it as weaker evidence than the indicator.",
       "sources": ["cheq", "agent-detector"],
       "collisions": "A site's own element with this id.",
-      "text": "Page styling from an older version of Claude in Chrome was present {span}",
-      "detail": "Its style sheet from an older version was on the page {span}."
+      "text": "A style sheet from an older version of Claude in Chrome was present {span}",
+      "detail": "A style sheet from an older version of Claude in Chrome is on the page {span}."
     },
     "comet.overlay": {
       "product": "comet",
@@ -120,8 +120,8 @@
       "evidence": "agent-detector's catalogue (#pplx-agent-overlay-stop-button, and any id starting with pplx-agent, which the selector covers; it cites Castle's research and the MIT AI Agent Index), which lists the stop button among Comet's traces. Not measured by us.",
       "sources": ["agent-detector"],
       "collisions": "A site's own element whose id starts with pplx-agent.",
-      "text": "Comet's agent was working {span}",
-      "detail": "Comet's agent overlay was on the page {span}."
+      "text": "Comet's agent was active {span}",
+      "detail": "Comet's agent overlay appears on the page {span}."
     },
     "chatgpt-chrome.badge": {
       "product": "chatgpt-chrome",
@@ -132,8 +132,8 @@
       "evidence": "botscent's chatgpt.badge.active: ChatGPT for Chrome badges the page's icon while it works (71 samples in 17 documents, botscent's measurement). Not measured by us.",
       "sources": ["botscent"],
       "collisions": "None known.",
-      "text": "ChatGPT for Chrome was working {span}",
-      "detail": "Its activity badge was on the page's icon {span}."
+      "text": "ChatGPT for Chrome was active {span}",
+      "detail": "The ChatGPT for Chrome activity badge appears on the page's icon {span}."
     },
     "fellou.highlight": {
       "product": "fellou",
@@ -145,7 +145,7 @@
       "sources": ["agent-detector"],
       "collisions": "A site's own element with this id.",
       "text": "Fellou's highlight was visible on the page {span}",
-      "detail": "Fellou's highlight was on the page {span}."
+      "detail": "Fellou's highlight appears on the page {span}."
     },
     "browser-use.highlight": {
       "product": "browser-use",
@@ -157,7 +157,7 @@
       "sources": ["browser-use", "agent-detector"],
       "collisions": "None known.",
       "text": "Browser Use's highlight was visible on the page {span}",
-      "detail": "Browser Use's highlight was on the page {span}."
+      "detail": "Browser Use's highlight appears on the page {span}."
     },
     "stagehand.overlay": {
       "product": "stagehand",
@@ -168,8 +168,8 @@
       "evidence": "agent-detector's catalogue, from Stagehand's source (its cursor overlay and its masks).",
       "sources": ["agent-detector"],
       "collisions": "None known.",
-      "text": "Stagehand was working {span}",
-      "detail": "Stagehand's cursor overlay was on the page {span}."
+      "text": "Stagehand was active {span}",
+      "detail": "Stagehand's cursor overlay appears on the page {span}."
     },
     "skyvern.overlay": {
       "product": "skyvern",
@@ -181,7 +181,7 @@
       "sources": ["agent-detector"],
       "collisions": "A site's own element with the id boundingBoxContainer.",
       "text": "Skyvern's boxes were visible on the page {span}",
-      "detail": "Skyvern's boxes were on the page {span}."
+      "detail": "Skyvern's boxes appear on the page {span}."
     },
     "claude-chrome.recorder": {
       "product": "claude-chrome",
@@ -192,8 +192,8 @@
       "evidence": "The recorder's raw.js hit-tests the middle of the viewport 12 px from the top and 12 px and 36 px from the bottom every 250 ms and counts a hit on an attribute-less <div> under <body>: 1.0.107's working tag at either edge (claude-chrome.working) and, 36 px from the bottom, also its Stop button, the tab pill and the 'needs your input' tag at the bottom edge (part of claude-chrome.bottom). Only in the recorder's recordings; cake.js watches the marks of 'page'.",
       "sources": ["recorder", "claude-chrome-1.0.107"],
       "collisions": "The tab pill shows while the tab is shared with Claude, working or not, and the 'needs your input' tag while it waits for the human: at the bottom edge both count as lit here. The recorder flags a hand-off whose human stretch had the indicator lit.",
-      "text": "Claude in Chrome was working {span}",
-      "detail": "The recorder saw its indicator {span}."
+      "text": "Claude in Chrome was active {span}",
+      "detail": "The Claude in Chrome indicator appears in the recording {span}."
     },
     "skyvern.ids": {
       "product": "skyvern",
@@ -204,8 +204,8 @@
       "evidence": "agent-detector's catalogue: Skyvern puts a unique_id attribute on the elements it reads; agent-detector counts it as weaker evidence than its overlay.",
       "sources": ["agent-detector"],
       "collisions": "A site's own unique_id attribute.",
-      "text": "Skyvern's marks were on the page {span}",
-      "detail": "Skyvern's element IDs were on the page {span}."
+      "text": "Skyvern's element IDs were on the page {span}",
+      "detail": "Skyvern's element IDs are on the page {span}."
     }
   }
 }

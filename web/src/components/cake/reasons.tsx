@@ -28,7 +28,7 @@ const toneClass = { agent: "text-agent-foreground", human: "text-human-foregroun
  *  it is that an agent took part. */
 function LayerState({ layer: { state, percent } }: { layer: LayerReasons }) {
   if (state === "no_hit") return <Badge variant="tag">No findings</Badge>
-  if (state === "off") return <Badge variant="tag">Off here</Badge>
+  if (state === "off") return <Badge variant="tag">Not used</Badge>
   return <WhoBadge who={state} percent={percent} />
 }
 

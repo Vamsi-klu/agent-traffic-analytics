@@ -20,6 +20,7 @@ import statistics
 
 from agentcake.detect import verdict
 from agentcake.evaluation import evidence as evidence_builder, scoring, splice
+from agentcake.evaluation.stats import median, tally
 
 VIEWS = ("model", "verdict")
 WHOLE_CLASSES = ("agent", "human")
@@ -82,7 +83,7 @@ def summary(rows, view, limit_s):
     scored = [r[view] for r in rows if r.get(view) and r[view]["n"]]
     in_mixed = [r[view] for r in rows if r["class"] == MIXED and r.get(view) and r[view]["n"]]
     return {"sessions": len(rows), "scored": len(scored), "actions": sum(s["n"] for s in scored),
-            "classes": _count(r["class"] for r in rows),
+            "classes": tally(r["class"] for r in rows),
             "accuracy_decided": scoring.summary([s["accuracy_decided"] for s in scored]),
             "share_error_pp": scoring.summary([s["share_error_pp"] for s in scored]),
             **_handoffs(scored, limit_s),
@@ -110,8 +111,8 @@ def _median_counting_misses(errors):
     the median is a miss, so over any limit, or when there is no error at all."""
     if not errors:
         return None
-    median = statistics.median([math.inf if e is None else e for e in errors])
-    return None if math.isinf(median) else median
+    middle = statistics.median([math.inf if e is None else e for e in errors])
+    return None if math.isinf(middle) else middle
 
 
 def by_pattern(rows, view):
@@ -121,18 +122,6 @@ def by_pattern(rows, view):
         members = [r[view] for r in rows if r.get("pattern") == name and r.get(view)]
         errors = [e for m in members for e in m["handoff_errors_s"] if e is not None]
         out[name] = {"splices": len(members),
-                     "share_error_pp_median": _median([m["share_error_pp"] for m in members]),
-                     "handoff_error_s_median": _median(errors)}
-    return out
-
-
-def _median(values):
-    values = [v for v in values if v is not None]
-    return statistics.median(values) if values else None
-
-
-def _count(values):
-    out = {}
-    for value in values:
-        out[value] = out.get(value, 0) + 1
+                     "share_error_pp_median": median([m["share_error_pp"] for m in members]),
+                     "handoff_error_s_median": median(errors)}
     return out

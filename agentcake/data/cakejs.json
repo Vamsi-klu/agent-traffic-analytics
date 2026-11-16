@@ -36,6 +36,11 @@
         "sha256": "ed094ea321235eddfeba07e46694ca2bab8c33b6db2c4b37f48cab306f70065b"
       },
       {"file": "static/src/util.js", "wrap": "scoped"},
+      {"file": "static/src/session.js", "wrap": "scoped"},
+      {"file": "static/src/visitor.js", "wrap": "scoped"},
+      {"file": "static/src/identify.js", "wrap": "scoped"},
+      {"file": "static/src/source.js", "wrap": "scoped"},
+      {"file": "static/src/navigation.js", "wrap": "scoped"},
       {"file": "static/src/schedule.js", "wrap": "scoped"},
       {"file": "static/src/transport.js", "wrap": "scoped"},
       {"file": "static/src/edge_token.js", "wrap": "scoped"},
@@ -55,7 +60,46 @@
     "attr": {"site": "data-site", "consent": "data-consent"},
     "consent": {"required": "required", "commands": {"start": "start", "stop": "stop"}},
     "defaults": {"hook_dom": false, "hide_selectors": ""},
-    "storage": {"session": "cake_sid", "page_number": "cake_pn", "pending": "cake_pending", "frames_done": "cake_frames"},
+    "storage": {"session": "cake_sid", "clock": "cake_clock", "page_number": "cake_pn", "pending": "cake_pending",
+                "frames_done": "cake_frames", "visitor": "cake_vid"},
+    "session": {
+      "$comment": "How a tab's session is cut (session.js; the collector applies the same rules, session_split.py): PostHog's time rules (posthog-js packages/browser/src/sessionid.ts: DEFAULT_SESSION_IDLE_TIMEOUT_SECONDS 30 minutes, SESSION_LENGTH_LIMIT_MILLISECONDS 24 hours). Activity is what PostHog counts: its recorder's ACTIVE_SOURCES (lazy-loaded-session-recorder.ts: MouseMove, MouseInteraction, Scroll, ViewportResize, Input, TouchMove, MediaInteraction, Drag), as the raw input records that stand for them (activity_raw; a geometry record whose why is in activity_geo), and a page view, a page load or a new path (activity_signals). The clock is written to sessionStorage at most every persist_every_ms, and when the page is left. record: the signal record that begins a new session on a page, with why it began.",
+      "idle_ms": 1800000,
+      "max_ms": 86400000,
+      "persist_every_ms": 1000,
+      "activity_raw": ["pointermove", "mousemove", "pointerdown", "pointerup", "mousedown", "mouseup", "click",
+                       "dblclick", "contextmenu", "focus", "blur", "touchstart", "touchend", "scroll", "input", "change"],
+      "activity_geo": ["resize"],
+      "activity_signals": ["page", "path"],
+      "record": "session",
+      "why": {"idle": "idle", "max": "max", "reset": "reset"},
+      "flush_why": "session"
+    },
+    "navigation": {
+      "$comment": "A single-page app's page view (navigation.js): the record cake.js sends when location.pathname changes within a page load, as posthog-js counts a $pageview (capture_pageview 'history_change': the path, not the query string or the fragment).",
+      "record": "path"
+    },
+    "visitor": {
+      "$comment": "The visitor id (visitor.js): kept in localStorage for max_age_ms after its last use, as PostHog's anonymous id is kept for cookie_expiration 365 days (posthog-js posthog-core.ts).",
+      "max_age_ms": 31536000000
+    },
+    "identify": {
+      "$comment": "window.cake.identify(id) and window.cake.reset() (identify.js), as posthog-js's identify() and reset() (posthog-core.ts). The browser sends only algorithm(site key + separator + id) in hexadecimal (the header's idh), never the id. An id is a non-empty string or a number, and not one of refused (posthog-js's _validateIdentifyId and isDistinctIdStringLike: placeholders, compared ignoring case). commands: the names a queued call (window.cake.push) uses. fault: where cake.js notes why an identify() did nothing (an 'err' record), with not_an_id or no_crypto as the message, never the value.",
+      "algorithm": "SHA-256",
+      "separator": ":",
+      "refused": ["undefined", "null", "distinct_id", "distinctid"],
+      "commands": {"identify": "identify", "reset": "reset"},
+      "fault": "identify",
+      "not_an_id": "identify() needs a non-empty string or a number as the id",
+      "no_crypto": "identify() needs the browser's SubtleCrypto (a page on https or localhost)"
+    },
+    "source": {
+      "$comment": "Where a page view came from (source.js), as posthog-js event-utils.ts reads it: the campaign parameters PostHog's channel rules read (CAMPAIGN_PARAMS: the five UTM parameters and gad_source), each value cut to max_chars, and the ad-click parameters whose presence only is sent (PERSONAL_DATA_CAMPAIGN_PARAMS).",
+      "campaign": ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "gad_source"],
+      "click_ids": ["gclid", "gclsrc", "dclid", "gbraid", "wbraid", "fbclid", "msclkid", "twclid", "li_fat_id", "igshid",
+                    "ttclid", "rdt_cid", "epik", "qclid", "sccid", "oppref", "bfcid", "irclid", "_kx"],
+      "max_chars": 200
+    },
     "id_bytes": 16,
     "time_precision": 10,
     "idle_timeout_ms": 1000,

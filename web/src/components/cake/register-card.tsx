@@ -1,5 +1,5 @@
 // The registration card the local dashboard shows before anything else until this AgentCake has registered
-// (DESIGN.md §6.6). Its words are in src/lib/registration.ts. "See what is sent" shows the exact JSON the
+// (DESIGN.md §6.6). Its words are in src/lib/registration.ts. "View registration data" shows the exact JSON the
 // button posts; the button stays off until the email address passes cake's check. The page that shows the card does
 // the asking (pages/register.tsx) and tells it how the last press went: being sent, not sent (say why, then Continue:
 // no retry, the card asks again next time), or refused for what was typed (say why, keep the form).
@@ -24,7 +24,7 @@ export type RegisterOutcome =
 export function RegisterCard({ rules, outcome, onRegister, onContinue, initial }: {
   rules: RegistrationRules
   outcome: RegisterOutcome
-  /** Called once per press with the text to post, the same text "See what is sent" shows. */
+  /** Called once per press with the text to post, the same text "View registration data" shows. */
   onRegister: (body: string) => void
   /** After a registration that wasn't sent: into the dashboard anyway. */
   onContinue: () => void
@@ -46,7 +46,7 @@ export function RegisterCard({ rules, outcome, onRegister, onContinue, initial }
   const hintShown = touched && fields.email.trim() !== "" && !valid
   return (
     <div className="mx-auto flex w-full max-w-xl flex-col items-center gap-4">
-      <Crumb pose="wave" className="w-28" title="Crumb waves hello" />
+      <Crumb pose="wave" className="w-28" />
       <Card className="w-full">
         <CardContent className="flex flex-col gap-5">
           <div className="flex flex-col gap-1">

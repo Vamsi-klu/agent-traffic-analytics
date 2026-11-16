@@ -22,7 +22,7 @@ function dist(files) {
 
 test("the marks are every sample session id and the sample sessions' sentences", () => {
   const marks = sampleMarks(CONTRACT.fixtureDir)
-  for (const mark of ["7f3a-c1", "a91e-07", "90d4-7b", "A human, then Claude in Chrome, then the human again", "6e0f-13", "Codex browser, the whole way"]) {
+  for (const mark of ["7f3a-c1", "a91e-07", "90d4-7b", "A human, then Claude in Chrome, then the human again", "6e0f-13", "Codex in-app browser, the whole way"]) {
     assert.ok(marks.includes(mark), mark)
   }
   assert.ok(!marks.includes("Select size M"), "short strings could be ordinary interface text")

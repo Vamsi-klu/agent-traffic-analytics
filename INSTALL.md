@@ -1,6 +1,6 @@
 # Installing AgentCake: instructions for an AI coding assistant
 
-You are installing **AgentCake 0.4.1** for the user. AgentCake does AI agent traffic analytics for a website: for
+You are installing **AgentCake 0.4.2** for the user. AgentCake does AI agent traffic analytics for a website: for
 each visit it shows whether a human, an AI agent or a bot was acting, and when a human and an agent took turns, with
 the replay and the reasons. It runs only on this computer (macOS or Linux): one program and one small database in
 `~/.cake`, and a **local page** at `http://127.0.0.1:7878/`. The first time the user opens it, it asks them to register,
@@ -8,6 +8,8 @@ then shows them how to connect their website. The command is `agentcake`.
 
 How to work:
 
+- **Answer in the user's language.** Everything you tell the user, from your first message to your last, is in the
+  language they wrote to you in, even though these instructions are in English.
 - **One command per step**, as written. Do not chain commands with `&&`, `;` or `|`, and do not set variables
   (`NAME=value`): approval rules match a command by how it starts, so plain commands need the fewest approvals.
 - After each step, do its **Check**. If a check fails, stop and tell the user what failed; do not skip it.
@@ -17,7 +19,7 @@ How to work:
 
 ## Step 1. Choose how to install
 
-If you are already in AgentCake's own folder (its source, or the unpacked release folder `agentcake-0.4.1/`), skip
+If you are already in AgentCake's own folder (its source, or the unpacked release folder `agentcake-0.4.2/`), skip
 to step 4: the command is that folder's `bin/agentcake`, by its full path (it needs `python3` 3.11 or newer).
 
 Otherwise, look for uv:
@@ -41,23 +43,23 @@ start again at step 1:
 
 ## Step 2. Download the release and check it
 
-The release page is https://github.com/tartini-ai/agent-traffic-analytics/releases/tag/v0.4.1
+The release page is https://github.com/tartini-ai/agent-traffic-analytics/releases/tag/v0.4.2
 If the user gave you another release page for this version, download the same files from there. First the checksums:
 
 ```sh
-curl -fsSLO https://github.com/tartini-ai/agent-traffic-analytics/releases/download/v0.4.1/SHA256SUMS
+curl -fsSLO https://github.com/tartini-ai/agent-traffic-analytics/releases/download/v0.4.2/SHA256SUMS
 ```
 
 Route A, the wheel:
 
 ```sh
-curl -fsSLO https://github.com/tartini-ai/agent-traffic-analytics/releases/download/v0.4.1/agentcake-0.4.1-py3-none-any.whl
+curl -fsSLO https://github.com/tartini-ai/agent-traffic-analytics/releases/download/v0.4.2/agentcake-0.4.2-py3-none-any.whl
 ```
 
 Route B, the one-file version:
 
 ```sh
-curl -fsSLO https://github.com/tartini-ai/agent-traffic-analytics/releases/download/v0.4.1/agentcake.pyz
+curl -fsSLO https://github.com/tartini-ai/agent-traffic-analytics/releases/download/v0.4.2/agentcake.pyz
 ```
 
 **Private preview.** While the repository is private, these addresses need a GitHub sign-in: curl stops with
@@ -71,7 +73,7 @@ gh auth status
 If it is, download every file of the release into this folder:
 
 ```sh
-gh release download v0.4.1 --repo tartini-ai/agent-traffic-analytics
+gh release download v0.4.2 --repo tartini-ai/agent-traffic-analytics
 ```
 
 If `gh` is missing or not signed in, **ASK** the user to set it up in their own terminal, signed in to an account
@@ -104,7 +106,7 @@ do not install or run it: tell the user the download does not match the release.
 Route A:
 
 ```sh
-uv tool install --python 3.14 ./agentcake-0.4.1-py3-none-any.whl
+uv tool install --python 3.14 ./agentcake-0.4.2-py3-none-any.whl
 ```
 
 uv installs the `agentcake` command in its own folder for tools, and downloads Python 3.14 if this computer has none
@@ -125,7 +127,7 @@ example `python3 /Users/<name>/agentcake/agentcake.pyz`. Leave the file where it
 **From here on, `agentcake` in a command stands for that full command.** Write it out in full every time, also where
 AgentCake's own messages say just `agentcake`.
 
-**Check:** `agentcake --version` prints `agentcake 0.4.1`.
+**Check:** `agentcake --version` prints `agentcake 0.4.2`.
 
 ## Step 4. Start AgentCake
 
@@ -134,7 +136,7 @@ agentcake start
 ```
 
 It runs AgentCake in the background on 127.0.0.1 (port 7878) and prints the local page's address. If it says
-AgentCake is already running, run `agentcake status`: its `"version"` should be `0.4.1`. An older version is an
+AgentCake is already running, run `agentcake status`: its `"version"` should be `0.4.2`. An older version is an
 earlier install using the same data folder: **ASK** the user before you stop it with `agentcake stop`, then start
 again. Its visits stay, and this version reads them.
 
@@ -161,9 +163,9 @@ It prints the local page's address and what to tell the user. Tell the user, in 
 
 1. **Open the local page** at the address it printed (`http://127.0.0.1:7878/` unless the port was changed).
 2. **Registering is theirs to do.** The first time they open the local page, AgentCake asks them to register: e-mail
-   address required, company optional, sent to Tartini AI only when they press "Register & Continue"
+   address required, company optional, sent to Tartini AI only when they press "Register and continue"
    ([`PRIVACY.md`](PRIVACY.md)). Give them the page's address and nothing more: never fill in their e-mail address,
-   never press "Register & Continue" for them, and do not open the page in a browser yourself to do it. The page
+   never press "Register and continue" for them, and do not open the page in a browser yourself to do it. The page
    script, collecting visits and the command line work without registering.
 3. **Then the page shows how to connect their website**, step by step: its address, where AgentCake runs (this
    computer, for a site that runs on it; for a public website, AgentCake on a server the site can reach:
@@ -199,11 +201,16 @@ Change nothing else: no formatting, no other files, no installs beyond the ones 
   yourself, note its process ID; when you are done, stop only that process (`kill <PID>`), never by port or name:
   other programs on this computer may be the user's.
 - Run `agentcake doctor` again. A FAIL line names what is missing (the page script, the middleware); fix only that.
+- **Signed-in visitors**, only if the user asks: where the site's sign-in succeeds, add
+  `window.cake.identify(<the site's own ID for the visitor>)`, and where it signs out, `window.cake.reset()`. Use an ID
+  that is hard to guess, never an e-mail address or a number that counts up: the browser sends only a hash of it
+  ([`PRIVACY.md`](PRIVACY.md), "Counting a signed-in visitor once").
 
 Then tell the user, in their language, what is left for them: deploying the site change; for visitors of a public
 website, AgentCake has to run on a server the website can reach, since their browsers cannot reach 127.0.0.1 on this
-computer ([`SERVER.md`](SERVER.md)); and mentioning session recording in the site's privacy notice
-([`docs/privacy-notice-template.md`](docs/privacy-notice-template.md)).
+computer ([`SERVER.md`](SERVER.md)); mentioning session recording in the site's privacy notice
+([`docs/privacy-notice-template.md`](docs/privacy-notice-template.md)); and, if the site has sign-in, that AgentCake can
+count each signed-in visitor once across browsers and devices (above).
 
 ## If you run in a sandbox
 

@@ -38,6 +38,27 @@ export async function startApp() {
   }
 }
 
+/** How each agent avatar under `locator` is drawn: its body's outline (which blob) and its fill, as the browser paints
+ *  them. */
+export const avatarLooks = (locator) => locator.locator("svg.avatar").evaluateAll((avatars) => avatars.map((avatar) => {
+  const body = avatar.querySelector('path[class^="f-avatar"]')
+  return { d: body.getAttribute("d"), fill: getComputedStyle(body).fill }
+}))
+
+/** The grey Bot and Unknown use (--unsure), as the browser paints it. */
+export const unsureGrey = (page) => page.evaluate(() => {
+  const probe = document.createElement("span")
+  probe.style.color = "var(--unsure)"
+  document.body.append(probe)
+  const grey = getComputedStyle(probe).color
+  probe.remove()
+  return grey
+})
+
+/** Once a scroll has landed: the browser tells the page about a scroll on the next frame, and a tooltip open by then
+ *  closes on it (Radix closes tooltips on scroll), so a test focuses a trigger only after this. */
+export const scrolled = (page) => page.evaluate(() => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done))))
+
 /** A fresh tab at `width` (light, still: reduced motion), with every request it makes noted. */
 export async function openTab(app, { width = 1280 } = {}) {
   const context = await app.browser.newContext({ viewport: { width, height: 900 }, colorScheme: "light", reducedMotion: "reduce" })

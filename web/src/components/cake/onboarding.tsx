@@ -1,5 +1,5 @@
 // "No data yet" layout used by every empty state: two columns, PostHog-style structure, Frosting look.
-// Left: mascot, title, lead, the numbered steps (OnboardingStep). Right: example preview.
+// Left: mascot, title, the ways to connect and their steps (OnboardingStep). Right: example preview.
 // DESIGN.md §6 (empty states)
 import type { ReactNode } from "react"
 import { Badge } from "@/components/ui/badge"
@@ -12,18 +12,16 @@ import { Legend } from "./verdict"
 
 type Example = Setup["example"]
 
-export function OnboardingLayout({ status, title, lead, note, example, children }: {
-  status: ReactNode; title: string; lead: string; note: string; example: Example; children: ReactNode
+export function OnboardingLayout({ status, title, example, children }: {
+  status: ReactNode; title: string; example: Example; children: ReactNode
 }) {
   return (
     <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,11fr)_minmax(0,9fr)]">
       <section className="flex flex-col gap-6">
-        <Crumb pose="wave" className="w-36" title="Crumb waves hello" />
+        <Crumb pose="wave" className="w-36" />
         <div className="flex flex-col gap-2">
           <div>{status}</div>
           <h1 className="text-4xl font-semibold">{title}</h1>
-          <p className="text-lg leading-snug font-extrabold">{lead}</p>
-          <p className="text-sm text-muted-foreground">{note}</p>
         </div>
         {children}
       </section>
@@ -32,11 +30,12 @@ export function OnboardingLayout({ status, title, lead, note, example, children 
   )
 }
 
-/** One numbered step of the onboarding: its number, its title and what to do. */
-export function OnboardingStep({ n, title, children }: { n: number; title: string; children: ReactNode }) {
+/** One step of the onboarding: its number (none for a step that ends every way of connecting), its title and what to
+ *  do. id names its heading. */
+export function OnboardingStep({ n, id = `step-${n}`, title, children }: { n?: number; id?: string; title: string; children: ReactNode }) {
   return (
-    <section className="flex flex-col gap-2" aria-labelledby={`step-${n}`}>
-      <h2 id={`step-${n}`} className="flex items-center gap-2 text-xl font-semibold"><Badge variant="tag">{n}</Badge>{title}</h2>
+    <section className="flex flex-col gap-2" aria-labelledby={id}>
+      <h2 id={id} className="flex items-center gap-2 text-xl font-semibold">{n !== undefined && <Badge variant="tag">{n}</Badge>}{title}</h2>
       {children}
     </section>
   )
@@ -51,17 +50,17 @@ export function OrSeparator() {
 }
 
 /** What the lists will look like, from /api/setup's example (always labelled "example data"). */
-export function ExamplePreview({ example, title = "Your sessions, once connected" }: { example: Example; title?: string }) {
+export function ExamplePreview({ example, title = "Preview of your sessions" }: { example: Example; title?: string }) {
   return (
-    <Card variant="sunk" className="lg:sticky lg:top-20" aria-label={`${title} (example data)`}>
+    <Card variant="sunk" className="lg:sticky lg:top-20" aria-label={`${title} (sample data)`}>
       <CardContent className="flex flex-col gap-3">
-        <div className="flex items-center justify-between gap-2"><h3 className="text-lg font-semibold">{title}</h3><Badge variant="tag">Example data</Badge></div>
+        <div className="flex items-center justify-between gap-2"><h3 className="text-lg font-semibold">{title}</h3><Badge variant="tag">Sample data</Badge></div>
         <div className="pointer-events-none flex flex-col gap-2">
           {example.sessions.map((s) => <SessionRow key={s.id} s={s} compact />)}
         </div>
         <Card variant="flat" size="sm">
           <CardContent className="flex flex-col gap-1">
-            <div className="flex flex-wrap items-center justify-between gap-2"><b className="text-sm">Who acted, when</b><Legend /></div>
+            <div className="flex flex-wrap items-center justify-between gap-2"><b className="text-sm">Activity timeline</b><Legend /></div>
             <SessionTimeline {...timelineView(example.timeline, { compact: true })} />
           </CardContent>
         </Card>

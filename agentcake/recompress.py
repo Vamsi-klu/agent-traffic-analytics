@@ -9,12 +9,11 @@ store.LOCK; the lock is taken only to append the new chunk and swap the rows, an
 left for the next night.
 
 reclaim(con, now_ms) gives the space of dropped or replaced chunks back: a file no chunk points into is deleted; a
-file at least compact_min_dead_share dead (with every_dead, any file with dead bytes: after freeing for the disk's
-floor, space.py) has its live chunks copied, unchanged, into the current hour's file and is deleted; then
-styles.gc_styles() drops stylesheets no chunk refers to. The current hour's file is never touched. The caller holds
+file at least compact_min_dead_share dead has its live chunks copied, unchanged, into the current hour's file and is
+deleted; then styles.gc_styles() drops stylesheets no chunk refers to. The current hour's file is never touched. The caller holds
 store.LOCK and has committed; reclaim commits after moving each file's chunks, before deleting it. maintenance.py
 runs both at night, and space.reclaim_if_due() runs reclaim() at its next round, by day too, once chunks were dropped
-(space freed, a retention). chunk_files(root) lists the chunk files and their sizes (space.dead_bytes too).
+(space freed, a retention). chunk_files(root) lists the chunk files and their sizes.
 """
 import os
 from collections import namedtuple
@@ -61,14 +60,14 @@ def recompress_session(con, session_id, now_ms, cfg=SETTINGS):
     return 1
 
 
-def reclaim(con, now_ms, cfg=SETTINGS, every_dead=False):
-    """Delete or rewrite chunk files with dead space (every_dead: any dead byte, else at least compact_min_dead_share
-    of the file); returns {deleted, compacted, freed_bytes, styles}."""
+def reclaim(con, now_ms, cfg=SETTINGS):
+    """Delete or rewrite chunk files with dead space (at least compact_min_dead_share of the file); returns {deleted,
+    compacted, freed_bytes, styles}."""
     if con.in_transaction:
         raise RuntimeError("commit the dropped chunks before reclaim(): their files are deleted from committed state")
     live = {f: size for f, size in con.execute("SELECT file, SUM(byte_length) FROM chunks GROUP BY file")}
     current, root = replay_chunks.file_for(now_ms), replay_chunks.replay_dir(cfg)
-    share = 0 if every_dead else cfg["compact_min_dead_share"]
+    share = cfg["compact_min_dead_share"]
     result = {"deleted": 0, "compacted": 0, "freed_bytes": 0}
     for rel, size in list(chunk_files(root)):  # listed first: moving chunks adds to the current hour's file
         if rel == current:

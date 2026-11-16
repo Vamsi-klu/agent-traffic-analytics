@@ -52,7 +52,8 @@ class LocalHandler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         u = urlsplit(self.path)
-        request = Request(u.path, parse_qs(u.query), self.headers)
+        # A parameter sent empty stays: an empty key is a value of its own (api/sessions.py: no referrer, Direct).
+        request = Request(u.path, parse_qs(u.query, keep_blank_values=True), self.headers)
         return self.send(answer(routes.LOCAL, "GET", request))
 
     def do_POST(self):

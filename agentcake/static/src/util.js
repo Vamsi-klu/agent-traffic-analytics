@@ -42,15 +42,19 @@ C.safe = function (fn) {
   }
 }
 
-/** A random hexadecimal id for a visit or a page view. Nothing about the device or the time goes into it. */
-C.randomId = function () {
-  if (window.crypto && crypto.randomUUID) return crypto.randomUUID().replace(/-/g, '')
-  var bytes = crypto.getRandomValues(new Uint8Array(CFG.id_bytes))
+/** Bytes (a Uint8Array) as lowercase hexadecimal digits, two per byte. */
+C.hex = function (bytes) {
   return Array.prototype.map
     .call(bytes, function (b) {
       return b.toString(HEX_RADIX).padStart(HEX_DIGITS_PER_BYTE, '0')
     })
     .join('')
+}
+
+/** A random hexadecimal id for a visit or a page view. Nothing about the device or the time goes into it. */
+C.randomId = function () {
+  if (window.crypto && crypto.randomUUID) return crypto.randomUUID().replace(/-/g, '')
+  return C.hex(crypto.getRandomValues(new Uint8Array(CFG.id_bytes)))
 }
 
 // sessionStorage can be missing or throw (private windows, storage turned off). Then cake.js keeps working without

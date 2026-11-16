@@ -24,8 +24,8 @@ const segName: Record<SegKind, string> = { h: TAXONOMY.verdicts.human.label, a: 
 /** How far an arrow key moves the replay. */
 const KEY_STEP_MS = 5000
 /** Hand-off labels closer than this share of the timeline would touch at the narrowest width (485 px): the later one
- *  takes the other row. */
-const LABEL_ROOM_PCT = 45
+ *  takes the other row. ("Hand-off to agent 0:38" is a little longer than the earlier "Agent takes over 0:38".) */
+const LABEL_ROOM_PCT = 50
 
 /** A length or position as a percent of a session (ms × 100 first, so whole percents stay exact). */
 export const pctOf = (ms: number, totalMs: number) => (totalMs > 0 ? (ms * 100) / totalMs : 0)
@@ -82,7 +82,8 @@ export function segsFrom(human: number, agent: number, unsure: number, segs?: Se
 
 /** Small segmented bar. With spans: a row's timeline, each stretch at its place in the session with the gaps between
  *  them (spansOf), read aloud by time (label: timeLabel); without: an actor's share of the actions in time order of
- *  who acts first (segs, the session page's share bar), read as those shares. */
+ *  who acts first (segs, the session page's share bar), read as those shares. The label is the bar's text for screen
+ *  readers only (DESIGN.md §11), no hover box: the rows show who acted where, the session page writes the shares. */
 export function MiniTimeline({ human = 0, agent = 0, unsure = 0, segs, spans, label: given, size = "sm", className }: {
   human?: number; agent?: number; unsure?: number; segs?: Seg[]; spans?: Span[]; label?: string; size?: "sm" | "lg"; className?: string
 }) {
@@ -90,13 +91,13 @@ export function MiniTimeline({ human = 0, agent = 0, unsure = 0, segs, spans, la
   const frame = cn("w-full min-w-20 overflow-hidden rounded-full border-2 border-line bg-card", size === "lg" ? "h-7" : "h-3.5", className)
   if (spans) {
     return (
-      <div role="img" aria-label={label} title={label} className={cn("relative", frame)}>
+      <div role="img" aria-label={label} className={cn("relative", frame)}>
         {spans.map((s, i) => <i key={i} className={cn("absolute inset-y-0 block", segClass[s.kind])} style={{ left: `${s.left}%`, width: `${s.width}%` }} />)}
       </div>
     )
   }
   return (
-    <div role="img" aria-label={label} title={label} className={cn("flex gap-0.5", frame)}>
+    <div role="img" aria-label={label} className={cn("flex gap-0.5", frame)}>
       {segsFrom(human, agent, unsure, segs).map((s, i) => (
         <i key={i} className={cn("block h-full", segClass[s.kind])} style={{ width: `${s.pct}%` }} />
       ))}
@@ -108,7 +109,8 @@ export function MiniTimeline({ human = 0, agent = 0, unsure = 0, segs, spans, la
 export type TimelineSeek = { durationMs: number; valueMs: number; valueText: string; onSeek: (ms: number) => void }
 
 /** Replay timeline: segments + hand-off markers + playhead, positions as % of the session. With `seek` it is the
- *  replay's position control. */
+ *  replay's position control, which says who acts at its position (valueText). The segments' colours are the verdicts',
+ *  named by the legend beside the timeline: no hover box on them. */
 export function SessionTimeline({ spans, handoffs, playhead, ticks, seek }: {
   spans: Span[]; handoffs: HandoffMark[]; playhead?: number; ticks: string[]; seek?: TimelineSeek
 }) {
@@ -148,7 +150,7 @@ export function SessionTimeline({ spans, handoffs, playhead, ticks, seek }: {
         <div ref={bar} {...control} data-timeline-bar=""
           className={cn("relative h-9 touch-none overflow-hidden rounded-xl border-2 border-line bg-card", seek && "cursor-pointer outline-none focus-visible:ring-3 focus-visible:ring-ring/50")}>
           {spans.map((s, i) => (
-            <div key={i} title={segName[s.kind]} data-segment={s.kind}
+            <div key={i} data-segment={s.kind}
               className={cn("absolute inset-y-0", segClass[s.kind], i > 0 && "border-l-2 border-card")} style={{ left: `${s.left}%`, width: `${s.width}%` }} />
           ))}
           {playhead !== undefined && <span aria-hidden data-playhead="" className="absolute inset-y-0 w-1 -translate-x-1/2 rounded-sm bg-foreground" style={{ left: `${playhead}%` }} />}

@@ -8,8 +8,11 @@ llmstxt.org's format) and the questions page (docs/FAQ.md) are checked so that t
 one address for private reports, README's; every `agentcake` command they show is one the command line lists; every
 link to a file of the repository exists, llms.txt's at this release's tag; CHANGELOG's newest entry is this version;
 every question on the FAQ page is a heading that ends with "?"; each issue form has GitHub's required keys and warns
-against pasting visitors' data; the social preview is the size GitHub asks for.
+against pasting visitors' data; the social preview is the size GitHub asks for. No published document (README and its
+translation included) offers as an agent AgentCake recognizes a product it only watches the marks of: no list entry
+names those, so their sessions are Unnamed.
 """
+import json
 import glob
 import os
 import re
@@ -21,8 +24,8 @@ TESTS = os.path.dirname(os.path.abspath(__file__))
 sys.path[:0] = [os.path.dirname(TESTS), TESTS]
 from agentcake.wording import product  # noqa: E402  (needs the path above)
 from cake_server import ROOT, read  # noqa: E402
-from test_install_docs import (INSTALL_MD, LINK, README_MD, command_words, documented_commands, listed_forms,
-                               release_tag, repositories, section)
+from test_install_docs import (INSTALL_MD, LINK, README_MD, README_ZH, command_words, documented_commands,
+                               listed_forms, release_tag, repositories, section)
 
 SECURITY_MD = os.path.join(ROOT, "SECURITY.md")
 CONTRIBUTING_MD = os.path.join(ROOT, "CONTRIBUTING.md")
@@ -30,11 +33,19 @@ CODE_OF_CONDUCT_MD = os.path.join(ROOT, "CODE_OF_CONDUCT.md")
 CHANGELOG_MD = os.path.join(ROOT, "CHANGELOG.md")
 LLMS_TXT = os.path.join(ROOT, "llms.txt")
 FAQ_MD = os.path.join(ROOT, "docs", "FAQ.md")
+EVAL_README = os.path.join(ROOT, "eval", "README.md")
 PULL_REQUEST_TEMPLATE = os.path.join(ROOT, ".github", "pull_request_template.md")
 ISSUE_TEMPLATES = os.path.join(ROOT, ".github", "ISSUE_TEMPLATE")
 ISSUE_CONFIG = os.path.join(ISSUE_TEMPLATES, "config.yml")
 SOCIAL_PREVIEW = os.path.join(ROOT, "docs", "assets", "readme", "social-preview.png")
 MARKDOWN = (SECURITY_MD, CONTRIBUTING_MD, CODE_OF_CONDUCT_MD, CHANGELOG_MD, FAQ_MD, PULL_REQUEST_TEMPLATE)
+MARKS_FILE = os.path.join(ROOT, "agentcake", "data", "agent_markers.json")
+NAMES_FILE = os.path.join(ROOT, "agentcake", "data", "lists", "names.json")
+# What people read about what AgentCake recognizes; eval/README.md is left out: it records what was tested.
+NAMING_DOCS = (README_MD, README_ZH, FAQ_MD, LLMS_TXT, CHANGELOG_MD, CONTRIBUTING_MD, INSTALL_MD,
+               *(os.path.join(ROOT, *name.split("/")) for name in (
+                   "docs/collect-format.md", "DESIGN.md", "SERVER.md", "PRIVACY.md", "AGENTS.md", "edge/node/README.md",
+                   "edge/php/README.md", "edge/python/README.md", "edge/wordpress/agentcake/README.md")))
 
 MAILTO = re.compile(r"mailto:([^)\s>]+)")
 LLMS_LINK = re.compile(r"^- \[[^\]]+\]\((\S+)\)(?:: .+)?$")  # llmstxt.org: "- [name](url)" and optional ": notes"
@@ -44,9 +55,11 @@ PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"  # protocol: the PNG file signature
 SOCIAL_PREVIEW_SIZE = (1280, 640)  # protocol: GitHub's size "for best display" of a social preview
 SOCIAL_PREVIEW_MAX_BYTES = 1_000_000  # protocol: GitHub takes a social preview under 1 MB
 PRIVACY_WARNING = "Do not paste"  # each issue form says it before the reporter writes anything
-# README's accuracy figures: one set of totals (eval/README.md, "README's figures"); a median may have decimals
-FIGURE = (r"\d[\d,]* of \d[\d,]* agent sessions|\d[\d,]* of \d[\d,]* sessions by at least [\d,]+ real people"
-          r"|\d[\d,]* of \d[\d,]* sessions Human \+ agent|a median of \d+(?:\.\d+)? seconds")
+# The FAQ's accuracy figures, "X of Y" (or "X of its Y"), each one eval/README.md's "README's figures" gives; a median
+# may have decimals. README gives only the totals of the test data that the figures count over.
+FIGURE = re.compile(r"\b(\d+(?:,\d{3})*) of (?:its )?(\d+(?:,\d{3})*)\b")
+MEDIAN = re.compile(r"a median of \d+(?:\.\d+)? seconds")
+README_TOTAL = re.compile(r"\b(\d+(?:,\d{3})*) (?:agent|human) sessions")
 
 
 def issue_forms():
@@ -75,7 +88,7 @@ class CommunityDocuments(unittest.TestCase):
     def setUpClass(cls):
         cls.version, cls.tag = release_tag()
         cls.repository, = repositories(read(INSTALL_MD))
-        cls.readme_address, = MAILTO.findall(section(read(README_MD), "Feedback"))
+        cls.readme_address, = MAILTO.findall(section(read(README_MD), "Help and contributing"))
 
     def test_one_address_for_private_reports(self):
         """README's security line, SECURITY.md and the code of conduct give the same private address."""
@@ -134,14 +147,19 @@ class CommunityDocuments(unittest.TestCase):
         for question in questions:
             self.assertTrue(question.endswith("?"), question)
 
-    def test_the_faq_page_quotes_readmes_numbers(self):
-        """The FAQ repeats README's accuracy figures (answers with numbers are the ones search and AI assistants quote),
-        so a new release's figures in README fail this test until the FAQ says the same."""
-        readme = " ".join(read(README_MD).split())
-        figures = re.findall(FIGURE, " ".join(read(FAQ_MD).split()))
+    def test_the_faq_page_quotes_the_evaluations_figures(self):
+        """The FAQ answers how accurate AgentCake is with numbers (the ones search and AI assistants quote): each is one
+        eval/README.md's "README's figures" gives, over the totals README gives for the test data, so a new release's
+        figures fail this test until the FAQ says the same."""
+        faq = " ".join(read(FAQ_MD).split())
+        evaluation = " ".join(section(read(EVAL_README), "README's figures").split())
+        figures = FIGURE.findall(faq)
         self.assertTrue(figures)
-        for figure in figures:
-            self.assertIn(figure, readme)
+        self.assertLessEqual(set(figures), set(FIGURE.findall(evaluation)))
+        self.assertLessEqual(set(MEDIAN.findall(faq)), set(MEDIAN.findall(evaluation)))
+        totals = set(README_TOTAL.findall(" ".join(read(README_MD).split())))
+        self.assertTrue(totals)
+        self.assertLessEqual(totals, {total for _, total in figures})
 
     def test_issue_forms_have_githubs_keys_and_warn_against_visitors_data(self):
         forms = issue_forms()
@@ -166,6 +184,20 @@ class CommunityDocuments(unittest.TestCase):
     def test_the_social_preview_is_the_size_github_asks_for(self):
         self.assertEqual(png_size(SOCIAL_PREVIEW), SOCIAL_PREVIEW_SIZE)
         self.assertLess(os.path.getsize(SOCIAL_PREVIEW), SOCIAL_PREVIEW_MAX_BYTES)
+
+    def test_no_document_offers_an_agent_agentcake_cannot_name(self):
+        """The products of the mark table that no list entry names (their marks reach a reason at most, and the
+        session is Unnamed) appear in no document about what AgentCake recognizes, in any spelling of their id."""
+        with open(MARKS_FILE, encoding="utf-8") as f:
+            products = {mark["product"] for mark in json.load(f)["markers"].values()}
+        with open(NAMES_FILE, encoding="utf-8") as f:
+            products -= {entry["id"] for entry in json.load(f)["names"]}
+        self.assertTrue(products, "the mark table has products the lists don't name")
+        for product in sorted(products):
+            spelled = re.compile(r"(?<![\w-])" + r"[ _-]?".join(map(re.escape, product.split("-"))) + r"(?![\w-])", re.I)
+            for path in NAMING_DOCS + tuple(issue_forms()):
+                with self.subTest(os.path.relpath(path, ROOT), product=product):
+                    self.assertIsNone(spelled.search(read(path)))
 
 
 if __name__ == "__main__":

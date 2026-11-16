@@ -26,7 +26,7 @@ from unittest import mock
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from api_client import Client, contract_problems  # noqa: E402
 from cake_server import AGENTCAKE  # noqa: E402
-from agentcake import config, log_report, store  # noqa: E402
+from agentcake import config, log_report, store, wording  # noqa: E402
 from agentcake.api import visits  # noqa: E402
 from agentcake.detect import lists  # noqa: E402
 from agentcake.units import BYTES_PER_MB, MS_PER_DAY, PERCENT  # noqa: E402
@@ -84,8 +84,7 @@ class Settings(SettingsCase):
         self.assertIn('data-site="ck_settings"', body["script_tag"], "the line to add carries the real site key")
         self.assertEqual((body["hook_dom"], body["hide_selectors"]), (False, ""))
         self.assertEqual(body["database"]["sessions"], 0)
-        self.assertEqual(body["layers"], {"name": True, "verify": False, "environment": True, "behavior": True},
-                         "every visit on this computer comes from 127.0.0.1: no verification layer")
+        self.assertNotIn("layers", body, "where each layer works is the page's words, the same on any install")
         self.assertLessEqual(body["refresh_ms"], 10_000, "connected shows within 10 s while the page is open")
 
     def test_storage_says_how_much_of_the_disk_is_free_and_why_new_replays_stop(self):
@@ -96,10 +95,10 @@ class Settings(SettingsCase):
             storage = self.settings()["storage"]
         self.assertEqual(storage["disk"], {"total": 1000 * 1000 * BYTES_PER_MB, "free": 1500 * BYTES_PER_MB,
                                            "min_free": 2000 * BYTES_PER_MB, "low": True})
-        self.assertEqual(storage["replays_stopped"], "disk_full_other", "no replay could make room: none is deleted")
+        self.assertEqual(storage["replays_stopped"], "disk", "below the floor no replay is deleted, new ones stop")
         config.save_user(auto_free=False)
         with mock.patch("shutil.disk_usage", return_value=nearly_full):
-            self.assertEqual(self.settings()["storage"]["replays_stopped"], "disk")
+            self.assertEqual(self.settings()["storage"]["replays_stopped"], "disk", "auto_free changes nothing here")
         with mock.patch("shutil.disk_usage", return_value=nearly_full._replace(free=2000 * BYTES_PER_MB)):
             self.assertIsNone(self.settings()["storage"]["replays_stopped"], "at the floor")
 
@@ -151,7 +150,7 @@ class Changes(SettingsCase):
         self.assertIn('"hide_selectors":"#address","hook_dom":true', served)
 
     def test_bad_values_are_refused_and_nothing_is_saved(self):
-        self.assertEqual(self.refused({"retention_days": 45}), "retention_days: 0 (keep everything), 30 or 90")
+        self.assertEqual(self.refused({"retention_days": 45}), wording.raw("invalid_setting")["retention_days"])
         self.assertIn("budget_mb must be one of", self.refused({"budget_mb": 7000}))
         self.assertEqual(self.refused({"auto_free": "yes"}), "auto_free must be true or false.")
         self.assertEqual(self.refused({"retention_days": True}), "retention_days must be a whole number.")
@@ -159,9 +158,9 @@ class Changes(SettingsCase):
         self.assertIn("site_domain", self.refused({"site_domain": "shop example.com"}))
         self.assertIn("hide_selectors", self.refused({"hide_selectors": "#a {color: red}"}))
         self.assertIn("hide_selectors", self.refused({"hide_selectors": "#a\n#b"}))
-        self.assertIn("isn't a setting", self.refused({"port": 9999}))
-        self.assertIn("isn't a setting", self.refused({"layers": {"behavior": False}}), "the layers are not settings")
-        self.assertIn("isn't a setting", self.refused({"signals": {"page_methods": True}}))
+        self.assertIn("can't be changed on the Settings page", self.refused({"port": 9999}))
+        self.assertIn("can't be changed on the Settings page", self.refused({"layers": {"behavior": False}}), "the layers are not settings")
+        self.assertIn("can't be changed on the Settings page", self.refused({"signals": {"page_methods": True}}))
         self.assertIn("must be", self.refused({"retention_days": 90, "auto_free": 1}), "one bad field: none saved")
 
     def test_an_empty_site_domain_or_selector_list_is_allowed(self):
@@ -196,7 +195,7 @@ class Sources(SettingsCase):
     def test_in_server_mode_the_website_arrives_through_the_server(self):
         config.save_user(public_listen="127.0.0.1:9", path_prefix="/cake")
         body = self.settings()
-        self.assertEqual((body["route"], body["layers"]["verify"]), ("server", True))
+        self.assertEqual(body["route"], "server")
         self.assertIn('src="/cake/cake.js"', body["script_tag"], "the path on the site's own domain")
 
     def test_the_server_half_says_which_headers_never_arrived(self):

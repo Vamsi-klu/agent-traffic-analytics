@@ -25,8 +25,9 @@ const product = JSON.parse(readFileSync(path.resolve(__dirname, "../agentcake/da
 /** The names of the session categories and a sentence on each, from the one file the API's words
  *  use too (agentcake/data/judging.en.json): the pages read them as import.meta.env.VITE_TAXONOMY (src/lib/taxonomy.ts). */
 const judging = JSON.parse(readFileSync(path.resolve(__dirname, "../agentcake/data/judging.en.json"), "utf8"))
-const TAXONOMY_KEYS = ["title", "lead", "verdicts", "unsure", "evidence", "turns", "names"]
-const taxonomy = Object.fromEntries(TAXONOMY_KEYS.map((key) => [key, judging[key]]))
+const TAXONOMY_KEYS = ["title", "counted", "verdicts", "unsure", "evidence", "turns", "names"]
+/** {name} in these words is the product's name, filled in here as the API fills in its own words. */
+const taxonomy = JSON.parse(JSON.stringify(Object.fromEntries(TAXONOMY_KEYS.map((key) => [key, judging[key]]))).replaceAll("{name}", product.name))
 
 // Built to dist/ as static files; cake (Python) serves them and a JSON API. Relative base so it works under any path.
 // The build also writes the bundled packages' licence notices into dist/ (scripts/notices.mjs, settings in notices.json).

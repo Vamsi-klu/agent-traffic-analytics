@@ -176,7 +176,7 @@ def verdict_summary(verdict, group, judging_class, kept, story=None):
         chosen = _deciding(verdict, kept)
         if chosen is None:
             rules = answers.numbers()["summary"]
-            return verdict_text.judging()["classes"][judging_class or rules["classes"][group or verdict]]["how"]
+            return verdict_text.class_rule(judging_class or rules["classes"][group or verdict])
         said = verdict_text.words(chosen, story.epoch if story else None)[0]
     why = _pointing(verdict, story.layers) if story else None
     return f"{said} {why}" if why else said

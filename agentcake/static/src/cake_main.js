@@ -2,14 +2,17 @@
 //
 // As in cake 0.3.3, a site adds one line:
 // <script src="https://<cake>/cake.js" data-site="<key>" defer></script>.
-// cake.js sends to the address it was loaded from (…/cake.js → …/collect) and keeps the visit id in sessionStorage
-// (a visit ends with the tab).
+// cake.js sends to the address it was loaded from (…/cake.js → …/collect), keeps the session id in sessionStorage
+// (one per tab, cut after 30 minutes without activity or 24 hours: session.js) and the visitor id in localStorage
+// (visitor.js).
 // Consent, as PostHog 1.0 left it to the site: a site that asks first either adds the tag
 // only after the visitor agreed, or adds it with data-consent="required" and calls window.cake.start() once they
 // agree; until then cake.js does nothing at all (no listener, no storage, no request). window.cake.stop() (the
 // visitor said no) ends recording and sending on this page for good, drops what was not sent yet and forgets the
-// visit id. A site whose consent code runs before cake.js has loaded can queue the calls:
-// window.cake = window.cake || []; window.cake.push('start').
+// session id, the visitor id and its identify hash. window.cake.identify(id) and window.cake.reset() are the sign-in
+// and sign-out calls of identify.js. Code that may run before cake.js has loaded can queue the calls, as with
+// posthog-js's snippet: window.cake = window.cake || []; window.cake.push('start') (or 'stop', 'reset',
+// ['identify', id]); window.cake.push does the same once cake.js runs.
 // A site must not get slower for having cake.js: when it starts, it only reads its settings and hooks its
 // listeners; the replay's first snapshot is the next task; every detector waits for the page's load event and runs
 // as one task per idle period (schedule.js).
@@ -48,31 +51,23 @@ function siteKey() {
   return (TAG && TAG.getAttribute(CFG.attr.site)) || RUNTIME.site_key || null
 }
 
-function visitId() {
-  var id = C.store.get(CFG.storage.session)
-  if (!id) {
-    id = C.randomId()
-    C.store.set(CFG.storage.session, id)
-  }
-  return id
-}
-
 function nextPageNumber() {
   var n = (Number(C.store.get(CFG.storage.page_number)) || 0) + 1
   C.store.set(CFG.storage.page_number, String(n))
   return n
 }
 
-function pageRecord() {
+// The page record is made at `now`, the moment begin() chose the page view's session: a moment later the tab's session
+// may have reached its idle time, and session.js would begin another before the batches have a header to carry it.
+function pageRecord(now) {
   var nav = C.safe(function () {
     return performance.getEntriesByType('navigation')[0]
   })
-  return {
-    t: C.now(),
+  var record = {
+    t: now,
     ty: 'page',
     n: nextPageNumber(),
     build: BUILD,
-    ref: document.referrer,
     nav: nav && nav.type ? nav.type : null,
     t0: C.round(performance.timeOrigin),
     ran: C.round(performance.now()),
@@ -81,8 +76,10 @@ function pageRecord() {
     hf: document.hasFocus(),
     hist: history.length,
     hook_dom: settings.hook_dom,
-    consent: consentRequired ? 'start' : 'load'
+    consent: consentRequired ? 'start' : 'load',
+    p: location.pathname // the page view's path (the address every upload carries has it too): navigation.js
   }
+  return Object.assign(record, C.source.fields())
 }
 
 // Each step is guarded: one recorder failing must not stop the others or break the page.
@@ -150,6 +147,7 @@ function onLeave(why) {
     step('markers', C.markers.atExit)
     C.push('x', { t: C.now(), ty: 'leave', why: why })
   }
+  C.session.save()
   C.flush('exit')
 }
 
@@ -157,7 +155,9 @@ function stop() {
   if (C.off) return
   C.transport.discard()
   C.stopAll()
-  C.store.remove(CFG.storage.session)
+  C.identity.forget()
+  C.session.forget()
+  C.visitor.forget()
   C.store.remove(CFG.storage.page_number)
   C.store.remove(CFG.storage.frames_done)
 }
@@ -166,21 +166,26 @@ function begin() {
   var url = collectUrl()
   var key = siteKey()
   if (!url || !key) return
+  var now = C.now()
   var header = {
     v: CFG.format_version,
     k: key,
-    s: visitId(),
+    s: C.session.begin(now),
+    vid: C.visitor.id(now),
     pv: C.randomId(),
     ua: navigator.userAgent,
     wd: navigator.webdriver === true
   }
+  if (C.visitor.hash()) header.idh = C.visitor.hash()
   step('token', C.token.read)
   step('hooks', function () {
     C.automation.start(settings.hook_dom)
   })
-  C.push('x', pageRecord())
+  C.push('x', pageRecord(now))
+  C.navigation.start()
   step('raw', C.raw.listen)
   C.transport.start(url, header)
+  C.identity.start(key)
   C.listen(window, 'pagehide', function () {
     onLeave('pagehide')
   })
@@ -215,10 +220,23 @@ function start() {
   begin()
 }
 
+/** One queued call: 'start', 'stop', 'reset', or ['identify', id] (a name with its argument). */
+function run(command) {
+  var name = Array.isArray(command) ? command[0] : command
+  if (name === CFG.consent.commands.stop) stop()
+  if (name === CFG.consent.commands.start) start()
+  if (name === CFG.identify.commands.reset) C.identity.reset()
+  if (name === CFG.identify.commands.identify) C.identity.identify(Array.isArray(command) ? command[1] : undefined)
+}
+
 var queued = Array.isArray(window.cake) ? window.cake.slice() : []
-window.cake = { stop: stop, start: start, version: BUILD }
-queued.forEach(function (command) {
-  if (command === CFG.consent.commands.stop) stop()
-  if (command === CFG.consent.commands.start) start()
-})
+window.cake = {
+  stop: stop,
+  start: start,
+  identify: C.identity.identify,
+  reset: C.identity.reset,
+  push: run,
+  version: BUILD
+}
+queued.forEach(run)
 if (!consentRequired) start()

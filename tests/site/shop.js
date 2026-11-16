@@ -7,21 +7,21 @@
     Olive: '#6b7040', Yellow: '#e8c22e', Sand: '#d8c49a', Brown: '#7a4b2a', Green: '#3f8a4f' };
   var CLOTHES = ['XS', 'S', 'M', 'L', 'XL'];
   var P = [
-    { id: 'tote', name: 'Canvas Tote Bag', cat: 'Accessories', price: 18, colors: ['Sand', 'Black'], sizes: null, blurb: 'Heavy cotton canvas, inside pocket.' },
-    { id: 'beanie', name: 'Wool Beanie', cat: 'Accessories', price: 22, colors: ['Grey', 'Navy', 'Red'], sizes: null, blurb: 'Soft merino rib knit.' },
-    { id: 'linen-shirt', name: 'Linen Shirt', cat: 'Tops', price: 48, colors: ['White', 'Blue'], sizes: CLOTHES, blurb: 'Long sleeves, relaxed fit. Not a T-shirt.' },
-    { id: 'socks', name: 'Running Socks (3-pack)', cat: 'Accessories', price: 14, colors: ['White', 'Black'], sizes: ['S', 'M', 'L'], blurb: 'Cushioned sole, breathable.' },
-    { id: 'hoodie', name: 'Hooded Sweatshirt', cat: 'Tops', price: 55, colors: ['Grey', 'Navy', 'Olive'], sizes: CLOTHES, blurb: 'Brushed fleece inside.' },
-    { id: 'denim-jacket', name: 'Denim Jacket', cat: 'Outerwear', price: 89, colors: ['Blue'], sizes: CLOTHES, blurb: 'Classic trucker cut.' },
-    { id: 'classic-tee', name: 'Classic T-shirt', cat: 'Tops', price: 20, colors: ['White', 'Black', 'Blue', 'Red'], sizes: CLOTHES, blurb: 'Organic cotton crew neck T-shirt.' },
-    { id: 'rain-jacket', name: 'Rain Jacket', cat: 'Outerwear', price: 95, colors: ['Yellow', 'Navy'], sizes: CLOTHES, blurb: 'Waterproof, packs into its pocket.' },
-    { id: 'cap', name: 'Baseball Cap', cat: 'Accessories', price: 19, colors: ['Navy', 'Sand'], sizes: null, blurb: 'Adjustable strap.' },
-    { id: 'shorts', name: 'Cargo Shorts', cat: 'Bottoms', price: 38, colors: ['Sand', 'Olive'], sizes: CLOTHES, blurb: 'Six pockets.' },
-    { id: 'scarf', name: 'Knit Scarf', cat: 'Accessories', price: 27, colors: ['Red', 'Grey'], sizes: null, blurb: 'Chunky knit, 180 cm.' },
-    { id: 'chinos', name: 'Slim Chinos', cat: 'Bottoms', price: 52, colors: ['Sand', 'Navy', 'Black'], sizes: CLOTHES, blurb: 'Stretch cotton twill.' },
-    { id: 'kids-tee', name: "Kids' T-shirt", cat: 'Tops', price: 14, colors: ['Blue', 'Yellow'], sizes: ['4Y', '6Y', '8Y', '10Y'], blurb: 'Children’s sizes only.' },
-    { id: 'belt', name: 'Leather Belt', cat: 'Accessories', price: 34, colors: ['Brown', 'Black'], sizes: ['S', 'M', 'L'], blurb: 'Full-grain leather.' },
-    { id: 'bottle', name: 'Water Bottle', cat: 'Accessories', price: 16, colors: ['Green', 'White'], sizes: null, blurb: 'Steel, 750 ml.' }
+    { id: 'tote', name: 'Canvas Tote Bag', cat: 'Accessories', price: 18, colors: ['Sand', 'Black'], sizes: null, blurb: 'This bag is made of heavy cotton canvas and has an inside pocket.' },
+    { id: 'beanie', name: 'Wool Beanie', cat: 'Accessories', price: 22, colors: ['Grey', 'Navy', 'Red'], sizes: null, blurb: 'This beanie is made of soft merino wool in a rib knit.' },
+    { id: 'linen-shirt', name: 'Linen Shirt', cat: 'Tops', price: 48, colors: ['White', 'Blue'], sizes: CLOTHES, blurb: "This linen shirt has long sleeves and a relaxed fit. It isn't a T-shirt." },
+    { id: 'socks', name: 'Running Socks (3-pack)', cat: 'Accessories', price: 14, colors: ['White', 'Black'], sizes: ['S', 'M', 'L'], blurb: 'These socks have a cushioned sole and are breathable.' },
+    { id: 'hoodie', name: 'Hooded Sweatshirt', cat: 'Tops', price: 55, colors: ['Grey', 'Navy', 'Olive'], sizes: CLOTHES, blurb: 'This sweatshirt has brushed fleece on the inside.' },
+    { id: 'denim-jacket', name: 'Denim Jacket', cat: 'Outerwear', price: 89, colors: ['Blue'], sizes: CLOTHES, blurb: 'This denim jacket has a classic trucker cut.' },
+    { id: 'classic-tee', name: 'Classic T-shirt', cat: 'Tops', price: 20, colors: ['White', 'Black', 'Blue', 'Red'], sizes: CLOTHES, blurb: 'This T-shirt is made of organic cotton and has a crew neck.' },
+    { id: 'rain-jacket', name: 'Rain Jacket', cat: 'Outerwear', price: 95, colors: ['Yellow', 'Navy'], sizes: CLOTHES, blurb: 'This jacket is waterproof and packs into its own pocket.' },
+    { id: 'cap', name: 'Baseball Cap', cat: 'Accessories', price: 19, colors: ['Navy', 'Sand'], sizes: null, blurb: 'This cap has an adjustable strap.' },
+    { id: 'shorts', name: 'Cargo Shorts', cat: 'Bottoms', price: 38, colors: ['Sand', 'Olive'], sizes: CLOTHES, blurb: 'These shorts have six pockets.' },
+    { id: 'scarf', name: 'Knit Scarf', cat: 'Accessories', price: 27, colors: ['Red', 'Grey'], sizes: null, blurb: 'This scarf is made of chunky knit and is 180 cm long.' },
+    { id: 'chinos', name: 'Slim Chinos', cat: 'Bottoms', price: 52, colors: ['Sand', 'Navy', 'Black'], sizes: CLOTHES, blurb: 'These chinos are made of stretch cotton twill.' },
+    { id: 'kids-tee', name: "Kids' T-shirt", cat: 'Tops', price: 14, colors: ['Blue', 'Yellow'], sizes: ['4Y', '6Y', '8Y', '10Y'], blurb: "This T-shirt comes in children's sizes only." },
+    { id: 'belt', name: 'Leather Belt', cat: 'Accessories', price: 34, colors: ['Brown', 'Black'], sizes: ['S', 'M', 'L'], blurb: 'This belt is made of full-grain leather.' },
+    { id: 'bottle', name: 'Water Bottle', cat: 'Accessories', price: 16, colors: ['Green', 'White'], sizes: null, blurb: 'This steel water bottle holds 750 ml.' }
   ];
   var PER_PAGE = 6;
   var app = document.getElementById('app');
@@ -69,11 +69,11 @@
       cats.map(function (c) { return '<option value="' + c + '"' + (c === cat ? ' selected' : '') + '>' + (c || 'All categories') + '</option>'; }).join('') +
       '</select></div><div><label for="sort">Sort by</label><select id="sort">' +
       [['featured', 'Featured'], ['price-asc', 'Price: low to high'], ['price-desc', 'Price: high to low'], ['name', 'Name']].map(function (o) { return '<option value="' + o[0] + '"' + (o[0] === sort ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') +
-      '</select></div><div class="mut" style="font-size:13px">' + list.length + ' product' + (list.length === 1 ? '' : 's') + ' · page ' + pg + ' of ' + pages + '</div></div>';
-    if (!shown.length) h += '<p>No products match. <a href="/demo">Show all products</a></p>';
+      '</select></div><div class="mut" style="font-size:13px">' + list.length + ' product' + (list.length === 1 ? '' : 's') + ', page ' + pg + ' of ' + pages + '</div></div>';
+    if (!shown.length) h += '<p>No products found. <a href="/demo">Show all products</a></p>';
     h += '<div class="grid">' + shown.map(function (p) {
       return '<div class="card"><a href="/demo/product?id=' + p.id + '" aria-hidden="true" tabindex="-1">' + shirt(p.colors[0]) + '</a><div class="body"><h3><a href="/demo/product?id=' + p.id + '">' + esc(p.name) + '</a></h3>' +
-        '<div class="price">' + money(p.price) + '</div><div class="mut">' + esc(p.cat) + ' · ' + p.colors.length + ' colour' + (p.colors.length > 1 ? 's' : '') + ': ' + esc(p.colors.join(', ')) + '</div>' +
+        '<div class="price">' + money(p.price) + '</div><div class="mut">' + esc(p.cat) + ', available in ' + p.colors.length + ' color' + (p.colors.length > 1 ? 's' : '') + ': ' + esc(p.colors.join(', ')) + '</div>' +
         '<a class="more" href="/demo/product?id=' + p.id + '">View product</a></div></div>';
     }).join('') + '</div>';
     if (pages > 1) {
@@ -92,11 +92,11 @@
     var reviews = [['Ana', 5, 'Fits as expected, colour is true to the photo.'], ['Marc', 4, 'Good quality. I sized up for a looser fit.'],
       ['Jun', 5, 'Bought two. Washes well.'], ['Priya', 3, 'Nice, but delivery took a while (it is a demo, so of course it did).'],
       ['Leo', 4, 'Exactly what I needed.']];
-    var h = '<p><a href="/demo">← All products</a></p><div class="product"><div class="img" id="img">' + shirt(p.colors[0]) + '</div><div>' +
+    var h = '<p><a href="/demo">Back to all products</a></p><div class="product"><div class="img" id="img">' + shirt(p.colors[0]) + '</div><div>' +
       '<h1 style="margin-top:0">' + esc(p.name) + '</h1><div class="price" style="font-size:20px">' + money(p.price) + '</div><p class="mut">' + esc(p.blurb) + '</p>' +
-      '<div class="opts"><div><div class="mut" style="font-size:13px;margin-bottom:6px">Colour</div><div class="colors" role="radiogroup" aria-label="Colour">' +
+      '<div class="opts"><div><div class="mut" style="font-size:13px;margin-bottom:6px">Color</div><div class="colors" role="radiogroup" aria-label="Color">' +
       p.colors.map(function (c, i) { return '<label><input type="radio" name="color" value="' + c + '"' + (i === 0 ? ' checked' : '') + '><i style="background:' + COLORS[c] + '"></i>' + c + '</label>'; }).join('') + '</div></div>' +
-      '<div class="row">' + (p.sizes ? '<div><label for="size" class="mut" style="font-size:13px">Size</label><select id="size"><option value="">Choose a size</option>' +
+      '<div class="row">' + (p.sizes ? '<div><label for="size" class="mut" style="font-size:13px">Size</label><select id="size"><option value="">Select a size</option>' +
         p.sizes.map(function (s) { return '<option>' + s + '</option>'; }).join('') + '</select></div>' : '<div class="mut" style="font-size:13px">One size</div>') +
       '<div style="flex:0 0 100px"><label for="qty" class="mut" style="font-size:13px">Quantity</label><input id="qty" type="number" min="1" max="9" value="1"></div></div>' +
       '<div><button id="add" type="button">Add to cart</button> <a href="/demo/cart" style="margin-left:10px">View cart</a></div><div class="msg" id="msg" role="status"></div></div>' +
@@ -118,7 +118,7 @@
       var size = sizeEl ? sizeEl.value : 'One size';
       var color = (document.querySelector('input[name=color]:checked') || {}).value;
       var qty = Math.max(1, Math.min(9, parseInt(document.getElementById('qty').value, 10) || 1));
-      if (!size) { msg.className = 'msg bad'; msg.textContent = 'Please choose a size first.'; if (sizeEl) sizeEl.focus(); return; }
+      if (!size) { msg.className = 'msg bad'; msg.textContent = 'Select a size first.'; if (sizeEl) sizeEl.focus(); return; }
       var c = cart(), found = false;
       c.forEach(function (l) { if (l.id === p.id && l.color === color && l.size === size) { l.qty = Math.min(9, l.qty + qty); found = true; } });
       if (!found) c.push({ id: p.id, color: color, size: size, qty: qty });
@@ -137,7 +137,7 @@
     var c = cart(), promo = load('cake_demo_promo', false);
     if (!c.length) { app.innerHTML = '<h1>Your cart</h1><p>Your cart is empty. <a href="/demo">Browse products</a></p>'; return; }
     var t = totals(c, false, promo);
-    app.innerHTML = '<h1>Your cart</h1><div class="tablewrap"><table><tr><th>Product</th><th>Colour</th><th>Size</th><th>Qty</th><th>Price</th><th></th></tr>' +
+    app.innerHTML = '<h1>Your cart</h1><div class="tablewrap"><table><tr><th>Product</th><th>Color</th><th>Size</th><th>Qty</th><th>Price</th><th></th></tr>' +
       c.map(function (l, i) {
         var p = byId(l.id) || { name: l.id, price: 0 };
         return '<tr class="cartrow"><td><a href="/demo/product?id=' + l.id + '">' + esc(p.name) + '</a></td><td>' + esc(l.color) + '</td><td>' + esc(l.size) + '</td>' +
@@ -145,9 +145,9 @@
           '<td><button class="ghost" type="button" data-rm="' + i + '">Remove</button></td></tr>';
       }).join('') + '</table></div>' +
       '<div class="row" style="max-width:420px;margin-top:16px"><div><label for="promo" class="mut" style="font-size:13px">Promo code</label><input id="promo" type="text" placeholder="Try DEMO10"></div><div style="flex:0 0 auto"><button class="ghost" id="apply" type="button">Apply</button></div></div>' +
-      '<div class="msg" id="pmsg" role="status">' + (promo ? 'DEMO10 applied: 10% off.' : '') + '</div>' +
+      '<div class="msg" id="pmsg" role="status">' + (promo ? 'Promo code DEMO10 applied: 10% off.' : '') + '</div>' +
       '<div class="totals"><div><span>Subtotal</span><span>' + money(t.sub) + '</span></div>' + (promo ? '<div><span>Discount</span><span>−' + money(t.disc) + '</span></div>' : '') +
-      '<div><span>Shipping</span><span>chosen at checkout</span></div><div class="grand"><span>Total</span><span>' + money(t.total) + '</span></div>' +
+      '<div><span>Shipping</span><span>Selected at checkout</span></div><div class="grand"><span>Total</span><span>' + money(t.total) + '</span></div>' +
       '<p style="text-align:right"><a class="btn" href="/demo/checkout" id="checkout">Checkout</a></p></div>';
     Array.prototype.forEach.call(app.querySelectorAll('input[data-i]'), function (el) {
       el.onchange = function () { var c2 = cart(); c2[+this.getAttribute('data-i')].qty = Math.max(1, Math.min(9, parseInt(this.value, 10) || 1)); setCart(c2); cartPage(); };
@@ -157,7 +157,7 @@
     });
     document.getElementById('apply').onclick = function () {
       var ok = document.getElementById('promo').value.trim().toUpperCase() === 'DEMO10';
-      if (ok) { save('cake_demo_promo', true); cartPage(); } else { var m = document.getElementById('pmsg'); m.className = 'msg bad'; m.textContent = 'That code is not valid.'; }
+      if (ok) { save('cake_demo_promo', true); cartPage(); } else { var m = document.getElementById('pmsg'); m.className = 'msg bad'; m.textContent = 'This promo code isn\'t valid.'; }
     };
   }
 
@@ -166,18 +166,18 @@
     if (!c.length) { app.innerHTML = '<h1>Checkout</h1><p>Your cart is empty. <a href="/demo">Browse products</a></p>'; return; }
     function f(id, label, type, extra) { return '<label for="' + id + '">' + label + '</label><input id="' + id + '" name="' + id + '" type="' + (type || 'text') + '" required ' + (extra || '') + '>'; }
     var countries = ['', 'United States', 'Canada', 'United Kingdom', 'Germany', 'France', 'Japan', 'Australia', 'Other'];
-    app.innerHTML = '<h1>Checkout</h1><p class="mut">Demo checkout: use made-up details. Nothing is charged, shipped or stored; card fields are never recorded by ' + esc(productName) + '.</p>' +
+    app.innerHTML = '<h1>Checkout</h1><p class="mut">This is a demo checkout, so enter sample details. No payment is charged and nothing is shipped or stored. ' + esc(productName) + ' never records card fields.</p>' +
       '<form class="checkout" id="form" novalidate><div>' +
       '<fieldset><legend>Contact</legend>' + f('email', 'Email', 'email', 'autocomplete="off" placeholder="Email"') + '</fieldset>' +
       '<fieldset><legend>Shipping address</legend>' + f('fullname', 'Full name', 'text', 'autocomplete="off"') + f('address', 'Street address', 'text', 'autocomplete="off"') +
       '<div class="row"><div>' + f('city', 'City', 'text', 'autocomplete="off"') + '</div><div>' + f('postcode', 'Postcode', 'text', 'autocomplete="off"') + '</div></div>' +
-      '<label for="country">Country</label><select id="country" name="country" required>' + countries.map(function (c) { return '<option value="' + c + '">' + (c || 'Choose a country') + '</option>'; }).join('') + '</select></fieldset>' +
+      '<label for="country">Country</label><select id="country" name="country" required>' + countries.map(function (c) { return '<option value="' + c + '">' + (c || 'Select a country') + '</option>'; }).join('') + '</select></fieldset>' +
       '<fieldset><legend>Delivery</legend><label class="inline"><input type="radio" name="ship" value="standard" checked> Standard, 5–7 days, free</label>' +
       '<label class="inline"><input type="radio" name="ship" value="express"> Express, 1–2 days, $8.00</label></fieldset>' +
-      '<fieldset><legend>Payment (demo)</legend><p class="mut" style="font-size:13px;margin:0">Any made-up card number works.</p>' +
+      '<fieldset><legend>Payment (demo)</legend><p class="mut" style="font-size:13px;margin:0">You can enter any sample card number.</p>' +
       f('cardname', 'Name on card', 'text', 'autocomplete="off"') + f('cardnumber', 'Card number', 'text', 'inputmode="numeric" autocomplete="off" data-cake-private placeholder="4242 4242 4242 4242"') +
       '<div class="row"><div>' + f('expiry', 'Expiry (MM/YY)', 'text', 'autocomplete="off" data-cake-private placeholder="12/29"') + '</div><div>' + f('cvc', 'CVC', 'text', 'inputmode="numeric" autocomplete="off" data-cake-private placeholder="123"') + '</div></div></fieldset>' +
-      '<label class="inline"><input type="checkbox" id="agree" required> I understand this is a demo and no real order is placed.</label>' +
+      '<label class="inline"><input type="checkbox" id="agree" required> Confirm that this is a demo and that no real order is placed.</label>' +
       '<div class="msg bad" id="err" role="alert"></div><p><button type="submit" id="place">Place order</button></p></div>' +
       '<aside class="summary" id="summary"></aside></form>';
     function summary() {
@@ -198,9 +198,9 @@
       });
       var digits = document.getElementById('cardnumber').value.replace(/\D/g, '');
       if (document.getElementById('cardnumber').value.trim() && (digits.length < 12 || digits.length > 19)) bad.push('Card number (12–19 digits)');
-      if (document.getElementById('email').value.trim() && document.getElementById('email').value.indexOf('@') < 1) bad.push('Email (needs an @)');
-      if (!document.getElementById('agree').checked) bad.push('the demo checkbox');
-      if (bad.length) { err.textContent = 'Please fill in: ' + bad.join(', ') + '.'; return; }
+      if (document.getElementById('email').value.trim() && document.getElementById('email').value.indexOf('@') < 1) bad.push('Email (must include an @ sign)');
+      if (!document.getElementById('agree').checked) bad.push('Demo confirmation');
+      if (bad.length) { err.textContent = 'Fill in the following fields: ' + bad.join(', ') + '.'; return; }
       var t = summary(), n = 0; c.forEach(function (l) { n += l.qty; });
       // Keep only the order summary. Form values (name, address, card) are not saved anywhere.
       save('cake_demo_last_order', { code: 'DEMO-' + Math.random().toString(36).slice(2, 7).toUpperCase(), items: n, total: t.total,
@@ -214,7 +214,7 @@
   function done() {
     var o = load('cake_demo_last_order', null);
     app.innerHTML = o ? '<div class="done"><p class="mut">Demo order placed</p><div class="code" id="order-code">' + esc(o.code) + '</div><p>' + o.lines.map(esc).join('<br>') + '</p><p>Total ' + money(o.total) +
-      '</p><p class="mut">This is the ' + esc(productName) + ' demo shop. Nothing was ordered, charged or shipped.</p><p><a href="/demo">Back to the shop</a> · <a href="/">See this visit in ' + esc(productName) + '</a></p></div>'
+      '</p><p class="mut">This is the ' + esc(productName) + ' demo shop, so nothing was ordered, charged, or shipped.</p><p><a href="/demo">Back to the shop</a> · <a href="/">View this visit in ' + esc(productName) + '</a></p></div>'
       : '<div class="done"><p>No demo order yet.</p><p><a href="/demo">Go to the shop</a></p></div>';
   }
 

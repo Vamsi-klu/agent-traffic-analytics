@@ -7,9 +7,10 @@ extension's own trace > an automation tool's trace > a category only. The lab's 
 Chrome runs are "likely Claude in Chrome" (the attribute-less div); its 22 Playwright runs are Agent · Automated
 browser and named only where a trace names the tool; a signed request is named after its signer; the 10 User-Agents of
 threshold A7 get the right name and category; case T22's listed bots are Bots and its cloud script an Agent that looks like
-a crawler (A9).
+a crawler (A9). The names the interface's samples show are names a session can get, and the interface has a word only
+for the certainties naming gives.
 """
-import os, sys, unittest
+import glob, json, os, re, sys, unittest
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
@@ -19,7 +20,17 @@ from test_lists import A7  # noqa: E402  (the 10 User-Agents of threshold A7, as
 from verdict_cases import (AGENT_RUN, AUTOMATION_HITS, CHROME_LINUX, GOOGLEBOT, HEADLESS, HUMAN_RUN, MANUS,  # noqa: E402
                            T0, UPTIMEROBOT, S, behavior, crawl_pages, evidence, first_address, hit, too_little,
                            verified)
-from agentcake.detect import verdict  # noqa: E402
+from agentcake import datafiles  # noqa: E402
+from agentcake.detect import env_rules, verdict, verdict_text  # noqa: E402
+
+# The samples: the home page's example (GET /api/setup), the answers the screenshot and dev servers give (the recorded
+# replays aside: they are the shop's own pages) and the component overview's agent tags.
+SAMPLE_FILES = [os.path.join(ROOT, "agentcake", "data", "example.json")] + sorted(
+    path for path in glob.glob(os.path.join(ROOT, "web", "src", "data", "fixtures", "**", "*.json"), recursive=True)
+    if os.sep + "replay" + os.sep not in path)
+COMPONENTS_PAGE = os.path.join(ROOT, "web", "src", "pages", "components.tsx")
+AGENT_TAG = re.compile(r'<AgentTag name="([^"]+)"(?: certainty="([^"]+)")?')
+NO_NAME = re.compile(r"no name|without a name|isn't named|gets no name", re.IGNORECASE)  # a reason saying none is shown
 
 
 
@@ -119,6 +130,25 @@ class AutomatedBrowsers(unittest.TestCase):
                                          behavior_result=behavior("agent", AGENT_RUN)))
         self.assertEqual(naming(result), (None, None, "automated"))
 
+    def test_no_reason_says_there_is_no_name_when_another_method_names_the_visit(self):
+        # names that conflict, disagree or were impersonated count for nothing, but a method of another priority
+        # may still name the visit: then no reason on its page may say that the visit has no name
+        conflict = CHROME_LINUX + " Manus-User/1.0 ChatGPT-User/1.0"  # two product names at once
+        cases = {"user-agent names in conflict, a verified signature":
+                 evidence(uas=conflict, signatures={"collector": verified("chatgpt.com")},
+                          behavior_result=behavior("agent", AGENT_RUN)),
+                 "product rules that disagree, a verified signature":
+                 evidence(uas=CHROME_LINUX, hits=[hit("env.product.muse"), hit("env.product.instinct")],
+                          signatures={"collector": verified("chatgpt.com")}, behavior_result=behavior("agent", AGENT_RUN)),
+                 "an impersonated crawler's name, a product rule":
+                 evidence(uas=GOOGLEBOT, hits=[hit("env.product.muse")], behavior_result=behavior("agent", AGENT_RUN))}
+        for label, case in cases.items():
+            with self.subTest(label):
+                result = verdict.decide(case)
+                said = [verdict_text.words(r)[0] for r in result["reasons"]]
+                self.assertIsNotNone(result["name"])
+                self.assertEqual([text for text in said if NO_NAME.search(text)], [])
+
     def test_tools_that_disagree_name_none(self):
         result = verdict.decide(evidence(mode="local", hits=[hit("env.auto.webdriver"),
                                                              hit("env.auto.playwright-globals"),
@@ -183,7 +213,79 @@ class GoalT22(unittest.TestCase):
                                          address=first_address("aws"), pages=crawl_pages(3, 20),
                                          behavior_result=too_little(n_actions=0)))
         crawler = next(r for r in result["reasons"] if r["id"] == "crawler.like")
-        self.assertIn("comes back every 5 min", crawler["detail"])
+        self.assertIn("returns every 5 minutes", crawler["detail"])
+
+
+def names_cake_gives():
+    """{"agent" | "bot": {display name: whether a check can verify it}}: the list entries a naming source points to,
+    as attribute.py's levels read them (a signer, a published range's verifies, an environment rule's names or
+    suggests, a User-Agent pattern or navigator.platform), less the tools that never name themselves (verdict.json)."""
+    names, kinds = datafiles.load("data/lists/names.json"), datafiles.load("data/lists/kinds.json")["kinds"]
+    signers = datafiles.load("data/lists/signers.json")["signers"].values()
+    verifiable = {signer["name"] for signer in signers} | {
+        list_id for spec in datafiles.load("data/lists/ip_ranges.json")["ranges"] for list_id in spec.get("verifies", [])}
+    pointed = verifiable | {rule.names or rule.suggests for rule in env_rules.load_rules().rules} | set(
+        names["platforms"].values()) | {entry["id"] for entry in names["names"] if entry["patterns"]}
+    never = datafiles.load("data/verdict.json")["attribution"]["not_tools"]
+    found = {"agent": {}, "bot": {}}
+    for entry in names["names"]:
+        if entry["id"] in pointed and entry["id"] not in never:
+            named = found[kinds[entry["kind"]]["category"]]
+            named[entry["name"]] = named.get(entry["name"], False) or entry["id"] in verifiable
+    return found
+
+
+def sample_names(value):
+    """(name, certainty, "agent" | "bot") of every name a sample answer shows: a session's (its verdict and agent),
+    the session list's agent filter (agent_names) and the agent counts (agents_seen, agents; null there is Unnamed)."""
+    if isinstance(value, list):
+        return [found for item in value for found in sample_names(item)]
+    if not isinstance(value, dict):
+        return []
+    found = [(value["agent"], value.get("certainty"), value["verdict"])] if (
+        value.get("verdict") in ("agent", "bot") and value.get("agent")) else []
+    found += [(name, None, "agent") for name in value.get("agent_names") or []]
+    found += [(row["name"], None, "agent") for key in ("agents_seen", "agents") for row in value.get(key) or []
+              if isinstance(row, dict) and row.get("name")]
+    return found + [inner for item in value.values() for inner in sample_names(item)]
+
+
+class SampleNames(unittest.TestCase):
+    """The interface's samples show only names a session can get, each with a certainty naming gives it: Verified
+    only where a signature or a published range can check that name."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.names = names_cake_gives()
+        words = datafiles.load("data/api.json")["certainty"]
+        cls.certainties = {words[given] for given in
+                           datafiles.load("data/verdict.json")["attribution"]["certainty"].values()}
+
+    def check(self, where, name, certainty, category):
+        with self.subTest(where, name=name, certainty=certainty):
+            self.assertTrue(name in self.names[category], f"no naming source gives {category} sessions this name")
+            self.assertIn(certainty, self.certainties | {None})
+            if certainty == "verified":
+                self.assertTrue(self.names[category][name], "neither a signer nor a published range verifies it")
+
+    def test_sample_sessions_and_agent_counts_show_names_cake_gives(self):
+        for path in SAMPLE_FILES:
+            with open(path, encoding="utf-8") as f:
+                found = sample_names(json.load(f))
+            for name, certainty, category in found:
+                self.check(os.path.relpath(path, ROOT), name, certainty, category)
+
+    def test_the_component_overview_tags_names_cake_gives(self):
+        with open(COMPONENTS_PAGE, encoding="utf-8") as f:
+            tags = AGENT_TAG.findall(f.read())
+        self.assertTrue(tags)
+        for name, certainty in tags:
+            self.check("components.tsx", name, certainty or None, "agent")
+
+    def test_the_interface_words_only_the_certainties_naming_gives(self):
+        """A name is verified or likely (verdict.json attribution): none comes from behaviour alone."""
+        given = set(datafiles.load("data/verdict.json")["attribution"]["certainty"].values())
+        self.assertEqual(set(datafiles.load("data/api.json")["certainty"]), given)
 
 
 if __name__ == "__main__":

@@ -68,7 +68,7 @@ export class ReplayEngine {
     await this.ask(lastChunkFor(this.replay.chunks, this.replay.start_ms))
     while (this.collected.length < MIN_EVENTS && !this.feed.complete) await this.ask(this.feed.handedOver)
     if (this.destroyed) return
-    if (this.collected.length < MIN_EVENTS) throw new Error("This replay has too little content to show. Open another session.")
+    if (this.collected.length < MIN_EVENTS) throw new Error("This replay has too little content to play. Try opening another session.")
     this.baseMs = this.collected[0].timestamp - this.replay.epoch_ms
     const { clientWidth: width, clientHeight: height } = this.o.el
     this.player = new Player({ target: this.o.el, props: { events: this.collected, width, height, autoPlay: false, showController: false,

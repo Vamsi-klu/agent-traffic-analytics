@@ -3,6 +3,8 @@ at a prevalence.
 
     clopper_pearson(k, n, confidence) -> (low, high)    exact (Clopper–Pearson) interval of k successes in n trials
     precision_at(recall, false_positive_rate, prevalence) -> share of the sessions called agent that are agents
+    tally(values) -> {value: n}                         how often each value occurs, in the order they first occur
+    median(values) -> the median of the values that are not None, None without any (the tables' medians)
 
 A rate measured on a few sessions says little on its own: 0 false positives in 11 humans still allows a true rate of
 28%. The scoreboard prints every rate with its exact interval (the two-sided interval, so its upper end is the 97.5%
@@ -13,11 +15,22 @@ rate of 5% makes most sessions called agent humans whatever the recall.
 Standard library only: the binomial tail is summed in log space (math.lgamma) and the bound found by bisection, which
 needs no inverse beta function.
 """
+import collections
 import math
+import statistics
 
 BISECTION_STEPS = 60  # protocol: halves the bracket 60 times, below double precision for a share in [0, 1]
 SIDES = 2  # protocol: a two-sided interval leaves half of what it does not cover on each side
 MIDDLE = 0.5  # protocol: bisection tests the middle of the bracket
+
+
+def tally(values):
+    return dict(collections.Counter(values))
+
+
+def median(values):
+    known = [v for v in values if v is not None]
+    return statistics.median(known) if known else None
 
 
 def clopper_pearson(k, n, confidence):

@@ -9,7 +9,8 @@ import type { AgentTurns, Certainty, Evidence, Verdict } from "@/data/types"
 export type Category = { label: string; about: string }
 export type Taxonomy = {
   title: string
-  lead: string
+  /** Which visits get a session at all, and which crawlers never do: the paragraphs under the categories block. */
+  counted: string[]
   verdicts: Record<Verdict, Category>
   unsure: Category
   evidence: Record<Evidence, Category>

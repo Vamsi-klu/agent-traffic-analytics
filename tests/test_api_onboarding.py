@@ -5,8 +5,9 @@
 The answer fits the contract. The sentence for a coding agent comes in English and Chinese, with this
 installation's launcher and ~ for the home folder (the same words `agentcake sentence` prints in Chinese); the
 commands hold placeholders only; the example sessions are made up and say so, and nothing about them is stored.
-`recorded` counts the sessions the lists show, from any source at any time (the home page is the dashboard
-from the first one on): a self-check, a prefetch or a copy of the site elsewhere is not one.
+`recorded` counts the sessions the lists show at any time (a self-check, a prefetch or a copy of the site elsewhere is
+not one), and of them the website's own: a session an earlier AgentCake's demo shop recorded is listed but doesn't say
+the website is connected, so the home page keeps showing how to connect it until the website's first session.
 """
 import json
 import os
@@ -16,8 +17,9 @@ import unittest
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from api_client import Client, contract_problems  # noqa: E402
-from agentcake import config, paths, site_setup  # noqa: E402
+from agentcake import config, paths  # noqa: E402
 from agentcake.api import visits  # noqa: E402
+from agentcake.wording import text  # noqa: E402
 
 T0 = 1_794_500_000_000
 A_YEAR_MS = 365 * 24 * 3_600_000
@@ -35,12 +37,11 @@ class Setup(unittest.TestCase):
     def test_it_answers_the_contract(self):
         self.assertEqual(contract_problems(self.body, "setup"), [])
 
-    def test_the_sentence_in_both_languages_with_this_launcher(self):
+    def test_the_sentence_in_english_with_this_launcher(self):
         launcher = paths.tilde(paths.launcher())
-        for lang in ("en", "zh"):
-            self.assertIn(f"`{launcher} setup --print --site`", self.body["sentence"][lang])
-            self.assertNotIn(os.path.expanduser("~") + os.sep, self.body["sentence"][lang])
-        self.assertEqual(self.body["sentence"]["zh"], paths.tilde(site_setup.sentence_b()))
+        self.assertIn(f"`{launcher} setup --print --site`", self.body["sentence"])
+        self.assertNotIn(os.path.expanduser("~") + os.sep, self.body["sentence"])
+        self.assertEqual(self.body["sentence"], paths.tilde(text("site_sentence", launcher=paths.launcher())))
 
     def test_there_is_no_demo_shop_to_try(self):
         """A fresh AgentCake connects its owner's website; it has no demo shop and no task for it."""
@@ -57,14 +58,25 @@ class Setup(unittest.TestCase):
         self.assertEqual(Client().get("/api/sessions").body["results"], [], "nothing stored")
 
     def test_nothing_is_recorded_yet(self):
-        self.assertEqual(self.body["recorded"], {"sessions": 0, "agent": 0})
+        self.assertEqual(self.body["recorded"], {"sessions": 0, "site": 0, "agent": 0})
 
     def test_recorded_counts_the_sessions_the_lists_show_whenever_they_came(self):
-        stored = (("human", {"verdict_class": "human", "origin": "demo"}),  # the demo shop of an earlier AgentCake: shown
-                  ("agent", {"verdict_class": "agent", "agent_row": "automated", "start_ms": T0 - A_YEAR_MS}),
-                  ("selfcheck", {"verdict_class": "human", "is_test": 1}),
-                  ("prefetch", {"verdict_class": "excluded"}),
-                  ("copy", {"verdict_class": "agent", "agent_row": "ai", "origin": "other"}))
+        self.store(("human", {"verdict_class": "human", "origin": "demo"}),  # the demo shop of an earlier AgentCake
+                   ("agent", {"verdict_class": "agent", "agent_row": "automated", "start_ms": T0 - A_YEAR_MS}),
+                   ("selfcheck", {"verdict_class": "human", "is_test": 1}),
+                   ("prefetch", {"verdict_class": "excluded"}),
+                   ("copy", {"verdict_class": "agent", "agent_row": "ai", "origin": "other"}))
+        answer = Client().get("/api/setup")
+        self.assertEqual(contract_problems(answer.body, "setup"), [])
+        self.assertEqual(answer.body["recorded"], {"sessions": 2, "site": 1, "agent": 1})
+
+    def test_the_demo_shops_sessions_alone_dont_connect_the_website(self):
+        """A visit to an earlier AgentCake's demo shop is listed, but only the website's own visits say it is connected."""
+        self.store(("demo", {"verdict_class": "human", "origin": "demo"}))
+        self.assertEqual(Client().get("/api/setup").body["recorded"], {"sessions": 1, "site": 0, "agent": 0})
+
+    def store(self, *stored):
+        """Writes (id, columns) sessions as collect and judging leave them, from the website unless columns say not."""
         con = visits.connect()
         try:
             for sid, columns in stored:
@@ -75,9 +87,6 @@ class Setup(unittest.TestCase):
             con.commit()
         finally:
             con.close()
-        answer = Client().get("/api/setup")
-        self.assertEqual(contract_problems(answer.body, "setup"), [])
-        self.assertEqual(answer.body["recorded"], {"sessions": 2, "agent": 1})
 
 
 if __name__ == "__main__":

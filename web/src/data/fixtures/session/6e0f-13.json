@@ -4,7 +4,7 @@
     "verdict": "agent",
     "evidence": null,
     "agent_turns": "agent_only",
-    "agent": "Codex browser",
+    "agent": "Codex in-app browser",
     "certainty": "likely",
     "when": "Yesterday 16:45",
     "duration_ms": 48000,
@@ -15,8 +15,8 @@
       "unsure": 0
     }
   },
-  "title": "Codex browser, the whole way",
-  "summary": "Codex browser acted from 0:02 to 0:48. The Name layer supports the verdict with 90% confidence, and the Behavior layer with 88%.",
+  "title": "Codex in-app browser, the whole way",
+  "summary": "Codex in-app browser acted from 0:02 to 0:48. The Environment layer supports the verdict with 99% confidence, and the Behavior layer with 88%.",
   "percent": 98,
   "timeline": {
     "duration_ms": 48000,
@@ -67,17 +67,10 @@
   "layers": [
     {
       "layer": "name",
-      "state": "agent",
-      "reasons": [
-        {
-          "kind": "user_agent",
-          "tone": "agent",
-          "text": "The User-Agent of the page declares Codex browser (the built-in browser of an AI desktop app).",
-          "detail": null
-        }
-      ],
-      "percent": 90,
-      "leans": "agent"
+      "state": "no_hit",
+      "reasons": [],
+      "percent": null,
+      "leans": null
     },
     {
       "layer": "verify",
@@ -95,17 +88,17 @@
     },
     {
       "layer": "environment",
-      "state": "no_hit",
+      "state": "agent",
       "reasons": [
         {
-          "kind": "browser",
-          "tone": "none",
-          "text": "No automation flag, no headless browser, no extension taking over the page.",
-          "detail": null
+          "kind": "page",
+          "tone": "agent",
+          "text": "The page is open in the Codex in-app browser.",
+          "detail": "The Codex in-app browser has 3 known signs: its prompt shape, an empty keyboard layout, and an overlay. This page shows 2 of them."
         }
       ],
-      "percent": null,
-      "leans": null
+      "percent": 99,
+      "leans": "agent"
     },
     {
       "layer": "behavior",

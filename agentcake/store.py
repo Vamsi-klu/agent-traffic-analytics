@@ -3,8 +3,11 @@
 db() opens it. A new database, or one an older cake made, is set up once: write-ahead-log mode (readers do not wait for
 the writer), the tables of schema.sql, the columns newer versions brought, then PRAGMA user_version = SCHEMA_VERSION, a
 fingerprint of schema.sql and ADDED_COLUMNS; a database with that version is opened as it is (every upload request
-opens the database). Changing schema.sql or ADDED_COLUMNS changes the version by itself. Replays live next to it in
-chunk files (streams.py).
+opens the database). Changing schema.sql or ADDED_COLUMNS changes the version by itself. Connections that find the
+database not set up take turns within this process (SETTING_UP), and each looks at the version again when its turn
+comes: the first page of a new install sends several requests at once, and only one of them sets the database up. A
+set-up that meets another process's (a command run while the server answers) waits for it and tries again, for
+db_timeout_s at most. Replays live next to it in chunk files (streams.py).
 prune(con, days) deletes whole sessions older than the retention the user chose (by default nothing is deleted by
 age), chunks included. setting(), set_setting() and delete_setting() read and write the database's own state
 (the settings table: what `agentcake migrate` did, whether dropped chunks wait for a reclaim, the address salt). LOCK
@@ -16,6 +19,7 @@ import os
 import pathlib
 import sqlite3
 import threading
+import time
 import zlib
 
 from agentcake import paths
@@ -23,6 +27,7 @@ from agentcake.config import load_cfg
 from agentcake.storage_config import ms_from_days, now_ms as clock_ms
 
 LOCK = threading.Lock()
+SETTING_UP = threading.Lock()  # one set-up at a time in this process; not LOCK, which callers of db() may hold already
 SCHEMA = pathlib.Path(paths.SCHEMA_FILE).read_text(encoding="utf-8")
 # Columns newer than a table's first version: {table: ((name, type), ...)}, the same as in schema.sql
 ADDED_COLUMNS = {"sessions": (("origin", "TEXT DEFAULT 'site'"),  # 0.3.2: site or other; 'demo' until 0.4.0
@@ -36,7 +41,10 @@ ADDED_COLUMNS = {"sessions": (("origin", "TEXT DEFAULT 'site'"),  # 0.3.2: site 
                               ("model_version", "TEXT")),  # the judge that made the verdict (judging.py)
                  "requests": (("pv", "TEXT"),),  # the page view of the batch a request brought
                  "srv": (("pv", "TEXT"), ("ua_match", "INT"), ("lang_match", "INT"),  # reuse, comparisons
-                         ("reuses", "INT DEFAULT 0"))}
+                         ("reuses", "INT DEFAULT 0")),
+                 "session_web": (("person", "TEXT"),  # the identify hash (window.cake.identify())
+                                 ("vis_t", "REAL"),  # the latest change of visibility followed (web_time.py)
+                                 ("vis_pv", "TEXT"))}  # the page view that is the tab's after it
 # The tables whose rows belong to a session: every table with a session_id column, as the database has them now.
 SESSION_TABLES = ("SELECT m.name FROM sqlite_master m JOIN pragma_table_info(m.name) p "
                   "WHERE m.type = 'table' AND p.name = 'session_id' ORDER BY m.name")
@@ -55,10 +63,46 @@ SCHEMA_VERSION = schema_version(SCHEMA, ADDED_COLUMNS)  # nothing to raise by ha
 
 def db():
     os.makedirs(paths.home(), exist_ok=True)
-    con = sqlite3.connect(paths.db_file(), timeout=load_cfg()["db_timeout_s"])
-    if con.execute("PRAGMA user_version").fetchone()[0] != SCHEMA_VERSION:
-        _set_up(con)
+    timeout_s = load_cfg()["db_timeout_s"]
+    con = sqlite3.connect(paths.db_file(), timeout=timeout_s)
+    if not _is_set_up(con):
+        _set_up_once(con, timeout_s)
     return con
+
+
+def _is_set_up(con):
+    return con.execute("PRAGMA user_version").fetchone()[0] == SCHEMA_VERSION
+
+
+def _set_up_once(con, timeout_s):
+    """Set the database up, unless another connection has by the time this one's turn comes. The change of journal
+    mode a set-up begins with turns a read lock into a write lock, and SQLite does not wait for that (two connections
+    could wait for each other forever): meeting another process's set-up as it writes, it answers "database is locked"
+    at once, whatever the busy timeout. The set-up then waits for the writer, looks at the version again and tries
+    again, until timeout_s (db_timeout_s) has passed."""
+    with SETTING_UP:
+        give_up_at = time.monotonic() + timeout_s
+        while not _is_set_up(con):
+            try:
+                _set_up(con)
+                return
+            except sqlite3.OperationalError as error:
+                if not _is_locked(error) or time.monotonic() >= give_up_at:
+                    raise
+            _wait_for_writer(con)
+
+
+def _is_locked(error):
+    """Whether SQLite answered "database is locked": SQLITE_BUSY, or one of its extended codes."""
+    code = getattr(error, "sqlite_errorcode", sqlite3.SQLITE_OK)  # an error Python's sqlite3 made itself has none
+    return code & 0xFF == sqlite3.SQLITE_BUSY  # protocol: an extended result code's low byte is its primary code
+
+
+def _wait_for_writer(con):
+    """Wait until no other connection is writing, for the busy timeout at most. SQLite waits for a write lock asked
+    for before anything is read, as BEGIN IMMEDIATE asks for it; it does not for one asked for after reading."""
+    con.execute("BEGIN IMMEDIATE")
+    con.rollback()
 
 
 def _set_up(con):

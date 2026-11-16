@@ -7,11 +7,11 @@ import { Pause, Play, RotateCw, SkipForward } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import type { ReplayMissing } from "@/data/types"
 import { clock, withoutScheme } from "@/lib/format"
 import { SPEEDS, type ReplayState } from "@/lib/use-replay"
 import { WORDS } from "@/lib/words"
+import { Hint } from "./bits"
 import { Crumb } from "./crumb"
 
 /** What the stage says when the replay is gone or cut short. */
@@ -34,15 +34,15 @@ export function ReplayStage({ replay }: { replay: StageProps }) {
       </div>
       <div className="relative aspect-video overflow-hidden bg-muted">
         <div ref={replay.mount} className="cake-replay absolute inset-0" />
-        {replay.status === "loading" && <StageNote><Crumb pose="look" className="w-16" title="Crumb is looking." />{WORDS.replayLoading}</StageNote>}
+        {replay.status === "loading" && <StageNote><Crumb pose="look" className="w-16" label="Loading illustration" />{WORDS.replayLoading}</StageNote>}
         {replay.status === "failed" && (
           <StageNote>
-            <Crumb pose="oops" className="w-20" title="Crumb: something went wrong." />
+            <Crumb pose="oops" className="w-20" label="Error illustration" />
             <span><b className="text-foreground">{WORDS.replayFailed}</b> {replay.error}</span>
             <Button variant="outline" size="sm" onClick={replay.retry}><RotateCw aria-hidden />Try again</Button>
           </StageNote>
         )}
-        {replay.status === "missing" && <StageNote><Crumb pose="sleep" className="w-20" title="Crumb is asleep: no replay." />{missingText(replay.missing)}</StageNote>}
+        {replay.status === "missing" && <StageNote><Crumb pose="sleep" className="w-20" label="Empty state illustration" />{missingText(replay.missing)}</StageNote>}
         {replay.waiting && <Badge variant="tag" className="absolute top-2 right-2">{WORDS.replayWaiting}</Badge>}
       </div>
     </div>
@@ -55,14 +55,11 @@ export function ReplayControls({ replay, durationMs }: { replay: ReplayState; du
   const toggle = replay.playing ? "Pause" : "Play"
   return (
     <div className="flex flex-wrap items-center gap-2 border-t-2 border-line px-3 py-2">
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button variant="outline" size="icon-sm" aria-label={toggle} disabled={!ready} onClick={replay.playing ? replay.pause : replay.play}>{replay.playing ? <Pause /> : <Play />}</Button>
-        </TooltipTrigger>
-        <TooltipContent>{toggle}</TooltipContent>
-      </Tooltip>
+      <Hint text={toggle}>
+        <Button variant="outline" size="icon-sm" aria-label={toggle} disabled={!ready} onClick={replay.playing ? replay.pause : replay.play}>{replay.playing ? <Pause /> : <Play />}</Button>
+      </Hint>
       <span data-clock="" className="font-mono text-sm">{`${clock(replay.timeMs)} / ${clock(durationMs)}`}</span>
-      <ToggleGroup type="single" variant="outline" size="sm" value={String(replay.speed)} disabled={!ready} aria-label="Speed"
+      <ToggleGroup type="single" variant="outline" size="sm" value={String(replay.speed)} disabled={!ready} aria-label="Playback speed"
         onValueChange={(value) => value && replay.setSpeed(Number(value))}>
         {SPEEDS.map((speed) => <ToggleGroupItem key={speed} value={String(speed)}>{speed}×</ToggleGroupItem>)}
       </ToggleGroup>

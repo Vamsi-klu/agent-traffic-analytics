@@ -18,12 +18,12 @@ const badgeVariants = cva(
         ghost:
           "hover:bg-muted hover:text-muted-foreground dark:hover:bg-muted/50",
         link: "text-primary underline-offset-4 hover:underline",
-        // Frosting category variants (DESIGN.md §3.1): one shape, each its own colours. Use them through <VerdictBadge>
-        // and <TurnsBadge>, never by hand.
+        // Frosting category variants (DESIGN.md §3.1): one shape, each its own colours (bot and unknown share the one
+        // grey). Use them through <VerdictBadge> and <TurnsBadge>, never by hand.
         human: "border-line bg-human-soft text-human-foreground",
         agent: "border-line bg-agent-soft text-agent-foreground",
         unknown: "border-line bg-unsure-soft text-unsure-foreground",
-        bot: "border-line bg-muted text-faint-foreground",
+        bot: "border-line bg-unsure-soft text-unsure-foreground",
         // a Human session cake couldn't tell: beside its Human badge, through <ThinEvidenceTag>
         thin: "rounded-md border-dashed border-line bg-unsure-soft text-unsure-foreground font-bold",
         // neutral tag: agent names, sources, "off by default"

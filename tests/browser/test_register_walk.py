@@ -1,8 +1,8 @@
 """The registration card end to end: register_walk.mjs in Chromium against a real AgentCake.
 
 AgentCake runs here on a free port of this computer, with the built local pages (web/dist) and register_url pointing at
-a stand-in receiver (tests/receiver.py). Pressing "Register & Continue" makes one request, which carries exactly the
-text "See what's sent" showed, and AgentCake keeps it; with nothing listening at register_url the card says so,
+a stand-in receiver (tests/receiver.py). Pressing "Register and continue" makes one request, which carries exactly the
+text "View registration data" showed, and AgentCake keeps it; with nothing listening at register_url the card says so,
 Continue opens the pages, nothing is kept, and the card asks again when the page is opened again.
 
 Skipped, saying what is missing, without node, playwright-core (harness.py) or the built pages (cd web && npm run

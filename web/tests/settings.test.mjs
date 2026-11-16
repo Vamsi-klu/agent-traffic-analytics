@@ -2,11 +2,13 @@
 // /api/settings and /api/register say; a change is posted at once with only its field, and a selector list the browser
 // can't read isn't posted; where visits come from is asked again while the page is open, leaving the form as it
 // is; lists past their age limit and a full budget warn; "Delete all data" asks first and then posts /api/delete for everything;
-// the description of freeing space states the share of the budget it stops at as /api/settings gives it.
+// freeing space deletes the oldest replays of every kind once less than the rest of the budget than /api/settings's share
+// is left, as its description says.
 // Usage: node --test tests/
 import assert from "node:assert/strict"
 import { readFileSync } from "node:fs"
 import { after, before, test } from "node:test"
+import { WORDS } from "../src/lib/words.ts"
 import { openTab, sample, startApp } from "./app.mjs"
 
 const WAIT_MS = 15000
@@ -39,7 +41,7 @@ async function open(answer = settings) {
   })
   await tab.page.goto(app.url("#/settings"))
   await tab.page.getByRole("heading", { name: "Settings", level: 1 }).waitFor({ timeout: WAIT_MS })
-  await tab.page.getByText("Your website's domain").waitFor({ timeout: WAIT_MS })
+  await tab.page.getByText("Your website's domain", { exact: true }).waitFor({ timeout: WAIT_MS })
   return { ...tab, posts, deletes, swap: (next) => { current = next } }
 }
 
@@ -52,20 +54,53 @@ test("every item shows what /api/settings and /api/register say", async () => {
     assert.equal(await page.getByLabel("Your website's domain").inputValue(), settings.site_domain)
     assert.ok(shown.includes(settings.site_key))
     assert.ok((await page.locator("pre").allInnerTexts()).includes(settings.script_tag), "the line to add, with the key")
-    for (const when of Object.values(settings.last_seen)) assert.ok(shown.includes(`Last: ${when}`), when)
+    for (const when of Object.values(settings.last_seen)) assert.ok(shown.includes(`Last received: ${when}`), when)
     assert.ok(shown.includes("On a server"))
-    assert.ok(shown.includes(`${settings.server_half.missing.join(", ")} didn't reach your site's server`))
-    assert.ok(shown.includes(`A ${settings.server_half.logs.format} log was imported ${settings.server_half.logs.last}.`))
+    assert.ok(shown.includes(`Your server didn't receive ${settings.server_half.missing.join(", ")} on its latest page requests.`))
+    assert.ok(shown.includes(`Last log import: ${settings.server_half.logs.last} (${settings.server_half.logs.format})`))
     assert.equal(await page.getByRole("radio", { name: "Keep everything" }).getAttribute("aria-checked"), "true")
-    assert.equal(await page.getByRole("switch", { name: "Free space automatically" }).getAttribute("aria-checked"), "true")
-    assert.equal(await page.getByRole("switch", { name: "Page lookup monitoring" }).getAttribute("aria-checked"), "false")
-    assert.equal(await page.getByLabel("CSS masking selectors").inputValue(), settings.hide_selectors)
-    assert.equal(await page.getByText("Runs locally", { exact: true }).count(), 4, "the four layers: shown, not switches")
-    assert.ok(shown.includes(`The lists were built ${settings.lists.built}`) && shown.includes("Up to date"))
+    assert.equal(await page.getByRole("switch", { name: "Automatic cleanup" }).getAttribute("aria-checked"), "true")
+    assert.equal(await page.getByRole("switch", { name: "Extra automation detection" }).getAttribute("aria-checked"), "false")
+    assert.equal(await page.getByLabel("Mask elements").inputValue(), settings.hide_selectors)
+    assert.equal(await page.getByRole("switch", { name: /Name|Verification|Environment|Behavior/ }).count(), 0, "the four layers: shown, not switches")
+    assert.ok(shown.includes(`Built on ${settings.lists.built}`) && shown.includes("Up to date"))
     assert.ok(shown.includes(`${NAME} doesn't collect usage data or telemetry.`))
-    assert.equal(await page.getByLabel("What was sent").locator("pre").innerText(), registered.sent.body)
-    assert.ok(shown.includes(`write to ${registered.delete_contact}`))
+    assert.equal(await page.getByLabel("Information sent to Tartini AI").locator("pre").innerText(), registered.sent.body)
+    assert.ok(shown.includes(`email ${registered.delete_contact}`))
     assert.ok(!/Mask all page text|installed extensions|Export/.test(shown), "no switch or button without a feature behind it")
+  } finally { await tab.close() }
+})
+
+/** {layer: the tag beside it} in How detection works ("1 · Name" is Name). */
+async function layerTags(page) {
+  const card = page.locator('[data-slot="card"]').filter({ has: page.getByText("How detection works", { exact: true }) })
+  const rows = await card.locator("h4").evaluateAll((titles) => titles.map((h) => [h.textContent.trim(), h.closest(".grid").lastElementChild.textContent.trim()]))
+  return Object.fromEntries(rows.flatMap(([title, tag]) => { const m = /^\d · (.+)$/.exec(title); return m ? [[m[1], tag]] : [] }))
+}
+
+test("each layer says where it works, the same on this computer and on a server: Verification on a server only", async () => {
+  const want = { Name: WORDS.layerLocalOrServer, Verification: WORDS.layerServerOnly, Environment: WORDS.layerLocalOrServer, Behavior: WORDS.layerLocalOrServer }
+  for (const route of ["this_computer", "server"]) {
+    const tab = await open({ ...settings, route })
+    try {
+      assert.deepEqual(await layerTags(tab.page), want, route)
+      assert.ok(!/Runs locally/.test(await text(tab.page)), route)
+    } finally { await tab.close() }
+  }
+})
+
+test("the cards come in three rows of two, each row's cards starting and ending together", async () => {
+  const tab = await open()
+  try {
+    const rows = await tab.page.locator("main div.grid.items-stretch").evaluateAll((grids) => grids.map((grid) => {
+      const row = grid.getBoundingClientRect()
+      return [...grid.children].map((child) => {
+        const last = child.matches('[data-slot="card"]') ? child : child.querySelector(':scope > [data-slot="card"]:last-child')
+        return { top: Math.round(child.getBoundingClientRect().top - row.top), bottom: Math.round(row.bottom - last.getBoundingClientRect().bottom) }
+      })
+    }))
+    assert.equal(rows.length, 3)
+    for (const row of rows) assert.deepEqual(row, [{ top: 0, bottom: 0 }, { top: 0, bottom: 0 }], JSON.stringify(rows))
   } finally { await tab.close() }
 })
 
@@ -73,26 +108,26 @@ test("a change is posted at once with only its field, and the page shows cake's 
   const tab = await open()
   try {
     const page = tab.page
-    await page.getByRole("switch", { name: "Page lookup monitoring" }).click()
+    await page.getByRole("switch", { name: "Extra automation detection" }).click()
     await page.getByRole("radio", { name: "90 days" }).click()
     await page.getByText("Sessions older than 90 days are deleted every night").waitFor({ timeout: WAIT_MS })
     await page.getByLabel("Your website's domain").fill("shop.example.org")
     await page.getByRole("button", { name: "Save" }).first().click()
     await page.waitForFunction(() => document.querySelector("#site-domain + button")?.disabled === true)
     assert.deepEqual(tab.posts, [{ hook_dom: true }, { retention_days: 90 }, { site_domain: "shop.example.org" }])
-    assert.equal(await page.getByRole("switch", { name: "Page lookup monitoring" }).getAttribute("aria-checked"), "true")
+    assert.equal(await page.getByRole("switch", { name: "Extra automation detection" }).getAttribute("aria-checked"), "true")
   } finally { await tab.close() }
 })
 
 test("a selector list the browser can't read isn't posted; one it reads is", async () => {
   const tab = await open()
   try {
-    const page = tab.page, input = page.getByLabel("CSS masking selectors")
+    const page = tab.page, input = page.getByLabel("Mask elements")
     const save = page.locator("#hide + button")
     await input.fill("#address {")
     assert.equal(await save.isDisabled(), true)
     assert.equal(await input.getAttribute("aria-invalid"), "true")
-    await page.getByText("This browser can't read the entries as CSS selectors.").waitFor({ timeout: WAIT_MS })
+    await page.getByText("Enter CSS selectors supported by this browser.", { exact: false }).waitFor({ timeout: WAIT_MS })
     await input.fill(" .account-email, #address, .card-number ")
     await save.click()
     await page.waitForFunction(() => document.querySelector("#hide + button")?.disabled === true)
@@ -107,7 +142,7 @@ test("where visits come from is asked again while the page is open, and the form
     const page = tab.page
     await page.getByLabel("Your website's domain").fill("typed.example")
     tab.swap({ ...settings, site_domain: "other.example", last_seen: { ...settings.last_seen, site: "Today 10:00" } })
-    await page.getByText("Last: Today 10:00").waitFor({ timeout: WAIT_MS })
+    await page.getByText("Last received: Today 10:00").waitFor({ timeout: WAIT_MS })
     assert.equal(await page.getByLabel("Your website's domain").inputValue(), "typed.example", "what was being typed stays")
     assert.equal(tab.posts.length, 0)
   } finally { await tab.close() }
@@ -117,18 +152,19 @@ test("on this computer, the page says public visitors need AgentCake on a server
   const tab = await open({ ...settings, route: "this_computer" })
   try {
     assert.ok((await text(tab.page)).includes("On this computer"))
-    await tab.page.getByText("Visitors to a public website can't reach this computer.").waitFor({ timeout: WAIT_MS })
+    await tab.page.getByText("This computer can't receive data from public visits.", { exact: false }).waitFor({ timeout: WAIT_MS })
   } finally { await tab.close() }
 })
 
-test("the description of freeing space states the share of the budget it stops at, as /api/settings gives it", async () => {
+test("freeing space says it deletes the oldest replays of every kind once less than the share left by /api/settings is left", async () => {
   const configured = settings.storage.free_to_pct, other = configured - 15
-  for (const [shown, hidden] of [[configured, other], [other, configured]]) {
-    const tab = await open({ ...settings, storage: { ...settings.storage, free_to_pct: shown } })
+  for (const [freeAt, otherAt] of [[configured, other], [other, configured]]) {
+    const tab = await open({ ...settings, storage: { ...settings.storage, free_to_pct: freeAt } })
     try {
       const page = await text(tab.page)
-      assert.match(page, new RegExp(`\\b${shown}% of the budget\\.`))
-      assert.doesNotMatch(page, new RegExp(`\\b${hidden}% of the budget`))
+      assert.ok(page.includes(`When less than ${100 - freeAt}% of the budget is left, ${NAME} deletes the oldest replays from all session types.`), String(freeAt))
+      assert.ok(!page.includes(`When less than ${100 - otherAt}% of the budget is left`))
+      assert.doesNotMatch(page, /Human sessions with no activity|keep their replays/, "one rule, no kind of session kept")
     } finally { await tab.close() }
   }
 })
@@ -141,7 +177,7 @@ test("lists past their age limit warn and give the command; a full budget says n
     const page = tab.page
     await page.getByText(`These lists are more than ${late.lists.max_age_days} days old.`).waitFor({ timeout: WAIT_MS })
     assert.ok((await page.locator("pre").allInnerTexts()).includes(late.lists.update_command))
-    await page.getByText("The disk budget is full and nothing more can be freed").waitFor({ timeout: WAIT_MS })
+    await page.getByText("All remaining replays belong to active sessions", { exact: false }).waitFor({ timeout: WAIT_MS })
   } finally { await tab.close() }
 })
 

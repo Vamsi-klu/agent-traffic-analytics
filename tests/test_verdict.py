@@ -137,6 +137,28 @@ class Verification(unittest.TestCase):
         self.assertEqual((result["class"], result["row"], result["name"], result["impersonating"]),
                          ("agent", "automated", None, "chatgpt-user"))
 
+    def test_an_impersonated_name_is_an_agent_in_the_name_layer_whatever_its_list_says(self):
+        """A name a check proved false is an automation lying about what it is (rules 1 to 3): the name layer says
+        Agent, as the class and the verification layer do, for a bot's name as for an agent's."""
+        for ua, impersonated in ((cases.GOOGLEBOT, "googlebot"), (CHATGPT_USER, "chatgpt-user")):
+            with self.subTest(impersonated):
+                result = verdict.decide(evidence(uas=ua, platform="Linux x86_64",
+                                                 behavior_result=behavior("agent", AGENT_RUN)))
+                self.assertEqual((result["class"], result["impersonating"]), ("agent", impersonated))
+                self.assertEqual(result["layers"]["name"], {"state": "agent", "leans": "agent", "percent": 99})
+                self.assertEqual(result["layers"]["verify"]["state"], "agent")
+
+    def test_an_impersonated_bots_name_counts_toward_the_percent_as_an_agents_does(self):
+        """In local mode the verification layer is off, so the name layer alone says how sure the impersonation is: a
+        bot's name proved false by a signature no list knows the signer of gives the percent an agent's name gets."""
+        percents = {}
+        for ua, impersonated in ((cases.GOOGLEBOT, "googlebot"), (CHATGPT_USER, "chatgpt-user")):
+            result = verdict.decide(evidence(mode="local", uas=ua, signatures={"collector": forged("signer.example")},
+                                             behavior_result=behavior("agent", AGENT_RUN)))
+            self.assertEqual((result["class"], result["impersonating"]), ("agent", impersonated))
+            percents[impersonated] = result["percent"]
+        self.assertEqual(percents, {"googlebot": 99, "chatgpt-user": 99})
+
     def test_agent_range_without_a_name_is_the_operators_infrastructure(self):
         result = verdict.decide(evidence(address=first_address("openai-chatgpt-user"),
                                          behavior_result=behavior("agent", AGENT_RUN)))
@@ -281,6 +303,19 @@ class Behaviour(unittest.TestCase):
         self.assertEqual((result["class"], result["row"], result["name"], result["confidence"]),
                          ("agent", "ai", None, "possible"))
 
+    def test_an_indicator_no_list_names_does_not_leave_the_agent_to_behaviour_alone(self):
+        """Comet's indicator on the page (a mark the lists name no product for) says its agent was working: the agent
+        stays unnamed, and the reasons give the indicator's span, not the line that only behaviour points to an agent
+        and that the page has no agent trace (attribute.py's local_agent reason)."""
+        span = {"marker": "comet.overlay", "from": T0 + S, "to": T0 + 30 * S}
+        marked = behavior("agent", run("agent", 1, 30, 9, 0.97))
+        marked["timeline"]["marks"] = [span]
+        result = verdict.decide(dict(evidence(mode="local", behavior_result=marked), marks=[span]))
+        self.assertEqual((result["class"], result["row"], result["name"], result["category"]),
+                         ("agent", "ai", None, "local_agent"))
+        self.assertIn("behavior.indicator", ids(result))
+        self.assertNotIn("behavior.local-agent", ids(result))
+
     def test_behaviour_unsure_is_not_sure_and_too_few_actions_too_little_data(self):
         self.assertEqual(verdict.decide(evidence(behavior_result=behavior("unsure", run("unsure", 0, 9, 4, 0.5)))
                                         )["class"], "not_sure")
@@ -311,10 +346,11 @@ class Behaviour(unittest.TestCase):
         result = verdict.decide(evidence(behavior_result=result_of_behavior))
         self.assertEqual(result["class"], "not_sure")
         (said,) = [r for r in result["reasons"] if r["id"] == "behavior.one-kind"]
-        self.assertEqual((said["facts"], said["text"]), ({"kind": "approach"}, "Only one kind of behavior looks like "
-                                                         "an agent's. That isn't enough to call it an agent."))
-        self.assertEqual(said["detail"], "Behavior model: the only agent-like evidence is how the pointer approaches "
-                                         "each click. Calling it an agent takes two independent kinds.")
+        self.assertEqual((said["facts"], said["text"]), ({"kind": "approach"}, "The behavior model can't identify an "
+                                                         "agent from one kind of agent-like behavior alone."))
+        self.assertEqual(said["detail"], "The behavior model detected agent-like behavior only in pointer movement "
+                                         "toward clicks. For this session, the model needs two or more independent kinds of "
+                                         "agent-like behavior to identify an agent.")
         self.assertNotIn("behavior.unsure", ids(result))
 
     def test_segments_and_shares_follow_the_class(self):

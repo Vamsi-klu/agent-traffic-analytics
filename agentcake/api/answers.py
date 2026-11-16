@@ -8,7 +8,8 @@
     local_only(request)           raises Refused (403) unless the request comes from this computer's own pages
     json_object(request)          the body of a JSON request as a dict, else Refused (415 not JSON, 400 unreadable)
     choice(request, name, keys)   one query parameter, None when absent, else Refused (400) when not one of keys
-    text_param(request, name)     a free-text query parameter (an agent's name), None when absent
+    text_param(request, name)     a free-text query parameter (an agent's name), None when absent or empty
+    given_param(request, name)    a query parameter as sent, "" when sent empty, None when absent (a table row's key)
     no_route(request)             404 for an /api address no view answers
 
 local_only() is the guard against cross-site requests and DNS rebinding (a site whose name resolves to 127.0.0.1):
@@ -106,6 +107,10 @@ def choice(request, name, keys):
 
 def text_param(request, name):
     return (request.query.get(name) or [""])[0] or None
+
+
+def given_param(request, name):
+    return (request.query.get(name) or [None])[0]
 
 
 @view

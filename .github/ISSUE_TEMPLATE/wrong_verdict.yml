@@ -1,4 +1,4 @@
-name: Wrong verdict
+name: Wrong classification
 description: A session was judged Human, Agent or Bot, and it was something else.
 labels: ["wrong verdict"]
 body:
@@ -13,7 +13,7 @@ body:
       label: What AgentCake said
       options:
         - Human
-        - Human, marked thin evidence
+        - Human, marked limited evidence
         - "Agent: agent only"
         - "Agent: human + agent"
         - Bot
@@ -35,12 +35,12 @@ body:
     attributes:
       label: Which agent or tool
       description: Its name and version, if you know them.
-      placeholder: Claude in Chrome, Comet, ChatGPT agent, Playwright 1.56…
+      placeholder: Claude in Chrome, ChatGPT, Playwright 1.56…
   - type: input
     id: named
     attributes:
       label: The name AgentCake gave it
-      description: The agent's name on the session page, and Verified, Likely, Possible or Unnamed.
+      description: The agent's name on the session page, and Verified, Likely or Unnamed.
       placeholder: Unnamed
   - type: input
     id: browser
@@ -67,7 +67,7 @@ body:
     attributes:
       label: AgentCake version
       description: What `agentcake --version` prints.
-      placeholder: agentcake 0.4.1
+      placeholder: agentcake 0.4.2
     validations:
       required: true
   - type: dropdown

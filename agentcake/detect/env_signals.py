@@ -21,12 +21,14 @@ Both give the same dict, which the rules read:
     {"pages": [{"path", "env", "auto", "botd", "dom_add", "botscent", "hidden_input", "nav": {"headers"},
                 "markers": {"list", "from", "spans": [{"marker", "product", "kind", "from", "to"}, ...]}}, ...],
      "collect": {"requests": n, "headers": {name: {"present": k, "values": [...]}}, "ip_classes": [...]},
-     "viewport_changes": [{"page", "dw", "dh", "doh", "w", "h"}, ...]}
+     "viewport_changes": [{"page", "dw", "dh", "doh", "w", "h"}, ...],
+     "script_settings": {"hook_dom": true}}
 
 A key is left out when the session did not record it, so the rules read it as unknown, not as a miss ("markers" comes
 from cake.js on a page view where its mark watch ran, and from the recorder's check of Claude in Chrome's indicator on
 a page view where it saw the indicator: markers.py). Header names and event types come from the rule table's "signals"
-section.
+section, and so do the page record fields that say how the site owner had set cake.js (script_settings: from cake.js
+only, a setting true when it was on for any page view of the visit; the lab's own scripts had no settings).
 """
 from __future__ import annotations
 
@@ -292,6 +294,20 @@ def cake_page_order(batches):
     return [pv for pv, _, _ in _cake_page_views(list(batches))]
 
 
+def _script_settings(views, names):
+    """How the site owner had set the page script, as the page records say: a setting is true when it was on for any
+    page view (the owner can change it between two page views); empty when no page record said."""
+    found = {}
+    for _, _, signals in views:
+        for record in signals:
+            if record.get("ty") != CAKE_PAGE_RECORD:
+                continue
+            for name in names:
+                if name in record:
+                    found[name] = found.get(name) is True or record[name] is True
+    return found
+
+
 def from_cake(batches, collect_requests=(), page_requests=None, settings=None):
     """Signals of one visit (one `s`) from cake.js's batches (see the module docstring)."""
     settings = settings or load_rules().signals
@@ -299,7 +315,11 @@ def from_cake(batches, collect_requests=(), page_requests=None, settings=None):
     visit = next(({k: v for k, v in record.items() if k not in CAKE_RECORD_KEYS}
                   for _, _, signals in views for record in signals if record.get("ty") == CAKE_VISIT_RECORD), {})
     parts = [_cake_parts(pv, view, signals, visit, page_requests) for pv, view, signals in views]
-    return _assemble(parts, collect_requests, settings)
+    signals = _assemble(parts, collect_requests, settings)
+    script = _script_settings(views, settings["script_settings"])
+    if script:
+        signals["script_settings"] = script
+    return signals
 
 
 # ---------------------------------------------------------------- the research lab

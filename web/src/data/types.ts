@@ -15,6 +15,8 @@
 
 /** Who acted in a session, one verdict each (DESIGN.md §3.1): a session cake can't tell counts as human, with
  *  evidence "thin" (its reasons say why). */
+import type { WebDimension } from "./web-types"
+
 export type Verdict = "human" | "agent" | "bot"
 /** A Human session cake couldn't tell (too few actions, a phone or tablet, evidence too weak or pointing both ways). */
 export type Evidence = "thin"
@@ -23,10 +25,10 @@ export type Actor = "human" | "agent" | "unsure"
 /** An Agent session from start to finish, or a human and an agent taking turns (hand-off points on its timeline). */
 export type AgentTurns = "agent_only" | "human_agent"
 /** How sure an agent's or a bot's name is: verified by a signature or a published address range; likely from
- *  the name it gives or the product's own traces; possible from its behavior alone. */
-export type Certainty = "verified" | "likely" | "possible"
-/** The date filter of the dashboard and the session list. */
-export type DateRange = "today" | "7d" | "30d"
+ *  the name it gives or the product's own traces. Behavior alone never names an agent. */
+export type Certainty = "verified" | "likely"
+/** The date filter of the dashboard and the session list; all: every session, from the first. */
+export type DateRange = "today" | "7d" | "30d" | "all"
 
 /** Share of a session's actions each actor took, in whole percents that add up to 100 (all 0 when the behavior model
  *  did not run, as for bots). */
@@ -46,7 +48,7 @@ export type SessionSummary = {
   evidence: Evidence | null
   /** Set for Agent sessions, null otherwise. */
   agent_turns: AgentTurns | null
-  /** The agent's product or automation tool name (Claude in Chrome, Comet, Playwright…), or the program's name for a
+  /** The agent's product or automation tool name (Claude in Chrome, ChatGPT, Playwright…), or the program's name for a
    *  bot; null when no name fits an agent (the pages say Unnamed) and for sessions without an agent. */
   agent: string | null
   /** How sure the name is; null without a name. */
@@ -61,6 +63,8 @@ export type SessionSummary = {
   /** Who acted when, on the recording's clock; sent for every session the behavior model split into runs, so the row can
    *  draw its timeline. */
   segments?: Segment[]
+  /** Set only on a session an earlier AgentCake's demo shop recorded (until 0.4.0), not the website: its row says so. */
+  demo_shop?: true
 }
 
 /** Groups of sessions: the filters of the session list and their counts. all = human + agent + bot; agent splits into
@@ -71,66 +75,56 @@ export type SessionCounts = Record<SessionGroup, number>
 // ---------------------------------------------------------------- GET /api/overview?range=
 
 export type OverviewQuery = { range?: DateRange }
-/** One day of the "Estimated human and agent time" chart: each session's time split by the behavior model's shares, whole
- *  percents, labelled by the server ("Thu"). */
-export type DayShare = { day: string; human: number; agent: number; unsure: number }
 /** Sessions per agent name, Human + agent sessions included; name null: the agents no product name fits (Unnamed);
  *  bots never appear here. */
 export type AgentCount = { name: string | null; sessions: number }
-/** Visits to one page by agents and by humans: both "Pages … visit most" tables sort this one list. */
-export type PageVisits = { path: string; agent: number; human: number }
+/** Page views divided by sessions: of all sessions and of each verdict's; null for a group with no session in the range. */
+export type PagesPerSession = { all: number | null; human: number | null; agent: number | null; bot: number | null }
 
-/** What cake records and how it decides (dashboard bottom, the Bots "?"). Comes from agentcake/data/coverage.en.json
- *  and judging.en.json, so the pages never carry this wording. The names of the categories themselves
- *  are judging.en.json's too, read when the pages are built (src/lib/taxonomy.ts). */
+/** What counts as a bot (the Bot number's "?"). Comes from agentcake/data/coverage.en.json, so the pages never carry this
+ *  wording. The names of the categories themselves are judging.en.json's, read when the pages are built
+ *  (src/lib/taxonomy.ts). */
 export type Coverage = {
-  title: string
-  lead: string
-  columns: { what: string; shown_as: string; how: string }
-  rows: { what: string; verdict: Verdict; shown_as: string; how: string }[]
   bot: { question: string; answer: string }
 }
 
 export type Overview = {
   counts: SessionCounts
-  /** Agent sessions over the same range a week earlier, for "+12 vs last week". */
-  agent_last_week: number
-  share_by_day: DayShare[]
+  /** Agent sessions over the same range a week earlier, for "+12 vs last week"; null for all time, which has no earlier
+   *  range (the comparison isn't shown). */
+  agent_last_week: number | null
   agents_seen: AgentCount[]
-  top_pages: PageVisits[]
-  /** The newest sessions of every kind, newest first (the server decides how many). */
-  latest: SessionSummary[]
+  /** How many times a page opened in the range's sessions (each page view, and each new address a single-page app shows
+   *  in one): all of them, and by the session's verdict, which add up to all. */
+  page_views: { all: number; human: number; agent: number; bot: number }
+  pages_per_session: PagesPerSession
   /** The newest Agent sessions, newest first (the top block). */
   latest_agent: SessionSummary[]
-  /** How long sessions last on average. */
-  average_length: AverageLength
-  /** The disk budget and what cake's data uses of it, whatever the filters: the dashboard's Disk bar. */
+  /** The disk budget and what cake's data uses of it, whatever the filters: the dashboard warns from its warn_at_pct. */
   storage: Storage
   coverage: Coverage
 }
 
 /** The settings page's disk numbers in one place (Settings.storage, budget_mb, auto_free): the dashboard warns from
- *  warn_at_pct, and says what happens when the budget is full by auto_free; disk and replays_stopped say why new
- *  replays stop while the disk is below its floor. */
+ *  warn_at_pct, and says by auto_free what happens from free_to_pct on (the oldest replays are deleted) or when the
+ *  budget is full; disk and replays_stopped say why new replays stop while the disk is below its floor. */
 export type Storage = {
   used_bytes: number; budget_mb: number; warn_at_pct: number; days_left: number | null; auto_free: boolean
+  /** The share of the budget at which freeing space starts, and under which it stops. */
+  free_to_pct: number
   disk: Disk; replays_stopped: ReplaysStopped
 }
 
-/** The average length of a session, from its first to its last recorded action (a page opened, or the visitor's
- *  pointer, keys, wheel or touch), so a tab left open afterwards adds nothing. */
-export type AverageLength = {
-  /** Milliseconds by who visited: Human, Agent only and Human + agent; null when the range has no such session. */
-  ms: { human: number | null; agent_only: number | null; human_agent: number | null }
-  /** How the length is measured, in a sentence the dashboard can show (agentcake/data/coverage.en.json). */
-  about: string
-}
-
-// ---------------------------------------------------------------- GET /api/sessions?verdict=&turns=&evidence=&agent=&range=&cursor=
+// ---------------------------------------------------------------- GET /api/sessions?verdict=&turns=&evidence=&agent=&range=&dimension=&key=&cursor=
 
 /** verdict: one verdict; turns: an Agent session's split (keeps only Agent sessions); evidence: thin keeps the Human
- *  sessions cake couldn't tell; agent: an exact name from agent_names; they combine; cursor: `next` of the page before. */
-export type SessionsQuery = { verdict?: Verdict; turns?: AgentTurns; evidence?: Evidence; agent?: string; range?: DateRange; cursor?: string }
+ *  sessions cake couldn't tell; agent: an exact name from agent_names; dimension + key: the sessions of one row of the
+ *  dashboard's Sources, Devices or Geography tables (dimension without key: those without a value); they combine;
+ *  cursor: `next` of the page before. */
+export type SessionsQuery = {
+  verdict?: Verdict; turns?: AgentTurns; evidence?: Evidence; agent?: string; range?: DateRange; dimension?: WebDimension; key?: string
+  cursor?: string
+}
 export type SessionsPage = {
   /** Counts under the agent and range filters, whatever the verdict and turns filters. */
   counts: SessionCounts
@@ -259,8 +253,6 @@ export type ReplayChunk = { chunk: number; start_ms: number; end_ms: number; eve
 export type Connection = "receiving" | "waiting" | "not_connected"
 /** Where the website's visits arrive: this computer's AgentCake, or AgentCake installed on a server (server mode). */
 export type Route = "this_computer" | "server"
-/** The four layers that judge, and whether each runs here (verify only in server mode). Not settings. */
-export type Layers = Record<LayerId, boolean>
 /** The last log import of the site's web server: when, the log's format, and the recommended request headers its
  *  log lacks or leaves empty on every page request. */
 export type LogImport = { last: string; format: string; missing: string[]; empty: string[] }
@@ -290,14 +282,13 @@ export type Settings = {
   budget_choices_mb: number[]
   auto_free: boolean
   /** days_left: when the budget is full at last week's pace; null when nothing was added last week. free_to_pct: the
-   *  share of the budget freeing space brings cake's data down to (auto_free_target_ratio), as auto_free's
-   *  description states it. */
+   *  share of the budget at which freeing space starts and under which it stops (auto_free_target_ratio), as
+   *  auto_free's description states it. */
   storage: { used_bytes: number; warn_at_pct: number; days_left: number | null; disk: Disk; replays_stopped: ReplaysStopped; free_to_pct: number }
   /** The page script's settings: watch the site's own document lookups; CSS selectors of parts of its pages never
    *  recorded, on top of cake.js's own private elements. */
   hook_dom: boolean
   hide_selectors: string
-  layers: Layers
   database: { path: string; sessions: number }
 }
 
@@ -313,18 +304,20 @@ export type SettingsUpdate = {
 
 // ---------------------------------------------------------------- GET /api/setup
 
-/** The home page's ways to connect (from `agentcake sentence` and `setup --print`) and its example preview. */
+/** The home page's ways to connect (the sentence for a coding agent, in English, and the commands of `setup --print`) and its example preview. */
 export type Setup = {
-  /** The one sentence for a coding agent, in both languages of the toggle. */
-  sentence: { en: string; zh: string }
+  /** The one sentence for a coding agent, in English. */
+  sentence: string
   /** Commands for the Terminal and On a server tabs, one per line, placeholders only. */
   terminal: string
   server: string
   /** Shown as "example data" until real sessions arrive. */
   example: { sessions: SessionSummary[]; timeline: Timeline }
-  /** Sessions the lists show, at any time, and how many are Agent sessions: until the first session, the home page and
-   *  the dashboard show how to connect the website (like PostHog 1.0's overlay before the first event). */
-  recorded: { sessions: number; agent: number }
+  /** At any time: the sessions the lists show, how many of them the website sent (site: all but those an earlier
+   *  AgentCake's demo shop recorded) and how many are Agent sessions. Until the website's first session the home page
+   *  shows how to connect it (like PostHog 1.0's overlay before the first event); the dashboard shows how to connect
+   *  it until the first session of any kind, and says it isn't connected while only demo shop sessions are listed. */
+  recorded: { sessions: number; site: number; agent: number }
 }
 
 // ---------------------------------------------------------------- GET and POST /api/register
@@ -370,10 +363,13 @@ export type Health = {
 /** The disk that holds the data: bytes, and whether its free space is below the floor (disk_min_free_mb). */
 export type Disk = { total: number; free: number; min_free: number; low: boolean }
 
-/** Why new replays are not being stored, if they aren't: below the disk's floor with "free space for me" off; below
- *  it while other files fill the disk, so deleting every old replay would not make room and none was deleted;
- *  the disk budget is full. */
-export type ReplaysStopped = "disk" | "disk_full_other" | "budget" | null
+/** Why new replays are not being stored, if they aren't: the disk is below its floor (none is deleted for it); the disk
+ *  budget is full and nothing is left to delete. */
+export type ReplaysStopped = "disk" | "budget" | null
+
+// ---------------------------------------------------------------- GET /api/web?range= (./web-types.ts)
+
+export type { ActiveTime, AgentNumbers, PathRow, TrendInterval, TrendNumbers, WebAnalytics, WebDimension, WebQuery, WebRow, WebTable } from "./web-types"
 
 // ---------------------------------------------------------------- errors
 

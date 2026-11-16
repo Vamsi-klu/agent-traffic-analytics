@@ -41,9 +41,12 @@ function emptyRecords() {
   return { e: [], r: [], x: [] }
 }
 
-/** Adds one record to the buffer. Over the per-page limit or CFG.batch.max_record_bytes it is counted, not kept. */
+/** Adds one record to the buffer. Over the per-page limit or CFG.batch.max_record_bytes it is counted, not kept; a
+ * replay event while the tab is idle is dropped, and an activity record may first begin a new session (session.js). */
 C.push = function (stream, record) {
   if (C.off) return
+  C.navigation.check()
+  if (!C.session.admit(stream, record)) return
   if (accepted[stream] >= CFG.limits.records_per_page[stream]) {
     dropped[stream]++
     return
@@ -98,6 +101,19 @@ C.transport = {
       clearTimeout(timer)
     })
     timer = setTimeout(tick, interval)
+  },
+  /** From now on batches carry this session id (a new session began on this page: session.js). */
+  session: function (id) {
+    header.s = id
+  },
+  /** From now on batches carry this visitor id and no identify hash (window.cake.reset(): identify.js). */
+  visitor: function (id) {
+    header.vid = id
+    delete header.idh
+  },
+  /** From now on batches carry this identify hash (window.cake.identify(): identify.js). */
+  identity: function (hash) {
+    header.idh = hash
   },
   /** Sends again what earlier pages of the visit (or this one) parked (an idle task after load, and every tick). */
   resendParked: sendParked,

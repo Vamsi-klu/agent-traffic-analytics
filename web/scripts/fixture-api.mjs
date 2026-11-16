@@ -57,6 +57,7 @@ export function fixtureApi({ set } = {}) {
       const route = `${req.method} ${resource}${id === undefined ? "" : "/:id"}${part === undefined ? "" : `/${part}`}${extra.length ? "/…" : ""}`
       switch (route) {
         case "GET overview": return send(200, answer("overview"))
+        case "GET web": return send(200, answer("web"))
         case "GET sessions": return send(200, sessionsPage(answer("sessions"), url.searchParams))
         case "GET session/:id": {
           const detail = sessionSample(id)
@@ -113,12 +114,12 @@ function changeSettings(current, update) {
 }
 
 function readJson(req) {
-  if (!/^application\/json\b/.test(req.headers["content-type"] ?? "")) return Promise.reject(new Error("Send the settings as application/json."))
+  if (!/^application\/json\b/.test(req.headers["content-type"] ?? "")) return Promise.reject(new Error("The request must use the application/json content type."))
   return new Promise((resolve, reject) => {
     let body = ""
     req.on("data", (chunk) => {
       body += chunk
-      if (body.length > MAX_BODY_BYTES) { reject(new Error("That request is too large.")); req.destroy() }
+      if (body.length > MAX_BODY_BYTES) { reject(new Error("The request is too large.")); req.destroy() }
     })
     req.on("end", () => { try { resolve(JSON.parse(body)) } catch { reject(new Error("That request isn't JSON.")) } })
     req.on("error", reject)

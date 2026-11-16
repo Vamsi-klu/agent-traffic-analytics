@@ -35,7 +35,9 @@ A JSON object: a header and three record arrays.
 |---|---|---|---|
 | `v` | integer | | Format version: `1` (`CFG.format_version`). |
 | `k` | string | | Site key: the script tag's `data-site`, else the key AgentCake filled in when it served cake.js. |
-| `s` | string, 32 hex digits | | Visit id: random, kept in the tab's `sessionStorage` (`cake_sid`) until the tab is closed or `window.cake.stop()` is called. |
+| `s` | string, 32 hex digits | | Session id: random, kept in the tab's `sessionStorage` (`cake_sid`, with its clock in `cake_clock`) until the tab is closed or `window.cake.stop()` is called. The tab's first activity after `CFG.session.idle_ms` (30 minutes) without activity, or once the session has lasted `CFG.session.max_ms` (24 hours), begins a new one ("Sessions", below). |
+| `vid` | string, 32 hex digits | | Visitor id: random, kept in `localStorage` (`cake_vid`, with when it was last used) and replaced once it was not used for `CFG.visitor.max_age_ms` (365 days); only this page's own where `localStorage` cannot be used. Removed by `window.cake.stop()`; replaced by a new one by `window.cake.reset()`. |
+| `idh` | string, 64 hex digits, optional | | Identify hash, only after the site called `window.cake.identify(id)`: the SHA-256 of the site key, `:` and the id (`CFG.identify`), in lowercase hexadecimal, made in the browser with SubtleCrypto; the id itself is never sent. Kept with the visitor id in `cake_vid` and sent with every batch from then on, on every later page view in this browser. Removed by `window.cake.reset()` and `window.cake.stop()`. AgentCake keeps it only when it is 64 lowercase hex digits. |
 | `pv` | string, 32 hex digits | | Page view id: random, new for every page load. |
 | `seq` | integer ≥ 0 | | Number of this batch within its page view: 0, 1, 2, … A batch sent again keeps its number. |
 | `t` | number | epoch ms, 0.1 ms | When the batch was made. |
@@ -43,7 +45,7 @@ A JSON object: a header and three record arrays.
 | `ua` | string | | `navigator.userAgent`. |
 | `wd` | boolean | | `navigator.webdriver === true`. |
 | `why` | string | | What made the batch: `start`, `snapshot`, `env`, `probes`, `timer`, `size`, `exit`. |
-| `st` | string, optional | | The server-half token (below), on every batch of the page until AgentCake has answered 2xx to one batch carrying it. |
+| `st` | string, optional | | The server middleware token (below), on every batch of the page until AgentCake has answered 2xx to one batch carrying it. |
 | `dr` | object, optional | counts | Present once cake.js has had to drop something on this page view, cumulative: `e`, `r`, `x` records per stream (over the per-page limit or bigger than `CFG.batch.max_record_bytes`) and `b` batches it could neither send nor keep. |
 | `e` | array | | rrweb events. |
 | `r` | array | | Raw input records. |
@@ -94,8 +96,10 @@ Every record has `t` and `ty`.
 
 | `ty` | When | Fields |
 |---|---|---|
-| `page` | once per page view, first | `n` page number in this tab's visit; `build` the script's build id; `ref` `document.referrer`; `nav` navigation type (`navigate`, `reload`, `back_forward`, `prerender`); `t0` `performance.timeOrigin` (epoch ms); `ran` ms from navigation start to cake.js starting; `prerendering`; `vis`; `hf`; `hist` `history.length`; `hook_dom`; `consent`: `load` (recording began when cake.js loaded) or `start` (the page asked first and called `window.cake.start()`). |
-| `env` | once per page view, after the load event, made in three idle tasks | `env`: webdriver and its property descriptor, navigator's own properties, user agent and `userAgentData` (brands, platform, mobile), languages, platform, cores, memory, plugin and MIME type counts, PDF viewer, `doNotTrack`, touch points, screen, window and viewport sizes, pixel ratio, time zone and offset, WebGL vendor and renderer, notification permission, `window.chrome` (type, runtime, keys), focus, visibility, history length, referrer, `any-pointer`, `any-hover`, colour scheme, connection RTT, `window.external`, `eval` source length, `typeof process`. |
+| `page` | once per page view, first | `n` page number in this tab's session; `build` the script's build id; `nav` navigation type (`navigate`, `reload`, `back_forward`, `prerender`); `t0` `performance.timeOrigin` (epoch ms); `ran` ms from navigation start to cake.js starting; `prerendering`; `vis`; `hf`; `hist` `history.length`; `hook_dom`; `consent`: `load` (recording began when cake.js loaded) or `start` (the page asked first and called `window.cake.start()`); `p` `location.pathname`; and the source fields: `rd` the referring domain (the host of `document.referrer`, `""` without one; never the address), `utm` the page address's campaign parameters that are there (`CFG.source.campaign`: the five UTM parameters and `gad_source`, each cut to `CFG.source.max_chars`), `ck` the names of the ad-click parameters the address carries (`CFG.source.click_ids`; never their values), `lang` `navigator.language`, `tzo` `Date.getTimezoneOffset()`. (Before 0.4.2 it sent `ref`, the whole `document.referrer`.) |
+| `path` | `location.pathname` changed since the last page view (a single-page app's navigation, seen with the next record) | `p`: the new path. A page view, as PostHog counts one; a new query string or fragment alone makes none. |
+| `session` | a new session began on this page (see "Sessions"), its first record | `why`: `idle` (`CFG.session.idle_ms` without activity), `max` (the session lasted `CFG.session.max_ms`) or `reset` (the site called `window.cake.reset()`); the source fields of the page as it is now (`rd`, `utm`, `ck`, `lang`, `tzo`, as in `page`). |
+| `env` | once per page view, after the load event, made in three idle tasks | `env`: webdriver and its property descriptor, navigator's own properties, user agent and `userAgentData` (brands, platform, mobile), languages, platform, cores, memory, plugin and MIME type counts, PDF viewer, `doNotTrack`, touch points, screen, window and viewport sizes, pixel ratio, time zone and offset, WebGL vendor and renderer, notification permission, `window.chrome` (type, runtime, keys), focus, visibility, history length, the referring domain (`referringDomain`; before 0.4.2 `referrer`, the whole address), `any-pointer`, `any-hover`, colour scheme, connection RTT, `window.external`, `eval` source length, `typeof process`. |
 | `auto` | with `env` | `globalsAtLoad` (automation globals: BotD's distinctive properties found as `botdprop_<kind>`, `selenium_cdc`, `playwright_globals`, `puppeteer_globals`, `exposed_installed` (functions marked by Playwright's `exposeFunction`), `unnamed_native_globals` (nameless native functions, as CDP bindings leave them)), `errorStack` (a stack trace made in cake.js), `docInterception` (the navigation entry's `nextHopProtocol`, `transferSize`, `deliveryType`, `workerStart`, and `intercepted`: no network hop, no service worker, yet bytes transferred). |
 | `frames` | once per visit, when the browser is idle, on the first page view that gets that far (`cake_frames` in `sessionStorage` remembers it) | `iframeSharesRealm` (a fresh hidden frame's `Navigator` is this window's); `ipcFlooding`: of `CFG.env.frame_history_writes` (300) history writes in that frame, how many went through (`applied`), the error that stopped them (`error`) and whether all 300 did (`all300`: Chrome's IPC flooding protection is off, as Puppeteer and Playwright launch it); the writes go in bursts of `CFG.env.frame_burst_writes` every `frame_burst_gap_ms`, `longest_burst_ms` is the longest burst. |
 | `cdp` | after the CDP probe (up to `CFG.env.cdp_rounds` rounds, `CFG.env.cdp_round_ms` apart, stopping at the first sign) | `runtimeEnableLeak`: `rounds`; per logged error, how often `Error.prepareStackTrace` ran for it (`prepareStackTraceCount`), its `name` was read (`nameGetterCount`) and its `stack` was read (`stackLookupCount`); `firstHitRound` (null when never). Chromium 1228 driven by Playwright: 1 formatting and 2 name reads per round. |
@@ -108,12 +112,12 @@ Every record has `t` and `ty`.
 | `marker` | an agent product's mark appeared or went away, as seen at a look | `m`: the mark's id in the mark table (for example `claude-chrome.working`); `on`: 1 it appeared (or lit up), 0 it went away. Nothing of the page. |
 | `leave` | at exit | `why`: `pagehide` or `hidden`. |
 | `pageshow` | the page came back from the back-forward cache | `persisted: true`. |
-| `err` | one of cake.js's own parts failed | `where`, `msg` (the message only, at most `CFG.limits.error_chars`). |
+| `err` | one of cake.js's own parts failed, or `window.cake.identify()` did nothing (`where`: `identify`, with why: not an id, or no SubtleCrypto; never the value) | `where`, `msg` (the message only, at most `CFG.limits.error_chars`). |
 
 ### Agent marks
 
-Some agent products draw on the page while they work: Claude in Chrome a "working" tag and a Stop button, Comet a stop
-button, Browser Use a box around each action. When such a mark appears and goes away tells AgentCake when the agent's
+Some agent products draw on the page while they work: Claude in Chrome a "working" tag and a Stop button. When such a
+mark appears and goes away tells AgentCake when the agent's
 turn began and ended, so where a person may have taken over (threshold A5). cake.js watches the marks
 of the mark table, `agentcake/data/agent_markers.json` (its `page` part is `CFG.markers`; the rest says what each mark
 is, where it comes from, its grade and date, and the words of a reason). Products redraw their marks with new versions,
@@ -170,7 +174,7 @@ AgentCake sends separate records; joining them per page view gives the lab's lay
 | `snap.inter`, `click` and `summary` reports | not sent: `r` has every event they were made from |
 | `snap.auto.csp` | not sent (it needed a request to another origin of the site) |
 
-## Server-half token
+## Server middleware token
 
 The response that opened the page may carry `Server-Timing: cake;desc="<token>"` (set by the AgentCake middleware on
 the site's server; format `c1.<base64url JSON>.<HMAC>`).
@@ -179,9 +183,9 @@ cake.js reads it from the navigation entry (`performance.getEntriesByType('navig
 it. cake.js never looks inside it. The collector verifies it and keeps it once per token id (0.3.3 `take_token`).
 A page the browser shows from its cache carries the token stored with it (after a 304, the 304's own new
 one; going back to a stored page, that page's earlier one), so the same token can come from several page views of a
-visit: the first keeps it, another page view of the same visit is a reuse (no second server half), another visit is a
-replay. The answer says what happened, as `X-Cake-Token: ok | dup | reuse | replay | stale | bad | off`; it is always a
-2xx, since a token's fate is no error for the visitor.
+visit: the first keeps it, another page view of the same visit is a reuse (no second server middleware record), another
+visit is a replay. The answer says what happened, as `X-Cake-Token: ok | dup | reuse | replay | stale | bad | off`; it
+is always a 2xx, since a token's fate is no error for the visitor.
 
 ## When records are made and batches are sent
 
@@ -227,13 +231,28 @@ Batches go:
 | Keepalive body (`CFG.batch.keepalive_max_bytes`) | 60,000 bytes | Sent without keepalive, after parking a copy. |
 | Parked batches (`CFG.batch.pending_max_bytes`) | 1,048,576 JSON characters | The batch is not parked (`dr.b` when it is then lost). |
 
+## Sessions
+
+A session is one tab's activity with no more than `CFG.session.idle_ms` (30 minutes) between two moments of activity,
+and at most `CFG.session.max_ms` (24 hours) long: PostHog's rules (posthog-js `sessionid.ts`), each tab keeping its own
+session. Activity is a raw input record of `CFG.session.activity_raw` (a pointer move, a press, a click, a scroll, a
+focus, an input, a touch), a `geo` record made by a resize, and a page view (`page`, `path`). The first activity after
+the idle time, or after the session has lasted 24 hours, begins a new session on the page: what is buffered is sent
+under the old id, the new id is kept, a `session` record says why, and rrweb takes a full snapshot. While the tab is
+idle, rrweb events are dropped (PostHog's recorder drops them too); other records are sent under the session they
+belong to. The collector applies the same rules, from the same settings, to a script that does not cut its own
+sessions: a batch whose first activity comes after the idle time, or past 24 hours, goes to the tab's next session,
+whose id the collector makes (`session_split.py`). `window.cake.reset()` also begins a new session at once, as
+posthog-js's `reset()` does: what is buffered is sent under the old session and visitor ids, then the new visitor id
+(without `idh`) and the new session id go with every later batch, and the new session's `session` record says `reset`.
+
 ## Consent
 
 A site that asks before recording either adds the cake.js line only after the visitor agreed, or adds it with
 `data-consent="required"` (`CFG.attr.consent`) and calls `window.cake.start()` once they agree: until then cake.js
 does nothing (no listener, no `sessionStorage`, no request). `window.cake.stop()` ends recording and sending on that
-page for good: nothing more is sent, unsent records and parked batches are dropped, and the visit id, page count and
-frame-check mark are removed from `sessionStorage`. An upload already on its way may still arrive; if it fails, it is
+page for good: nothing more is sent, unsent records and parked batches are dropped, and the session id, its clock,
+page count and frame-check mark are removed from `sessionStorage` and the visitor id from `localStorage`. An upload already on its way may still arrive; if it fails, it is
 dropped, not parked, so a later `start()` sends nothing from before the refusal. Consent code that may run before cake.js has loaded can queue the
 calls: `window.cake = window.cake || []; window.cake.push('start')` (or `'stop'`). Nothing is sent to say a visitor
 refused (that would be a request after the refusal), so the collector keeps what came before; deleting it is the site
@@ -242,8 +261,9 @@ owner's call (`agentcake delete`).
 ## What a batch never holds
 
 Which key was pressed (only its class), what was typed (only the input type and the field's length; rrweb masks every
-input and editable text), anything typed into or shown in a private element, cookies (cake.js reads none and uploads
-omit credentials) and the visitor's IP address (the collector sees it on the request, works out its network facts and never
+input and editable text), anything typed into or shown in a private element, the address of the page the visitor came
+from (only its domain), the values of ad-click parameters outside the page's own address (only their names), cookies
+(cake.js reads and sets none, and uploads omit credentials) and the visitor's IP address (the collector sees it on the request, works out its network facts and never
 keeps the address itself). `tests/test_privacy_recording.py` checks this in Chromium with a canary string and a card number typed into every
 kind of field. `PRIVACY.md` says the same for site owners.
 
@@ -255,11 +275,12 @@ collector ignores fields it does not know.
 ## Example (shortened)
 
 ```json
-{"v":1,"k":"9f3c…","s":"5b0e6c2f0d8a4a61b7f4c0b1e2d3a4f5","pv":"c2a8…","seq":0,"t":1794518371369.5,
+{"v":1,"k":"9f3c…","s":"5b0e6c2f0d8a4a61b7f4c0b1e2d3a4f5","vid":"aa11…","pv":"c2a8…","seq":0,"t":1794518371369.5,
  "u":"https://shop.example.com/demo","why":"snapshot","st":"c1.eyJ…","ua":"Mozilla/5.0 …","wd":false,
  "e":[{"type":4,"data":{"href":"https://shop.example.com/demo","width":1280,"height":900},"timestamp":1794518371301},
       {"type":2,"data":{"node":{…},"initialOffset":{"left":0,"top":0}},"timestamp":1794518371304}],
  "r":[{"t":1794518371302.4,"ty":"geo","hf":1,"vs":1,"why":"load","g":[1280,900,1280,987,0,25,2,1512,982]}],
- "x":[{"t":1794518371300.1,"ty":"page","n":1,"build":"3f9a…","ref":"","nav":"navigate","t0":1794518371012.3,
-       "ran":288.1,"prerendering":false,"vis":"visible","hf":true,"hist":1,"hook_dom":false}]}
+ "x":[{"t":1794518371300.1,"ty":"page","n":1,"build":"3f9a…","nav":"navigate","t0":1794518371012.3,
+       "ran":288.1,"prerendering":false,"vis":"visible","hf":true,"hist":1,"hook_dom":false,"consent":"load",
+       "p":"/demo","rd":"www.google.com","utm":{"utm_source":"newsletter"},"ck":[],"lang":"en-US","tzo":480}]}
 ```

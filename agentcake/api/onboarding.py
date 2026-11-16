@@ -1,22 +1,24 @@
 """GET /api/setup: the home page's ways to connect a website, and its example preview (the home page draws it). Since
 0.4.0 there is no demo shop: a fresh AgentCake's home page connects its owner's website, as PostHog 1.0's setup page did.
 
-    sentence          the one sentence for a coding agent, in English and Chinese (copy.en.json and copy.zh.json
-                      site_sentence: the sentence is for an AI, so both stay), with this installation's launcher, ~ for
-                      the home folder
+    sentence          the one sentence for a coding agent, in English, as the page shows it and `agentcake sentence`
+                      prints it (copy.en.json site_sentence), with this installation's launcher, ~ for the home folder
+                      (copy.zh.json keeps its Chinese translation, which the Chinese README quotes)
     terminal, server  the commands of the Terminal and On a server tabs, one per line, placeholders only (api.en.json)
     example           made-up sessions and a timeline the page shows as "example data" until real visits arrive
                       (data/example.json); nothing in the database
-    recorded          how many sessions the lists show (visits.py), and how many of them are Agent sessions, at any
-                      time: the home page is the dashboard from the first session on (like 0.3.4's page), and
-                      the dashboard's top block is the getting-started one until the first Agent session
+    recorded          at any time: how many sessions the lists show (visits.py), how many of them the website sent
+                      (site: all but those an earlier AgentCake's demo shop recorded) and how many are Agent
+                      sessions. The website is connected once it has sent a session: until then the home page shows how
+                      to connect it, as PostHog 1.0 asked for its first event (only the owner's own visits answer that;
+                      PostHog today keeps demo data in a project of its own), and the dashboard says that the sessions
+                      it shows are the demo shop's. The dashboard's top block is the getting-started one until the
+                      first Agent session.
 """
 from agentcake import paths
 from agentcake.api import answers, visits
 from agentcake.datafiles import load
 from agentcake.wording import product, text
-
-LANGUAGES = ("en", "zh")
 
 
 @answers.view
@@ -27,11 +29,12 @@ def view(request):
     con = visits.connect()
     try:
         counts = visits.counts(con, visits.Scope())
+        site = visits.total(con, visits.Scope().from_site())
     finally:
         con.close()
     return answers.ok({
-        "sentence": {lang: paths.tilde(text("site_sentence", lang=lang, launcher=launcher)) for lang in LANGUAGES},
+        "sentence": paths.tilde(text("site_sentence", launcher=launcher)),
         "terminal": "\n".join(line.format(**commands) for line in words["setup_terminal"]),
         "server": "\n".join(line.format(**commands) for line in words["setup_server"]),
         "example": {"sessions": example["sessions"], "timeline": example["timeline"]},
-        "recorded": {"sessions": counts["all"], "agent": counts[visits.AGENT_VERDICT]}})
+        "recorded": {"sessions": counts["all"], "site": site, "agent": counts[visits.AGENT_VERDICT]}})

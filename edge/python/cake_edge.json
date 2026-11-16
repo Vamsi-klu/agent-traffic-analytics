@@ -71,7 +71,7 @@
     "content_type": "content-type"
   },
   "messages": {
-    "short_secret": "[agentcake] the server-half secret is shorter than {min} bytes: no token is sent",
+    "short_secret": "[agentcake] the server middleware secret is shorter than {min} bytes: no token is sent",
     "unknown_options": "[agentcake] options not known, ignored: {names}",
     "invalid_options": "[agentcake] options with a value of the wrong kind, defaults kept: {names}",
     "client_ip_failed": "[agentcake] client_ip raised {error}: tokens go without a network key",

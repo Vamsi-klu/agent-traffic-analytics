@@ -1,0 +1,12 @@
+{
+  "about": "The dashboard's web analytics (agentcake/api/web.py): rows_max, how many of its top rows by all, by Agent and by Human sessions a table (Paths, and each dimension of Sources, Devices and Geography) returns, together; rows_shown, how many the dashboard shows before Show all (PostHog's tables show 10); fill_sessions, how many sessions recorded before cake.js sent their source one request fills in from what was kept of them (web_props.fill): the rest wait for the next request. trend_interval: the interval the Trends chart counts each range by, PostHog's web analytics' default for it (frontend/src/lib/utils/dateFilters.ts dateMapping: Today by hour, the last 7 and 30 days by day, All time by month).",
+  "rows_max": 100,
+  "rows_shown": 10,
+  "fill_sessions": 2000,
+  "trend_interval": {
+    "today": "hour",
+    "7d": "day",
+    "30d": "day",
+    "all": "month"
+  }
+}

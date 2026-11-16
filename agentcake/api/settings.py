@@ -15,12 +15,10 @@ GET answers Settings (web/src/data/types.ts):
                    data/api.json, with the budget in use among them when it was set to another value
     storage        bytes used, the warning share, the days until full at last week's pace, the disk (its free space
                    against disk_min_free_mb) and why new replays are stopped, if they are (space.space_status);
-                   disk() is these with budget_mb and auto_free, which the dashboard's Disk bar shows too;
-                   free_to_pct, the share of the budget freeing space brings cake's data down to
-                   (auto_free_target_ratio), which the page's description of auto_free states
+                   and free_to_pct, the share of the budget at which freeing space starts and under which it
+                   stops (auto_free_target_ratio), which the page's description of auto_free states; disk() is these
+                   with budget_mb and auto_free, which the dashboard's warnings read too
     hook_dom, hide_selectors    the two settings of the page script, which /cake.js carries (assets.runtime_values)
-    layers         the four layers that judge and whether each runs here, which are not settings (data/api.json;
-                   verify runs in server mode only)
     database       where the database is (~ for the home folder) and how many sessions count (visits.py)
 POST takes JSON from this computer's own pages (answers.json_object, answers.local_only) with only the fields to
 change (SettingsUpdate): retention_days, budget_mb, auto_free, site_domain, hook_dom and hide_selectors, each of its
@@ -74,11 +72,9 @@ def current():
             "retention_days": int(c["retention_days"]), "retention_choices": list(config.SCHEMA["retention_days"]["choices"]),
             "budget_mb": budget, "budget_choices_mb": sorted(set(numbers["budget_choices_mb"]) | {budget}),
             "auto_free": storage["auto_free"],
-            "storage": {**{key: storage[key] for key in ("used_bytes", "warn_at_pct", "days_left", "disk",
-                                                         "replays_stopped")},
-                        "free_to_pct": round(c["auto_free_target_ratio"] * PERCENT)},
+            "storage": {key: storage[key] for key in ("used_bytes", "warn_at_pct", "days_left", "disk", "replays_stopped",
+                                                      "free_to_pct")},
             "hook_dom": bool(c["hook_dom"]), "hide_selectors": c["hide_selectors"],
-            "layers": dict(numbers["settings"]["layers"], verify=bool(c.get("public_listen"))),
             "database": {"path": paths.tilde(paths.db_file()), "sessions": sessions}}
 
 
@@ -90,13 +86,15 @@ def _lists(now_ms):
 
 
 def disk(con, c):
-    """The disk budget and what cake's data uses of it: used_bytes, budget_mb, warn_at_pct, days_left, auto_free; and
-    the disk under it, against disk_min_free_mb, with why new replays are stopped, if they are."""
+    """The disk budget and what cake's data uses of it: used_bytes, budget_mb, warn_at_pct, days_left, auto_free and
+    free_to_pct, the share of the budget at which freeing space starts and under which it stops; and the disk under it,
+    against disk_min_free_mb, with why new replays are stopped, if they are."""
     space = space_status(con, c)
     return {"used_bytes": space["used"],
             "budget_mb": max(1, round(float(c["budget_mb"]))),  # a test's tiny budget is a fraction of a MB
             "warn_at_pct": round(c["budget_warn_ratio"] * PERCENT), "days_left": space["days_left"],
-            "auto_free": bool(c["auto_free"]), "disk": space["disk"], "replays_stopped": space["replays_stopped"]}
+            "auto_free": bool(c["auto_free"]), "free_to_pct": round(c["auto_free_target_ratio"] * PERCENT),
+            "disk": space["disk"], "replays_stopped": space["replays_stopped"]}
 
 
 def _changes(update, now):

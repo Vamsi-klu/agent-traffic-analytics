@@ -1,0 +1,498 @@
+{
+  "visitors": {
+    "all": null,
+    "agent": null,
+    "human": 0,
+    "bot": 0,
+    "without": 28
+  },
+  "page_views": {
+    "all": 116,
+    "agent": 116,
+    "human": 0,
+    "bot": 0
+  },
+  "active_time": {
+    "all": {
+      "active_ms": 9906,
+      "total_ms": 102515
+    },
+    "agent": {
+      "active_ms": 9906,
+      "total_ms": 102515
+    },
+    "human": null,
+    "bot": null
+  },
+  "trends": {
+    "interval": "day",
+    "points": [
+      {
+        "label": "Fri",
+        "agent": {
+          "sessions": 0,
+          "visitors": 0,
+          "page_views": 0,
+          "active_ms": null,
+          "pages_per_session": null
+        },
+        "human": {
+          "sessions": 0,
+          "visitors": 0,
+          "page_views": 0,
+          "active_ms": null,
+          "pages_per_session": null
+        }
+      },
+      {
+        "label": "Sat",
+        "agent": {
+          "sessions": 0,
+          "visitors": 0,
+          "page_views": 0,
+          "active_ms": null,
+          "pages_per_session": null
+        },
+        "human": {
+          "sessions": 0,
+          "visitors": 0,
+          "page_views": 0,
+          "active_ms": null,
+          "pages_per_session": null
+        }
+      },
+      {
+        "label": "Sun",
+        "agent": {
+          "sessions": 0,
+          "visitors": 0,
+          "page_views": 0,
+          "active_ms": null,
+          "pages_per_session": null
+        },
+        "human": {
+          "sessions": 0,
+          "visitors": 0,
+          "page_views": 0,
+          "active_ms": null,
+          "pages_per_session": null
+        }
+      },
+      {
+        "label": "Mon",
+        "agent": {
+          "sessions": 0,
+          "visitors": 0,
+          "page_views": 0,
+          "active_ms": null,
+          "pages_per_session": null
+        },
+        "human": {
+          "sessions": 0,
+          "visitors": 0,
+          "page_views": 0,
+          "active_ms": null,
+          "pages_per_session": null
+        }
+      },
+      {
+        "label": "Tue",
+        "agent": {
+          "sessions": 26,
+          "visitors": null,
+          "page_views": 104,
+          "active_ms": 10525,
+          "pages_per_session": 4.0
+        },
+        "human": {
+          "sessions": 0,
+          "visitors": 0,
+          "page_views": 0,
+          "active_ms": null,
+          "pages_per_session": null
+        }
+      },
+      {
+        "label": "Wed",
+        "agent": {
+          "sessions": 0,
+          "visitors": 0,
+          "page_views": 0,
+          "active_ms": null,
+          "pages_per_session": null
+        },
+        "human": {
+          "sessions": 0,
+          "visitors": 0,
+          "page_views": 0,
+          "active_ms": null,
+          "pages_per_session": null
+        }
+      },
+      {
+        "label": "Thu",
+        "agent": {
+          "sessions": 2,
+          "visitors": null,
+          "page_views": 12,
+          "active_ms": 1855,
+          "pages_per_session": 6.0
+        },
+        "human": {
+          "sessions": 0,
+          "visitors": 0,
+          "page_views": 0,
+          "active_ms": null,
+          "pages_per_session": null
+        }
+      }
+    ]
+  },
+  "agents": [
+    {
+      "name": null,
+      "sessions": 24,
+      "visitors": null,
+      "page_views": 100,
+      "active_ms": 6975,
+      "pages_per_session": 4.166666666666667
+    },
+    {
+      "name": "Claude in Chrome",
+      "sessions": 4,
+      "visitors": null,
+      "page_views": 16,
+      "active_ms": 27493,
+      "pages_per_session": 4.0
+    }
+  ],
+  "paths": [
+    {
+      "path": "/",
+      "agent": 26,
+      "human": 0,
+      "visitors": null,
+      "agent_visitors": null,
+      "human_visitors": 0,
+      "page_views": 26,
+      "agent_page_views": 26,
+      "human_page_views": 0
+    },
+    {
+      "path": "/docs",
+      "agent": 26,
+      "human": 0,
+      "visitors": null,
+      "agent_visitors": null,
+      "human_visitors": 0,
+      "page_views": 26,
+      "agent_page_views": 26,
+      "human_page_views": 0
+    },
+    {
+      "path": "/pricing",
+      "agent": 26,
+      "human": 0,
+      "visitors": null,
+      "agent_visitors": null,
+      "human_visitors": 0,
+      "page_views": 26,
+      "agent_page_views": 26,
+      "human_page_views": 0
+    },
+    {
+      "path": "/task",
+      "agent": 26,
+      "human": 0,
+      "visitors": null,
+      "agent_visitors": null,
+      "human_visitors": 0,
+      "page_views": 26,
+      "agent_page_views": 26,
+      "human_page_views": 0
+    },
+    {
+      "path": "/demo",
+      "agent": 2,
+      "human": 0,
+      "visitors": null,
+      "agent_visitors": null,
+      "human_visitors": 0,
+      "page_views": 4,
+      "agent_page_views": 4,
+      "human_page_views": 0
+    },
+    {
+      "path": "/demo/cart",
+      "agent": 2,
+      "human": 0,
+      "visitors": null,
+      "agent_visitors": null,
+      "human_visitors": 0,
+      "page_views": 2,
+      "agent_page_views": 2,
+      "human_page_views": 0
+    },
+    {
+      "path": "/demo/checkout",
+      "agent": 2,
+      "human": 0,
+      "visitors": null,
+      "agent_visitors": null,
+      "human_visitors": 0,
+      "page_views": 2,
+      "agent_page_views": 2,
+      "human_page_views": 0
+    },
+    {
+      "path": "/demo/done",
+      "agent": 2,
+      "human": 0,
+      "visitors": null,
+      "agent_visitors": null,
+      "human_visitors": 0,
+      "page_views": 2,
+      "agent_page_views": 2,
+      "human_page_views": 0
+    },
+    {
+      "path": "/demo/product",
+      "agent": 2,
+      "human": 0,
+      "visitors": null,
+      "agent_visitors": null,
+      "human_visitors": 0,
+      "page_views": 2,
+      "agent_page_views": 2,
+      "human_page_views": 0
+    }
+  ],
+  "tables": {
+    "sources": [
+      {
+        "dimension": "channel",
+        "rows": [
+          {
+            "key": "Direct",
+            "value": "Direct",
+            "country": null,
+            "agent": 28,
+            "human": 0,
+            "visitors": null,
+            "agent_visitors": null,
+            "human_visitors": 0,
+            "page_views": 116,
+            "agent_page_views": 116,
+            "human_page_views": 0
+          }
+        ]
+      },
+      {
+        "dimension": "referring_domain",
+        "rows": [
+          {
+            "key": "",
+            "value": "",
+            "country": null,
+            "agent": 28,
+            "human": 0,
+            "visitors": null,
+            "agent_visitors": null,
+            "human_visitors": 0,
+            "page_views": 116,
+            "agent_page_views": 116,
+            "human_page_views": 0
+          }
+        ]
+      },
+      {
+        "dimension": "utm_source",
+        "rows": [
+          {
+            "key": null,
+            "value": null,
+            "country": null,
+            "agent": 28,
+            "human": 0,
+            "visitors": null,
+            "agent_visitors": null,
+            "human_visitors": 0,
+            "page_views": 116,
+            "agent_page_views": 116,
+            "human_page_views": 0
+          }
+        ]
+      },
+      {
+        "dimension": "utm_medium",
+        "rows": [
+          {
+            "key": null,
+            "value": null,
+            "country": null,
+            "agent": 28,
+            "human": 0,
+            "visitors": null,
+            "agent_visitors": null,
+            "human_visitors": 0,
+            "page_views": 116,
+            "agent_page_views": 116,
+            "human_page_views": 0
+          }
+        ]
+      },
+      {
+        "dimension": "utm_campaign",
+        "rows": [
+          {
+            "key": null,
+            "value": null,
+            "country": null,
+            "agent": 28,
+            "human": 0,
+            "visitors": null,
+            "agent_visitors": null,
+            "human_visitors": 0,
+            "page_views": 116,
+            "agent_page_views": 116,
+            "human_page_views": 0
+          }
+        ]
+      }
+    ],
+    "devices": [
+      {
+        "dimension": "device_type",
+        "rows": [
+          {
+            "key": "Desktop",
+            "value": "Desktop",
+            "country": null,
+            "agent": 28,
+            "human": 0,
+            "visitors": null,
+            "agent_visitors": null,
+            "human_visitors": 0,
+            "page_views": 116,
+            "agent_page_views": 116,
+            "human_page_views": 0
+          }
+        ]
+      },
+      {
+        "dimension": "browser",
+        "rows": [
+          {
+            "key": "Chrome",
+            "value": "Chrome",
+            "country": null,
+            "agent": 28,
+            "human": 0,
+            "visitors": null,
+            "agent_visitors": null,
+            "human_visitors": 0,
+            "page_views": 116,
+            "agent_page_views": 116,
+            "human_page_views": 0
+          }
+        ]
+      },
+      {
+        "dimension": "os",
+        "rows": [
+          {
+            "key": "Mac OS X",
+            "value": "Mac OS X",
+            "country": null,
+            "agent": 28,
+            "human": 0,
+            "visitors": null,
+            "agent_visitors": null,
+            "human_visitors": 0,
+            "page_views": 116,
+            "agent_page_views": 116,
+            "human_page_views": 0
+          }
+        ]
+      }
+    ],
+    "geography": [
+      {
+        "dimension": "country",
+        "rows": []
+      },
+      {
+        "dimension": "region",
+        "rows": []
+      },
+      {
+        "dimension": "city",
+        "rows": []
+      },
+      {
+        "dimension": "timezone",
+        "rows": [
+          {
+            "key": null,
+            "value": null,
+            "country": null,
+            "agent": 26,
+            "human": 0,
+            "visitors": null,
+            "agent_visitors": null,
+            "human_visitors": 0,
+            "page_views": 104,
+            "agent_page_views": 104,
+            "human_page_views": 0
+          },
+          {
+            "key": "0",
+            "value": "UTC+00:00",
+            "country": null,
+            "agent": 2,
+            "human": 0,
+            "visitors": null,
+            "agent_visitors": null,
+            "human_visitors": 0,
+            "page_views": 12,
+            "agent_page_views": 12,
+            "human_page_views": 0
+          }
+        ]
+      },
+      {
+        "dimension": "language",
+        "rows": [
+          {
+            "key": null,
+            "value": null,
+            "country": null,
+            "agent": 26,
+            "human": 0,
+            "visitors": null,
+            "agent_visitors": null,
+            "human_visitors": 0,
+            "page_views": 104,
+            "agent_page_views": 104,
+            "human_page_views": 0
+          },
+          {
+            "key": "en",
+            "value": "en",
+            "country": null,
+            "agent": 2,
+            "human": 0,
+            "visitors": null,
+            "agent_visitors": null,
+            "human_visitors": 0,
+            "page_views": 12,
+            "agent_page_views": 12,
+            "human_page_views": 0
+          }
+        ]
+      }
+    ]
+  },
+  "shown": 10,
+  "place": false
+}

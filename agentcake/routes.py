@@ -10,7 +10,7 @@ match is 404.
 from collections import namedtuple
 
 from agentcake import assets, collect, edge_api
-from agentcake.api import answers, deletion, health, onboarding, overview, registration, session, sessions, settings
+from agentcake.api import answers, deletion, health, onboarding, overview, registration, session, sessions, settings, web
 
 Route = namedtuple("Route", "method path view is_prefix")
 COLLECT = "/collect"  # the only path another origin may post to (server.py answers it with CORS)
@@ -28,6 +28,7 @@ def prefix(method, p, view):
 LOCAL = [
     path("GET", "/", assets.local_pages),
     path("GET", "/api/overview", overview.view),
+    path("GET", "/api/web", web.view),
     path("GET", "/api/sessions", sessions.view),
     prefix("GET", "/api/session/", session.view),
     path("GET", "/api/settings", settings.view),

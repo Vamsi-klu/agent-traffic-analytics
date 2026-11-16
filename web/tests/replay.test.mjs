@@ -86,7 +86,7 @@ test("playing reads the next chunk only once playback enters the chunk before it
     // inside chunk 1: a click on its first millisecond can round into the pause before it, which belongs to chunk 0
     await clickTimelineAt(tab.page, Math.round((chunks[1].start_ms + chunks[1].end_ms) / 2), d.timeline.duration_ms)
     assert.deepEqual(chunksAsked(tab.requests, AGENT), [0, 1, 2])
-    await tab.page.locator('[aria-label="Speed"]').getByText("4×").click()
+    await tab.page.locator('[aria-label="Playback speed"]').getByText("4×").click()
     const third = tab.page.waitForRequest((r) => r.url().endsWith(`/replay?chunk=3`), { timeout: WAIT_MS })
     await tab.page.getByRole("button", { name: "Play" }).click()
     await third

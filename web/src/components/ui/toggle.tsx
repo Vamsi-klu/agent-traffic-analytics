@@ -10,13 +10,17 @@ const toggleVariants = cva(
       variant: {
         default: "bg-transparent",
         outline: "border-2 border-line bg-card hover:bg-muted",
-        // Frosting: the pinned Human + agent filter (DESIGN.md §6.1)
-        highlight: "border-2 border-line bg-agent-soft text-agent-foreground shadow-hard-sm hover:bg-agent-soft data-[state=on]:bg-agent-foreground data-[state=on]:text-card aria-pressed:bg-agent-foreground aria-pressed:text-card",
+        // Frosting: the session list's verdict filter, each verdict in its badge's colours by one rule (DESIGN.md §6.1):
+        // its soft colour and its text colour, and once picked its text colour as the background. All is outline.
+        agent: "border-2 border-line bg-agent-soft text-agent-foreground hover:bg-agent-soft data-[state=on]:bg-agent-foreground data-[state=on]:text-card aria-pressed:bg-agent-foreground aria-pressed:text-card",
+        human: "border-2 border-line bg-human-soft text-human-foreground hover:bg-human-soft data-[state=on]:bg-human-foreground data-[state=on]:text-card aria-pressed:bg-human-foreground aria-pressed:text-card",
+        bot: "border-2 border-line bg-unsure-soft text-unsure-foreground hover:bg-unsure-soft data-[state=on]:bg-unsure-foreground data-[state=on]:text-card aria-pressed:bg-unsure-foreground aria-pressed:text-card",
       },
+      // Frosting: every size keeps the base's pill, as every dropdown is one (DESIGN.md §6)
       size: {
         default:
           "h-8 min-w-8 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",
-        sm: "h-7 min-w-7 rounded-[min(var(--radius-md),12px)] px-2.5 text-[0.8rem] has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5",
+        sm: "h-7 min-w-7 px-2.5 text-[0.8rem] has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5",
         lg: "h-9 min-w-9 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",
       },
     },

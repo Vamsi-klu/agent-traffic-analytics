@@ -47,7 +47,7 @@ test("the session list filters by verdict, split and agent like the real one", a
   assert.deepEqual(ids((await call("/api/sessions?turns=human_agent")).body), ["7f3a-c1", "f8a2-6d"])
   assert.deepEqual(ids((await call("/api/sessions?verdict=agent&turns=agent_only&agent=Grok%20Bot")).body), ["b06c-41"])
   assert.deepEqual(ids((await call("/api/sessions?verdict=bot")).body), ["c2d0-5b", "d3e1-8a"])
-  assert.deepEqual(ids((await call("/api/sessions?agent=Meta%20Muse")).body), ["a91e-07"])
+  assert.deepEqual(ids((await call("/api/sessions?agent=Muse")).body), ["a91e-07"])
 })
 
 test("the next page of the sample list is empty and last", async () => {

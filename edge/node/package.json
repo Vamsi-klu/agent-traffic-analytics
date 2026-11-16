@@ -2,7 +2,7 @@
   "name": "@agentcake/edge",
   "version": "0.0.0",
   "private": true,
-  "description": "AgentCake site middleware: a signed Server-Timing token on each page response, the server half of AgentCake.",
+  "description": "AgentCake's server middleware: a signed Server-Timing token on each page response.",
   "license": "MIT",
   "type": "commonjs",
   "main": "./index.js",

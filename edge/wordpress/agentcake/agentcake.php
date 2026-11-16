@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name:       AgentCake
- * Description:       AgentCake's server half for WordPress: a signed token in each page's Server-Timing header, and the cake.js line in each page's head.
+ * Description:       AgentCake's server middleware for WordPress: a signed token in each page's Server-Timing header, and the cake.js line in each page's head.
  * Version:           0.0.0
  * Requires at least: 5.7
  * Requires PHP:      7.4

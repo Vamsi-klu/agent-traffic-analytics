@@ -34,7 +34,7 @@ class Asking(unittest.TestCase):
             self.assertEqual(Client(host).get("/api/health").status, 200, host)
 
     def test_a_site_whose_name_points_at_this_computer_is_refused(self):
-        self.assertIn("Only pages served by this computer", self.error(Client("evil.example:7878").get("/api/health"), 403))
+        self.assertIn("at 127.0.0.1 or localhost", self.error(Client("evil.example:7878").get("/api/health"), 403))
         self.error(Client().get("/api/sessions", headers={"Host": None}), 403)
 
     def test_another_origin_is_refused_even_for_a_get(self):
@@ -57,7 +57,7 @@ class Asking(unittest.TestCase):
 
     def test_a_value_that_is_not_a_choice_names_the_choices(self):
         said = self.error(Client().get("/api/overview", range="year"), 400)
-        self.assertEqual(said, "range must be one of: today, 7d, 30d.")
+        self.assertEqual(said, "range must be one of the following values: today, 7d, 30d, all.")
 
     def test_an_address_no_view_answers_is_a_json_404(self):
         self.assertIn("/api/nothing", self.error(Client().get("/api/nothing"), 404))

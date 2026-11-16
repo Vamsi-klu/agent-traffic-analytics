@@ -1,28 +1,7 @@
 {
-  "$comment": "The dashboard's note on what Agent Cake records and how it decides (/api/overview serves it). Each row's 'how it's decided' is the sentence of a class in judging.en.json, named by 'class' ('named': how an agent's name is found): the same words the verdicts use, never a copy. 'verdict' is the row's level 1, whose badge it shows. The names of the categories are judging.en.json's (the dashboard's categories block). {name} is the product name (product.json). English only; visitors are Human or Agent; no comparison with any other product.",
-  "title": "What {name} records",
-  "lead": "{name} classifies each session on this computer, when new activity arrives and again when the session goes inactive. It doesn't call any AI service.",
-  "columns": {"what": "Visitor", "shown_as": "Classification", "how": "Decision method"},
-  "rows": [
-    {"what": "A human", "verdict": "human", "shown_as": "The comparison group", "class": "human"},
-    {"what": "A browser extension, an AI browser, or a cloud agent, like Claude in Chrome, Comet, or ChatGPT agent",
-     "verdict": "agent", "shown_as": "Agent, named when the evidence identifies it", "class": "agent_ai"},
-    {"what": "The built-in browser of an AI desktop app, or a cloud agent that gives its name", "verdict": "agent",
-     "shown_as": "Agent, identified by name, such as Codex browser", "class": "named"},
-    {"what": "An automated browser that doesn't give its name, like Playwright, Puppeteer, or Selenium", "verdict": "agent",
-     "shown_as": "Agent, identified by the tool's name when its traces show it, otherwise Unnamed", "class": "agent_automated"},
-    {"what": "A program that gives its name and isn't an agent: a search engine, a monitor, a link preview",
-     "verdict": "bot", "shown_as": "Counted only; “Verified” when a signature or the operator's published address range confirms it", "class": "bot"},
-    {"what": "A human and an agent taking turns", "verdict": "agent", "shown_as": "Human + agent, split at each hand-off",
-     "class": "mixed"},
-    {"what": "Too few actions, or a phone or tablet", "verdict": "human", "shown_as": "Human, marked Thin evidence, with the reason",
-     "class": "too_little_data"},
-    {"what": "Evidence that's too weak or points both ways", "verdict": "human", "shown_as": "Human, marked Thin evidence, with the reason",
-     "class": "not_sure"}
-  ],
+  "$comment": "The dashboard's words that come with /api/overview (coverage.py): what counts as a bot, the Bot number's \"?\". The names of the categories are judging.en.json's (the dashboard's categories block). English only; visitors are Human or Agent; no comparison with any other product.",
   "bot": {
-    "question": "What counts as a bot",
-    "answer": "A bot is a program that names itself and is known to have no human behind it, such as a search engine, a monitor, or a link preview. A visitor that only seems automated counts as an Agent, never a Bot."
-  },
-  "average_length": "Measured from a session's first activity to its last, where activity is a page opening or any input, including pointer moves. Time a tab stays open afterward doesn't count. The session list shows each recording's full length, from its start to its last event."
+    "question": "What counts as a bot?",
+    "answer": "A bot is a program that identifies itself and is known to run without a human. Examples include search engines, monitors, and link previews. Visitors that only appear automated count as Agent sessions."
+  }
 }

@@ -8,7 +8,7 @@ setup_print_site(folder) reads the website's code (site_code.py) and prints the 
 installation's edge folder (the file that makes the app, the files to copy, where its secret comes from); how to check
 it all with doctor; what is left for the user. The page script's address is the local page's on this computer and, in
 server mode (public_listen), path_prefix on the site's own domain (/cake/cake.js, SERVER.md), where visitors' browsers
-reach Agent Cake. The words are in data/copy.en.json (copy.zh.json for the sentence).
+reach Agent Cake. The words are in data/copy.en.json.
 Named site_setup, not setup, so it is never mistaken for a packaging setup.py.
 """
 import os
@@ -75,8 +75,9 @@ def edge_dir():
 
 
 def sentence_b(c=None):
-    """Optional step: connect the user's own website (shown on the home page and settings page)."""
-    return text("site_sentence", lang="zh", launcher=paths.launcher())
+    """Optional step: the sentence for a coding agent that connects the user's own website, in English, as the local
+    page shows it (`agentcake sentence`)."""
+    return text("site_sentence", launcher=paths.launcher())
 
 
 def setup_print_local():
@@ -153,7 +154,8 @@ def manage_py_folder(code):
 
 
 def tell_step(c):
-    """Step 5: what is left for the user, on this computer or in server mode."""
+    """Step 5: what is left for the user, on this computer or in server mode; their privacy notice; and, only if they
+    ask for it, counting a signed-in visitor once (window.cake.identify() and reset())."""
     where = (text("setup_site_tell_server", prefix=c.get("path_prefix") or "/") if server_mode(c)
              else text("setup_site_tell_local"))
-    return "\n".join([text("setup_site_tell"), where, text("setup_site_tell_privacy")])
+    return "\n".join([text("setup_site_tell"), where, text("setup_site_tell_privacy"), text("setup_site_tell_identify")])

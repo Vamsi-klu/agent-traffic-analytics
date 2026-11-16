@@ -1,40 +1,49 @@
-// Dashboard: the Agent block first, then regular numbers, how long sessions last, charts, pages, all latest
-// sessions, the disk, what cake records and the session categories (DESIGN.md §1.1). One AgentCake is one
-// project, its website: no source filter. Until the first session it shows how to connect the website, the home
-// page's onboarding (as PostHog 1.0's dashboard showed its setup over the page until the first event). Data:
-// /api/setup (is anything recorded, and was there ever an Agent session), then /api/overview filtered by date range
-// (kept in the URL, like PostHog 1.0's filters).
-import { useState, type ReactNode } from "react"
-import { Activity, Bot, Clock } from "lucide-react"
+// Dashboard (DESIGN.md §1.1), in three parts with one heading level. Key metrics: the Agent block first, then the counts
+// by importance, each card named by what it counts: sessions, visitors, page views, active time spent and pages per
+// session, in total and by verdict. Deep dive, its cards straight under its heading and named by their content as
+// PostHog's and Clarity's dashboards: Top agents, Trends, then the Paths, Sources, Devices and Geography tables, each
+// as wide as the cards above. Reference last (the session list is Session replay's). What a number or a chart means is
+// behind its information icon (Clarity's own words where Clarity defines it). The disk shows only as a warning, from the
+// budget's warning share on or while new replays stop. One AgentCake is one project, its website: no source filter.
+// Until the first session it shows how to connect the website, the home page's onboarding (as PostHog 1.0's dashboard
+// showed its setup over the page until the first event); while the only sessions are an earlier AgentCake's demo shop's,
+// it says the website isn't connected and links to the four steps. Data: /api/setup (is anything recorded, by the
+// website, and was there ever an Agent session), then /api/overview and /api/web (visitors, active time spent, the
+// Paths, Sources, Devices and Geography tables) filtered by date range (kept in the URL, like PostHog 1.0's filters).
+import { useState } from "react"
+import { Activity, FileText, Files, Plug, Timer, UsersRound } from "lucide-react"
 import { Link, useSearchParams } from "react-router"
-import { Area, AreaChart, Bar, BarChart, CartesianGrid, LabelList, XAxis, YAxis } from "recharts"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
-import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { BudgetWarning, PageHeader, SectionTitle, StatCard, StorageUse, Columns } from "@/components/cake/bits"
-import { SessionRow } from "@/components/cake/session-row"
+import { BudgetWarning, DiskStoppedWarning, InfoTip, PageHeader, StatCard } from "@/components/cake/bits"
 import { Spotlight, SpotlightEmpty } from "@/components/cake/spotlight"
-import { PagesTable } from "@/components/cake/pages-table"
-import { Legend, Swatch, TURNS_ICON, VERDICTS } from "@/components/cake/verdict"
-import { AgentTick } from "@/components/cake/avatar"
-import { BotHelp, Coverage, Taxonomy } from "@/components/cake/coverage"
+import { TopAgentsChart } from "@/components/cake/top-agents"
+import { METRICS, activeMinutes } from "@/components/cake/metric-picker"
+import { TrendsChart } from "@/components/cake/trends-chart"
+import { PathsTable, TABLE_ICONS, WebStatsTable } from "@/components/cake/web-stats"
+import { VERDICTS } from "@/components/cake/verdict"
+import { BotHelp, Taxonomy } from "@/components/cake/coverage"
 import { Loaded } from "@/components/cake/page-state"
 import { api, useApi } from "@/data/api"
-import type { DateRange, Overview, Storage } from "@/data/types"
+import type { ActiveTime, DateRange, Overview, Verdict, WebAnalytics } from "@/data/types"
 import { RANGE_KEYS, readRange } from "@/lib/filters"
-import { duration, mbToBytes, percent } from "@/lib/format"
-import { TAXONOMY, UNNAMED } from "@/lib/taxonomy"
-import { RANGES, WORDS } from "@/lib/words"
+import { mbToBytes, minutes, percent } from "@/lib/format"
+import { TAXONOMY } from "@/lib/taxonomy"
+import { cn } from "@/lib/utils"
+import { CLARITY, RANGES, WORDS, metricName } from "@/lib/words"
 import { Onboarding } from "@/pages/home"
 
-const shareConfig = {
-  human: { label: VERDICTS.human.label, color: "var(--chart-1)" },
-  agent: { label: VERDICTS.agent.label, color: "var(--chart-2)" },
-  unsure: { label: VERDICTS.unknown.label, color: "var(--chart-3)" },
-} satisfies ChartConfig
-const agentConfig = { sessions: { label: "Sessions", color: "var(--chart-2)" } } satisfies ChartConfig
+/** The text colour of each verdict's icon on the number cards: the colour its badge's word has. */
+const VERDICT_TONE: Record<Verdict, string> = { human: "text-human-foreground", agent: "text-agent-foreground", bot: "text-unsure-foreground" }
+
+/** "Human sessions", "Agent sessions", "Bot sessions": every count on the dashboard is named by what it counts. */
+const sessionsOf = (verdict: Verdict) => `${VERDICTS[verdict].label} ${WORDS.sessions}`
+
+function VerdictIcon({ verdict }: { verdict: Verdict }) {
+  const Icon = VERDICTS[verdict].icon
+  return <Icon className={cn("size-4", VERDICT_TONE[verdict])} aria-hidden />
+}
 
 export function Filters({ range, onRange }: { range: DateRange; onRange: (v: string) => void }) {
   return (
@@ -48,136 +57,104 @@ export function DashboardPage() {
   const setup = useApi((signal) => api.setup(signal), [asked])
   return (
     <Loaded state={setup} what="the dashboard">
-      {(s) => (s.recorded.sessions > 0 ? <Dashboard agentEver={s.recorded.agent > 0} />
+      {(s) => (s.recorded.sessions > 0 ? <Dashboard agentEver={s.recorded.agent > 0} demoOnly={s.recorded.site === 0} />
         : <Onboarding setup={s} onOpen={() => setAsked(asked + 1)} />)}
     </Loaded>
   )
 }
 
-function Dashboard({ agentEver }: { agentEver: boolean }) {
+function Dashboard({ agentEver, demoOnly }: { agentEver: boolean; demoOnly: boolean }) {
   const [params, setParams] = useSearchParams()
   const range = readRange(params)
-  const overview = useApi((signal) => api.overview({ range }, signal), [range])
+  const data = useApi((signal) => Promise.all([api.overview({ range }, signal), api.web({ range }, signal)]), [range])
   return (
     <div className="flex flex-col gap-5">
-      <PageHeader title="Dashboard" lead={WORDS.dashboardLead} actions={<Filters range={range} onRange={(value) => setParams((p) => { p.set("range", value); return p })} />} />
-      <Loaded state={overview} what="the dashboard">{(o) => <DashboardBody o={o} agentEver={agentEver} />}</Loaded>
+      <h1 className="sr-only">{WORDS.dashboard}</h1>
+      <PageHeader as="h2" title={WORDS.keyMetrics} actions={<Filters range={range} onRange={(value) => setParams((p) => { p.set("range", value); return p })} />} />
+      {demoOnly && <NotConnected />}
+      <Loaded state={data} what="the dashboard">{([o, web]) => <DashboardBody o={o} web={web} range={range} agentEver={agentEver} demoOnly={demoOnly} />}</Loaded>
     </div>
   )
 }
 
-function DashboardBody({ o, agentEver }: { o: Overview; agentEver: boolean }) {
-  const [table, setTable] = useState(false)
-  const { counts, coverage } = o
+/** Only the demo shop's sessions so far: the website isn't connected, and the four steps are a click away. */
+function NotConnected() {
+  return (
+    <Alert variant="info">
+      <Plug aria-hidden />
+      <AlertTitle>{WORDS.notConnectedTitle}</AlertTitle>
+      <AlertDescription className="flex flex-col items-start gap-2 text-foreground">
+        <span>{WORDS.notConnectedDemo}</span>
+        <Button asChild variant="outline" size="sm"><Link to="/">{WORDS.connectWebsite}</Link></Button>
+      </AlertDescription>
+    </Alert>
+  )
+}
+
+function DashboardBody({ o, web, range, agentEver, demoOnly }: {
+  o: Overview; web: WebAnalytics; range: DateRange; agentEver: boolean; demoOnly: boolean
+}) {
+  const { counts, storage } = o
   return (
     <>
+      <BudgetWarning usedPct={percent(storage.used_bytes, mbToBytes(storage.budget_mb))} warnAtPct={storage.warn_at_pct}
+        freeAtPct={storage.free_to_pct} autoFree={storage.auto_free} full={storage.replays_stopped === "budget"} />
+      <DiskStoppedWarning disk={storage.disk} replaysStopped={storage.replays_stopped} />
       {counts.agent > 0 || agentEver ? <Spotlight overview={o} /> : <SpotlightEmpty />}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
-        <StatCard label="All sessions" value={String(counts.all)} sub="All recorded and kept" mark={<Activity className="size-4" aria-hidden />} />
-        <StatCard label={VERDICTS.human.label} value={String(counts.human)} sub={counts.thin ? `${counts.thin} ${WORDS.withThinEvidence}` : WORDS.comparisonGroup} mark={<Swatch kind="h" />} />
-        <StatCard label={VERDICTS.bot.label} value={String(counts.bot)} sub="Counted, not highlighted" mark={<Bot className="size-4" aria-hidden />} muted help={<BotHelp bot={coverage.bot} />} />
+      <Totals o={o} web={web} demoOnly={demoOnly} />
+      <div className="mt-8 flex flex-col gap-5">
+        <PageHeader as="h2" title={WORDS.deepDive} />
+        <TopAgentsChart agents={web.agents} />
+        <TrendsChart trends={web.trends} />
+        <PathsTable paths={web.paths} shown={web.shown} />
+        <WebStatsTable title={WORDS.web.titles.sources} icon={TABLE_ICONS.sources} help={WORDS.about.sources} table={web.tables.sources} shown={web.shown} place={web.place} range={range} initial="channel" />
+        <WebStatsTable title={WORDS.web.titles.devices} icon={TABLE_ICONS.devices} help={WORDS.about.devices} table={web.tables.devices} shown={web.shown} place={web.place} range={range} initial="device_type" />
+        <WebStatsTable title={WORDS.web.titles.geography} icon={TABLE_ICONS.geography} help={WORDS.about.geography} table={web.tables.geography} shown={web.shown} place={web.place} range={range} initial="region" />
       </div>
-      <AverageLength o={o} />
-      <Columns ratio="3-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2"><Clock className="size-5" aria-hidden />{WORDS.timeChart}</CardTitle>
-            <CardDescription>{WORDS.timeChartLead}</CardDescription>
-            <CardAction><Legend /></CardAction>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-2">
-            <ChartContainer config={shareConfig} className="aspect-auto h-56 w-full">
-              <AreaChart data={o.share_by_day} margin={{ left: 0, right: 8, top: 8 }}>
-                <CartesianGrid vertical={false} />
-                <XAxis dataKey="day" tickLine={false} axisLine={false} />
-                <YAxis width={46} tickLine={false} axisLine={false} unit="%" domain={[0, 100]} ticks={[0, 25, 50, 75, 100]} />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Area dataKey="agent" stackId="1" type="monotone" fill="var(--color-agent)" stroke="var(--color-agent)" fillOpacity={1} />
-                <Area dataKey="unsure" stackId="1" type="monotone" fill="var(--color-unsure)" stroke="var(--color-unsure)" fillOpacity={0.35} />
-                <Area dataKey="human" stackId="1" type="monotone" fill="var(--color-human)" stroke="var(--color-human)" fillOpacity={1} />
-              </AreaChart>
-            </ChartContainer>
-            <div><Button variant="link" size="sm" onClick={() => setTable(!table)}>{table ? "Hide table" : "Show as table"}</Button></div>
-            {table && (
-              <Table>
-                <TableHeader><TableRow><TableHead>Day</TableHead><TableHead className="text-right">{VERDICTS.human.label}</TableHead><TableHead className="text-right">{VERDICTS.agent.label}</TableHead><TableHead className="text-right">{VERDICTS.unknown.label}</TableHead></TableRow></TableHeader>
-                <TableBody>{o.share_by_day.map((d) => <TableRow key={d.day}><TableCell>{d.day}</TableCell><TableCell className="text-right">{d.human}%</TableCell><TableCell className="text-right">{d.agent}%</TableCell><TableCell className="text-right">{d.unsure}%</TableCell></TableRow>)}</TableBody>
-              </Table>
-            )}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2"><Bot className="size-5" aria-hidden />Agents that visited</CardTitle>
-            <CardAction className="text-xs text-muted-foreground">Agent sessions, with or without a human</CardAction>
-          </CardHeader>
-          <CardContent>
-            <ChartContainer config={agentConfig} className="aspect-auto h-56 w-full">
-              <BarChart data={o.agents_seen.map((a) => ({ ...a, name: a.name ?? UNNAMED }))} layout="vertical" margin={{ left: 0, right: 28 }}>
-                <XAxis type="number" hide /><YAxis type="category" dataKey="name" width={200} tickLine={false} axisLine={false} tick={<AgentTick />} />
-                <ChartTooltip content={<ChartTooltipContent hideLabel={false} />} />
-                <Bar dataKey="sessions" fill="var(--color-sessions)" radius={4}><LabelList dataKey="sessions" position="right" className="fill-foreground font-bold" /></Bar>
-              </BarChart>
-            </ChartContainer>
-            <p className="mt-2 text-xs text-muted-foreground">Bots are counted separately and aren't in this chart.</p>
-          </CardContent>
-        </Card>
-      </Columns>
-      <Columns ratio="1-1">
-        <PagesTable title={WORDS.pagesAgents} by="agent" pages={o.top_pages} />
-        <PagesTable title={WORDS.pagesHumans} by="human" pages={o.top_pages} />
-      </Columns>
-      <div>
-        <SectionTitle aside={<Button variant="link" size="sm" asChild><Link to="/sessions">See all {counts.all} sessions</Link></Button>}>Latest sessions of every kind</SectionTitle>
-        <div className="flex flex-col gap-3">{o.latest.map((s) => <SessionRow key={s.id} s={s} />)}</div>
-      </div>
-      <Disk storage={o.storage} />
-      <div>
-        <SectionTitle>{coverage.title}</SectionTitle>
-        <p className="-mt-1 mb-3 text-sm text-muted-foreground">{coverage.lead}</p>
-        <Coverage coverage={coverage} />
-      </div>
-      <section aria-labelledby="categories-title">
-        <h3 id="categories-title" className="mt-6 mb-1 text-lg font-semibold">{TAXONOMY.title}</h3>
-        <p className="mb-3 text-sm text-muted-foreground">{TAXONOMY.lead}</p>
+      <div className="mt-8 flex flex-col gap-3">
+        <PageHeader as="h2" title={TAXONOMY.title} />
         <Taxonomy />
-      </section>
+        {TAXONOMY.counted.map((line) => <p key={line} className="text-sm text-muted-foreground">{line}</p>)}
+      </div>
     </>
   )
 }
 
-/** How long sessions last, one cell per kind of visitor (a Human + agent session counts only under Human + agent). */
-function AverageLength({ o }: { o: Overview }) {
-  const { ms, about } = o.average_length
-  const { agent_only: AgentOnlyIcon, human_agent: HumanAgentIcon } = TURNS_ICON
-  const cell = (label: string, length: number | null, sub: string, mark: ReactNode) =>
-    <StatCard key={label} label={label} value={length === null ? "—" : duration(length)} sub={length === null ? "No sessions in this range" : sub} mark={mark} />
+/** The counts under Key metrics, most important first, four to a row and every card the same size (one grid whose rows
+ *  are equally tall): sessions, visitors, page views, active time spent and pages per session, each in total (a card
+ *  named by the metric alone) and by verdict (Agent is the top block's number too; Bot is muted). Only a total card says
+ *  what its metric means. Visitors and active time come from /api/web: a visitor is a visitor ID (a visitor with
+ *  sessions of two kinds counts in both), active time is Clarity's, with each kind's average total time under it. While
+ *  only the demo shop's sessions are listed, Sessions says so. */
+function Totals({ o, web, demoOnly }: { o: Overview; web: WebAnalytics; demoOnly: boolean }) {
+  const { counts, coverage, page_views: views, pages_per_session: pages } = o
+  const kinds = ["agent", "human", "bot"] as const
+  const of = (verdict: Verdict, unit: string) => `${VERDICTS[verdict].label} ${unit}`
+  const all = metricName
+  const perSession = (value: number | null) => (value === null ? "—" : METRICS.pages_per_session.shown(value))
+  const visitors = (n: number | null) => ({ value: n === null ? "—" : String(n), sub: n === null ? WORDS.noVisitorIds : undefined })
+  const time = (t: ActiveTime) => (t ? { value: METRICS.active_time.shown(activeMinutes(t.active_ms)), sub: WORDS.outOfTotalTime(minutes(t.total_ms)) }
+    : { value: "—", sub: WORDS.noSessionsInRange })
   return (
-    <section aria-label={WORDS.averageLength}>
-      <SectionTitle>{WORDS.averageLength}</SectionTitle>
-      <p className="-mt-1 mb-3 text-sm text-muted-foreground">{about}</p>
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
-        {cell(VERDICTS.human.label, ms.human, WORDS.comparisonGroup, <Swatch kind="h" />)}
-        {cell(TAXONOMY.turns.agent_only.label, ms.agent_only, WORDS.agentWholeWay, <AgentOnlyIcon className="size-4 text-agent-foreground" aria-hidden />)}
-        {cell(TAXONOMY.turns.human_agent.label, ms.human_agent, WORDS.takingTurns, <HumanAgentIcon className="size-4 text-agent-foreground" aria-hidden />)}
-      </div>
-    </section>
-  )
-}
-
-/** The disk budget, as the settings page shows it, with a warning from warn_at_pct (DESIGN.md §1.1, like 0.3.4's). */
-function Disk({ storage }: { storage: Storage }) {
-  const budget = mbToBytes(storage.budget_mb), usedPct = percent(storage.used_bytes, budget)
-  return (
-    <section aria-label="Disk">
-      <SectionTitle aside={<Button variant="link" size="sm" asChild><Link to="/settings">Settings</Link></Button>}>Disk</SectionTitle>
-      <Card variant="flat" size="sm">
-        <CardContent className="flex flex-col gap-3">
-          <StorageUse usedBytes={storage.used_bytes} budgetBytes={budget} warnAtPct={storage.warn_at_pct} daysLeft={storage.days_left}
-            disk={storage.disk} replaysStopped={storage.replays_stopped} />
-          <BudgetWarning usedPct={usedPct} warnAtPct={storage.warn_at_pct} autoFree={storage.auto_free} full={storage.replays_stopped === "budget"} />
-        </CardContent>
-      </Card>
+    <section aria-label={WORDS.totals} className="grid auto-rows-fr grid-cols-2 gap-4 lg:grid-cols-4">
+      <StatCard label={all(WORDS.sessions)} value={String(counts.all)} sub={demoOnly ? WORDS.allFromDemoShop : undefined} mark={<Activity className="size-4" aria-hidden />}
+        help={<InfoTip label={all(WORDS.sessions)} lines={CLARITY.sessions} />} />
+      <StatCard label={sessionsOf("agent")} value={String(counts.agent)} mark={<VerdictIcon verdict="agent" />} />
+      <StatCard label={sessionsOf("human")} value={String(counts.human)} sub={counts.thin ? `${counts.thin} ${WORDS.withThinEvidence}` : undefined} mark={<VerdictIcon verdict="human" />} />
+      <StatCard label={sessionsOf("bot")} value={String(counts.bot)} mark={<VerdictIcon verdict="bot" />} muted help={<BotHelp bot={coverage.bot} />} />
+      <StatCard label={all(WORDS.visitors)} {...visitors(web.visitors.all)} mark={<UsersRound className="size-4" aria-hidden />}
+        help={<InfoTip label={all(WORDS.visitors)} lines={[WORDS.about.visitors, WORDS.visitorsAre]} />} />
+      {kinds.map((v) => <StatCard key={`${v}-visitors`} label={of(v, WORDS.visitors)} {...visitors(web.visitors[v])} mark={<VerdictIcon verdict={v} />} muted={v === "bot"} />)}
+      <StatCard label={all(WORDS.pageViews)} value={String(views.all)} mark={<FileText className="size-4" aria-hidden />}
+        help={<InfoTip label={all(WORDS.pageViews)} lines={WORDS.about.pageViews} />} />
+      {kinds.map((v) => <StatCard key={`${v}-views`} label={of(v, WORDS.pageViews)} value={String(views[v])} mark={<VerdictIcon verdict={v} />} muted={v === "bot"} />)}
+      <StatCard label={all(WORDS.activeTime)} {...time(web.active_time.all)} mark={<Timer className="size-4" aria-hidden />}
+        help={<InfoTip label={all(WORDS.activeTime)} lines={CLARITY.activeTime} />} />
+      {kinds.map((v) => <StatCard key={`${v}-time`} label={of(v, WORDS.activeTime)} {...time(web.active_time[v])} mark={<VerdictIcon verdict={v} />} muted={v === "bot"} />)}
+      <StatCard label={all(WORDS.pagesPerSession)} value={perSession(pages.all)} sub={pages.all === null ? WORDS.noSessionsInRange : undefined} mark={<Files className="size-4" aria-hidden />}
+        help={<InfoTip label={all(WORDS.pagesPerSession)} lines={WORDS.about.pagesPerSession} />} />
+      {kinds.map((v) => <StatCard key={`${v}-pages`} label={of(v, WORDS.pagesPerSession)} value={perSession(pages[v])} sub={pages[v] === null ? WORDS.noSessionsInRange : undefined}
+        mark={<VerdictIcon verdict={v} />} muted={v === "bot"} />)}
     </section>
   )
 }

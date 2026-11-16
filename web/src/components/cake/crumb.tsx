@@ -2,6 +2,7 @@
 // with drips in the palette colour, a red cherry, ink outline and face. Drawn for the product (no third-party art). DESIGN.md §7.
 // Lines use --cake-line (light in dark mode); the face (.face) stays ink on the white body.
 // Standing poses idle like the agent avatars (sway, bob, squash) and the open eyes blink (§15); still with reduced motion.
+import type { ComponentProps } from "react"
 import { PRODUCT_NAME } from "@/lib/product"
 import { cn } from "@/lib/utils"
 
@@ -10,8 +11,8 @@ export type CrumbPose = "wave" | "look" | "sleep" | "oops"
 const BODY = "M52 86 Q50 76 60 74 L140 70 Q152 70 152 82 L156 152 Q156 164 144 164 L60 166 Q48 166 48 154 Z"
 const CAP = "M45 88 Q44 64 66 63 L136 59 Q157 59 157 80 L157 88 Q151 97 144 88 Q137 103 129 90 Q122 95 116 88 Q108 107 99 90 Q92 96 86 90 Q78 101 70 90 Q62 96 56 90 Q50 95 45 88 Z"
 
-export function Crumb({ pose = "look", className, title }: { pose?: CrumbPose; className?: string; title?: string }) {
-  const label = title ?? `Crumb, ${PRODUCT_NAME}'s mascot`
+/** label: what the drawing shows, for screen readers ("Loading illustration"); the product's mascot by default. */
+export function Crumb({ pose = "look", className, label = `${PRODUCT_NAME} mascot` }: { pose?: CrumbPose; className?: string; label?: string }) {
   const look = pose === "look" ? 3 : 0
   return (
     <svg viewBox="0 0 200 200" role="img" aria-label={label} className={cn("crumb", className)}>
@@ -85,10 +86,11 @@ export function Crumb({ pose = "look", className, title }: { pose?: CrumbPose; c
   )
 }
 
-/** Crumb's head only: the logo, and the marker on human + agent rows. */
-export function CrumbHead({ className, title }: { className?: string; title?: string }) {
+/** Crumb's head only: the logo, and the marker on Agent rows. label: its name for screen readers (an image then;
+ *  decoration without one). What it marks shows on hover through a Hint around it, which hands it its props. */
+export function CrumbHead({ className, label, ...props }: { className?: string; label?: string } & ComponentProps<"svg">) {
   return (
-    <svg viewBox="40 20 124 100" className={cn("crumb", className)} role={title ? "img" : undefined} aria-label={title} aria-hidden={title ? undefined : true}>
+    <svg viewBox="40 20 124 100" {...props} className={cn("crumb", className)} role={label ? "img" : undefined} aria-label={label} aria-hidden={label ? undefined : true}>
       <path className="o f-body" strokeWidth="5" d="M50 112 L52 86 Q50 76 60 74 L140 70 Q152 70 152 82 L154 112 Z" />
       <path className="o f-frosting" strokeWidth="5" d={CAP} />
       <path className="o" strokeWidth="5" d="M106 40 Q110 27 122 25" />

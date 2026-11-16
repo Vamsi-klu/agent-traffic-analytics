@@ -12,6 +12,7 @@ Per rule: in how many sessions it held, and in how many it could not be checked 
 its inputs.
 """
 from agentcake.detect import crawler, env_rules, verdict
+from agentcake.evaluation.stats import tally
 from agentcake.units import MS_PER_S
 
 WEAK = "weak"
@@ -54,7 +55,7 @@ def table(rows):
 
 def _summary(sessions, rules):
     table_rules = env_rules.load_rules().rules
-    return {"sessions": len(sessions), "classes": _count(s["class"] for s in sessions),
+    return {"sessions": len(sessions), "classes": tally(s["class"] for s in sessions),
             "rules_in_table": len(table_rules), "rules_on": sum(1 for rule in table_rules if rule.enabled),
             "rules_held": {strength: sorted(rule for rule, cell in rules.items()
                                             if cell["held"] and cell["strength"] == strength)
@@ -63,11 +64,4 @@ def _summary(sessions, rules):
             "sessions_where_soft_hits_would_count": sum(1 for s in sessions if s["soft_would_count"]),
             "sessions_with_a_long_agent_run": sum(1 for s in sessions if (s["longest_agent_run"] or {}).get("long")),
             "sessions_looking_like_a_crawler": sum(1 for s in sessions if s["looks_like_crawler"]),
-            "weak_reasons": _count(reason for s in sessions for reason in s["weak_reasons"])}
-
-
-def _count(values):
-    out = {}
-    for value in values:
-        out[value] = out.get(value, 0) + 1
-    return out
+            "weak_reasons": tally(reason for s in sessions for reason in s["weak_reasons"])}

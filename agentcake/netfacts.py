@@ -7,12 +7,14 @@ Per request (the requests table, written by collect_store; the environment layer
     look_up(address) -> lists.match_ip() result or None     published agent or bot range; relay, CDN, cloud
     request_facts(headers, origin, lb, found) -> facts      the header values data/netfacts.json keeps, as sent and
                                                              cut (data/sizes.json); every header name in order; where
-                                                             the upload came from; the load balancer's country, JA4
-                                                             and protocol; the address's network and its class
+                                                             the upload came from; the load balancer's country, region,
+                                                             city, JA4 and protocol; the address's network and its
+                                                             class
     address_hashes(salt, address) -> {ip_hash, net_hash}    the address and its /24 or /48, hashed with the salt of
                                                              ip_salt.py: all that is kept of the address itself
 Per session (0.3.3, sessions.net, which the session page shows with the server half, api/server_half.py):
-net_facts(headers, c) -> (facts, address): country, published range, TLS JA4, protocol, the Web Bot Auth headers. The
+net_facts(headers, c) -> (facts, address): country, region, city, published range, TLS JA4, protocol, the Web Bot Auth
+headers. The
 address is returned only so collect can compare networks with the server half and hash it; it is never stored.
 ip_prefix() and network_key() compute the day-scoped network key a site's middleware (edge/) signs into its tokens.
 """
@@ -153,6 +155,8 @@ def _value_cap(name):
 def _load_balancer(headers, cap):
     names = lb_headers()
     return {"country": (headers.get(names["region"]) or "")[:cap["country"]] or None,
+            "subdivision": (headers.get(names["subdivision"]) or "")[:cap["subdivision"]] or None,
+            "city": (headers.get(names["city"]) or "")[:cap["city"]] or None,
             "ja4": (headers.get(names["ja4"]) or "")[:cap["ja4"]] or None,
             "proto": (headers.get(names["proto"]) or "")[:cap["proto"]] or None}
 

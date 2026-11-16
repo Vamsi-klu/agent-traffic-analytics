@@ -92,7 +92,7 @@ function environment() {
     hasFocus: document.hasFocus(),
     visibilityState: document.visibilityState,
     historyLength: history.length,
-    referrer: document.referrer,
+    referringDomain: C.referringDomain(),
     anyPointer: mediaMatches('any-pointer', ['fine', 'coarse', 'none']),
     anyHover: mediaMatches('any-hover', ['hover', 'none']),
     prefersColorScheme: matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light',

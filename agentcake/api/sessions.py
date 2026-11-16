@@ -1,5 +1,5 @@
-"""GET /api/sessions?verdict=&turns=&evidence=&agent=&range=&cursor=: the session list, one page at a time (the
-session list page draws it).
+"""GET /api/sessions?verdict=&turns=&evidence=&agent=&range=&dimension=&key=&cursor=: the session list, one page at a
+time (the session list page draws it).
 
 First the sessions with data newer than their verdict are judged (judging.catch_up); then, newest first, the sessions
 that count (visits.py) with the verdict (visits.VERDICTS; none or "all" is every verdict), of an Agent session's
@@ -8,14 +8,17 @@ cake could not tell), of the agent named exactly as agent_names lists it, in the
 page_size sessions; `next` is an opaque cursor for the page after it (the last row's start and id: rows added since do
 not shift the pages), null on the last page; total is how many sessions every filter keeps. counts are under the agent
 and range filters whatever the verdict and split; agent_names (the named agents: an agent no name fits has no name
-to filter by) under the range only, so the agent filter can always be changed.
+to filter by) under the range only, so the agent filter can always be changed. dimension and key keep the sessions of
+one row of the dashboard's Sources, Devices or Geography tables (web_dimensions.py; dimension without key: the
+sessions with no value; key sent empty: the empty value, a referring domain's visits without a referrer), as PostHog's
+web analytics opens the recordings of a row; every count is under them too.
 """
 import base64
 import binascii
 from http import HTTPStatus
 
 from agentcake import judging
-from agentcake.api import answers, periods, visits
+from agentcake.api import answers, periods, visits, web_dimensions
 
 CURSOR_SEPARATOR = ":"
 BASE64_BLOCK = 4  # protocol: base64 text comes in blocks of 4 characters
@@ -27,11 +30,14 @@ def view(request):
     turns = answers.choice(request, "turns", visits.TURNS)
     evidence = answers.choice(request, "evidence", visits.EVIDENCE)
     agent = answers.text_param(request, "agent")
-    range_key = answers.choice(request, "range", tuple(answers.numbers()["range_days"]))
+    range_key = answers.choice(request, "range", periods.range_keys())
+    dimension = answers.choice(request, "dimension", tuple(web_dimensions.EXPRESSIONS))
     after = read_cursor(answers.text_param(request, "cursor"))
     judging.catch_up()
     now, size = periods.now_ms(), answers.numbers()["page_size"]
     scope = visits.Scope().between(periods.window(range_key, now)[0])
+    if dimension:
+        scope = web_dimensions.where(scope, dimension, answers.given_param(request, "key"))
     listed = scope.agent(agent)
     rows = listed.group(verdict).group(turns).group(evidence)
     con = visits.connect()

@@ -1,12 +1,13 @@
 // Small cake building blocks made only of shadcn components + theme classes. DESIGN.md §6
-import { useState, type ReactNode } from "react"
-import { Check, Copy, HardDrive } from "lucide-react"
+import { createContext, useContext, useState, type ReactElement, type ReactNode } from "react"
+import { Check, Copy, HardDrive, Info, type LucideIcon } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import type { Disk, ReplaysStopped } from "@/data/types"
-import { aboutDays, bytes, percent } from "@/lib/format"
+import { PERCENT, aboutDays, bytes, percent } from "@/lib/format"
 import { PRODUCT_NAME } from "@/lib/product"
 import { cn } from "@/lib/utils"
 
@@ -26,16 +27,19 @@ export function CopyBlock({ text, className }: { text: string; className?: strin
 }
 
 /** Page title + one sentence + optional actions on the right. */
-export function PageHeader({ title, lead, actions }: { title: string; lead: string; actions?: ReactNode }) {
+/** A page's title, with a lead under it and actions on the right. as="h2": the same title for each part of a page that
+ *  has several (the dashboard's Key metrics, Deep dive and Reference, under the page's own h1). */
+export function PageHeader({ title, lead, actions, as: Heading = "h1" }: { title: string; lead?: string; actions?: ReactNode; as?: "h1" | "h2" }) {
   return (
     <div className="flex flex-wrap items-end justify-between gap-3">
-      <div className="flex flex-col gap-1"><h1 className="text-3xl font-semibold">{title}</h1><p className="text-muted-foreground">{lead}</p></div>
+      <div className="flex flex-col gap-1"><Heading className="text-3xl font-semibold">{title}</Heading>{lead && <p className="text-muted-foreground">{lead}</p>}</div>
       {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
     </div>
   )
 }
 
 /** Section title row. */
+/** A section's title, with a link or a note on the right (the session page's Server half and Every action). */
 export function SectionTitle({ children, aside }: { children: ReactNode; aside?: ReactNode }) {
   return (
     <div className="mt-8 mb-3 flex flex-wrap items-baseline justify-between gap-2">
@@ -45,14 +49,70 @@ export function SectionTitle({ children, aside }: { children: ReactNode; aside?:
   )
 }
 
-/** A plain number tile (not highlighted). help = a small "?" with a tooltip after the label (Bots: BotHelp). */
-export function StatCard({ label, value, sub, mark, muted = false, help }: { label: string; value: string; sub: string; mark: ReactNode; muted?: boolean; help?: ReactNode }) {
+/** What a chart or table card shows instead of its chart or rows when the range has nothing for it, as tall as a short
+ *  chart. */
+export function CardEmpty({ text }: { text: string }) {
+  return <p className="flex h-40 items-center justify-center text-center text-sm text-muted-foreground">{text}</p>
+}
+
+/** What a hint says: one paragraph, or several, each on a line of its own. */
+export type HintText = ReactNode | string[]
+
+/** A hint's text as paragraphs: blocks, so the lines stack in the tooltip and a screen reader hears them apart. */
+function HintLines({ text }: { text: HintText }) {
+  return Array.isArray(text) ? text.map((line) => <p key={line}>{line}</p>) : <p>{text}</p>
+}
+
+/** Inside a link (a session row), the link has the focus and nothing inside it may take focus of its own: hints there
+ *  open on hover only. */
+const InsideLinkContext = createContext(false)
+
+export function InsideLink({ children }: { children: ReactNode }) {
+  return <InsideLinkContext.Provider value>{children}</InsideLinkContext.Provider>
+}
+
+/** The interface's one way to show text on hover (DESIGN.md §6, §11): the theme tooltip, never the browser's own title
+ *  box, and it opens on keyboard focus too. children: the element it explains, which takes the tooltip's hover and focus
+ *  handlers (so it passes its props on to its element). focusable: the element is no button or link (a badge, a name),
+ *  so it takes focus of its own for the hint, except inside a link. */
+export function Hint({ text, focusable = false, children }: { text: HintText; focusable?: boolean; children: ReactElement }) {
+  const insideLink = useContext(InsideLinkContext)
+  // never a tabIndex key otherwise: an undefined one would still replace a toggle item's own roving tab stop
+  const focus = focusable && !insideLink ? { tabIndex: 0 } : {}
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild {...focus}>{children}</TooltipTrigger>
+      <TooltipContent><HintLines text={text} /></TooltipContent>
+    </Tooltip>
+  )
+}
+
+/** An icon beside a name that says more about it on hover and on focus: InfoTip's information icon, BotHelp's "?".
+ *  label: the icon's name for screen readers. The icon and its place in the line stay 14 px; an empty layer 9 px
+ *  around it makes what takes the pointer 32 px square, as everything clickable is (DESIGN.md §10). */
+export function IconTip({ icon: Icon, label, text }: { icon: LucideIcon; label: string; text: HintText }) {
+  return (
+    <Tooltip>
+      <TooltipTrigger aria-label={label} className="relative inline-flex text-faint-foreground after:absolute after:-inset-2.25 hover:text-foreground"><Icon className="size-3.5" aria-hidden /></TooltipTrigger>
+      <TooltipContent><HintLines text={text} /></TooltipContent>
+    </Tooltip>
+  )
+}
+
+/** What a metric or a chart means, behind an information icon beside its name: one line per paragraph. */
+export function InfoTip({ label, lines }: { label: string; lines: string[] }) {
+  return <IconTip icon={Info} label={`About ${label}`} text={lines} />
+}
+
+/** A number on a card: its name (with a help icon beside it), the number, and a line under it when there is something
+ *  to say about this number (data, or why it is missing). */
+export function StatCard({ label, value, sub, mark, muted = false, help }: { label: string; value: string; sub?: string; mark: ReactNode; muted?: boolean; help?: ReactNode }) {
   return (
     <Card variant="flat" size="sm" className={cn(muted && "opacity-70")}>
       <CardContent className="flex flex-col gap-1">
         <span className="flex items-center gap-2 text-sm font-bold text-muted-foreground">{mark}{label}{help}</span>
         <span className="font-heading text-3xl leading-none font-semibold">{value}</span>
-        <span className="text-xs text-muted-foreground">{sub}</span>
+        {sub && <span className="text-xs text-muted-foreground">{sub}</span>}
       </CardContent>
     </Card>
   )
@@ -62,47 +122,59 @@ export function StatCard({ label, value, sub, mark, muted = false, help }: { lab
 export function StorageMeter({ usedPct, warnAtPct }: { usedPct: number; warnAtPct: number }) {
   return (
     <div className="relative">
-      <Progress value={usedPct} tone={usedPct >= warnAtPct ? "warn" : "ok"} aria-label={`Disk used ${usedPct}%`} />
-      <span aria-hidden title={`Warning at ${warnAtPct}%`} className="absolute -top-1.5 -bottom-1.5 border-l-2 border-dashed border-foreground" style={{ left: `${warnAtPct}%` }} />
+      <Progress value={usedPct} tone={usedPct >= warnAtPct ? "warn" : "ok"} aria-label={`Budget used: ${usedPct}%`} />
+      <Hint text={`Warning threshold: ${warnAtPct}%`}>
+        <span aria-hidden data-warn-line="" className="absolute -top-1.5 -bottom-1.5 border-l-2 border-dashed border-foreground" style={{ left: `${warnAtPct}%` }} />
+      </Hint>
     </div>
   )
 }
 
-/** Why new replays aren't stored while the disk is below its floor: its free space, how far below the floor
- *  that is (the two can round to the same size) and the floor. A full budget has the page's own warning. */
+/** Why new replays aren't stored while the disk is below its floor: its free space, how far below the floor that is
+ *  (the two can round to the same size) and the floor. None is deleted for it; a full budget has its own warning. */
 const DISK_STOPPED: Partial<Record<NonNullable<ReplaysStopped>, (free: string, short: string, floor: string) => string>> = {
-  disk_full_other: (free, short, floor) => `Other files are filling this disk. Only ${free} is free, ${short} less than the ${floor} ${PRODUCT_NAME} keeps free. Deleting every old replay wouldn't free enough space, so ${PRODUCT_NAME} deleted none. New replays start being stored again on their own once there's room. Visits and verdicts are still recorded.`,
-  disk: (free, short, floor) => `Only ${free} is free on this disk. That's ${short} less than the ${floor} ${PRODUCT_NAME} keeps free, so new replays aren't stored. Free up space, or turn on cleanup in Settings to delete the oldest replays. Visits and verdicts are still recorded.`,
+  disk: (free, short, floor) => `New replays are paused until ${floor} of disk space is free, and then resume automatically. This disk has ${free} free and needs ${short} more. Visits and classifications are still recorded.`,
 }
 
 /** Disk use in a bar and a line: what is used of the budget, and when it is full at last week's pace (daysLeft: null when
- *  nothing was added last week); while new replays stop because the disk is below its floor, an Alert warn says why
- *  (disk, replaysStopped: the API's storage). The settings page and the dashboard's Disk section. */
+ *  nothing was added last week), with DiskStoppedWarning under it (disk, replaysStopped: the API's storage). The
+ *  settings page. */
 export function StorageUse({ usedBytes, budgetBytes, warnAtPct, daysLeft, disk, replaysStopped }: {
   usedBytes: number; budgetBytes: number; warnAtPct: number; daysLeft: number | null; disk: Disk; replaysStopped: ReplaysStopped
 }) {
-  const usedPct = percent(usedBytes, budgetBytes), diskStopped = replaysStopped && DISK_STOPPED[replaysStopped]
+  const usedPct = percent(usedBytes, budgetBytes)
   return (
     <>
       <StorageMeter usedPct={usedPct} warnAtPct={warnAtPct} />
-      <div className="flex flex-wrap justify-between gap-2 text-sm"><span><b>{bytes(usedBytes)}</b>{` of ${bytes(budgetBytes)} used, ${usedPct}%`}</span><span className="text-muted-foreground">{daysLeft === null ? "Nothing was added in the last week." : `At last week's pace, the budget fills up in ${aboutDays(daysLeft)}.`}</span></div>
-      {diskStopped && <Alert variant="warn"><HardDrive aria-hidden /><AlertDescription className="text-foreground">{diskStopped(bytes(disk.free), bytes(disk.min_free - disk.free), bytes(disk.min_free))}</AlertDescription></Alert>}
+      <div className="flex flex-wrap justify-between gap-2 text-sm"><span><b>{bytes(usedBytes)}</b>{` of ${bytes(budgetBytes)} used (${usedPct}%)`}</span><span className="text-muted-foreground">{daysLeft === null ? "No data was added last week." : `At last week's growth rate, stored data will reach the disk budget in ${aboutDays(daysLeft)}.`}</span></div>
+      <DiskStoppedWarning disk={disk} replaysStopped={replaysStopped} />
     </>
   )
 }
 
+/** While new replays stop because the disk is below its floor, an Alert warn says why; nothing otherwise. Under the
+ *  settings page's StorageUse, and on the dashboard beside BudgetWarning. */
+export function DiskStoppedWarning({ disk, replaysStopped }: { disk: Disk; replaysStopped: ReplaysStopped }) {
+  const diskStopped = replaysStopped && DISK_STOPPED[replaysStopped]
+  if (!diskStopped) return null
+  return <Alert variant="warn"><HardDrive aria-hidden /><AlertDescription className="text-foreground">{diskStopped(bytes(disk.free), bytes(disk.min_free - disk.free), bytes(disk.min_free))}</AlertDescription></Alert>
+}
+
 /** The disk budget's warning (DESIGN.md §1.1, like 0.3.4's), on the dashboard and the settings page: from warnAtPct on,
- *  how full it is and what happens when it is full; once it is full and nothing more can be freed (the API's
+ *  how full it is and what happens next (with auto_free, from freeAtPct the oldest replays are deleted, of every kind of
+ *  session; without, new replays stop when it is full); once it is full and nothing is left to delete (the API's
  *  replays_stopped "budget"), that new replays aren't stored now and what to do. Nothing below warnAtPct. */
-export function BudgetWarning({ usedPct, warnAtPct, autoFree, full }: { usedPct: number; warnAtPct: number; autoFree: boolean; full: boolean }) {
+export function BudgetWarning({ usedPct, warnAtPct, freeAtPct, autoFree, full }: {
+  usedPct: number; warnAtPct: number; freeAtPct: number; autoFree: boolean; full: boolean
+}) {
   if (!full && usedPct < warnAtPct) return null
-  const whenFull = autoFree
-    ? `${PRODUCT_NAME} deletes the oldest replays of Human sessions to make room. Agent and Unknown sessions keep their replays. Visits and verdicts always stay.`
-    : `${PRODUCT_NAME} stops storing new replays. Visits and verdicts are still recorded. To keep storing replays, turn on cleanup in Settings.`
+  const next = autoFree
+    ? `When less than ${PERCENT - freeAtPct}% is left, ${PRODUCT_NAME} deletes the oldest replays across all session types. Visits and classifications are always kept.`
+    : "When the budget is full, new replays aren't stored unless Automatic cleanup is on in Settings. Visits and classifications are still recorded."
   const nowFull = autoFree
-    ? "The disk budget is full and nothing more can be freed: the replays left belong to Agent sessions, Unknown sessions, and sessions active in the last hour. New replays aren't stored until there's room. To keep them, raise the budget. Visits and verdicts are still recorded."
-    : "The disk budget is full, so new replays aren't stored. Visits and verdicts are still recorded. Raise the budget, or turn on cleanup in Settings."
-  return <Alert variant="warn"><HardDrive aria-hidden /><AlertDescription className="text-foreground">{full ? nowFull : `You've used ${usedPct}% of the disk budget. When it's full, ${whenFull}`}</AlertDescription></Alert>
+    ? "The disk budget is full. All remaining replays belong to active sessions and can't be deleted yet. Visits and classifications are still recorded, and new replays resume when cleanup or a larger budget makes room."
+    : "The disk budget is full, so new replays aren't stored. Visits and classifications are still recorded. To store replays again, increase the budget or turn on Automatic cleanup in Settings."
+  return <Alert variant="warn"><HardDrive aria-hidden /><AlertDescription className="text-foreground">{full ? nowFull : `Disk budget used: ${usedPct}%. ${next}`}</AlertDescription></Alert>
 }
 
 /** System status with a dot: receiving / waiting / not connected. */
@@ -125,6 +197,8 @@ export function SettingRow({ title, tags, desc, control }: { title: string; tags
 }
 
 /** Page columns. Pages never write their own grid ratios. 3-2 = main + side; 1-1 = two equal columns. Stacks below lg. */
-export function Columns({ ratio, children, className }: { ratio: "3-2" | "1-1"; children: ReactNode; className?: string }) {
-  return <div className={cn("grid items-start gap-5", ratio === "3-2" ? "lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]" : "lg:grid-cols-2", className)}>{children}</div>
+/** Page columns. equalHeight: one row of cards side by side, each as tall as the tallest (cards in a row always match);
+ *  without it, columns that each stack their own cards. */
+export function Columns({ ratio, equalHeight = false, children, className }: { ratio: "3-2" | "1-1"; equalHeight?: boolean; children: ReactNode; className?: string }) {
+  return <div className={cn("grid gap-5", equalHeight ? "items-stretch" : "items-start", ratio === "3-2" ? "lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]" : "lg:grid-cols-2", className)}>{children}</div>
 }

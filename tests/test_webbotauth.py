@@ -314,9 +314,11 @@ class SettingsAndReasons(unittest.TestCase):
     def test_every_code_has_a_reason_and_explains(self):
         self.assertEqual(set(SHIPPED.reasons) - {"$missing"}, set(webbotauth.CODES))
         result = webbotauth.verify_request(request([("Signature-Agent", '"https://chatgpt.com"')]), {}, NOW)
-        self.assertEqual(webbotauth.explain(result), "The request names a signer but has no signature to verify, so the name is self-reported.")
+        self.assertEqual(webbotauth.explain(result), "The name is self-reported because the request names "
+                                                     "a signer but doesn't include a signature.")
         self.assertEqual(webbotauth.words(webbotauth.as_facts(result))[1],
-                         "Signature-Agent names chatgpt.com, but the request carries no Web Bot Auth signature.")
+                         "The Signature-Agent header names chatgpt.com, but the request doesn't include a Web Bot Auth "
+                         "signature.")
         self.assertEqual(set(SHIPPED.details), set(webbotauth.CODES) - {"unsigned"})
 
     def test_the_test_signer_reproduces_rfc_8032_test_1(self):

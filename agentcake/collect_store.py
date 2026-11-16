@@ -10,7 +10,8 @@ record(con, batch, visit, now_ms, c) writes, in the caller's transaction (store.
    (sent again from sessionStorage, or an answer cake.js could not read): nothing else is written. A cake 0.3.4
    batch has no key and is always kept;
 2. the session row: first and last seen, URL, User-Agent, automation flag, Sec-Fetch headers, self-check flag, where
-   the visit came from (site_origin.py; once "other", it stays "other"), the load balancer's network facts;
+   the visit came from (site_origin.py; once "other", it stays "other"), the load balancer's network facts; and what
+   the web analytics tables group it by (web_props.keep: the visitor id, the entry source, the device, the place);
 3. the server-half token (edge_token.take_token), which also puts the id of a token it verified on the batch's
    row: that links each page view to its server half, also a page view that reused an earlier page view's token;
 4. each stream's records with their page view (streams.append), up to max_events_per_session per stream; the
@@ -27,7 +28,7 @@ from collections import namedtuple
 from dataclasses import dataclass
 from typing import Optional
 
-from agentcake import ip_salt, netfacts, streams
+from agentcake import ip_salt, netfacts, streams, web_props
 from agentcake.edge_token import HEADERS, Delivery, take_token
 from agentcake.space import room_for_replay
 
@@ -54,6 +55,7 @@ def record(con, batch, visit, now_ms, c):
     if batch.page_view is not None and not _new_batch(con, batch, now_ms):
         return Kept(True, None)
     _session(con, batch, visit, now_ms)
+    web_props.keep(con, batch, visit)
     took = take_token(con, batch.token, _delivery(batch, visit), now_ms, c) if batch.token else None
     _records(con, batch, now_ms, c)
     if batch.bad_records:

@@ -10,6 +10,8 @@
 
 var FULL_SNAPSHOT = 2 // protocol: rrweb EventType.FullSnapshot
 
+var recording = null // rrweb's record function once it records
+
 C.replay = {
   start: function () {
     var record = C.rrweb && (C.rrweb.record || C.rrweb)
@@ -31,5 +33,15 @@ C.replay = {
       sampling: CFG.rrweb.sampling
     })
     if (stopRecording) C.onStop(stopRecording)
+    recording = record
+  },
+  /** A full snapshot now: the replay of a session that began on this page starts from the page as it is. */
+  snapshot: function () {
+    if (!recording || typeof recording.takeFullSnapshot !== 'function') return
+    try {
+      recording.takeFullSnapshot(true)
+    } catch (e) {
+      C.fault('rrweb_snapshot', e)
+    }
   }
 }

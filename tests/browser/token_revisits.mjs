@@ -60,7 +60,7 @@ const VISITS = {
     ["follow the link to Canvas Tote Bag", (page) => page.getByRole("link", { name: "Canvas Tote Bag", exact: true }).click(), "/demo/product?id=tote"],
     ["go back (the stored page)", (page) => page.goBack(UNTIL_COMMIT), "/demo"],
     ["go forward (the stored page)", (page) => page.goForward(UNTIL_COMMIT), "/demo/product?id=tote"],
-    ["follow the link to all products", (page) => page.getByRole("link", { name: "← All products" }).click(), "/demo"],
+    ["follow the link to all products", (page) => page.getByRole("link", { name: "Back to all products" }).click(), "/demo"],
     ["reload", (page) => page.reload(), "/demo"],
   ],
 }
@@ -172,7 +172,7 @@ async function spaRouteChange(page, batches, last) {
 async function serverHalfShot(context, cake, visit, file) {
   const page = await context.newPage()
   await page.goto(`${cake.base}/#/sessions/${encodeURIComponent(visit)}`) // the session page
-  const half = page.getByRole("heading", { name: "Server half" })
+  const half = page.getByRole("heading", { name: "Server middleware" })
   if (await half.count()) await half.scrollIntoViewIfNeeded()
   await page.screenshot({ path: file, fullPage: true })
   await page.close()

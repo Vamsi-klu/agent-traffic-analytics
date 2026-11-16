@@ -1,0 +1,965 @@
+{
+  "visitors": {
+    "all": 33,
+    "agent": 9,
+    "human": 23,
+    "bot": 2,
+    "without": 4
+  },
+  "page_views": {
+    "all": 151,
+    "agent": 38,
+    "human": 104,
+    "bot": 9
+  },
+  "active_time": {
+    "all": {
+      "active_ms": 154000,
+      "total_ms": 251000
+    },
+    "agent": {
+      "active_ms": 97000,
+      "total_ms": 118000
+    },
+    "human": {
+      "active_ms": 182000,
+      "total_ms": 316000
+    },
+    "bot": {
+      "active_ms": 4000,
+      "total_ms": 4000
+    }
+  },
+  "trends": {
+    "interval": "day",
+    "points": [
+      {
+        "label": "Fri",
+        "agent": {
+          "sessions": 2,
+          "visitors": 2,
+          "page_views": 4,
+          "active_ms": 84000,
+          "pages_per_session": 2.0
+        },
+        "human": {
+          "sessions": 4,
+          "visitors": 4,
+          "page_views": 15,
+          "active_ms": 171000,
+          "pages_per_session": 3.75
+        }
+      },
+      {
+        "label": "Sat",
+        "agent": {
+          "sessions": 0,
+          "visitors": 0,
+          "page_views": 0,
+          "active_ms": null,
+          "pages_per_session": null
+        },
+        "human": {
+          "sessions": 3,
+          "visitors": 3,
+          "page_views": 12,
+          "active_ms": 205000,
+          "pages_per_session": 4.0
+        }
+      },
+      {
+        "label": "Sun",
+        "agent": {
+          "sessions": 3,
+          "visitors": 2,
+          "page_views": 7,
+          "active_ms": 120000,
+          "pages_per_session": 2.33
+        },
+        "human": {
+          "sessions": 5,
+          "visitors": 4,
+          "page_views": 19,
+          "active_ms": 160000,
+          "pages_per_session": 3.8
+        }
+      },
+      {
+        "label": "Mon",
+        "agent": {
+          "sessions": 4,
+          "visitors": 3,
+          "page_views": 9,
+          "active_ms": 101000,
+          "pages_per_session": 2.25
+        },
+        "human": {
+          "sessions": 6,
+          "visitors": 5,
+          "page_views": 23,
+          "active_ms": 199000,
+          "pages_per_session": 3.83
+        }
+      },
+      {
+        "label": "Tue",
+        "agent": {
+          "sessions": 0,
+          "visitors": 0,
+          "page_views": 0,
+          "active_ms": null,
+          "pages_per_session": null
+        },
+        "human": {
+          "sessions": 0,
+          "visitors": 0,
+          "page_views": 0,
+          "active_ms": null,
+          "pages_per_session": null
+        }
+      },
+      {
+        "label": "Wed",
+        "agent": {
+          "sessions": 5,
+          "visitors": 4,
+          "page_views": 11,
+          "active_ms": 77000,
+          "pages_per_session": 2.2
+        },
+        "human": {
+          "sessions": 6,
+          "visitors": 6,
+          "page_views": 22,
+          "active_ms": 176000,
+          "pages_per_session": 3.67
+        }
+      },
+      {
+        "label": "Thu",
+        "agent": {
+          "sessions": 3,
+          "visitors": 3,
+          "page_views": 7,
+          "active_ms": 93000,
+          "pages_per_session": 2.33
+        },
+        "human": {
+          "sessions": 3,
+          "visitors": 3,
+          "page_views": 13,
+          "active_ms": 181000,
+          "pages_per_session": 4.33
+        }
+      }
+    ]
+  },
+  "agents": [
+    {
+      "name": "Claude in Chrome",
+      "sessions": 17,
+      "visitors": 5,
+      "page_views": 70,
+      "active_ms": 143000,
+      "pages_per_session": 4.117647058823529
+    },
+    {
+      "name": null,
+      "sessions": 9,
+      "visitors": 2,
+      "page_views": 21,
+      "active_ms": 31000,
+      "pages_per_session": 2.3333333333333335
+    },
+    {
+      "name": "Muse",
+      "sessions": 7,
+      "visitors": 3,
+      "page_views": 42,
+      "active_ms": 252000,
+      "pages_per_session": 6.0
+    },
+    {
+      "name": "ChatGPT",
+      "sessions": 6,
+      "visitors": 4,
+      "page_views": 33,
+      "active_ms": 98000,
+      "pages_per_session": 5.5
+    },
+    {
+      "name": "Grok Bot",
+      "sessions": 5,
+      "visitors": 1,
+      "page_views": 12,
+      "active_ms": 47000,
+      "pages_per_session": 2.4
+    },
+    {
+      "name": "Codex in-app browser",
+      "sessions": 3,
+      "visitors": null,
+      "page_views": 36,
+      "active_ms": null,
+      "pages_per_session": 12.0
+    }
+  ],
+  "paths": [
+    {
+      "path": "/",
+      "agent": 12,
+      "human": 20,
+      "visitors": 26,
+      "agent_visitors": 8,
+      "human_visitors": 19,
+      "page_views": 47,
+      "agent_page_views": 15,
+      "human_page_views": 32
+    },
+    {
+      "path": "/pricing",
+      "agent": 9,
+      "human": 11,
+      "visitors": 17,
+      "agent_visitors": 7,
+      "human_visitors": 10,
+      "page_views": 26,
+      "agent_page_views": 11,
+      "human_page_views": 15
+    },
+    {
+      "path": "/signup",
+      "agent": 6,
+      "human": 5,
+      "visitors": 10,
+      "agent_visitors": 5,
+      "human_visitors": 5,
+      "page_views": 12,
+      "agent_page_views": 7,
+      "human_page_views": 5
+    },
+    {
+      "path": "/docs/install",
+      "agent": 2,
+      "human": 7,
+      "visitors": 8,
+      "agent_visitors": 2,
+      "human_visitors": 6,
+      "page_views": 14,
+      "agent_page_views": 3,
+      "human_page_views": 11
+    }
+  ],
+  "tables": {
+    "sources": [
+      {
+        "dimension": "channel",
+        "rows": [
+          {
+            "key": "Direct",
+            "value": "Direct",
+            "country": null,
+            "agent": 9,
+            "human": 12,
+            "visitors": 16,
+            "agent_visitors": 7,
+            "human_visitors": 9,
+            "page_views": 61,
+            "agent_page_views": 26,
+            "human_page_views": 35
+          },
+          {
+            "key": "Organic Search",
+            "value": "Organic Search",
+            "country": null,
+            "agent": 2,
+            "human": 9,
+            "visitors": 9,
+            "agent_visitors": 2,
+            "human_visitors": 7,
+            "page_views": 34,
+            "agent_page_views": 6,
+            "human_page_views": 28
+          },
+          {
+            "key": "AI",
+            "value": "AI",
+            "country": null,
+            "agent": 5,
+            "human": 1,
+            "visitors": 5,
+            "agent_visitors": 4,
+            "human_visitors": 1,
+            "page_views": 13,
+            "agent_page_views": 11,
+            "human_page_views": 2
+          },
+          {
+            "key": "Referral",
+            "value": "Referral",
+            "country": null,
+            "agent": 1,
+            "human": 3,
+            "visitors": 4,
+            "agent_visitors": 1,
+            "human_visitors": 3,
+            "page_views": 9,
+            "agent_page_views": 2,
+            "human_page_views": 7
+          },
+          {
+            "key": "Paid Search",
+            "value": "Paid Search",
+            "country": null,
+            "agent": 0,
+            "human": 2,
+            "visitors": 2,
+            "agent_visitors": null,
+            "human_visitors": 2,
+            "page_views": 5,
+            "agent_page_views": 0,
+            "human_page_views": 5
+          }
+        ]
+      },
+      {
+        "dimension": "referring_domain",
+        "rows": [
+          {
+            "key": "",
+            "value": "",
+            "country": null,
+            "agent": 9,
+            "human": 12,
+            "visitors": 16,
+            "agent_visitors": 7,
+            "human_visitors": 9,
+            "page_views": 61,
+            "agent_page_views": 26,
+            "human_page_views": 35
+          },
+          {
+            "key": "www.google.com",
+            "value": "www.google.com",
+            "country": null,
+            "agent": 2,
+            "human": 9,
+            "visitors": 9,
+            "agent_visitors": 2,
+            "human_visitors": 7,
+            "page_views": 34,
+            "agent_page_views": 6,
+            "human_page_views": 28
+          },
+          {
+            "key": "chatgpt.com",
+            "value": "chatgpt.com",
+            "country": null,
+            "agent": 5,
+            "human": 1,
+            "visitors": 5,
+            "agent_visitors": 4,
+            "human_visitors": 1,
+            "page_views": 13,
+            "agent_page_views": 11,
+            "human_page_views": 2
+          },
+          {
+            "key": "news.ycombinator.com",
+            "value": "news.ycombinator.com",
+            "country": null,
+            "agent": 1,
+            "human": 3,
+            "visitors": 4,
+            "agent_visitors": 1,
+            "human_visitors": 3,
+            "page_views": 9,
+            "agent_page_views": 2,
+            "human_page_views": 7
+          }
+        ]
+      },
+      {
+        "dimension": "utm_source",
+        "rows": [
+          {
+            "key": null,
+            "value": null,
+            "country": null,
+            "agent": 15,
+            "human": 22,
+            "visitors": 29,
+            "agent_visitors": 12,
+            "human_visitors": 17,
+            "page_views": 112,
+            "agent_page_views": 45,
+            "human_page_views": 67
+          },
+          {
+            "key": "newsletter",
+            "value": "newsletter",
+            "country": null,
+            "agent": 2,
+            "human": 3,
+            "visitors": 4,
+            "agent_visitors": 2,
+            "human_visitors": 2,
+            "page_views": 8,
+            "agent_page_views": 3,
+            "human_page_views": 5
+          },
+          {
+            "key": "google",
+            "value": "google",
+            "country": null,
+            "agent": 0,
+            "human": 2,
+            "visitors": 2,
+            "agent_visitors": null,
+            "human_visitors": 2,
+            "page_views": 5,
+            "agent_page_views": 0,
+            "human_page_views": 5
+          }
+        ]
+      },
+      {
+        "dimension": "utm_medium",
+        "rows": [
+          {
+            "key": null,
+            "value": null,
+            "country": null,
+            "agent": 15,
+            "human": 22,
+            "visitors": 29,
+            "agent_visitors": 12,
+            "human_visitors": 17,
+            "page_views": 112,
+            "agent_page_views": 45,
+            "human_page_views": 67
+          },
+          {
+            "key": "email",
+            "value": "email",
+            "country": null,
+            "agent": 2,
+            "human": 3,
+            "visitors": 4,
+            "agent_visitors": 2,
+            "human_visitors": 2,
+            "page_views": 8,
+            "agent_page_views": 3,
+            "human_page_views": 5
+          },
+          {
+            "key": "cpc",
+            "value": "cpc",
+            "country": null,
+            "agent": 0,
+            "human": 2,
+            "visitors": 2,
+            "agent_visitors": null,
+            "human_visitors": 2,
+            "page_views": 5,
+            "agent_page_views": 0,
+            "human_page_views": 5
+          }
+        ]
+      },
+      {
+        "dimension": "utm_campaign",
+        "rows": [
+          {
+            "key": null,
+            "value": null,
+            "country": null,
+            "agent": 15,
+            "human": 24,
+            "visitors": 30,
+            "agent_visitors": 12,
+            "human_visitors": 18,
+            "page_views": 117,
+            "agent_page_views": 45,
+            "human_page_views": 72
+          },
+          {
+            "key": "spring-sale",
+            "value": "spring-sale",
+            "country": null,
+            "agent": 2,
+            "human": 3,
+            "visitors": 4,
+            "agent_visitors": 2,
+            "human_visitors": 2,
+            "page_views": 8,
+            "agent_page_views": 3,
+            "human_page_views": 5
+          }
+        ]
+      }
+    ],
+    "devices": [
+      {
+        "dimension": "device_type",
+        "rows": [
+          {
+            "key": "Desktop",
+            "value": "Desktop",
+            "country": null,
+            "agent": 16,
+            "human": 18,
+            "visitors": 22,
+            "agent_visitors": 10,
+            "human_visitors": 12,
+            "page_views": 101,
+            "agent_page_views": 48,
+            "human_page_views": 53
+          },
+          {
+            "key": "Mobile",
+            "value": "Mobile",
+            "country": null,
+            "agent": 1,
+            "human": 8,
+            "visitors": 8,
+            "agent_visitors": 1,
+            "human_visitors": 7,
+            "page_views": 19,
+            "agent_page_views": 2,
+            "human_page_views": 17
+          },
+          {
+            "key": "Tablet",
+            "value": "Tablet",
+            "country": null,
+            "agent": 0,
+            "human": 1,
+            "visitors": 1,
+            "agent_visitors": null,
+            "human_visitors": 1,
+            "page_views": 2,
+            "agent_page_views": 0,
+            "human_page_views": 2
+          }
+        ]
+      },
+      {
+        "dimension": "browser",
+        "rows": [
+          {
+            "key": "Chrome",
+            "value": "Chrome",
+            "country": null,
+            "agent": 15,
+            "human": 14,
+            "visitors": 18,
+            "agent_visitors": 9,
+            "human_visitors": 9,
+            "page_views": 92,
+            "agent_page_views": 48,
+            "human_page_views": 44
+          },
+          {
+            "key": "Mobile Safari",
+            "value": "Mobile Safari",
+            "country": null,
+            "agent": 0,
+            "human": 6,
+            "visitors": 6,
+            "agent_visitors": null,
+            "human_visitors": 6,
+            "page_views": 12,
+            "agent_page_views": 0,
+            "human_page_views": 12
+          },
+          {
+            "key": "Safari",
+            "value": "Safari",
+            "country": null,
+            "agent": 1,
+            "human": 3,
+            "visitors": 3,
+            "agent_visitors": 1,
+            "human_visitors": 2,
+            "page_views": 9,
+            "agent_page_views": 2,
+            "human_page_views": 7
+          },
+          {
+            "key": "Firefox",
+            "value": "Firefox",
+            "country": null,
+            "agent": 1,
+            "human": 2,
+            "visitors": 3,
+            "agent_visitors": 1,
+            "human_visitors": 2,
+            "page_views": 6,
+            "agent_page_views": 2,
+            "human_page_views": 4
+          },
+          {
+            "key": "Microsoft Edge",
+            "value": "Microsoft Edge",
+            "country": null,
+            "agent": 0,
+            "human": 2,
+            "visitors": 2,
+            "agent_visitors": null,
+            "human_visitors": 2,
+            "page_views": 3,
+            "agent_page_views": 0,
+            "human_page_views": 3
+          }
+        ]
+      },
+      {
+        "dimension": "os",
+        "rows": [
+          {
+            "key": "Mac OS X",
+            "value": "Mac OS X",
+            "country": null,
+            "agent": 14,
+            "human": 13,
+            "visitors": 17,
+            "agent_visitors": 9,
+            "human_visitors": 8,
+            "page_views": 85,
+            "agent_page_views": 44,
+            "human_page_views": 41
+          },
+          {
+            "key": "iOS",
+            "value": "iOS",
+            "country": null,
+            "agent": 0,
+            "human": 6,
+            "visitors": 6,
+            "agent_visitors": null,
+            "human_visitors": 6,
+            "page_views": 12,
+            "agent_page_views": 0,
+            "human_page_views": 12
+          },
+          {
+            "key": "Windows",
+            "value": "Windows",
+            "country": null,
+            "agent": 2,
+            "human": 5,
+            "visitors": 6,
+            "agent_visitors": 2,
+            "human_visitors": 4,
+            "page_views": 18,
+            "agent_page_views": 5,
+            "human_page_views": 13
+          },
+          {
+            "key": "Android",
+            "value": "Android",
+            "country": null,
+            "agent": 1,
+            "human": 2,
+            "visitors": 3,
+            "agent_visitors": 1,
+            "human_visitors": 2,
+            "page_views": 5,
+            "agent_page_views": 2,
+            "human_page_views": 3
+          },
+          {
+            "key": "Linux",
+            "value": "Linux",
+            "country": null,
+            "agent": 0,
+            "human": 1,
+            "visitors": 1,
+            "agent_visitors": null,
+            "human_visitors": 1,
+            "page_views": 2,
+            "agent_page_views": 0,
+            "human_page_views": 2
+          }
+        ]
+      }
+    ],
+    "geography": [
+      {
+        "dimension": "country",
+        "rows": [
+          {
+            "key": "US",
+            "value": "US",
+            "country": null,
+            "agent": 10,
+            "human": 14,
+            "visitors": 18,
+            "agent_visitors": 8,
+            "human_visitors": 10,
+            "page_views": 70,
+            "agent_page_views": 29,
+            "human_page_views": 41
+          },
+          {
+            "key": "GB",
+            "value": "GB",
+            "country": null,
+            "agent": 3,
+            "human": 4,
+            "visitors": 6,
+            "agent_visitors": 3,
+            "human_visitors": 3,
+            "page_views": 21,
+            "agent_page_views": 9,
+            "human_page_views": 12
+          },
+          {
+            "key": "DE",
+            "value": "DE",
+            "country": null,
+            "agent": 2,
+            "human": 3,
+            "visitors": 4,
+            "agent_visitors": 2,
+            "human_visitors": 2,
+            "page_views": 15,
+            "agent_page_views": 6,
+            "human_page_views": 9
+          },
+          {
+            "key": null,
+            "value": null,
+            "country": null,
+            "agent": 2,
+            "human": 6,
+            "visitors": 5,
+            "agent_visitors": 1,
+            "human_visitors": 4,
+            "page_views": 16,
+            "agent_page_views": 4,
+            "human_page_views": 12
+          }
+        ]
+      },
+      {
+        "dimension": "region",
+        "rows": [
+          {
+            "key": "USCA",
+            "value": "California",
+            "country": "US",
+            "agent": 6,
+            "human": 8,
+            "visitors": 11,
+            "agent_visitors": 5,
+            "human_visitors": 6,
+            "page_views": 41,
+            "agent_page_views": 18,
+            "human_page_views": 23
+          },
+          {
+            "key": "GBENG",
+            "value": "England",
+            "country": "GB",
+            "agent": 3,
+            "human": 4,
+            "visitors": 6,
+            "agent_visitors": 3,
+            "human_visitors": 3,
+            "page_views": 21,
+            "agent_page_views": 9,
+            "human_page_views": 12
+          },
+          {
+            "key": "USNY",
+            "value": "New York",
+            "country": "US",
+            "agent": 4,
+            "human": 6,
+            "visitors": 7,
+            "agent_visitors": 3,
+            "human_visitors": 4,
+            "page_views": 29,
+            "agent_page_views": 12,
+            "human_page_views": 17
+          },
+          {
+            "key": null,
+            "value": null,
+            "country": null,
+            "agent": 4,
+            "human": 9,
+            "visitors": 9,
+            "agent_visitors": 3,
+            "human_visitors": 6,
+            "page_views": 31,
+            "agent_page_views": 10,
+            "human_page_views": 21
+          }
+        ]
+      },
+      {
+        "dimension": "city",
+        "rows": [
+          {
+            "key": "US:San Francisco",
+            "value": "San Francisco",
+            "country": "US",
+            "agent": 5,
+            "human": 6,
+            "visitors": 9,
+            "agent_visitors": 4,
+            "human_visitors": 5,
+            "page_views": 33,
+            "agent_page_views": 15,
+            "human_page_views": 18
+          },
+          {
+            "key": "GB:London",
+            "value": "London",
+            "country": "GB",
+            "agent": 3,
+            "human": 4,
+            "visitors": 6,
+            "agent_visitors": 3,
+            "human_visitors": 3,
+            "page_views": 21,
+            "agent_page_views": 9,
+            "human_page_views": 12
+          },
+          {
+            "key": "US:New York",
+            "value": "New York",
+            "country": "US",
+            "agent": 4,
+            "human": 6,
+            "visitors": 7,
+            "agent_visitors": 3,
+            "human_visitors": 4,
+            "page_views": 29,
+            "agent_page_views": 12,
+            "human_page_views": 17
+          },
+          {
+            "key": null,
+            "value": null,
+            "country": null,
+            "agent": 5,
+            "human": 11,
+            "visitors": 11,
+            "agent_visitors": 3,
+            "human_visitors": 8,
+            "page_views": 39,
+            "agent_page_views": 12,
+            "human_page_views": 27
+          }
+        ]
+      },
+      {
+        "dimension": "timezone",
+        "rows": [
+          {
+            "key": "480",
+            "value": "UTC-08:00",
+            "country": null,
+            "agent": 9,
+            "human": 10,
+            "visitors": 13,
+            "agent_visitors": 6,
+            "human_visitors": 7,
+            "page_views": 52,
+            "agent_page_views": 25,
+            "human_page_views": 27
+          },
+          {
+            "key": "300",
+            "value": "UTC-05:00",
+            "country": null,
+            "agent": 3,
+            "human": 10,
+            "visitors": 9,
+            "agent_visitors": 2,
+            "human_visitors": 7,
+            "page_views": 34,
+            "agent_page_views": 8,
+            "human_page_views": 26
+          },
+          {
+            "key": "0",
+            "value": "UTC+00:00",
+            "country": null,
+            "agent": 3,
+            "human": 4,
+            "visitors": 6,
+            "agent_visitors": 3,
+            "human_visitors": 3,
+            "page_views": 21,
+            "agent_page_views": 9,
+            "human_page_views": 12
+          },
+          {
+            "key": "-60",
+            "value": "UTC+01:00",
+            "country": null,
+            "agent": 2,
+            "human": 3,
+            "visitors": 4,
+            "agent_visitors": 2,
+            "human_visitors": 2,
+            "page_views": 15,
+            "agent_page_views": 6,
+            "human_page_views": 9
+          }
+        ]
+      },
+      {
+        "dimension": "language",
+        "rows": [
+          {
+            "key": "en",
+            "value": "en",
+            "country": null,
+            "agent": 14,
+            "human": 20,
+            "visitors": 26,
+            "agent_visitors": 11,
+            "human_visitors": 15,
+            "page_views": 101,
+            "agent_page_views": 42,
+            "human_page_views": 59
+          },
+          {
+            "key": "de",
+            "value": "de",
+            "country": null,
+            "agent": 2,
+            "human": 3,
+            "visitors": 4,
+            "agent_visitors": 2,
+            "human_visitors": 2,
+            "page_views": 15,
+            "agent_page_views": 6,
+            "human_page_views": 9
+          },
+          {
+            "key": "fr",
+            "value": "fr",
+            "country": null,
+            "agent": 1,
+            "human": 4,
+            "visitors": 3,
+            "agent_visitors": 1,
+            "human_visitors": 2,
+            "page_views": 6,
+            "agent_page_views": 1,
+            "human_page_views": 5
+          }
+        ]
+      }
+    ]
+  },
+  "shown": 10,
+  "place": true
+}

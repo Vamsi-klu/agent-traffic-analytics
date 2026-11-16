@@ -2,7 +2,9 @@
 also writes what it receives within the request).
 
 An upload (docs/collect-format.md, version 1; cake 0.3.4's batches are still taken) is unzipped and read (upload.py),
-and its site key must be this cake's. Where it came from is read from its Origin and Referer headers (site_origin.py);
+and its site key must be this cake's. Its session is the one PostHog's time rules give its activity (session_split.py:
+a new session after 30 minutes without activity or 24 hours, also for a script that does not cut its own). Where it
+came from is read from its Origin and Referer headers (site_origin.py);
 the request's network facts (netfacts.py) from its headers and, on server mode's public listener with trust_lb,
 from what the load balancer says about the connection: the visitor's address is looked up in the bundled lists and
 hashed, never kept (no other forwarding header is ever read). collect_store.py keeps it: the request's facts; the
@@ -25,7 +27,7 @@ import time
 from http import HTTPStatus
 from urllib.parse import urlencode
 
-from agentcake import collect_store, config, evidence, judging, netfacts, site_origin, store, upload
+from agentcake import collect_store, config, evidence, judging, netfacts, session_split, site_origin, store, upload
 from agentcake.datafiles import load, sizes
 from agentcake.detect import httpsig, lists, webbotauth
 from agentcake.responses import HTML, TEXT, Response
@@ -60,6 +62,7 @@ def collect(request, public):
     with store.LOCK:
         con = store.db()
         try:
+            batch = session_split.route(con, batch)
             before = judging.state(con, batch.session)
             kept = collect_store.record(con, batch, visit, now, c)
             store.prune(con, c.get("retention_days", 0))

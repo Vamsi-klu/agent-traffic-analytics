@@ -123,6 +123,8 @@
    Each avatar has its own beat (data-phase). Everything stops under prefers-reduced-motion (global rule above). */
 .avatar .f-avatar-1 { fill: var(--avatar-1); } .avatar .f-avatar-2 { fill: var(--avatar-2); } .avatar .f-avatar-3 { fill: var(--avatar-3); }
 .avatar .f-avatar-4 { fill: var(--avatar-4); } .avatar .f-avatar-5 { fill: var(--avatar-5); } .avatar .f-avatar-6 { fill: var(--avatar-6); }
+/* Unnamed: the one grey avatar, in the grey Bot and Unknown use, so the interface keeps a single grey */
+.avatar .f-avatar-unnamed { fill: var(--unsure); }
 .avatar .line { fill: none; stroke: var(--cake-outline); stroke-width: 2.4; stroke-linejoin: round; stroke-linecap: round; }
 .avatar .sclera { fill: var(--cake-shine); stroke: var(--cake-outline); stroke-width: 1.3; }
 .avatar .pupil { fill: var(--cake-outline); }

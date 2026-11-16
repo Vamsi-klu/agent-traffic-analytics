@@ -3,7 +3,7 @@
     python3 -I -m unittest discover -s tests -p test_api_registration.py -v      (from the AgentCake folder)
 
 GET tells the local page whether this data folder has registered (until it has, the dashboard shows the card first),
-what it sent, and the rules the card checks. POST is the press of "Register & Continue": the body the page showed goes,
+what it sent, and the rules the card checks. POST is the press of "Register and continue": the body the page showed goes,
 once and byte for byte, to register_url (here a stand-in on a free port of this computer), and what was sent is kept;
 when it cannot be sent (nothing listening, refused, no address) the answer says why, nothing is kept and nothing is
 tried again. Only this computer's own pages may post, only JSON, only on the local listener. Before the press, the whole
@@ -115,8 +115,8 @@ class Register(RegistrationCase):
     def test_a_body_the_page_does_not_write_is_400_and_sends_nothing(self):
         receiver = self.receiver()
         self.assertIn("email address", self.refused(self.press(written(email="owner@example")), 400))
-        self.assertIn("as the page shows it", self.refused(self.press(json.dumps(json.loads(written()))), 400))
-        self.assertIn("isn't part of", self.refused(self.press(written(site="shop.example.com")), 400))
+        self.assertIn("as it appears on the page", self.refused(self.press(json.dumps(json.loads(written()))), 400))
+        self.assertIn("isn't a registration field", self.refused(self.press(written(site="shop.example.com")), 400))
         self.assertEqual(receiver.requests, [])
 
     def test_only_this_computers_pages_may_post_and_only_json(self):

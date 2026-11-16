@@ -200,12 +200,12 @@ class Describe(unittest.TestCase):
     def test_a_span_reads_with_times_from_the_visits_start(self):
         span = {"marker": WORKING, "from": at(42), "to": at(75)}
         self.assertEqual(markers.describe(span, START_MS),
-                         "Claude in Chrome was working from 0:42 to 1:15")
-        self.assertEqual(markers.words(WORKING, 42000, 75000, "detail"), "Its “working” indicator was on screen from 0:42 to 1:15.")
+                         "Claude in Chrome was active from 0:42 to 1:15")
+        self.assertEqual(markers.words(WORKING, 42000, 75000, "detail"), "Claude in Chrome's “working” indicator appears on the screen from 0:42 to 1:15.")
 
     def test_a_span_without_an_end_says_from_when(self):
         span = {"marker": COMET, "from": at(42.9), "to": None}
-        self.assertEqual(markers.describe(span, START_MS), "Comet's agent was working from 0:42")
+        self.assertEqual(markers.describe(span, START_MS), "Comet's agent was active from 0:42 onward")
 
     def test_the_clock_writes_a_moment_as_the_player_does(self):
         """m:ss under an hour and h:mm:ss past it, whole seconds rounded down (web/src/lib/format.ts clock)."""

@@ -2,23 +2,30 @@
 
 A session's wall-clock time is sessions.start_ms: when cake received its first upload, on this computer's clock,
 shown in this computer's timezone (the owner's). A range is today, the last 7 or the last 30 days, each from local
-midnight (data/api.json range_days); no range is every session. The words are api.en.json's "when" (English only:
-no locale is read).
+midnight (data/api.json range_days), or all time (ALL_TIME): every session, from the first, as no range is. The words
+are api.en.json's "when" (English only: no locale is read).
 
     now_ms()                          this computer's clock (the tests replace it)
-    window(range_key, now)            (first ms, None): sessions from then on; (None, None) for no range
+    range_keys()                      the ranges a page may ask for: data/api.json range_days and ALL_TIME
+    window(range_key, now)            (first ms, None): sessions from then on; (None, None) for all time or no range
     earlier(start, now, days)         the same range `days` earlier: (first ms, end ms)
     days(start, now)                  [(day key, label)] of each local day from start's day to today
     day_key(ms)                       the local day of a time, as SQLite's date(ms / 1000, 'unixepoch', 'localtime')
+    buckets(interval, start, now)     [(key, label)] of each local hour, day or month from start's to the current one
+    interval_key(interval, ms)        the local hour, day or month of a time, as buckets() keys it
     when(ms, now)                     "Today 09:12", "Yesterday 22:04", "Thu 14:05", "Nov 3, 14:05", "Nov 3, 2025"
 """
+import calendar
 import datetime
 import time
 
 from agentcake.datafiles import load
-from agentcake.units import MS_PER_DAY, MS_PER_S
+from agentcake.units import MS_PER_DAY, MS_PER_S, S_PER_HOUR
 
 DAY_KEY = "%Y-%m-%d"  # protocol: SQLite's date() format
+INTERVAL_KEYS = {"hour": "%Y-%m-%d %H", "day": DAY_KEY, "month": "%Y-%m"}  # protocol: local time, as day_key
+MS_PER_HOUR = S_PER_HOUR * MS_PER_S
+ALL_TIME = "all"  # the range of every session: no earlier range to compare with
 
 
 def now_ms():
@@ -39,8 +46,12 @@ def midnight(ms, days_back=0):
     return int(time.mktime((t.tm_year, t.tm_mon, t.tm_mday - days_back, 0, 0, 0, 0, 0, -1)) * MS_PER_S)
 
 
+def range_keys():
+    return tuple(_numbers()["range_days"]) + (ALL_TIME,)
+
+
 def window(range_key, now):
-    if range_key is None:
+    if range_key in (None, ALL_TIME):
         return None, None
     return midnight(now, _numbers()["range_days"][range_key] - 1), None
 
@@ -89,3 +100,32 @@ def _fill(template, day, **values):
     words = _words()
     return template.format(weekday=words["weekdays"][day.weekday()], month=words["months"][day.month - 1],
                            day=day.day, year=day.year, **values)
+
+
+def interval_key(interval, ms):
+    return time.strftime(INTERVAL_KEYS[interval], time.localtime(ms / MS_PER_S))
+
+
+def buckets(interval, start, now):
+    """Each local hour, day (days()) or month from the one of start to the current one: (key, label). An hour is
+    labelled by the clock ("13:00"; an hour a change of daylight saving repeats is one; after a change by half an hour,
+    as Lord Howe Island's, the steps fall on half past, so the current hour is found by now itself), a month by month
+    and year."""
+    if interval == "day":
+        return days(start, now)
+    words = _words()
+    if interval == "hour":
+        t = time.localtime(start / MS_PER_S)
+        first = int(time.mktime((t.tm_year, t.tm_mon, t.tm_mday, t.tm_hour, 0, 0, 0, 0, -1)) * MS_PER_S)
+        hours = {}
+        for ms in [*range(first, now + 1, MS_PER_HOUR), now]:
+            hours.setdefault(interval_key(interval, ms), words["time"].format(hour=time.localtime(ms / MS_PER_S).tm_hour,
+                                                                              minute=0))
+        return list(hours.items())
+    month, last = _date(start).replace(day=1), _date(now)
+    out = []
+    while month <= last:
+        out.append((month.strftime(INTERVAL_KEYS[interval]), _fill(words["month_long"], month)))
+        _, length = calendar.monthrange(month.year, month.month)
+        month += datetime.timedelta(days=length)
+    return out

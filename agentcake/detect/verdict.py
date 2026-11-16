@@ -23,7 +23,8 @@ the specification and tests/test_verdict.py pins it rule by rule.
     sure). Only weak signals: Human.
  6  Confidence (verdict.json "confidence"): certain, likely, possible or unsure.
  7  Crawler-like patterns (crawler.py) and the other weak signals (weak.py) only add reasons.
- 8  Each of the interface's four layers gets a state; a layer that did not run says why.
+ 8  Each of the interface's four layers gets a state; a layer that did not run says why. The name layer's is the
+    list category of the name the session goes by; an impersonated name is an agent's, whatever its list says.
 The name, or the category when no product can be named, comes from attribute.py (its name priority).
 
     decide(evidence, settings=None, lists_=None) -> verdict (a dict, below)
@@ -201,7 +202,8 @@ class _Case:
         self.soft = [h for h in hits if h.strength == SOFT]
         self.reasons, self.traces = [], []
         self.cls, self.row, self.kinds = self._classify()
-        self.naming = attribute.attribute(identity, self.cls, self.row, self.traces, self.overruling, lists_, settings)
+        self.naming = attribute.attribute(identity, self.cls, self.row, self.traces, self.overruling, lists_, settings,
+                                          marked=bool(((self.result or {}).get("timeline") or {}).get("marks")))
         self.reasons = self._behavior_reasons() + self.reasons + list(self.naming.reasons)
 
     @property
@@ -354,8 +356,9 @@ def _shares(segments):
 
 def _layers(case):
     identity, result = case.identity, case.result
-    claimed = identity.entry or identity.impersonating
-    name_state = claimed["category"] if claimed else (AGENT if identity.generic else NO_HIT)
+    # an impersonated name (never an entry too) is an automation lying about what it is (rules 1 to 3): not a Bot
+    name_state = (identity.entry["category"] if identity.entry
+                  else AGENT if identity.impersonating or identity.generic else NO_HIT)
     counted = case.overruling or case.present or (case.soft and case.cls in (AGENT, MIXED))
     environment = {"state": AGENT if counted else (UNSURE if case.soft else NO_HIT)}
     if not case.env_recorded:

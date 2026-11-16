@@ -1,6 +1,6 @@
 // The registration card in Chromium, against the built app with /api/register answered here: until this
-// AgentCake has registered, every page shows the card first, in the user's own words; the button stays off until the
-// email address passes cake's check; "See what's sent" shows the exact text the button posts, once; a registration
+// AgentCake has registered, every page shows the card first, its words begun as the user's own; the button stays off until the
+// email address passes cake's check; "View registration data" shows the exact text the button posts, once; a registration
 // that can't be sent says why, lets the owner in with Continue, is not tried again, and the card asks again the next
 // time the dashboard opens. Usage: node --test tests/
 import assert from "node:assert/strict"
@@ -10,16 +10,17 @@ import { openTab, sample, startApp } from "./app.mjs"
 
 const WAIT_MS = 15000
 const NAME = JSON.parse(readFileSync(new URL("../../agentcake/data/product.json", import.meta.url), "utf8")).name
-/** The card's words the user wrote, which stay exactly as they are. */
+/** The card's words that began as the user's own: the subtitle and the first paragraph exactly as the user wrote them,
+ *  the rest in Microsoft Clarity's voice with their meaning unchanged. */
 const USERS_WORDS = [
   `Welcome to ${NAME}`,
   "Free, open-source agent analytics",
   `${NAME} is an open-source project. We're looking for early users to help shape what we build next.`,
-  "Register your installation to get started. Your website analytics and session recordings stay on your own server.",
-  "Your registration details will be sent to Tartini AI. No website traffic, session replay or product usage telemetry is sent.",
+  "To get started, register your installation. Your website analytics and session recordings are stored on your own server.",
+  `Only your registration details are sent to Tartini AI. ${NAME} doesn't send website traffic, session replays, or product usage telemetry.`,
 ]
 const firstRun = sample("register/first-run"), registered = sample("register")
-const NOT_SENT = "Couldn't reach tartini.ai: no internet connection. Your registration wasn't sent. Check your internet connection, then try again."
+const NOT_SENT = `${NAME} couldn't reach tartini.ai (no internet connection). Check your internet connection, and then try again.`
 
 let app
 before(async () => { app = await startApp() })
@@ -61,7 +62,7 @@ test("the button stays off until the email address passes cake's check", async (
   const tab = await openUnregistered()
   try {
     await tab.page.goto(app.url("#/"))
-    const button = tab.page.getByRole("button", { name: "Register & Continue" })
+    const button = tab.page.getByRole("button", { name: "Register and continue" })
     await button.waitFor({ timeout: WAIT_MS })
     const email = tab.page.getByLabel("Email address")
     for (const typed of ["", "owner", "owner@", "owner@example", "owner @example.com"]) {
@@ -73,18 +74,18 @@ test("the button stays off until the email address passes cake's check", async (
   } finally { await tab.close() }
 })
 
-test("See what's sent shows the very text the button posts, once, and then the pages open", async () => {
+test("View registration data shows the very text the button posts, once, and then the pages open", async () => {
   const tab = await openUnregistered()
   try {
     await tab.page.goto(app.url("#/"))
     await tab.page.getByLabel("Email address").fill("owner@example.com")
     await tab.page.getByLabel("Company (optional)").fill("Bäckerei Ünal")
     await tab.page.getByRole("checkbox").check()
-    await tab.page.getByRole("button", { name: "See what's sent" }).click()
-    const shown = await tab.page.getByLabel("What's sent").locator("pre").innerText()
+    await tab.page.getByRole("button", { name: "View registration data" }).click()
+    const shown = await tab.page.getByLabel("Registration data").locator("pre").innerText()
     assert.deepEqual(JSON.parse(shown), { email: "owner@example.com", company: "Bäckerei Ünal", product_updates: true, consent_version: firstRunVersion(shown) })
-    await tab.page.getByRole("button", { name: "Register & Continue" }).click()
-    await tab.page.getByRole("heading", { name: "Copy to your coding agent" }).waitFor({ timeout: WAIT_MS })
+    await tab.page.getByRole("button", { name: "Register and continue" }).click()
+    await tab.page.getByRole("heading", { name: "Install with your AI agent" }).waitFor({ timeout: WAIT_MS })
     assert.deepEqual(tab.posts, [{ body: shown, type: "application/json" }])
   } finally { await tab.close() }
 })
@@ -94,15 +95,15 @@ test("a registration that can't be sent says why, lets the owner in, isn't tried
   try {
     await tab.page.goto(app.url("#/dashboard"))
     await tab.page.getByLabel("Email address").fill("owner@example.com")
-    await tab.page.getByRole("button", { name: "Register & Continue" }).click()
+    await tab.page.getByRole("button", { name: "Register and continue" }).click()
     const alert = card(tab.page).getByRole("alert")
     await alert.waitFor({ timeout: WAIT_MS })
     assert.match(await alert.innerText(), new RegExp(NOT_SENT.replace(/[()]/g, "\\$&")))
-    assert.equal(await tab.page.getByRole("button", { name: "Register & Continue" }).count(), 0, "no second try offered")
+    assert.equal(await tab.page.getByRole("button", { name: "Register and continue" }).count(), 0, "no second try offered")
     await tab.page.getByRole("button", { name: "Continue" }).click()
     await tab.page.getByRole("heading", { name: "Connect your website", level: 1 }).waitFor({ timeout: WAIT_MS })
     await tab.page.goto(app.url("#/sessions"))
-    await tab.page.getByRole("heading", { name: "Sessions", level: 1 }).waitFor({ timeout: WAIT_MS })
+    await tab.page.getByRole("heading", { name: "Session replay", level: 1 }).waitFor({ timeout: WAIT_MS })
     assert.equal(tab.posts.length, 1, "sent once, never again")
     await tab.page.reload()
     await tab.page.getByRole("heading", { name: `Welcome to ${NAME}`, level: 1 }).waitFor({ timeout: WAIT_MS })
@@ -111,13 +112,13 @@ test("a registration that can't be sent says why, lets the owner in, isn't tried
 })
 
 test("what cake refuses for what was typed keeps the form and says why", async () => {
-  const tab = await openUnregistered({ post: () => ({ status: 400, json: { error: "Enter a company name of up to 200 characters, on one line." } }) })
+  const tab = await openUnregistered({ post: () => ({ status: 400, json: { error: "Enter a company name with up to 200 characters on a single line." } }) })
   try {
     await tab.page.goto(app.url("#/"))
     await tab.page.getByLabel("Email address").fill("owner@example.com")
-    await tab.page.getByRole("button", { name: "Register & Continue" }).click()
+    await tab.page.getByRole("button", { name: "Register and continue" }).click()
     await card(tab.page).getByRole("alert").waitFor({ timeout: WAIT_MS })
-    assert.equal(await tab.page.getByRole("button", { name: "Register & Continue" }).isDisabled(), false, "it can be pressed again")
+    assert.equal(await tab.page.getByRole("button", { name: "Register and continue" }).isDisabled(), false, "it can be pressed again")
   } finally { await tab.close() }
 })
 

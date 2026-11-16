@@ -30,7 +30,7 @@ named.
 ## What is not a vulnerability
 
 - **An agent judged human.** An agent that moves and types like a human, with no name and no trace, can pass as a human
-  ([`README.md`](README.md), "What it can't tell yet"). Report it as a wrong verdict in an issue instead.
+  ([`docs/FAQ.md`](docs/FAQ.md), "How accurate is it?"). Report it as a wrong classification in an issue instead.
 - **Anyone who can log in to the server can open the dashboard.** It has no login on purpose: it listens on 127.0.0.1
   only, and you reach it through an SSH tunnel ([`SERVER.md`](SERVER.md)).
 - **Made-up visits sent to the collect endpoint.** Like any analytics script's endpoint, it takes what browsers send

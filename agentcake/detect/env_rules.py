@@ -4,6 +4,8 @@ Every rule is data, in agentcake/data/env_rules.json: its id, kind, the half it 
 collect endpoint or the site's server half), where it comes from, what is known to collide with it, when it was last
 checked and whether it is on by default. This module loads that table, checks it, and evaluates each rule's `match`
 (written in predicate.py's language) against a session's signals (env_signals.py turns recorded data into signals).
+A rule that is off by default can wait for a page-script setting (`setting`): it runs on the visits cake.js recorded
+with that setting on, as their page records say (signals' script_settings), whatever the setting is now.
 
     evaluate(signals, table=None, enabled=None) -> EnvResult(hits, unknown, off)
 
@@ -27,7 +29,7 @@ RULES_FILE = os.path.join(paths.PACKAGE_DIR, "data", "env_rules.json")
 SCOPES = ("page", "landing", "session")
 _REQUIRED = ("id", "layer", "kind", "half", "scope", "strength", "enabled", "title", "match", "grade", "date",
              "evidence", "sources", "collisions")
-_OPTIONAL = ("botscent", "names", "suggests", "report", "detail")
+_OPTIONAL = ("botscent", "names", "suggests", "report", "detail", "setting")
 
 
 class EnvRulesError(ValueError):
@@ -55,6 +57,7 @@ class Rule:
     suggests: str | None = None
     report: tuple = ()
     detail: str | None = None  # what was seen, in technical words: the reason's second line
+    setting: str | None = None  # the page-script setting this rule waits for (see evaluate)
 
 
 @dataclass(frozen=True)
@@ -139,14 +142,19 @@ def _run(rule, signals):
 def evaluate(signals, table=None, enabled=None):
     """Run every rule that is on against one session's signals.
 
-    `enabled` maps rule ids to True/False from the user's config and overrides each rule's default; ids it does not
-    know are ignored here (config validation checks them against table.rules).
+    A rule runs when it is on by default, or when the page-script setting it waits for (`setting`) was on while the
+    visit was recorded: the setting at the time, not the current one, so that a verdict follows from what the visit
+    recorded and turning the setting off later keeps the conclusions it paid for (cake.js only sends what such a rule
+    reads while the setting is on). `enabled` maps rule ids to True/False from the user's config and overrides both;
+    ids it does not know are ignored here (config validation checks them against table.rules).
     """
     table = table or load_rules()
     overrides = enabled or {}
+    recorded = signals.get("script_settings") or {}
     hits, unknown, off = [], [], []
     for rule in table.rules:
-        if not overrides.get(rule.id, rule.enabled):
+        default = rule.enabled or (rule.setting is not None and recorded.get(rule.setting) is True)
+        if not overrides.get(rule.id, default):
             off.append(rule.id)
             continue
         state, value, pages = _run(rule, signals)
@@ -169,7 +177,7 @@ def botscent_reasons(hits, table=None):
     return reasons
 
 
-def _rule(entry, legend):
+def _rule(entry, legend, script_settings):
     if not isinstance(entry, dict):
         raise EnvRulesError(f"a rule must be an object, got {entry!r}")
     rule_id = entry.get("id", "?")
@@ -183,6 +191,9 @@ def _rule(entry, legend):
             raise EnvRulesError(f"{rule_id}: {field} {entry[field]!r} is not one of {sorted(values)}")
     if not isinstance(entry["enabled"], bool):
         raise EnvRulesError(f"{rule_id}: enabled must be true or false")
+    if "setting" in entry and (entry["enabled"] or entry["setting"] not in script_settings):
+        raise EnvRulesError(f"{rule_id}: setting is for a rule that is off by default, and must be one of "
+                            f"signals.script_settings {sorted(script_settings)}")
     try:
         predicate.validate(entry["match"], rule_id)
     except predicate.PredicateError as err:
@@ -198,7 +209,7 @@ def parse_rules(data):
     """A RuleTable from the decoded JSON; raises EnvRulesError on anything malformed."""
     try:
         legend = data["legend"]
-        rules = tuple(_rule(entry, legend) for entry in data["rules"])
+        rules = tuple(_rule(entry, legend, data["signals"]["script_settings"]) for entry in data["rules"])
         table = RuleTable(data["version"], data["updated"], legend, data["signals"], data["botscent"], rules)
     except (KeyError, TypeError) as err:
         raise EnvRulesError(f"rule table is missing {err}") from err

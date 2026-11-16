@@ -1,15 +1,13 @@
 // Component overview: every component and every variant cake uses, like the shadcn docs.
 // This page is in the visual baseline: any change to a component shows up here first (DESIGN.md §12).
-// Components that draw data show cake's own (/api/overview and /api/register); the rest show fixed sample props.
+// Components that draw data show cake's own (/api/overview, /api/register and /api/sessions); the rest show fixed sample props.
 import type { ReactNode } from "react"
-import { ChevronDown, Copy, Download, MoreHorizontal, Play, Plus, Trash2 } from "lucide-react"
-import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts"
+import { Activity, ChevronDown, Copy, Cpu, Download, MoreHorizontal, Play, Plus, Trash2, User, UsersRound } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
-import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
@@ -20,13 +18,12 @@ import { Switch } from "@/components/ui/switch"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
-import { BudgetWarning, CopyBlock, PageHeader, StatCard, StorageMeter, StorageUse } from "@/components/cake/bits"
+import { BudgetWarning, CopyBlock, DiskStoppedWarning, Hint, InfoTip, PageHeader, StatCard, StorageMeter, StorageUse } from "@/components/cake/bits"
 import { Crumb, CrumbHead } from "@/components/cake/crumb"
 import { OnboardingStep, OrSeparator } from "@/components/cake/onboarding"
 import { ProjectLink } from "@/components/cake/project-link"
 import { Loaded, PageError, PageLoading } from "@/components/cake/page-state"
-import { SessionRow } from "@/components/cake/session-row"
+import { DemoShopTag, SessionRow } from "@/components/cake/session-row"
 import { Spotlight, SpotlightEmpty } from "@/components/cake/spotlight"
 import { MiniTimeline, SessionTimeline, segsInTimeOrder, spansOf, timeLabel, timelineView } from "@/components/cake/timeline"
 import { ReplayControls, ReplayStage } from "@/components/cake/replay-stage"
@@ -35,30 +32,31 @@ import { ServerHalfTable } from "@/components/cake/server-half"
 import { SessionPages } from "@/components/cake/session-pages"
 import { Legend, Swatch, ThinEvidenceTag, TurnsBadge, UnnamedTag, VERDICTS, VerdictBadge } from "@/components/cake/verdict"
 import { AVATAR_SHAPES, AgentAvatar, AgentTag } from "@/components/cake/avatar"
-import { BotHelp, Coverage, Taxonomy } from "@/components/cake/coverage"
-import { PagesTable } from "@/components/cake/pages-table"
+import { BotHelp, Taxonomy } from "@/components/cake/coverage"
+import { TopAgentsChart } from "@/components/cake/top-agents"
+import { TrendsChart } from "@/components/cake/trends-chart"
+import { PathsTable, TABLE_ICONS, WebStatsTable } from "@/components/cake/web-stats"
 import { RegisterCard } from "@/components/cake/register-card"
 import { UNREACHABLE, api, useApi } from "@/data/api"
-import type { LayerReasons, Overview, Registration, ServerHalf, SessionPage, SessionSummary } from "@/data/types"
+import type { LayerReasons, Overview, Registration, ServerHalf, SessionPage, SessionSummary, WebAnalytics } from "@/data/types"
 import { mbToBytes } from "@/lib/format"
 import type { ReplayState } from "@/lib/use-replay"
 import { PRODUCT_NAME } from "@/lib/product"
-import { WORDS } from "@/lib/words"
+import { UNNAMED } from "@/lib/taxonomy"
+import { CLARITY, WORDS } from "@/lib/words"
 
-function Block({ name, use, children }: { name: string; use: string; children: ReactNode }) {
+/** One component's part of the overview: its name, what it is for in plain words (a paragraph, or several for a longer
+ *  rule), the code it names (props, tokens, files, the API it reads), in code type like the name, and the component. */
+function Block({ name, use, code, children }: { name: string; use: string | string[]; code?: string; children: ReactNode }) {
   return (
     <section className="flex flex-col gap-3 border-t-2 border-dashed border-border pt-6">
-      <div className="flex flex-col gap-0.5"><h2 className="font-mono text-base font-bold">{name}</h2><p className="text-sm text-muted-foreground">{use}</p></div>
+      <div className="flex flex-col gap-0.5"><h2 className="font-mono text-base font-bold">{name}</h2>
+        {[use].flat().map((paragraph) => <p key={paragraph} className="text-sm text-muted-foreground">{paragraph}</p>)}
+        {code && <p className="font-mono text-xs text-muted-foreground">{code}</p>}</div>
       <div className="flex flex-wrap items-center gap-3">{children}</div>
     </section>
   )
 }
-
-const chartConfig = {
-  human: { label: VERDICTS.human.label, color: "var(--chart-1)" },
-  agent: { label: VERDICTS.agent.label, color: "var(--chart-2)" },
-  unsure: { label: VERDICTS.unknown.label, color: "var(--chart-3)" },
-} satisfies ChartConfig
 
 /** One SessionRow per look: highlighted (Agent: Human + agent, Agent only), normal (Human, Human on thin evidence),
  *  muted (Bot). */
@@ -76,9 +74,9 @@ const LAYER_LOOKS: LayerReasons[] = [
 const SERVER_LOOKS: ServerHalf = {
   pages: [
     { at_ms: 0, path: "/", fetch: { site: "none", mode: "navigate", dest: "document", user: "?1" }, signature: null, same_network: true, same_user_agent: true, same_language: true, reuses: 0 },
-    { at_ms: 41250, path: "/pricing", fetch: { site: "same-origin", mode: "navigate", dest: "document", user: null }, signature: { agent: "chatgpt.com", verified: true }, same_network: false, same_user_agent: true, same_language: null, reuses: 1 },
+    { at_ms: 41250, path: "/pricing", fetch: { site: "same-origin", mode: "navigate", dest: "document", user: null }, signature: { agent: "chatgpt.com", verified: false }, same_network: false, same_user_agent: true, same_language: null, reuses: 1 },
   ],
-  network: { country: "US", range: "OpenAI ChatGPT agent", ja4: "t13d1516h2_8daaf6152771", protocol: "HTTP/2" },
+  network: { country: "US", range: "OpenAI ChatGPT-User", ja4: "t13d1516h2_8daaf6152771", protocol: "HTTP/2" },
   note: null,
 }
 /** Pages of each look: who acted on them (a human, both, an agent only) and a page without actions. */
@@ -97,78 +95,103 @@ function stillReplay(address: string, status: ReplayState["status"]): ReplayStat
 }
 
 export function ComponentsPage() {
-  const data = useApi((signal) => Promise.all([api.overview({}, signal), api.registration(signal)]), [])
+  const data = useApi((signal) => Promise.all([api.overview({}, signal), api.registration(signal), api.sessions({}, signal), api.web({}, signal)]), [])
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Components" lead={`Every component and variant ${PRODUCT_NAME} uses. New look = new variant here + DESIGN.md, never a one-off on a page.`} />
-      <Loaded state={data} what="the component overview">{([overview, registration]) => <Overview overview={overview} registration={registration} />}</Loaded>
+      <PageHeader title="Components" lead={`This page shows every component and variant that ${PRODUCT_NAME} uses. Add new styles as variants here and in DESIGN.md.`} />
+      <Loaded state={data} what="the component overview">{([overview, registration, sessions, web]) => <Overview overview={overview} registration={registration} sessions={sessions.results} web={web} />}</Loaded>
     </div>
   )
 }
 
-function Overview({ overview: o, registration }: { overview: Overview; registration: Registration }) {
-  const rows = ROW_LOOKS.flatMap((look) => o.latest.find(look) ?? [])
+function Overview({ overview: o, registration, sessions, web }: {
+  overview: Overview; registration: Registration; sessions: SessionSummary[]; web: WebAnalytics
+}) {
+  const rows = ROW_LOOKS.flatMap((look) => sessions.find(look) ?? [])
+  const human = sessions.find((s) => s.verdict === "human")
+  const demoRow = human && { ...human, id: `${human.id}-demo`, demo_shop: true as const }
   const mixed = rows.find((s) => s.agent_turns === "human_agent")
   const mixedSpans = mixed?.segments && spansOf(mixed.segments, mixed.duration_ms)
   return (
     <>
-      <Block name="Button · variant" use="default = the one main action per screen · outline = secondary · secondary = soft secondary · ghost = toolbars, nav · destructive = delete · link = inline">
+      <Block name="Button · variant" use={[
+          "Use the Default button for the one main action on each screen. Use an Outline button for a secondary action, such as Cancel in a dialog. Use a Secondary button when a secondary action needs less emphasis.",
+          "Use Ghost buttons in toolbars and navigation. Use a Destructive button to delete data, and a Link button for a link inside text.",
+        ]}>
         <Button>Default</Button><Button variant="outline">Outline</Button><Button variant="secondary">Secondary</Button>
         <Button variant="ghost">Ghost</Button><Button variant="destructive"><Trash2 aria-hidden />Destructive</Button><Button variant="link">Link</Button>
       </Block>
-      <Block name="Button · size" use="lg = hero only · default · sm = inside cards and rows · icon sizes always with a Tooltip">
+      <Block name="Button · size" use="Use the Large size only in hero sections and the Default size for most other buttons. Use the Small size for buttons inside cards and rows. Every icon-only button has a tooltip that names its action.">
         <Button size="lg"><Play aria-hidden />Large</Button><Button>Default</Button><Button size="sm">Small</Button><Button size="xs">Extra small</Button>
         {([["icon-lg", "Add"], ["icon", "Copy"], ["icon-sm", "Download"]] as const).map(([size, label]) => (
-          <Tooltip key={size}>
-            <TooltipTrigger asChild><Button variant="outline" size={size} aria-label={label}>{label === "Add" ? <Plus /> : label === "Copy" ? <Copy /> : <Download />}</Button></TooltipTrigger>
-            <TooltipContent>{label}</TooltipContent>
-          </Tooltip>
+          <Hint key={size} text={label}>
+            <Button variant="outline" size={size} aria-label={label}>{label === "Add" ? <Plus /> : label === "Copy" ? <Copy /> : <Download />}</Button>
+          </Hint>
         ))}
       </Block>
 
-      <Block name="Badge · verdicts (VerdictBadge) · ThinEvidenceTag" use="the only way to show a verdict: icon + word + colour · Unknown only for a stretch, an action or a layer that couldn't tell · thin evidence beside a Human badge cake couldn't tell">
+      <Block name="Badge · verdicts (VerdictBadge) · ThinEvidenceTag" use="Each classification is a badge with an icon, a word, and a color. Unknown marks only a stretch, action, or layer that couldn't be classified. Limited evidence appears next to an uncertain Human badge.">
         <VerdictBadge verdict="human" /><VerdictBadge verdict="agent" /><VerdictBadge verdict="bot" /><VerdictBadge verdict="unknown" /><ThinEvidenceTag />
       </Block>
-      <Block name="VerdictBadge · TurnsBadge · percent" use="the session page: how sure cake is of the verdict and of each layer, bold on the highlighter · a Human verdict on thin evidence shows its own, lower chance beside the mark">
+      <Block name="VerdictBadge · TurnsBadge · percent" use={`On the session page, a bold percentage on the highlight shows how confident ${PRODUCT_NAME} is in the classification and each layer. For a Human classification with limited evidence, a separate, lower confidence percentage appears next to the tag.`}>
         <VerdictBadge verdict="agent" percent={94} /><VerdictBadge verdict="human" percent={96} /><VerdictBadge verdict="human" percent={55} /><ThinEvidenceTag />
         <VerdictBadge verdict="bot" percent={99} /><TurnsBadge turns="human_agent" percent={97} />
       </Block>
-      <Block name="TurnsBadge · AgentTag · UnnamedTag" use="inside Agent: Agent only or Human + agent (half human, half agent) · which agent: its name with how sure the name is inside the same tag (rows and the session page alike), or Unnamed">
+      <Block name="TurnsBadge · AgentTag · UnnamedTag" use={[
+          "An Agent session is either Agent only or Human + agent. Both badges use the Agent colors. The Human + agent badge has a dot that is half human color and half agent color.",
+          "One tag shows the agent's name and the certainty of that name, in session rows and on the session page. The gray avatar marks agents with no name, which are labeled Unnamed.",
+        ]}>
         <TurnsBadge turns="agent_only" /><TurnsBadge turns="human_agent" /><AgentTag name="Playwright" />
-        <AgentTag name="ChatGPT agent" certainty="verified" /><AgentTag name="Claude in Chrome" certainty="likely" /><AgentTag name="Comet" certainty="possible" /><UnnamedTag />
+        <AgentTag name="ChatGPT" certainty="verified" /><AgentTag name="Claude in Chrome" certainty="likely" /><UnnamedTag />
       </Block>
-      <Block name="Badge · variant" use="tag = neutral facts (agent name, source, “example data”) · default/secondary/outline/destructive from shadcn">
-        <Badge variant="tag">Claude in Chrome</Badge><Badge variant="tag">example data</Badge><Badge>Default</Badge><Badge variant="secondary">Secondary</Badge>
+      <Block name="Badge · variant · DemoShopTag" use="Tag badges show neutral facts, such as an agent's name or “sample data”. The “Demo shop” tag marks sessions from an earlier demo shop. The other badge variants come from shadcn/ui.">
+        <Badge variant="tag">Claude in Chrome</Badge><Badge variant="tag">sample data</Badge><DemoShopTag /><Badge>Default</Badge><Badge variant="secondary">Secondary</Badge>
         <Badge variant="outline">Outline</Badge><Badge variant="destructive">Destructive</Badge>
       </Block>
-      <Block name="Legend · Swatch" use="always next to a share bar, timeline or chart with 2+ series">
+      <Block name="Legend · Swatch" use="A legend appears next to every share bar, timeline, and chart with two or more series.">
         <Legend /><Swatch kind="mixed" />
       </Block>
 
-      <Block name="Card · variant" use="default = framed content · flat = plain numbers · sunk = empty states, previews · highlight = Agent only">
+      <Block name="Card · variant" use={[
+          "Default cards frame most content on a page. Use Flat cards for plain numbers, such as the session counts on the dashboard.",
+          "Use Sunk cards for empty states and previews, such as the sample sessions on the setup page. Highlight cards are used only for the Agent block at the top of the dashboard.",
+        ]}>
         <div className="grid w-full gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {(["default", "flat", "sunk", "highlight"] as const).map((v) => (
             <Card key={v} variant={v} size="sm"><CardHeader><CardTitle>{v}</CardTitle><CardDescription>Card variant="{v}"</CardDescription></CardHeader></Card>
           ))}
         </div>
       </Block>
-      <Block name="StatCard" use="regular numbers under the highlight block; muted for bots">
+      <Block name="StatCard · InfoTip" use={[
+          "Each number card under the Agent block names the metric it counts. The icon on each card uses the text color of its classification. Some cards show a note under the number with more detail or the reason data is missing.",
+          "Bot cards are dimmed, and a dash appears when a number has no data. Hover over the information icon to see what a metric or chart means. Sessions and Active time spent use Clarity's own definitions.",
+        ]}>
         <div className="grid w-full gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard label={VERDICTS.human.label} value={String(o.counts.human)} sub="the comparison group" mark={<Swatch kind="h" />} />
-          <StatCard label={VERDICTS.bot.label} value={String(o.counts.bot)} sub="counted, not highlighted" mark={<Swatch kind="u" />} muted help={<BotHelp bot={o.coverage.bot} />} />
+          <StatCard label="Sessions" value={String(o.counts.all)} mark={<Activity className="size-4" aria-hidden />} help={<InfoTip label="Sessions" lines={CLARITY.sessions} />} />
+          <StatCard label={`${VERDICTS.human.label} ${WORDS.sessions}`} value={String(o.counts.human)} sub={`${o.counts.thin} ${WORDS.withThinEvidence}`} mark={<User className="size-4 text-human-foreground" aria-hidden />} />
+          <StatCard label={`${VERDICTS.bot.label} ${WORDS.sessions}`} value={String(o.counts.bot)} mark={<Cpu className="size-4 text-unsure-foreground" aria-hidden />} muted help={<BotHelp bot={o.coverage.bot} />} />
+          <StatCard label="Visitors" value={web.visitors.all === null ? "—" : String(web.visitors.all)} sub={web.visitors.all === null ? WORDS.noVisitorIds : undefined}
+            mark={<UsersRound className="size-4" aria-hidden />} />
         </div>
       </Block>
 
-      <Block name="Spotlight" use="dashboard top: sessions where an agent acted for a human"><div className="w-full"><Spotlight overview={o} /></div></Block>
-      <Block name="Spotlight · none yet" use="sessions are recorded, but never yet a human + agent one"><div className="w-full"><SpotlightEmpty /></div></Block>
+      <Block name="Spotlight" use="The top of the dashboard, showing sessions where an agent acted on behalf of a human."><div className="w-full"><Spotlight overview={o} /></div></Block>
+      <Block name="Spotlight · none yet" use="This version appears when sessions are recorded but none of them is an Agent session yet."><div className="w-full"><SpotlightEmpty /></div></Block>
 
-      <Block name="SessionRow" use="highlighted (Agent: Human + agent, Agent only) · normal (Human, Unknown) · muted (Bot) · compact">
+      <Block name="SessionRow" use={[
+          "Agent session rows are highlighted, and Bot session rows are dimmed. Human session rows appear without highlighting.",
+          "The compact row is a smaller version used in previews and in the Agent block. Sessions from an earlier demo shop show the Demo shop tag.",
+        ]} code="DemoShopTag">
         <div className="flex w-full flex-col gap-3">
           {rows.map((s) => <SessionRow key={s.id} s={s} />)}
+          {demoRow && <SessionRow s={demoRow} />}
           {rows[0] && <div className="max-w-sm"><SessionRow s={rows[0]} compact /></div>}
         </div>
       </Block>
-      <Block name="MiniTimeline · SessionTimeline" use="a row's timeline: each stretch at its place, read aloud by time · the session page's share of actions, in the order who acts first · hand-off labels (two close ones take two rows, so neither covers the other); playhead">
+      <Block name="MiniTimeline · SessionTimeline" use={[
+          "The timeline in each session row shows each human, agent, and unknown segment at its point in time. Screen readers announce these segments in time order.",
+          "On the session page, a bar shows each actor's share of the actions, starting with whoever acted first. When two hand-off labels are close together, they appear on two rows so they don't overlap. A playhead marks the current point in the replay.",
+        ]}>
         <div className="flex w-full flex-col gap-4">
           {mixed?.segments && <MiniTimeline spans={mixedSpans} label={timeLabel(mixed.segments)} />}
           {mixed?.segments && <MiniTimeline human={35} agent={65} unsure={0} segs={segsInTimeOrder(mixed.segments, { human: 35, agent: 65, unsure: 0 })} size="lg" />}
@@ -181,7 +204,7 @@ function Overview({ overview: o, registration }: { overview: Overview; registrat
             handoffs: [{ at_ms: 39_000, to: "agent" }, { at_ms: 78_000, to: "human" }] })} />
         </div>
       </Block>
-      <Block name="Table" use="framed by a Card; numbers right-aligned">
+      <Block name="Table" use="Numbers in a table are right-aligned, and the table appears inside a card." code="Card">
         <Card className="w-full py-0">
           <Table>
             <TableHeader><TableRow><TableHead>Page</TableHead><TableHead className="text-right">Agent visits</TableHead><TableHead>Human / agent</TableHead></TableRow></TableHeader>
@@ -190,70 +213,90 @@ function Overview({ overview: o, registration }: { overview: Overview; registrat
         </Card>
       </Block>
 
-      <Block name="Tabs · ToggleGroup · Select" use="Tabs = switch panels · ToggleGroup = pick one value (language, speed, retention) · Select = filters">
+      <Block name="Tabs · ToggleGroup · Select" use="Tabs switch between panels on the same page. Use the toggle group to select one value, such as a language, a playback speed, or a retention period. Use a select menu for filters, such as the date range.">
         <Tabs defaultValue="a"><TabsList><TabsTrigger value="a">On this computer</TabsTrigger><TabsTrigger value="b">On a server</TabsTrigger></TabsList><TabsContent value="a" /></Tabs>
         <ToggleGroup type="single" variant="outline" defaultValue="30"><ToggleGroupItem value="all">Keep everything</ToggleGroupItem><ToggleGroupItem value="30">30 days</ToggleGroupItem></ToggleGroup>
         <Select defaultValue="any"><SelectTrigger aria-label="Agent"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="any">Any agent</SelectItem><SelectItem value="cic">Claude in Chrome</SelectItem></SelectContent></Select>
       </Block>
-      <Block name="Input · Label · Switch · Checkbox" use="Switch = on/off settings · Checkbox = a yes the owner gives on a form (product updates on the registration card), never ticked for them; label always visible">
+      <Block name="ToggleGroup item · outline / agent / human / bot" use="In the session list's filter, All comes first, followed by each classification in its badge colors. Unselected items use the badge's light background and text color. When you select an item, its background changes to the badge's text color.">
+        {(["all", "agent", "human", "bot"] as const).map((picked) => (
+          <ToggleGroup key={picked} type="single" value={picked} aria-label={`Classification filter, ${picked === "all" ? WORDS.web.all : VERDICTS[picked].label} selected`}>
+            <ToggleGroupItem value="all" variant="outline">All</ToggleGroupItem>
+            {(["agent", "human", "bot"] as const).map((v) => <ToggleGroupItem key={v} value={v} variant={v}>{VERDICTS[v].label}</ToggleGroupItem>)}
+          </ToggleGroup>
+        ))}
+      </Block>
+      <Block name="Input · Label · Switch · Checkbox" use="Switches turn settings on or off. Select a checkbox to agree to something on a form, such as product update emails on the registration card. You need to select each checkbox yourself, and its label is always visible.">
         <div className="flex w-64 flex-col gap-1.5"><Label htmlFor="sel">Hide these parts of the page</Label><Input id="sel" defaultValue=".account-email" /></div>
         <Switch defaultChecked aria-label="On" /><Switch aria-label="Off" /><Switch size="sm" defaultChecked aria-label="Small" />
-        <div className="flex items-center gap-2"><Checkbox id="box-off" /><Label htmlFor="box-off">Not ticked</Label></div>
-        <div className="flex items-center gap-2"><Checkbox id="box-on" defaultChecked /><Label htmlFor="box-on">Ticked</Label></div>
+        <div className="flex items-center gap-2"><Checkbox id="box-off" /><Label htmlFor="box-off">Not selected</Label></div>
+        <div className="flex items-center gap-2"><Checkbox id="box-on" defaultChecked /><Label htmlFor="box-on">Selected</Label></div>
       </Block>
-      <Block name="Progress · StorageMeter · StorageUse · BudgetWarning" use="tone ok below 80%, warn from 80%; dashed line at 80% · StorageUse = the bar + what is used of the budget and when it is full (settings, the dashboard's Disk) · BudgetWarning = from 80%, how full and what happens when full; once full and nothing can be freed, that new replays aren't stored">
+      <Block name="Progress · StorageMeter · StorageUse · BudgetWarning · DiskStoppedWarning" use={[
+          "The bar stays in the OK color until disk use reaches 80% of the budget, then turns to the warning color. A dashed line marks the 80% point. On the Settings page, the bar shows how much of the budget is used and when it will fill up.",
+          "When disk use reaches 80% of the budget, a warning shows how full it is and what happens next. If the budget is full and no replays can be deleted, the warning says that new replays aren't stored. This warning appears in Settings and on the dashboard, which shows no other disk information.",
+          "Another warning explains why new replays aren't stored while free disk space is below the minimum.",
+        ]}>
         <div className="flex w-full max-w-md flex-col gap-4"><StorageMeter usedPct={31} warnAtPct={80} /><StorageMeter usedPct={82} warnAtPct={80} /></div>
         <div className="flex w-full max-w-md flex-col gap-3"><StorageUse usedBytes={o.storage.used_bytes} budgetBytes={mbToBytes(o.storage.budget_mb)} warnAtPct={o.storage.warn_at_pct} daysLeft={o.storage.days_left} disk={o.storage.disk} replaysStopped={o.storage.replays_stopped} /></div>
-        <div className="grid w-full gap-3 md:grid-cols-2"><BudgetWarning usedPct={84} warnAtPct={80} autoFree full={false} /><BudgetWarning usedPct={100} warnAtPct={80} autoFree={false} full /></div>
+        <div className="grid w-full gap-3 md:grid-cols-2"><BudgetWarning usedPct={84} warnAtPct={80} freeAtPct={90} autoFree full={false} /><BudgetWarning usedPct={100} warnAtPct={80} freeAtPct={90} autoFree={false} full /></div>
+        <div className="w-full max-w-xl"><DiskStoppedWarning disk={{ total: 500_000_000_000, free: 1_500_000_000, min_free: 2_147_483_648, low: true }} replaysStopped="disk" /></div>
       </Block>
-      <Block name="Alert · variant" use="info = explanations · warn = needs attention (80% disk) · ok = done · destructive = failed">
+      <Block name="Alert · variant" use="Info alerts explain how something works. Warn alerts ask for attention, such as when disk use reaches 80%. OK alerts confirm a finished task, and Destructive alerts report a failure.">
         <div className="grid w-full gap-3 md:grid-cols-2">
-          <Alert variant="info"><AlertTitle>{VERDICTS.agent.label}</AlertTitle><AlertDescription>The behavior changes twice.</AlertDescription></Alert>
-          <Alert variant="warn"><AlertTitle>The disk budget is 82% full</AlertTitle><AlertDescription>8.2 of 10 GB. Raise the budget or let {PRODUCT_NAME} free space.</AlertDescription></Alert>
+          <Alert variant="info"><AlertTitle>{VERDICTS.agent.label}</AlertTitle><AlertDescription>The behavior changes twice in this session.</AlertDescription></Alert>
+          <Alert variant="warn"><AlertTitle>The disk budget is 82% full</AlertTitle><AlertDescription>8.2 GB of the 10 GB budget is used. To keep storing replays, raise the budget or let {PRODUCT_NAME} delete older replays.</AlertDescription></Alert>
           <Alert variant="ok"><AlertTitle>Receiving visits</AlertTitle><AlertDescription>Your site sent a visit 2 minutes ago.</AlertDescription></Alert>
-          <Alert variant="destructive"><AlertTitle>Can't reach the server half</AlertTitle><AlertDescription>Check the signing key in Settings.</AlertDescription></Alert>
+          <Alert variant="destructive"><AlertTitle>Can't reach the server middleware</AlertTitle><AlertDescription>Check the signing key in Settings.</AlertDescription></Alert>
         </div>
       </Block>
-      <Block name="Dialog · DropdownMenu · Tooltip" use="Dialog = confirm destructive actions · DropdownMenu = row actions · Tooltip = every icon-only button">
+      <Block name="Dialog · DropdownMenu · Tooltip (Hint, InfoTip)" use="A dialog asks you to confirm a destructive action. A dropdown menu lists the actions for a row, and every icon-only button shows a tooltip."
+        code="Hint · InfoTip · TooltipContent · tooltipSurface · ChartTooltipContent">
         <Dialog>
           <DialogTrigger asChild><Button variant="destructive"><Trash2 aria-hidden />Delete all data</Button></DialogTrigger>
-          <DialogContent><DialogHeader><DialogTitle>Delete every session?</DialogTitle><DialogDescription>This removes 150 sessions and their replays from this computer. It can't be undone.</DialogDescription></DialogHeader>
+          <DialogContent><DialogHeader><DialogTitle>Delete every session?</DialogTitle><DialogDescription>This deletes 150 sessions and their replays. This action can't be undone.</DialogDescription></DialogHeader>
             <DialogFooter><Button variant="outline">Cancel</Button><Button variant="destructive">Delete</Button></DialogFooter></DialogContent>
         </Dialog>
         <DropdownMenu>
           <DropdownMenuTrigger asChild><Button variant="outline">Actions<ChevronDown aria-hidden /></Button></DropdownMenuTrigger>
           <DropdownMenuContent><DropdownMenuItem>Watch replay</DropdownMenuItem><DropdownMenuItem>Copy session link</DropdownMenuItem></DropdownMenuContent>
         </DropdownMenu>
-        <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon" aria-label="More"><MoreHorizontal /></Button></TooltipTrigger><TooltipContent>More</TooltipContent></Tooltip>
+        <Hint text="More"><Button variant="ghost" size="icon" aria-label="More"><MoreHorizontal /></Button></Hint>
+        <span className="flex items-center gap-2 text-sm font-bold text-muted-foreground">Active time spent<InfoTip label="Active time spent" lines={CLARITY.activeTime} /></span>
       </Block>
-      <Block name="Chart (shadcn Chart + recharts)" use="chart-1 human · chart-2 agent · chart-3 not sure; one axis; legend; tooltip; table view">
-        <Card className="w-full max-w-xl"><CardContent>
-          <ChartContainer config={chartConfig} className="aspect-auto h-40 w-full">
-            <AreaChart data={o.share_by_day} margin={{ left: 0, right: 8 }}>
-              <CartesianGrid vertical={false} /><XAxis dataKey="day" tickLine={false} axisLine={false} /><YAxis width={46} tickLine={false} axisLine={false} unit="%" />
-              <ChartTooltip content={<ChartTooltipContent />} />
-              <Area dataKey="agent" stackId="1" type="monotone" fill="var(--color-agent)" stroke="var(--color-agent)" fillOpacity={1} />
-              <Area dataKey="unsure" stackId="1" type="monotone" fill="var(--color-unsure)" stroke="var(--color-unsure)" fillOpacity={0.35} />
-              <Area dataKey="human" stackId="1" type="monotone" fill="var(--color-human)" stroke="var(--color-human)" fillOpacity={1} />
-            </AreaChart>
-          </ChartContainer>
-        </CardContent></Card>
+      <Block name="TopAgentsChart · MetricPicker" use={[
+          "Top agents shows a bar for each agent, based on the metric that you select. The metric menu works the same way as on Trends. The agent with the highest value appears first.",
+          "Each agent gets its own row, and Unnamed agents appear with the gray avatar. Each bar ends with its value, or a dash when there's no value. Bots never appear in this chart.",
+        ]} code="MetricPicker · /api/web">
+        <div className="w-full"><TopAgentsChart agents={web.agents} /></div>
       </Block>
-      <Block name="CopyBlock · OrSeparator" use="commands and the one sentence for a coding agent; placeholders only">
+      <Block name="TrendsChart (shadcn Chart + recharts)" use={[
+          "Trends shows one line for Human sessions and one for Agent sessions, by hour, day, or month.",
+          "The chart has a legend and a tooltip. Show as table lists the same numbers.",
+        ]} code="MetricPicker · chart-1 (Human) · chart-2 (Agent) · /api/web">
+        <div className="w-full"><TrendsChart trends={web.trends} /></div>
+      </Block>
+      <Block name="CopyBlock · OrSeparator" use="Select Copy to copy a command or the sentence for a coding agent. Placeholders appear instead of real values.">
         <div className="flex w-full max-w-xl flex-col gap-3"><CopyBlock text="agentcake setup --print --site" /><OrSeparator /></div>
       </Block>
-      <Block name="OnboardingStep" use="one numbered step of connecting the website (home page and dashboard before the first visit)">
-        <div className="w-full max-w-xl"><OnboardingStep n={1} title="Your website's address"><p className="text-sm text-muted-foreground">What to do in this step.</p></OnboardingStep></div>
+      <Block name="OnboardingStep" use="One numbered step of the website setup, shown on the home page and the dashboard before the first visit.">
+        <div className="w-full max-w-xl"><OnboardingStep n={1} title="Enter your website's address"><p className="text-sm text-muted-foreground">Describe what to do in this step.</p></OnboardingStep></div>
       </Block>
-      <Block name="ProjectLink" use="the top bar's project: the website's address, opened in a new tab · until it is set, a link to Settings">
-        <div className="flex flex-wrap items-center gap-2"><ProjectLink domain="shop.example.com" /><ProjectLink domain={null} /></div>
+      <Block name="ProjectLink" use="The top bar shows the website's address, which opens the site in a new tab. Until the address is set, the top bar shows Set up your website instead. Before the first session, it opens the setup steps, and after that, it opens Settings.">
+        <div className="flex flex-wrap items-center gap-2"><ProjectLink domain="shop.example.com" connected /><ProjectLink domain={null} connected={false} /><ProjectLink domain={null} connected /></div>
       </Block>
-      <Block name="Crumb" use="wave (welcome, moves) · look (waiting) · sleep (no results) · oops (errors) · head (logo, human + agent marker)">
-        {(["wave", "look", "sleep", "oops"] as const).map((p) => <Crumb key={p} pose={p} className="w-28" title={`Crumb, ${p}`} />)}
+      <Block name="Crumb" use={[
+          "Use Wave for welcomes and movement, Look for waiting, Sleep for no results, and Oops for errors.",
+          "The head alone is the logo and the marker for sessions where an agent acted for a human.",
+        ]}>
+        {(["wave", "look", "sleep", "oops"] as const).map((p) => <Crumb key={p} pose={p} className="w-28" label={`Mascot, ${p} pose`} />)}
         <CrumbHead className="size-12" /><CrumbHead className="size-6" />
       </Block>
       <Separator />
-      <Block name="AgentAvatar · AgentTag" use="one fixed dessert-blob per agent, name always next to it · flat colour from --avatar-1..6, never a verdict colour · idles and blinks, still with reduced motion">
+      <Block name="AgentAvatar · AgentTag · UnnamedTag" use={[
+          "Each agent always has the same dessert-shaped avatar, next to its name. Avatars use flat colors that are never the same as a classification color.",
+          "The gray avatar marks agents with no name, which are labeled Unnamed. This avatar always uses the scoop shape and the same gray as Bot and Unknown. Avatars idle and blink, and they stay still when reduced motion is on.",
+        ]} code="--avatar-1 … --avatar-6">
         <div className="flex w-full flex-col gap-4">
           <div className="flex flex-wrap items-end gap-4">
             {AVATAR_SHAPES.map((shape, i) => (
@@ -261,43 +304,51 @@ function Overview({ overview: o, registration }: { overview: Overview; registrat
                 <AgentAvatar look={{ shape: i, colour: 1 + (i % 6), phase: i % 6 }} className="size-14" />{shape}
               </span>
             ))}
+            <span className="flex flex-col items-center gap-1 text-xs text-muted-foreground"><AgentAvatar name={UNNAMED} className="size-14" />{UNNAMED}</span>
           </div>
-          <div className="flex flex-wrap items-center gap-2">{o.agents_seen.flatMap((a) => (a.name ? [<AgentTag key={a.name} name={a.name} />] : []))}</div>
+          <div className="flex flex-wrap items-center gap-2">{o.agents_seen.map((a) => (a.name ? <AgentTag key={a.name} name={a.name} /> : <UnnamedTag key={UNNAMED} />))}</div>
         </div>
       </Block>
-      <Block name="Coverage · BotHelp" use="dashboard bottom: each kind of visit it records, how it's shown and how it's decided · wording from /api/overview · BotHelp = the Bots number’s “?”">
-        <div className="w-full"><Coverage coverage={o.coverage} /></div>
-      </Block>
-      <Block name="Taxonomy" use="dashboard bottom, after Coverage: the session categories level by level, each with its badge or tag and a sentence · words from judging.en.json, read when the pages are built">
+      <Block name="Taxonomy · BotHelp" use="The bottom of the dashboard lists each classification with its badge and a short description. Agent only and Human + agent appear under Agent. The “?” on the Bot sessions card explains what counts as a bot." code="BotHelp · judging.en.json (read when the pages are built)">
         <div className="w-full"><Taxonomy /></div>
       </Block>
-      <Block name="PagesTable" use="top pages, one component for both lists: by agent visits and by human visits · same columns and widths, numbers from the same data">
-        <div className="w-full"><PagesTable title={WORDS.pagesHumans} by="human" pages={o.top_pages} /></div>
+      <Block name="StatsTable · PathsTable · WebStatsTable" use={[
+          "The Paths, Sources, Devices, and Geography cards show the same kind of table, with the title at the top of each card. Each table starts with a different breakdown: Channel, Device type, or Region.",
+          "All, Agent, and Human use the session list's classification colors. Each row shows the sessions in bold, then visitors and page views, for the selected type. When All is selected, the Agent share also appears in bold.",
+          "Hover over a row to split each number into Agent and Human. Rows are sorted by sessions, and the first ten appear until you select Show all. Bots aren't counted.",
+          "Select a value to open its sessions. On a narrow screen, the table scrolls instead of the page.",
+        ]} code="Select · /api/web">
+        <div className="w-full"><PathsTable paths={web.paths} shown={web.shown} /></div>
+        <div className="w-full"><WebStatsTable title={WORDS.web.titles.sources} icon={TABLE_ICONS.sources} help={WORDS.about.sources} table={web.tables.sources} shown={web.shown} place={web.place} /></div>
+        <div className="w-full"><WebStatsTable title={WORDS.web.titles.geography} icon={TABLE_ICONS.geography} help={WORDS.about.geography} table={web.tables.geography} shown={web.shown} place={false} initial="region" /></div>
       </Block>
-      <Block name="PageLoading · PageError" use="before a page's data is there: loading (fades in only when it takes a moment) · can't load (what happened, Try again) · Loaded picks between them and the page">
+      <Block name="PageLoading · PageError" use="Before a page's data is ready, a loading message fades in after a moment. If the data can't load, the page shows the error and a Try again button." code="Loaded">
         <div className="grid w-full items-center gap-4 md:grid-cols-2">
           <PageLoading what="sessions" />
-          <PageError title="Couldn't load sessions" message={UNREACHABLE} onRetry={() => undefined} />
+          <PageError title="Unable to load sessions" message={UNREACHABLE} onRetry={() => undefined} />
         </div>
       </Block>
-      <Block name="ReplayStage · ReplayControls" use="the replay window: rrweb-player on the stage, cursor labelled with who acts · what it says with no replay · play, time, speed, Jump to hand-off">
+      <Block name="ReplayStage · ReplayControls" use="During playback, a label on the cursor shows who is acting. A message appears when there's no replay. Controls include play, time, speed, and Jump to hand-off." code="rrweb-player">
         <Card className="w-full max-w-xl gap-0 py-0">
           <ReplayStage replay={stillReplay(EXAMPLE_SITE, "missing")} />
           <ReplayControls replay={stillReplay(EXAMPLE_SITE, "ready")} durationMs={96400} />
         </Card>
       </Block>
-      <Block name="SessionPages" use="pages in the replay, in the order they opened: entry and exit page, opening time, time on page, who acted there, and their actions · selecting a row moves the replay to that page and plays it">
+      <Block name="SessionPages" use="The pages in the replay, in the order they opened, with the entry and exit pages marked. Each row shows when the page opened, the time on it, who acted, and their actions. Selecting a row plays the replay from that page.">
         <div className="w-full max-w-xl"><SessionPages pages={PAGE_LOOKS} onJump={nothing} /></div>
       </Block>
-      <Block name="ReasonLayer" use="one of the four layers of Why this verdict · each reason says what it means, with what was seen under it in smaller type · a layer that is off is dashed and still says why">
+      <Block name="ReasonLayer" use="Each of the four layers in Why this classification lists its reasons. Below each reason's explanation, smaller text lists the details that were detected. When a layer is turned off, it has a dashed border and a note that explains why.">
         <div className="grid w-full items-start gap-3 md:grid-cols-2">{LAYER_LOOKS.map((layer) => <ReasonLayer key={layer.layer} layer={layer} />)}</div>
       </Block>
-      <Block name="ServerHalfTable" use="Server half: what the site's server saw of each page request; the network line in server mode">
+      <Block name="ServerHalfTable" use="This table shows what your site's server middleware saw for each page request. In server mode, it also shows the network line.">
         <div className="w-full"><ServerHalfTable server={SERVER_LOOKS} /></div>
       </Block>
-      <Block name="RegisterCard" use="before every page until this AgentCake has registered: its words are in src/lib/registration.ts, See what is sent = the exact JSON, the button off until the email passes cake's check · shown here after a press that couldn't be sent: why, then Continue (no retry; it asks again next time)">
+      <Block name="RegisterCard" use={[
+          `The registration card appears before every page until this ${PRODUCT_NAME} is registered. Select View registration data to see the exact JSON that the button sends. The button stays disabled until the email address is valid.`,
+          `In this example, the registration couldn't be sent, so the card shows the reason and a Continue button. ${PRODUCT_NAME} doesn't retry, and the card appears again the next time you open it.`,
+        ]} code="src/lib/registration.ts">
         <div className="w-full">
-          <RegisterCard rules={registration} outcome={{ state: "not_sent", message: "Couldn't reach tartini.ai ([Errno 8] nodename nor servname provided, or not known), so your registration wasn't sent." }}
+          <RegisterCard rules={registration} outcome={{ state: "not_sent", message: `${PRODUCT_NAME} couldn't reach tartini.ai ([Errno 8] nodename nor servname provided, or not known). Check your internet connection, and then try again.` }}
             onRegister={nothing} onContinue={nothing} initial={{ email: "owner@example.com", company: "Example Shop" }} />
         </div>
       </Block>

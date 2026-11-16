@@ -43,8 +43,11 @@ export function aboutDays(days: number): string {
   return "more than a year"
 }
 
+/** A whole, in percent. */
+export const PERCENT = 100
+
 /** Whole percent of a part, 0 when the whole is 0. */
-export const percent = (part: number, whole: number) => (whole > 0 ? Math.round((part * 100) / whole) : 0)
+export const percent = (part: number, whole: number) => (whole > 0 ? Math.round((part * PERCENT) / whole) : 0)
 
 /** An address as an address bar or a link label shows it: no scheme. */
 export const withoutScheme = (url: string) => url.replace(/^[a-z][a-z0-9+.-]*:\/\//i, "")
@@ -55,3 +58,7 @@ export function siteAddress(domain: string) {
   const local = ["localhost", "127.0.0.1", "[::1]"].includes(host) || host.endsWith(".localhost")
   return `${local ? "http" : "https"}://${domain}/`
 }
+
+const MS_PER_MINUTE = 60000
+/** Minutes with one decimal ("2.6"), for active time spent. */
+export const minutes = (ms: number) => (ms / MS_PER_MINUTE).toFixed(1)

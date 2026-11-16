@@ -1,11 +1,11 @@
 # AgentCake for WordPress
 
 AgentCake records visits through its page script, `cake.js`. Some facts about a page request are seen only by your
-site's server: the Web Bot Auth signature an agent such as ChatGPT agent adds, and the fetch metadata of the very first
-page. This plugin is AgentCake's server half for WordPress. On every page it:
+site's server: the Web Bot Auth signature an agent such as ChatGPT adds, and the fetch metadata of the very first
+page. This plugin is AgentCake's server middleware for WordPress. On every page it:
 
 - sets one signed token in the page's own response, `Server-Timing: cake;desc="c1.<base64url JSON>.<base64url HMAC-SHA256>"`,
-  which `cake.js` reads and sends with the visit, so AgentCake shows what your server saw ("Server half");
+  which `cake.js` reads and sends with the visit, so AgentCake shows what your server saw ("Server middleware");
 - adds the `cake.js` line to the page's head, with AgentCake's address and your site key.
 
 It wraps AgentCake's PHP site middleware (`cake_edge.php`, `cake_edge_format.php`, `cake_edge.json`, the same files as
@@ -37,7 +37,7 @@ or copy the `agentcake` folder into `wp-content/plugins/`. Then activate **Agent
    visitors' browsers reach AgentCake) and **Site key** (`ck_...`). From then on every page's head has the line
    `<script data-site="ck_..." defer src="https://cake.example.com/cake.js"></script>`. If your theme has the line
    already, turn off **cake.js line**.
-3. Give the plugin the server half's secret. On AgentCake's machine, `agentcake secret init`, then
+3. Give the plugin the server middleware's secret. On AgentCake's machine, `agentcake secret init`, then
    `agentcake secret print`. Add the printed value to `wp-config.php`, above the line that says to stop editing:
 
    ```php
@@ -87,22 +87,22 @@ depends on what the cache stores:
 
 - **Only the page** (Cache Enabler, WP Super Cache, WP Fastest Cache and most page cache plugins, which serve the stored
   HTML before WordPress loads). The visitor whose visit made the page gets a token. Every visitor after that gets the
-  stored page with the `cake.js` line and no token: those page views have no server half. AgentCake still records
-  them through `cake.js`. Tried with Cache Enabler on WordPress 7.1.4: the stored page went out with Cache Enabler's
-  own header and no `Server-Timing`.
+  stored page with the `cake.js` line and no token: those page views have no server middleware data. AgentCake still
+  records them through `cake.js`. Tried with Cache Enabler on WordPress 7.1.4: the stored page went out with Cache
+  Enabler's own header and no `Server-Timing`.
 - **The whole response, headers included** (a CDN's or a reverse proxy's full-page cache, Varnish, nginx's
   `fastcgi_cache`). Every visitor gets the same stored token. AgentCake accepts a token once: the first session that
-  sends it gets the server half. When the same visitor sees the stored token again, AgentCake counts it as **reuse**,
-  as it does for a page the browser shows from its own cache when going back: no error, and the page view is not
-  counted twice (a page the browser revalidates, a 304, brings a new token). Another
-  visitor's session that sends the same token is refused as a replay, so that page view has no server half.
+  sends it gets the server middleware data. When the same visitor sees the stored token again, AgentCake counts it as
+  **reuse**, as it does for a page the browser shows from its own cache when going back: no error, and the page view
+  is not counted twice (a page the browser revalidates, a 304, brings a new token). Another visitor's session that
+  sends the same token is refused as a replay, so that page view has no server middleware data.
 
 To give every page view its own token, turn on **Page caching** under **Settings > AgentCake**, then clear the page
 cache once (pages stored before keep going out until then). Pages then go out with `Cache-Control: private, no-store`,
 which browsers, CDNs and proxies do not store, and with `DONOTCACHEPAGE` defined, which page cache plugins read as "do
 not store this page". Tried with Cache Enabler: every page view had its own token and nothing was stored. This trades
-the page cache for the server half: leave it off if the site needs its page cache, and accept that cached page views
-have none.
+the page cache for the server middleware data: leave it off if the site needs its page cache, and accept that cached
+page views have none.
 
 ## What the token holds
 

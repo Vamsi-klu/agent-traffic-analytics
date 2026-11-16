@@ -5,11 +5,12 @@ import { Activity, List, Settings } from "lucide-react"
 import { Link, NavLink } from "react-router"
 import { Button } from "@/components/ui/button"
 import { PRODUCT_NAME } from "@/lib/product"
+import { WORDS } from "@/lib/words"
 import { CrumbHead } from "./crumb"
 
 const NAV = [
   { to: "/dashboard", label: "Dashboard", icon: Activity },
-  { to: "/sessions", label: "Sessions", icon: List },
+  { to: "/sessions", label: WORDS.sessionsPage, icon: List },
   { to: "/settings", label: "Settings", icon: Settings },
 ]
 

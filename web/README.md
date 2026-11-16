@@ -41,7 +41,8 @@ if it doesn't (`src/components/cake/page-state.tsx`). The contract has three par
 
 | Endpoint | Answer | Schema |
 |---|---|---|
-| `GET /api/overview?range=today\|7d\|30d` | `Overview`: counts, the human + agent top block, charts, top pages, latest sessions, average length, disk use, the coverage table's wording | `overview` |
+| `GET /api/overview?range=today\|7d\|30d` | `Overview`: counts, the human + agent top block, the agents seen, page views and pages per session, the latest Agent sessions, disk use, the coverage table's wording | `overview` |
+| `GET /api/web?range=today\|7d\|30d\|all` | `WebAnalytics`: visitors and page views (all and by verdict), active time spent (all and by verdict), the Trends chart's five metrics for Human and Agent by hour, day or month, the same five for each agent (Top agents), the Paths table, and the Sources, Devices and Geography tables (a row per value of each breakdown) | `web` |
 | `GET /api/sessions?verdict=&agent=&range=&cursor=` | `SessionsPage`: counts per group, the names of the two kinds of agent, agent names, one page of sessions (newest first), `next` cursor | `sessions` |
 | `GET /api/session/<id>` | `SessionDetail`: the session, title, summary, timeline, the pages in the order they opened, four reason layers, actions, replay (chunks, the session's clock `epoch_ms`, `handoff_lead_ms`, why it is `missing`), server half; 404 if unknown | `session` |
 | `GET /api/session/<id>/replay?chunk=<n>` | `ReplayChunk`: the rrweb events of chunk n (one per 10 s, as listed in the session); the replay page asks for a chunk only when it needs it | `replay` |

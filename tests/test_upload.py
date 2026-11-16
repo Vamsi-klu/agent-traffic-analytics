@@ -4,9 +4,12 @@
 
 A gzip body is unzipped within its limit; a version 1 batch must carry its dedup key (s, pv, seq); a cake 0.3.4 batch
 has none and is still read; records keep their order, their page view and their content; a record without a usable
-time is left out and counted; a batch with too many records is refused before anything is read.
+time is left out and counted; a batch with too many records is refused before anything is read. The identify hash is
+kept only as cake.js writes it (a SHA-256 in lowercase hexadecimal); an id or an e-mail address in its place is
+dropped, never stored.
 """
 import gzip
+import hashlib
 import json
 import os
 import sys
@@ -98,6 +101,17 @@ class Header(unittest.TestCase):
         self.assertEqual(len(batch.url), CAPS["url"])
         self.assertEqual((batch.user_agent, batch.why, batch.dropped), (None, None, None))
         self.assertEqual(len(read(v1(s="f" * 100)).session), CAPS["session_id"])
+
+    def test_the_identify_hash_is_kept_as_cake_js_writes_it(self):
+        sha256 = hashlib.sha256(b"ck_test:user-42").hexdigest()
+        self.assertEqual(read(v1(idh=sha256)).person, sha256)
+        self.assertIsNone(read(v1()).person)
+
+    def test_anything_else_in_place_of_the_identify_hash_is_dropped(self):
+        sha256 = hashlib.sha256(b"ck_test:user-42").hexdigest()
+        for sent in ("user-42", "someone@example.com", sha256.upper(), sha256[:-1], sha256 + "0", " " + sha256,
+                     "g" * len(sha256), 42, None, [sha256], {"h": sha256}):
+            self.assertIsNone(read(v1(idh=sent)).person, sent)
 
 
 class Records(unittest.TestCase):

@@ -5,8 +5,11 @@ public listener does not read query strings, so the body's first two bytes decid
 would unzip to more than `limit` bytes is refused: a small gzip body can hold a huge one.
 
 read_batch(data, caps, max_records) -> Batch. The header is checked and cut to the field caps of data/sizes.json: the
-visit id `s`, and for a version 1 batch the page view `pv` and the batch number `seq`, the key a batch sent twice is
-known by. A batch without `v` comes from cake 0.3.4's script (k, s, u, ua, wd, e, st): it has neither, and is kept
+session id `s`, and for a version 1 batch the page view `pv` and the batch number `seq`, the key a batch sent twice is
+known by; the visitor id `vid` is kept when it is there, cut to its cap like the other ids; the identify hash `idh`
+(static/src/identify.js) only when it is a SHA-256 in lowercase hexadecimal, as cake.js writes it: any other value is
+dropped, so that an id or an e-mail address sent in its place is never stored. A batch without `v`
+comes from cake 0.3.4's script (k, s, u, ua, wd, e, st): it has neither, and is kept
 without that check. Each record becomes (time, JSON text, page view) in its stream (`e` rrweb, `r` raw input, `x`
 signals), in the order sent; a record that is not an object or has no time in epoch milliseconds is left out and
 counted (bad_records). A batch with more records than max_records, or one that cannot be read, raises
@@ -16,6 +19,7 @@ The site key is not checked here: it is a setting, and collect compares it befor
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 import zlib
@@ -32,6 +36,8 @@ GZIP_WBITS = 16 + zlib.MAX_WBITS  # protocol: zlib's window bits for a gzip head
 RECORD_FIELDS = (("e", "rrweb", "timestamp"), ("r", "raw", "t"), ("x", "env", "t"))
 MAX_SAFE_INTEGER = 2 ** 53 - 1  # protocol: the largest integer a JavaScript number (cake.js's seq and times) holds
 NOT_ID = re.compile(r"[^A-Za-z0-9]")  # cake.js's ids are hex; anything else is dropped, as cake 0.3.4 did
+HASH_HEX_DIGITS = hashlib.sha256().digest_size * 2  # protocol: SHA-256 in hexadecimal, two digits per byte
+IDENTIFY_HASH = re.compile(f"[0-9a-f]{{{HASH_HEX_DIGITS}}}")  # the identify hash, as identify.js writes it
 FORMAT_VERSION = load("data/cakejs.json")["script"]["format_version"]
 
 Record = namedtuple("Record", "ts text page")
@@ -60,6 +66,8 @@ class Batch:
     test: bool                        # a self-check visit (`agentcake ping`)
     records: dict = field(default_factory=dict)   # stream -> [Record], in the order sent
     bad_records: int = 0
+    visitor: Optional[str] = None     # `vid`, the visitor id cake.js keeps in the browser (static/src/visitor.js)
+    person: Optional[str] = None      # `idh`, the identify hash kept with it (static/src/identify.js)
 
     def record_count(self):
         return sum(len(records) for records in self.records.values())
@@ -113,7 +121,8 @@ def read_batch(data, caps, max_records):
                   url=_text(data.get("u"), caps["url"]), user_agent=_text(data.get("ua"), caps["user_agent"]),
                   webdriver=bool(data.get("wd")), why=_text(data.get("why"), caps["batch_why"]),
                   token=data.get("st") if isinstance(data.get("st"), str) else None,
-                  dropped=_drop_counts(data.get("dr"), caps["drop_counts"]), test=bool(data.get("test")))
+                  dropped=_drop_counts(data.get("dr"), caps["drop_counts"]), test=bool(data.get("test")),
+                  visitor=_id(data.get("vid"), caps["visitor_id"]) or None, person=_identify_hash(data.get("idh")))
     for _, name, time_field in RECORD_FIELDS:
         kept = [Record(int(record[time_field]), record_text(record), page_view)
                 for record in arrays[name] or [] if isinstance(record, dict) and _is_time(record.get(time_field))]
@@ -121,6 +130,11 @@ def read_batch(data, caps, max_records):
         if kept:
             batch.records[name] = kept
     return batch
+
+
+def _identify_hash(value):
+    """`idh` when it is what identify.js sends (a SHA-256 in lowercase hexadecimal), else None."""
+    return value if isinstance(value, str) and IDENTIFY_HASH.fullmatch(value) else None
 
 
 def record_text(record):

@@ -1,12 +1,14 @@
 // Agent avatars (DESIGN.md §15): one fixed dessert-blob per agent, drawn for cake (no third-party art).
 // Flat colour (--avatar-1..6, never the verdict colours) + ink outline + white eyes with ink pupils. They idle (sway,
 // bob, a little squash) and blink, each on its own beat; still under prefers-reduced-motion. Decoration only: the name
-// is always written next to it, so the SVG is aria-hidden.
+// is always written next to it, so the SVG is aria-hidden. Unnamed, which has no name, is the one grey avatar: always
+// the scoop, in the grey Bot and Unknown use (--unsure).
 import { useId } from "react"
 import { Badge } from "@/components/ui/badge"
 import type { Certainty } from "@/data/types"
 import { TAXONOMY, UNNAMED } from "@/lib/taxonomy"
 import { cn } from "@/lib/utils"
+import { Hint } from "./bits"
 
 type Shape = { d: string; eyeY: number; mouthY?: number; extra?: "band" | "chips" | "pleat" }
 // mochi, gumdrop, macaron, donut, pudding, scoop, cookie (with a bite), dumpling. viewBox 0 0 48 48, ground at y 41.
@@ -20,6 +22,10 @@ const SHAPES: Shape[] = [
   { d: "M31 11.6 A15.5 15.5 0 1 0 39.4 22.4 A8 8 0 0 1 31 11.6 Z", eyeY: 25, mouthY: 31, extra: "chips" },
   { d: "M8 31 C8 21 14 15 20.5 13.5 C21.5 10 26.5 10 27.5 13.5 C34 15 40 21 40 31 C40 38 33 41 24 41 C15 41 8 38 8 31 Z", eyeY: 27, mouthY: 33, extra: "pleat" },
 ]
+export const AVATAR_SHAPES = ["mochi", "gumdrop", "macaron", "donut", "pudding", "scoop", "cookie", "dumpling"] as const
+/** Unnamed's one shape wherever it shows. Not the plain mochi: Claude in Chrome's avatar is a mochi, and a grey one
+ *  beside it would read as that agent's avatar gone grey. */
+const UNNAMED_SHAPE = AVATAR_SHAPES.indexOf("scoop")
 const COLOURS = 6
 const PHASES = 6
 
@@ -29,15 +35,19 @@ function hash(name: string) {
   return h
 }
 
-/** The fixed look of one agent: same name, same blob, same colour, same beat, everywhere. */
-export function avatarOf(name: string) {
+/** An avatar's look: its shape (AVATAR_SHAPES), its colour (1–6: --avatar-N; "unnamed": the grey of Bot and Unknown)
+ *  and its beat (data-phase). */
+type Look = { shape: number; colour: number | "unnamed"; phase: number }
+
+/** The fixed look of one agent: same name, same blob, same colour, same beat, everywhere. Unnamed has no name to take
+ *  a look from, so its shape and colour are fixed: the one grey avatar. */
+export function avatarOf(name: string): Look {
   const h = hash(name.trim().toLowerCase())
-  return { shape: h % SHAPES.length, colour: 1 + (Math.floor(h / SHAPES.length) % COLOURS), phase: Math.floor(h / (SHAPES.length * COLOURS)) % PHASES }
+  const phase = Math.floor(h / (SHAPES.length * COLOURS)) % PHASES
+  if (name === UNNAMED) return { shape: UNNAMED_SHAPE, colour: "unnamed", phase }
+  return { shape: h % SHAPES.length, colour: 1 + (Math.floor(h / SHAPES.length) % COLOURS), phase }
 }
 
-export const AVATAR_SHAPES = ["mochi", "gumdrop", "macaron", "donut", "pudding", "scoop", "cookie", "dumpling"] as const
-
-type Look = ReturnType<typeof avatarOf>
 /** name = an agent (its fixed look); look = a given shape/colour (component overview); box = position inside a chart's SVG. */
 export function AgentAvatar({ name = "", look, className, box }: { name?: string; look?: Look; className?: string; box?: { x: number; y: number; size: number } }) {
   const { shape, colour, phase } = look ?? avatarOf(name)
@@ -71,29 +81,38 @@ export function AgentAvatar({ name = "", look, className, box }: { name?: string
  *  inside the name it qualifies, the word is lower case (a row's own tag beside the name keeps "Likely"). */
 export function AgentTag({ name, certainty }: { name: string; certainty?: Certainty | null }) {
   const sure = certainty ? TAXONOMY.names[certainty] : null
-  return (
-    <Badge variant="tag" title={sure?.about}>
+  const tag = (
+    <Badge variant="tag">
       <span className="inline-flex"><AgentAvatar name={name} className="size-4" /></span>{name}
       {sure && <><span aria-hidden>·</span>{sure.label.toLowerCase()}</>}
     </Badge>
   )
+  return sure ? <Hint text={sure.about} focusable>{tag}</Hint> : tag
 }
 
 /** What the avatar takes at the end of an agent chart's axis: the avatar and a gap on each side of it. */
-const TICK_AVATAR = 28
+export const TICK_AVATAR = 28
 /** Two lines of text-xs at leading-4: the most a name takes on the axis. */
 const TICK_LINES_HEIGHT = 32
+/** The least room between two names on the axis (px). */
+const TICK_GAP = 8
+/** One agent's row in an agent chart (px): its name on two lines and a gap. The chart is this times its agents tall, so
+ *  its axis never has to skip a name. */
+export const AGENT_ROW_PX = TICK_LINES_HEIGHT + TICK_GAP
 
 /** Y-axis tick for agent charts: avatar + name. The name stays the label: it wraps to two lines in the axis's width
  *  (recharts passes it) and ends with "…" past that, the whole name on hover, since real names, like an agent
- *  category's, can be long. */
+ *  category's, can be long (the whole name is in the page, so screen readers read it all; the Agent block above lists
+ *  every name in full, so the chart's names take no focus of their own). */
 export function AgentTick({ x = 0, y = 0, width = 0, payload }: { x?: number; y?: number; width?: number; payload?: { value: string } }) {
   const name = payload?.value ?? "", room = Math.max(0, width - TICK_AVATAR)
   return (
     <g transform={`translate(${x},${y})`}>
-      {name !== UNNAMED && <AgentAvatar name={name} box={{ x: -22, y: -10, size: 20 }} />}
+      <AgentAvatar name={name} box={{ x: -22, y: -10, size: 20 }} />
       <foreignObject x={-TICK_AVATAR - room} y={-TICK_LINES_HEIGHT / 2} width={room} height={TICK_LINES_HEIGHT}>
-        <div title={name} className="flex h-full items-center justify-end text-right text-xs leading-4 text-muted-foreground"><span className="line-clamp-2">{name}</span></div>
+        <Hint text={name}>
+          <div className="flex h-full items-center justify-end text-right text-xs leading-4 text-muted-foreground"><span className="line-clamp-2">{name}</span></div>
+        </Hint>
       </foreignObject>
     </g>
   )

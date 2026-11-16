@@ -8,6 +8,7 @@ eval/thresholds.json's "data"; this module measures every data set that has the 
 threshold is its "statistic" in thresholds.json; the code below is that sentence.
 """
 from agentcake.evaluation import sessions, takeovers
+from agentcake.evaluation.stats import tally
 
 AGENTLIKE = ("agent", "mixed")
 RECORDED = "recorded"  # the data set of the recorder's agents that A2 judges; every other label is "recorded/<label>"
@@ -144,7 +145,7 @@ def _a8(source, rows):
            and r["layers"].get("environment") in (NO_HIT, OFF)]
     shown = sum(1 for r in few if r["class"] == "too_little_data")
     return _ratio("A8", source, shown, len(few), "phones, tablets and too few actions shown as too little data",
-                  details={"classes": _count(r["class"] for r in few)})
+                  details={"classes": tally(r["class"] for r in few)})
 
 
 def _a9(t22):
@@ -156,10 +157,3 @@ def _n1(labelled):
     views = sum(item["page_views"] for item in labelled)
     tokens = sum(item["tokens"] for item in labelled)
     return _ratio("N1", "store", tokens, views, "page views whose token reached cake and matched the session")
-
-
-def _count(values):
-    out = {}
-    for value in values:
-        out[value] = out.get(value, 0) + 1
-    return out

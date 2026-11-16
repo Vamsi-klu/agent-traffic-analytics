@@ -31,8 +31,8 @@ test("the contract in src/data passes", () => {
 })
 
 test("a sample with a value outside an enum fails the schema and the type", () => {
-  const problems = checkChanged((p) => editJson(path.join(p.fixtureDir, "overview.json"), (o) => { o.latest[0].verdict = "robot" }))
-  has(problems, "fixtures/overview.json $.latest[0].verdict", "not one of")
+  const problems = checkChanged((p) => editJson(path.join(p.fixtureDir, "overview.json"), (o) => { o.latest_agent[0].verdict = "robot" }))
+  has(problems, "fixtures/overview.json $.latest_agent[0].verdict", "not one of")
   has(problems, "fixtures/overview.json vs types.ts", "robot")
 })
 

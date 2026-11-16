@@ -7,8 +7,8 @@ and points at the INSTALL.md of this tag; it names curl and the GitHub CLI, whic
 repository is a private preview (its raw address answers 404 then). The pictures are files of the repository
 (docs/assets/readme/, made by web/scripts/readme-images.mjs) or shields.io's static badges, which draw while the
 repository is private and link to it. The Chinese README shows the same pictures, links, commands and version as the
-English one, and each links to the other at the top. Each README's connect sentence is the one the local page shows in
-its language. test_install_docs.py checks what both READMEs share with INSTALL.md (commands, links, addresses).
+English one, and each links to the other at the top. test_install_docs.py checks what both READMEs share with
+INSTALL.md (commands, links, addresses).
 """
 import os
 import re
@@ -17,8 +17,7 @@ import unittest
 
 TESTS = os.path.dirname(os.path.abspath(__file__))
 sys.path[:0] = [os.path.dirname(TESTS), TESTS]
-from agentcake.wording import product, text  # noqa: E402  (needs the path above)
-from cake_server import ROOT, read  # noqa: E402
+from cake_server import ROOT, read  # noqa: E402  (needs the path above)
 from test_install_docs import (INSTALL_MD, LINK, README_MD, README_ZH, READMES, VERSION, code_blocks,  # noqa: E402
                                documented_commands, readme_name, release_tag, repositories, section)
 
@@ -65,7 +64,7 @@ class ReadmeDocuments(unittest.TestCase):
         whether the repository is public (curl reads the raw address) or a private preview, where that address
         answers 404 and the GitHub CLI, signed in, reads the same file: the sentence names both."""
         url = f"https://raw.githubusercontent.com/{self.repository}/{self.tag}/INSTALL.md"
-        for path, install_heading, _, chinese in READMES:
+        for path, install_heading, chinese in READMES:
             install = section(read(path), install_heading)
             sentence, = install_sentences(install)
             self.assertEqual(bool(CJK.search(sentence)), chinese, path)
@@ -103,12 +102,6 @@ class ReadmeDocuments(unittest.TestCase):
         self.assertEqual(set(VERSION.findall(self.readme)), set(VERSION.findall(self.readme_zh)))
         self.assertIn("[简体中文](docs/locales/zh-CN/README.md)", self.readme)
         self.assertIn("[English](../../../README.md)", self.readme_zh)
-
-    def test_connect_sentences_are_the_ones_the_local_page_shows(self):
-        for path, _, connect_heading, chinese in READMES:
-            sentence = text("site_sentence", lang="zh" if chinese else "en", launcher=product()["command"],
-                            name=self.name)
-            self.assertIn(f"> {sentence}", section(read(path), connect_heading), path)
 
 
 if __name__ == "__main__":

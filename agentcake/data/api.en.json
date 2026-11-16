@@ -2,29 +2,29 @@
   "$comment": "The words of the JSON API's answers (agentcake/api/), ready for the local pages to show: English only, visitors are Human or Agent (with Unknown and Bot), never person, people or user. {name} and {command} come from product.json, the other {placeholders} are filled where the text is used. A list is one line per item. summary: the session page's summary (agentcake/api/session.py): who acted when, turn by turn, its moments ({start}, {end}, {at}) as the player writes them, then the layers that point to the verdict, each named as judging.en.json 'layers' names it, with the percent the layer shows.",
 
   "errors": {
-    "no_session": "There's no session with this ID. It may have been deleted. Go back to the session list.",
-    "no_chunk": "This part of the replay doesn't exist. Reload the page.",
+    "no_session": "No session with this ID was found. It might have been deleted. Go back to the session list to choose another session.",
+    "no_chunk": "This part of the replay isn't available. Reload the page to load the replay again.",
     "no_route": "No such address: {path}",
-    "bad_choice": "{field} must be one of: {choices}.",
+    "bad_choice": "{field} must be one of the following values: {choices}.",
     "bad_count": "{field} must be a whole number, 0 or more.",
-    "bad_cursor": "{name} didn't issue this list's position marker. Reload the list.",
-    "not_local": "Only pages served by this computer can make this request to {name}. Open {name} on this computer and try again.",
-    "json_only": "Send this as application/json.",
-    "bad_json": "Send one JSON object.",
-    "unknown_setting": "{field} isn't a setting this page can change.",
+    "bad_cursor": "{name} can't load this part of the list. Reload the list to start again from the top.",
+    "not_local": "Open the {name} page at 127.0.0.1 or localhost on the {name} port. Requests must come from that page, opened on its host computer or through a tunnel.",
+    "json_only": "The request must use the application/json content type.",
+    "bad_json": "The request body must be a single JSON object.",
+    "unknown_setting": "{field} can't be changed on the Settings page.",
     "bad_type": "{field} must be {kind}.",
     "bad_value": "{problem}",
-    "too_large": "That request is too large.",
-    "register_bad_email": "Enter an email address like name@example.com.",
-    "register_bad_company": "Enter a company name of up to {max} characters, on one line.",
-    "register_bad_updates": "product_updates must be true or false.",
-    "register_bad_version": "consent_version must be a date written YYYY-MM-DD.",
-    "register_unknown_field": "{field} isn't part of a registration.",
-    "register_not_as_shown": "Send the registration exactly as the page shows it.",
+    "too_large": "The request is too large.",
+    "register_bad_email": "Enter a valid email address, such as name@example.com.",
+    "register_bad_company": "Enter a company name with up to {max} characters on a single line.",
+    "register_bad_updates": "Set product_updates to true or false.",
+    "register_bad_version": "Enter consent_version as a date in YYYY-MM-DD format.",
+    "register_unknown_field": "{field} isn't a registration field.",
+    "register_not_as_shown": "Send the registration exactly as it appears on the page.",
     "register_already": "{name} is already registered. You don't need to register again.",
-    "register_busy": "A registration is already being sent. Wait for it to finish.",
-    "register_no_address": "Your registration wasn't sent. The registration address, register_url, is empty in this {name}. Set register_url, then try again.",
-    "register_unreachable": "Couldn't reach {host}: {reason}. Your registration wasn't sent. Check your internet connection, then try again.",
+    "register_busy": "A registration is already in progress. Wait for it to finish.",
+    "register_no_address": "This {name} installation has no registration address. Set register_url, and then try again.",
+    "register_unreachable": "{name} couldn't reach {host} ({reason}). Check your internet connection, and then try again.",
     "register_refused": "Your registration wasn't accepted because {host} returned HTTP {code}."
   },
   "kinds": {"boolean": "true or false", "integer": "a whole number", "string": "text", "object": "an object"},
@@ -38,6 +38,7 @@
     "time": "{hour:02d}:{minute:02d}",
     "day_short": "{weekday}",
     "day_long": "{month} {day}",
+    "month_long": "{month} {year}",
     "weekdays": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
     "months": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
   },
@@ -52,23 +53,23 @@
     "unnamed_later": "an unnamed agent",
     "unnamed_again": "the agent again",
     "then": "{before}, then {after}",
-    "unsure": "Can't tell who acted",
-    "too_little_data": "Too few actions to tell"
+    "unsure": "Actor not identified",
+    "too_little_data": "Not enough actions to classify"
   },
   "layer_notes": {
-    "bot_environment": "Automation traces are normal for a bot. The verdict is Bot because the visitor matches the bot list.",
-    "both_ways": "The evidence in this layer points both ways, so it doesn't decide the verdict."
+    "bot_environment": "Bots often leave automation traces. This session is classified as Bot because the visitor is on the bot list.",
+    "both_ways": "Unknown means that this layer's evidence is too uncertain to classify the session."
   },
   "summary": {
-    "acted": "{who} acted from {start} to {end}.",
+    "acted": "{who} was active from {start} to {end}.",
     "took_over": "{who} took over at {at}.",
     "took_over_again": "{who} took over again at {at}.",
     "who": {"human": "A human", "human_again": "The human", "agent": "{agent}", "unnamed": "An unnamed agent",
             "unnamed_again": "The agent"},
-    "pointing": "{layers}.",
-    "supports": "The {layer} layer supports the verdict with {percent}% confidence",
-    "supports_too": "the {layer} layer with {percent}%",
-    "list": "{items}, and {last}"
+    "pointing": "Layers that reached the same classification: {layers}.",
+    "supports": "{layer} ({percent}% confidence)",
+    "supports_too": "{layer} ({percent}% confidence)",
+    "list": "{items} and {last}"
   },
 
   "actions": {
@@ -78,13 +79,13 @@
     "type": "Type in {target}",
     "type_plain": "Type",
     "scroll": "Scroll",
-    "key": "Press a key on {target}",
-    "key_plain": "Press a key"
+    "key": "Key press on {target}",
+    "key_plain": "Key press"
   },
 
   "server_half": {
-    "none": "No page in this visit had a note from the site's server. To get these notes on your own website, set up the Server half: run setup --print --site.",
-    "some": "{missing} of {pages} pages had no note from the site's server. Each one is a copy the browser kept, which counts as a reuse, or a page the server doesn't sign."
+    "none": "None of the pages in this visit have data from the site's server middleware. To see this data for your website, set up the server middleware by running setup --print --site.",
+    "some": "{missing} of {pages} pages don't have signed data from the site's server middleware. These pages are either copies that the browser reused or pages that the server doesn't sign."
   },
 
   "setup_terminal": ["cd <your-site-folder>", "{launcher} setup --print --site", "{launcher} doctor"],

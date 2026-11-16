@@ -12,7 +12,7 @@ import { Crumb } from "./crumb"
 export function PageLoading({ what }: { what: string }) {
   return (
     <div role="status" className="flex animate-in items-center justify-center gap-3 py-10 text-sm text-muted-foreground fade-in fill-mode-both delay-300">
-      <Crumb pose="look" className="w-16" title="Crumb is looking." />Loading {what}…
+      <Crumb pose="look" className="w-16" label="Loading illustration" />Loading {what}…
     </div>
   )
 }
@@ -22,7 +22,7 @@ export function PageError({ title, message, onRetry }: { title: string; message:
   return (
     <Card variant="sunk" role="alert">
       <CardContent className="flex flex-col items-center gap-3 py-6 text-center">
-        <Crumb pose="oops" className="w-32" title="Crumb: something went wrong." />
+        <Crumb pose="oops" className="w-32" label="Error illustration" />
         <h2 className="text-lg font-semibold">{title}</h2>
         <p className="text-sm text-muted-foreground">{message}</p>
         {onRetry && <Button variant="outline" size="sm" onClick={onRetry}><RotateCw aria-hidden />Try again</Button>}
@@ -37,5 +37,5 @@ export function Loaded<T>({ state, what, children }: { state: ApiState<T>; what:
   if (state.status === "ready") return <>{children(state.data)}</>
   if (state.status === "loading") return <PageLoading what={what} />
   const missing = state.error.status === 404
-  return <PageError title={`Couldn't load ${what}`} message={state.error.message} onRetry={missing ? undefined : state.retry} />
+  return <PageError title={`Unable to load ${what}`} message={state.error.message} onRetry={missing ? undefined : state.retry} />
 }

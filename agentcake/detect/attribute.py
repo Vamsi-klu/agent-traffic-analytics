@@ -10,7 +10,9 @@ Name priority, highest first:
   6 no product, a category: infrastructure (an operator's published agent range), automated (Automated browser),
     extension (an extension drove the page), cloud_browser (a cloud computer that does not say who runs it) or
     local_agent (behaviour alone: possibly an agent on the visitor's own computer). A category says where the agent
-    runs, which its reason tells; it never names it: the interface calls the agent Unnamed.
+    runs, which its reason tells; it never names it: the interface calls the agent Unnamed. When an agent product's
+    indicator said its agent was working (marked), local_agent's reason, that only behaviour points to an agent and
+    the page shows no agent trace, is not given: the behaviour reasons tell the indicator's span instead.
 The highest level that names a product wins, with the certainty verdict.json "attribution" gives that level (a verified
 name is certain; a rule or a trace goes stale when its product changes, so it is likely). A lower level pointing to
 another product is listed as outranked; a level whose evidence names several products names none. A Bot keeps
@@ -18,11 +20,12 @@ the list entry that made it one. Products without a trace of their own (browser-
 drive Playwright or the DevTools protocol) stay unnamed: a name is never guessed.
 
     strong_name(identity, hits, lists_) -> entry or None   levels 1 to 3, which the class depends on (verdict.py)
-    attribute(identity, cls, row, traces, automation, lists_, settings=None) -> Attribution
+    attribute(identity, cls, row, traces, automation, lists_, settings=None, marked=False) -> Attribution
     env_candidates(hits, settings) -> rows for the labels table: the names environment hits point to
 
 identity: verdict_identity.Identity; traces: the environment hits the class rests on (hard product and extension hits,
-soft hits that counted); automation: the hard automation and spoofing hits.
+soft hits that counted); automation: the hard automation and spoofing hits; marked: whether the behaviour timeline was
+given an indicator's turn span (markers.turn_spans).
 """
 from collections import namedtuple
 from dataclasses import dataclass
@@ -36,8 +39,9 @@ AGENT, MIXED, BOT = "agent", "mixed", "bot"
 PRODUCT, EXTENSION, CLOUD_HOST = "product", "extension", "cloud_host"
 AUTOMATED_ROW = "automated"
 DECLARED = "declared"
+LOCAL_AGENT = "local_agent"
 CATEGORY_REASONS = {"automated": "env.automated", "extension": "env.extension-unnamed",
-                    "cloud_browser": "env.cloud-browser", "local_agent": "behavior.local-agent"}
+                    "cloud_browser": "env.cloud-browser", LOCAL_AGENT: "behavior.local-agent"}
 _Level = namedtuple("_Level", "level method entry")  # the level a name comes from, how, and the list entry
 
 
@@ -64,7 +68,7 @@ def strong_name(identity, hits, lists_):
     return identity.entry
 
 
-def attribute(identity, cls, row, traces, automation, lists_, settings=None):
+def attribute(identity, cls, row, traces, automation, lists_, settings=None, marked=False):
     """The Attribution of a session whose class is already decided (see the module docstring)."""
     rule = (settings or datafiles.load(SETTINGS_FILE))["attribution"]
     if cls == BOT:
@@ -94,6 +98,8 @@ def attribute(identity, cls, row, traces, automation, lists_, settings=None):
                                   method=chosen.method))
     category = None if chosen else _category(identity, row, traces)
     category_reason = CATEGORY_REASONS.get(AUTOMATED_ROW if row == AUTOMATED_ROW else category)
+    if marked and category_reason == CATEGORY_REASONS[LOCAL_AGENT]:
+        category_reason = None  # an indicator in the page said an agent worked: behaviour is not alone
     if category_reason:  # an agent range already has its reason from the verification layer
         reasons.append(reason(category_reason))
     if chosen:
@@ -145,4 +151,4 @@ def _category(identity, row, traces):
         return "automated"
     if EXTENSION in kinds:
         return "extension"
-    return "cloud_browser" if CLOUD_HOST in kinds else "local_agent"
+    return "cloud_browser" if CLOUD_HOST in kinds else LOCAL_AGENT
