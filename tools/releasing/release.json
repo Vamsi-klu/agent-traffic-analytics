@@ -4,6 +4,12 @@
   "version_file": "agentcake/__init__.py",
   "out_dir": "dist",
   "tag_prefix": "v",
+  "readme": {
+    "$comment": "README.md and its Chinese translation show the repository's pictures from its main branch (branch), so between releases the repository's page shows the pictures main has. A release names every address of the repository's files there at its own tag instead (readme.py), in the files it ships: PyPI shows the wheel's README as the package's page for good, and the release folder carries both READMEs. The repository is the one pyproject.toml's [project.urls] names under source_label. An address at any other tag stops the build: a README the release has not caught up with.",
+    "files": ["README.md", "docs/locales/zh-CN/README.md"],
+    "branch": "main",
+    "source_label": "Source"
+  },
   "files": {
     "$comment": "The release's files other than the wheel and the release folder, whose names the wheel and source distribution formats fix (project.py). {name} is pyproject.toml's name, {version} the version.",
     "pyz": "{name}.pyz",

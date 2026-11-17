@@ -16,6 +16,7 @@ The modules, in the order build.py runs them:
 - settings.py: release.json, and the error every step raises;
 - source.py: the commit, its time (every file in the release carries it) and a clean copy of it to build in;
 - bundled_lists.py: the lists that ship with AgentCake: refreshed online before a release, checked at build;
+- readme.py: README's pictures, on main in the repository, named at the release's tag in what the release ships;
 - webapp.py: `npm ci && npm run build` of web/, copied into the package;
 - notices.py: the third-party notices that build writes into the pages, checked once they are in the package;
 - middleware.py: the sites' middleware, edge/, copied into the package;

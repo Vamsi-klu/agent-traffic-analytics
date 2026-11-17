@@ -6,12 +6,14 @@ Each README has one install sentence, in its own language and in a code block to
 and points at the INSTALL.md of this tag; it names both ways to read that file, curl and the GitHub CLI. The pictures
 are files of the repository (docs/assets/readme/, drawn by scripts in web/scripts/: the dashboard preview by
 readme-preview.mjs, the icon by readme-images.mjs) or shields.io's static badges,
-which link to the repository. Both READMEs name their pictures by full addresses at this release's tag: the release's
-files leave docs/assets/ out, so a path would show nothing in a downloaded copy, and PyPI shows README.md as the
-package's page (pyproject.toml's readme), where a path in the repository leads nowhere. For that page README.md also
-names the files it links to by their pages on GitHub; the Chinese README, which only GitHub and the release's folder
-show, links to them by their paths. The Chinese README shows the same pictures, links, commands and version as the
-English one, and each links to the other at the top.
+which link to the repository. Both READMEs name their pictures by full addresses on the repository's main branch: the
+release's files leave docs/assets/ out, so a path would show nothing in a downloaded copy, and PyPI shows README.md as
+the package's page (pyproject.toml's readme), where a path in the repository leads nowhere. On main, the repository's
+page shows the pictures main has between releases; a release names them at its own tag in the files it ships
+(tools/releasing/readme.py, test_release_readme.py), so its page on PyPI keeps them. For that page README.md also
+names the files it links to by their pages on GitHub at this release's tag; the Chinese README, which only GitHub and
+the release's folder show, links to them by their paths. The Chinese README shows the same pictures, links, commands
+and version as the English one, and each links to the other at the top.
 test_install_docs.py checks what both READMEs share with INSTALL.md (commands, links, addresses).
 """
 import os
@@ -25,6 +27,7 @@ from cake_server import ROOT, read  # noqa: E402  (needs the path above)
 from test_install_docs import (INSTALL_MD, LINK, README_MD, README_ZH, READMES, VERSION, code_blocks,  # noqa: E402
                                documented_commands, local_file, readme_name, release_tag, repositories,
                                repository_file, section)
+from tools.releasing import settings as release_settings  # noqa: E402
 
 PICTURE = re.compile(r"!\[[^\]]*\]\(([^)\s]+)\)|<img\s[^>]*\bsrc=\"([^\"]+)\"")
 BADGE = re.compile(r"\[!\[[^\]]*\]\(([^)\s]+)\)\]\(([^)\s]+)\)")  # [![alt](picture)](link)
@@ -32,6 +35,11 @@ STATIC_BADGE = "https://img.shields.io/badge/"  # protocol: shields.io's badges 
 RAW_INSTALL_MD = re.compile(r"https://raw\.githubusercontent\.com/\S+/INSTALL\.md")
 CJK = re.compile(r"[一-鿿]")
 TWO_WAYS = ("curl", "GitHub CLI")  # the sentence's two ways to read INSTALL.md
+
+
+def readme_branch():
+    """The branch both READMEs name the repository's pictures on (release.json "readme"), as a release reads it."""
+    return release_settings.load()["readme"]["branch"]
 
 
 def install_sentences(markdown):
@@ -60,6 +68,7 @@ class ReadmeDocuments(unittest.TestCase):
     def setUpClass(cls):
         cls.readme, cls.readme_zh = read(README_MD), read(README_ZH)
         cls.version, cls.tag = release_tag()
+        cls.branch = readme_branch()
         cls.name = readme_name(cls.readme)
         cls.repository, = repositories(read(INSTALL_MD))
 
@@ -98,11 +107,12 @@ class ReadmeDocuments(unittest.TestCase):
                 else:
                     self.assertTrue(link.startswith(f"https://github.com/{self.repository}/"), link)
 
-    def test_readme_md_names_the_repositorys_files_by_full_addresses_at_this_tag(self):
+    def test_readme_md_names_the_repositorys_files_by_full_addresses(self):
         """PyPI shows README.md as the package's page, where a path in the repository leads nowhere: each picture of
-        the repository is its raw address and each file README.md links to is its page on GitHub, both at this
-        release's tag, so they show alike on GitHub and on PyPI."""
-        raw = f"https://raw.githubusercontent.com/{self.repository}/{self.tag}/"
+        the repository is its raw address on main (a release names it at its own tag, test_release_readme.py) and each
+        file README.md links to is its page on GitHub at this release's tag, so they show alike on GitHub and on
+        PyPI."""
+        raw = f"https://raw.githubusercontent.com/{self.repository}/{self.branch}/"
         page = f"https://github.com/{self.repository}/blob/{self.tag}/"
         shown = {picture for picture, _ in pictures(README_MD, self.repository)}
         targets = shown | set(LINK.findall(self.readme)) | {link for _, link in BADGE.findall(self.readme)}
@@ -112,15 +122,17 @@ class ReadmeDocuments(unittest.TestCase):
             if repository_file(target, self.repository):
                 self.assertTrue(target.startswith(raw if target in shown else page), target)
 
-    def test_each_readme_shows_the_repositorys_pictures_by_full_addresses_at_this_tag(self):
-        """The release's files leave docs/assets/ out: a picture named by its path would be missing in the downloaded
-        folder's copy of either README, where its raw address at the tag shows it as GitHub does."""
-        raw = f"https://raw.githubusercontent.com/{self.repository}/{self.tag}/"
+    def test_each_readme_shows_the_repositorys_pictures_from_main(self):
+        """Between releases the repository's page shows the pictures main has: each README names every picture of the
+        repository by its raw address on main, never at a tag, where a picture stays as it was however main changes
+        it. A full address, not a path: the release's files leave docs/assets/ out, so a path would be missing in the
+        downloaded folder's copy of either README."""
+        raw = f"https://raw.githubusercontent.com/{self.repository}/{self.branch}/"
         for path, *_ in READMES:
             shown = [picture for picture, file in pictures(path, self.repository) if file]
             self.assertTrue(shown, path)
             for picture in shown:
-                self.assertTrue(picture.startswith(raw), f"{path} shows {picture}, not its address at {self.tag}")
+                self.assertTrue(picture.startswith(raw), f"{path} shows {picture}, not its address on {self.branch}")
 
     def test_the_chinese_readme_shows_what_the_english_one_does(self):
         self.assertEqual({file for _, file in pictures(README_MD, self.repository)},

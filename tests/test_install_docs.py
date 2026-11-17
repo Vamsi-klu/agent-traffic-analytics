@@ -51,6 +51,7 @@ STARTS_A_SERVER = {"start"}  # the one INSTALL.md command that leaves a process 
 HELP_ITSELF = ("help",)  # `agentcake help` prints the command list, so the list does not name it (cli.main)
 VERSION = re.compile(r"(?<![\w.])\d+\.\d+\.\d+(?![\w.]*\d)")
 LINK = re.compile(r"\[[^\]]*\]\(([^)\s]+)\)")
+MARKDOWN_PICTURE = re.compile(r"!\[[^\]]*\]\(([^)\s]+)\)")  # LINK finds a picture's address too
 LINK_ADDRESS = re.compile(r"\]\((https?://[^)\s]+)\)")  # a Markdown link's or picture's address, between its brackets
 WRITTEN_URL = re.compile(r"https?://[^\s`<>\"]+")
 INLINE_COMMAND = re.compile(r"`(agentcake (?:--)?[a-z][^`]*)`")
@@ -251,12 +252,14 @@ class InstallDocuments(unittest.TestCase):
     # ---------------------------------------------------------------------------------------- links and addresses
     def test_links_to_files_of_the_repository_exist(self):
         """A relative link, or a full address of a file of the repository (README.md's), which names this release's
-        tag."""
+        tag. A picture's address names main between releases instead (test_readme_docs.py)."""
         repository = self.repository()
         for path in SHOWN_TO_AGENTS:
-            for target in LINK.findall(read(path)):
+            text = read(path)
+            shown = set(MARKDOWN_PICTURE.findall(text))
+            for target in LINK.findall(text):
                 pinned = repository_file(target, repository)
-                if pinned:
+                if pinned and target not in shown:
                     self.assertEqual(pinned[0], self.tag, f"{os.path.basename(path)}: {target}")
                 local = local_file(target, path, repository)
                 if local:

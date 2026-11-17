@@ -32,6 +32,8 @@ def print_summary(summary):
     print(f"release: agentcake {summary['version']} from commit {summary['commit']} ({when})")
     print(f"release: lists built {summary['lists_age_days']} day(s) before the commit; cake.js "
           f"{summary['cakejs_bytes'][0]} -> {summary['cakejs_bytes'][1]} bytes")
+    pinned = ", ".join(f"{name} {count}" for name, count in summary["readme_pinned"].items())
+    print(f"release: README's addresses on {summary['readme_branch']} named at {summary['tag']}: {pinned}")
     for path in summary["files"]:
         print(f"  {os.path.basename(path)}  {os.path.getsize(path)} bytes  sha256 {checksums.sha256_of(path)}")
     tools = ", ".join(f"{tool} {version}" for tool, version in summary["toolchain"].items())
