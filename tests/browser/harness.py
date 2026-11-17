@@ -1,9 +1,11 @@
 """Running the browser side of the cake.js tests: the collector plus drive.mjs.
 
-What is needed: node; playwright-core (CAKE_PLAYWRIGHT, or web/node_modules/playwright-core of this checkout); Chromium
-(CAKE_CHROME, or Playwright's cache). missing() says what is not there, so a test can skip and say why.
+What is needed: node; playwright-core (CAKE_PLAYWRIGHT, or web/node_modules/playwright-core of this checkout); a
+Chromium that starts (CAKE_CHROME, or Playwright's cache: chromium.mjs, which every browser script launches it with).
+missing() says what is not there, so a test can skip and say why.
 CAKE_EVIDENCE_DIR keeps the uploads and drive logs there instead of in a temporary directory.
 """
+import functools
 import json
 import os
 import shutil
@@ -16,6 +18,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(os.path.dirname(HERE))
 DRIVE = os.path.join(HERE, "drive.mjs")
 DRIVE_TIMEOUT_S = 900
+CHROMIUM = os.path.join(HERE, "chromium.mjs")
+CHROMIUM_START_S = 120  # starting and closing Chromium takes seconds; this is for a computer under load
 
 
 def playwright_dir():
@@ -29,7 +33,23 @@ def missing():
         lacking.append("node")
     if not os.path.isdir(playwright_dir()):
         lacking.append(f"playwright-core at {playwright_dir()} (set CAKE_PLAYWRIGHT to its folder)")
+    if not lacking:
+        problem = chromium_problem(os.environ.get("CAKE_CHROME"), playwright_dir())
+        if problem:
+            lacking.append(f"a Chromium that starts (set CAKE_CHROME to its executable): {problem}")
     return lacking
+
+
+@functools.lru_cache(maxsize=None)
+def chromium_problem(chrome, playwright):
+    """Why the Chromium chromium.mjs picks does not start here, or None when it does; checked once per CAKE_CHROME
+    and playwright-core (the arguments), since starting it takes seconds."""
+    try:
+        out = subprocess.run(["node", CHROMIUM], capture_output=True, text=True, timeout=CHROMIUM_START_S,
+                             env=dict(os.environ, CAKE_PLAYWRIGHT=playwright))
+    except subprocess.TimeoutExpired:
+        return f"it did not start within {CHROMIUM_START_S} s"
+    return None if out.returncode == 0 else (out.stderr.strip() or f"chromium.mjs exited {out.returncode}")
 
 
 def out_dir(name):

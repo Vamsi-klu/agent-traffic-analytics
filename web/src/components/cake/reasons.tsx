@@ -1,6 +1,6 @@
-// One layer of "Why this verdict" (1 Name, 2 Verification, 3 Environment, 4 Behavior), from /api/session/<id>. DESIGN.md §6
+// One layer of "Why this classification" (1 Name, 2 Verification, 3 Environment, 4 Behavior), from /api/session/<id>. DESIGN.md §6
 // Each reason is its sentence and, under it in smaller, fainter type, what was seen (its detail), when it has one.
-// Every layer is shown, a layer that is off too (dashed, "Off here"), with the reasons cake gave; a layer cake gave no
+// Every layer is shown, a layer that is off too (dashed, "Not used"), with the reasons cake gave; a layer cake gave no
 // reason for still says what it means (off: it didn't run; no hit: nothing found), so no layer is ever a blank box.
 import { Activity, CircleSlash, Fingerprint, Keyboard, Monitor, MousePointerClick, ScrollText, Server, Tag, type LucideIcon } from "lucide-react"
 import { Badge } from "@/components/ui/badge"

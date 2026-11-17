@@ -1,6 +1,6 @@
 """The salt of the visitors' address hashes: agentcake/ip_salt.py.
 
-    python3 -I -m unittest discover -s tests -p test_ip_salt.py -v      (from the Agent Cake folder)
+    python3 -I -m unittest discover -s tests -p test_ip_salt.py -v      (from the AgentCake folder)
 
 One salt per period of ip_salt_days, then a new one. A replaced salt must be gone from the database's files too, not
 only from its settings row: until a checkpoint the old page is still in cake.db and its copies in cake.db-wal, and a

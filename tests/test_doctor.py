@@ -11,7 +11,7 @@ look into the storage): that line is a SKIP that says so and asks for doctor in 
 real macOS sandbox (sandbox-exec, where it can run).
 The website checks (`doctor --dir`) need no server: every page of a static site must load this cake's page script with
 its site key; a page without it is named; a data folder with no site key yet fails the check instead of crashing.
-Reaching Agent Cake: nothing listening is "not running, start it"; a connection a sandbox forbids (EPERM, EACCES,
+Reaching AgentCake: nothing listening is "not running, start it"; a connection a sandbox forbids (EPERM, EACCES,
 ENETUNREACH) is said to be the sandbox's doing, never "not running", and the lines that need the server are skipped.
 The running server's lines, with its answers made up (there is no demo shop to check): the page script line
 passes when /cake.js answers with this installation's site key in it, and a visit has arrived once a self-check or a
@@ -217,7 +217,7 @@ class WebsiteChecks(ScratchHome):
 
 class Reach(ScratchHome):
     """How doctor tells "nothing listens on 127.0.0.1" from "this process may not connect there" (a sandbox
-    without network, such as Codex's workspace-write, fails the connection with EPERM while Agent Cake runs outside)."""
+    without network, such as Codex's workspace-write, fails the connection with EPERM while AgentCake runs outside)."""
 
     def doctor_output(self):
         out = io.StringIO()

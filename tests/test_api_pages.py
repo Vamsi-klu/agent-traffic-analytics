@@ -2,7 +2,7 @@
 the entry page and the last the exit page, each with when it opened, how long the visit stayed, its actions and who
 took them.
 
-    python3 -I -m unittest discover -s tests -p test_api_pages.py -v      (from the Agent Cake folder)
+    python3 -I -m unittest discover -s tests -p test_api_pages.py -v      (from the AgentCake folder)
 
 Sessions are written into a scratch CAKE_HOME the way collect and judging.py leave them: cake.js's page records in the
 signals stream, its raw input, a batch row per upload with the page's address then (batches.url), the verdict's

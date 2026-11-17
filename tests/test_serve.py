@@ -1,6 +1,6 @@
 """`agentcake serve` ends cleanly on SIGINT and SIGTERM: agentcake/server.py's serve().
 
-    python3 -I -m unittest discover -s tests -p test_serve.py -v      (from the Agent Cake folder)
+    python3 -I -m unittest discover -s tests -p test_serve.py -v      (from the AgentCake folder)
 
 serve runs in the foreground under systemd, in a container (where Python is PID 1 and gets no default action for
 SIGTERM) and in a terminal (Ctrl+C is SIGINT). Each signal ends it with exit status 0, one line saying it stopped, no

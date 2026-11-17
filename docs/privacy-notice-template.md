@@ -56,7 +56,7 @@ not send what it records about your visit to anyone else, including the makers o
 session replay or usage telemetry leaves our server. [List anyone else who can access the server, such as your
 hosting provider.]
 
-**How long it is kept**: [until we delete it / for [30 / 90] days], and replays of visits made only by humans may be
+**How long it is kept**: [until we delete it / for [30 / 90] days], and replays of visits may be
 removed earlier when the storage set aside for them is full.
 
 **Your choices**: [You can refuse or withdraw your consent at any time in our cookie and consent settings; from then

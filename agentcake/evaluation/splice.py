@@ -6,7 +6,7 @@ keeps the truth: for each stretch, (first action, last action, who). The behavio
 together, so the splice tests where it puts the hand-offs and how it shares the actions out.
 
 A stretch runs from its first action to its last, as the hand-off recorder counts one: an action as
-agentcake/data/actions.json defines one for the whole of Agent Cake (visitor_actions.py: a click, a key or typed input,
+agentcake/data/actions.json defines one for the whole of AgentCake (visitor_actions.py: a click, a key or typed input,
 a wheel, a scroll the visitor's own input caused, the events the timeline's hand-offs take too); moving the pointer is
 none. A cut with no action is no stretch, so the splice is dropped, as the lab dropped a stretch that came out empty: a
 source can run out of input while its page events go on (the lab's Claude in Chrome session cic-03 has 15 s of input and
@@ -58,6 +58,17 @@ def build(agent_events, human_events, pattern, params=None, truth=None):
         used[who] += seconds
     spliced = join(parts, params["gap_ms"], truth or actions())
     return spliced if len(spliced["truth"]) == len(pattern) else None
+
+
+def each(agents, humans, params):
+    """agents, humans: [(name, events)]; (agent name, human name, pattern name, splice) for each agent with each human
+    by each pattern of params, without the splices build() drops."""
+    for agent_name, agent_events in agents:
+        for human_name, human_events in humans:
+            for pattern_name, pattern in params["patterns"].items():
+                spliced = build(agent_events, human_events, pattern, params)
+                if spliced is not None:
+                    yield agent_name, human_name, pattern_name, spliced
 
 
 def join(parts, gap_ms, truth):

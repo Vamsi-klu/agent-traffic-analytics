@@ -1,5 +1,6 @@
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
+import type { LucideIcon } from "lucide-react"
 import { cn } from "cn"
 
 // Frosting: cards share one frame. variant "default" = outline + hard shadow; "flat" = outline, no shadow;
@@ -49,16 +50,21 @@ function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
-function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
+// Frosting: a card's title has its icon before it (DESIGN.md §6.1)
+function CardTitle({ className, icon: Icon, children, ...props }: React.ComponentProps<"div"> & { icon?: LucideIcon }) {
   return (
     <div
       data-slot="card-title"
       className={cn(
         "font-heading text-lg leading-snug font-semibold group-data-[size=sm]/card:text-base",
+        Icon && "flex items-center gap-2",
         className
       )}
       {...props}
-    />
+    >
+      {Icon && <Icon className="size-5" aria-hidden />}
+      {children}
+    </div>
   )
 }
 

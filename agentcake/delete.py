@@ -1,10 +1,11 @@
 """Deleting visits: every trace of a session, so that nothing of it can be found afterwards.
 
 delete_sessions(ids, now_ms) is the one way to delete, run by the process that owns the data folder: the command line
-calls it when cake is not running (delete_command.py), and the running cake calls it for POST /api/delete (api.py),
-which the settings page and `agentcake delete` use while it runs. It holds store.LOCK, so collect, the judging and the
-maintenance thread wait until it is done. For the given ids, and the sessions the collector cut from a tab one of them
-names (session_split.with_continuations: an id kept in the visitor's browser names them all), it:
+calls it when cake is not running (delete_command.py), and the running cake calls it for POST /api/delete
+(api/deletion.py), which the settings page and `agentcake delete` use while it runs. It holds store.LOCK, so collect,
+the judging and the maintenance thread wait until it is done. For the given ids, and the sessions the collector cut
+from a tab one of them names (session_split.with_continuations: an id kept in the visitor's browser names them all),
+it:
 
 1. checks that each chunk the chunks table gives a visit is that visit's (the chunk's header names it), then
    overwrites those bytes with zeros where they are. A chunk file is otherwise only appended to; the zeros are dead

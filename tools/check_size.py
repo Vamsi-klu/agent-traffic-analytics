@@ -8,17 +8,18 @@ leaving out the folder names in "skip_dir_names" and the paths in "exempt" (bund
 the development repository's notes), each listed there with its reason. Prints one line per file over the limit and a count; the exit code is
 0 when the count is 0.
 """
-import json
 import os
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-LIMITS = os.path.join(ROOT, "tools", "limits.json")
+if ROOT not in sys.path:
+    sys.path.insert(0, ROOT)  # run as a script under python3 -I, the repository root is not on sys.path
+
+from tools.code_checks import folder_argument, limits  # noqa: E402
 
 
 def settings():
-    with open(LIMITS, encoding="utf-8") as f:
-        return json.load(f)["check_size"]
+    return limits("check_size")
 
 
 def source_files(root, rules):
@@ -46,7 +47,7 @@ def oversized(root, rules=None):
 
 
 def main(argv):
-    root = os.path.abspath(argv[0]) if argv else ROOT
+    root = folder_argument(argv, __doc__)
     rules = settings()
     found = oversized(root, rules)
     for rel, lines in found:

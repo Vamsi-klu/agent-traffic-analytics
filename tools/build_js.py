@@ -1,4 +1,5 @@
-"""Build Agent Cake's page script, agentcake/static/cake.js, and fill in its runtime values.
+"""Build AgentCake's page script, agentcake/static/cake.js, from its sources: a tool of the repository, which the
+package does not carry (the release leaves agentcake/static/src/ out and ships the built file).
 
 cake.js is made from the sources in agentcake/static/src/, in the order agentcake/data/cakejs.json lists them
 ("build" -> "parts"), plus the "script" settings and the data files listed under "build" -> "data" (the privacy rules
@@ -8,11 +9,11 @@ page but window.cake; the parts share a private namespace, C. The licences of th
 in /*! ... */ comments at the top. The development build is this plain concatenation; the release build minifies the
 same output and keeps those comments.
 
-When cake serves /cake.js it calls with_runtime() to put in the values that belong to one installation (the site key,
-settings the site owner turned on) between the two runtime markers.
+The script leaves an empty object between its two runtime markers; when cake serves /cake.js, agentcake/assets.py puts
+the values that belong to one installation there (the site key, settings the site owner turned on).
 
-    python3 -I agentcake/build_js.py           write agentcake/static/cake.js
-    python3 -I agentcake/build_js.py --check   exit 1 when the committed cake.js is not what the sources make now
+    python3 -I tools/build_js.py           write agentcake/static/cake.js
+    python3 -I tools/build_js.py --check   exit 1 when the committed cake.js is not what the sources make now
 """
 import argparse
 import hashlib
@@ -20,7 +21,7 @@ import json
 import os
 import sys
 
-PACKAGE_DIR = os.path.dirname(os.path.abspath(__file__))
+PACKAGE_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "agentcake")
 CONFIG_PATH = os.path.join(PACKAGE_DIR, "data", "cakejs.json")
 SOURCE_MAP_PREFIX = "//# sourceMappingURL="
 
@@ -92,8 +93,8 @@ def build(config=None):
     vendored = [part for part, _ in parts if "licence" in part]
     marker = settings["runtime_marker"]
     lines = [
-        f"/*! Agent Cake page script (cake.js), upload format v{config['script']['format_version']}, build {build_id}."
-        f" Made by agentcake/build_js.py from agentcake/static/src/ and agentcake/data/cakejs.json; do not edit."
+        f"/*! AgentCake page script (cake.js), upload format v{config['script']['format_version']}, build {build_id}."
+        f" Made by tools/build_js.py from agentcake/static/src/ and agentcake/data/cakejs.json; do not edit."
         f" Bundles {', '.join(p['name'] for p in vendored)}, whose licences follow. */",
         *(licence_comment(part) for part in vendored),
         ";(function () {",
@@ -113,23 +114,6 @@ def build(config=None):
     return "\n".join(lines)
 
 
-def with_runtime(script, values, marker=None):
-    """script with values (a JSON object) between its runtime markers, replacing what was there."""
-    marker = f"/*{marker or load_config()['build']['runtime_marker']}*/"
-    start = script.index(marker) + len(marker)
-    end = script.index(marker, start)
-    # Escaping "/" keeps a value from ever writing "/*" or "*/" next to the markers.
-    filled = json.dumps(values, separators=(",", ":"), sort_keys=True).replace("/", "\\/")
-    return script[:start] + filled + script[end:]
-
-
-def served_script(values):
-    """cake.js as cake serves it: the committed build with this installation's runtime values filled in."""
-    config = load_config()
-    script = read(os.path.join(PACKAGE_DIR, config["build"]["out"]))
-    return with_runtime(script, values, config["build"]["runtime_marker"])
-
-
 def main(argv=None):
     parser = argparse.ArgumentParser(description="Build agentcake/static/cake.js from agentcake/static/src/.")
     parser.add_argument("--check", action="store_true", help="only check that the committed cake.js is current")
@@ -139,7 +123,7 @@ def main(argv=None):
     script = build(config)
     if args.check:
         current = read(out) if os.path.isfile(out) else None
-        print("cake.js is current" if current == script else f"{out} is stale: run python3 -I agentcake/build_js.py")
+        print("cake.js is current" if current == script else f"{out} is stale: run python3 -I tools/build_js.py")
         return 0 if current == script else 1
     with open(out, "w", encoding="utf-8", newline="\n") as f:
         f.write(script)

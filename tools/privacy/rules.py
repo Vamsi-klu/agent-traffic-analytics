@@ -1,6 +1,6 @@
 """What a privacy scan looks for, built from tools/privacy/rules.json.
 
-Rules(canaries, secret, extra_own).find(text) returns the kind of every thing in text that an Agent Cake data folder
+Rules(canaries, secret, extra_own).find(text) returns the kind of every thing in text that an AgentCake data folder
 must never hold, one entry per occurrence, in CATEGORIES' terms; never the text that matched, so that a scan can
 only say how many and where. Each kind and what it leaves out (with why) is in rules.json:
 

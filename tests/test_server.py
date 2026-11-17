@@ -1,6 +1,6 @@
 """The local listener of a real `agentcake serve` (server.py): what other sites' pages can and cannot do.
 
-    python3 -I -m unittest discover -s tests -p test_server.py -v      (from the Agent Cake folder)
+    python3 -I -m unittest discover -s tests -p test_server.py -v      (from the AgentCake folder)
 
 Another site may post visits to collect (a dev server on another port is another origin), so collect and its
 preflight carry CORS headers; nothing else does, so no other page can read the local pages' data, and a preflight

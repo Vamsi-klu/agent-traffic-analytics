@@ -1,4 +1,4 @@
-"""Each data set's sessions judged by Agent Cake's four layers, one row per session with its answer.
+"""Each data set's sessions judged by AgentCake's four layers, one row per session with its answer.
 
     lab(sessions, signals_by_run) -> rows            our lab's sessions: every layer (local mode)
     lab_signals(sessions) -> rows                    the lab's signal recordings: environment and names, no events
@@ -9,6 +9,7 @@
     posthog(units, settings) -> rows                 PostHog replays: behaviour only (reference)
     public_humans(items) -> rows                     real people from public data sets: behaviour only (scoreboard)
     store(labelled) -> rows                          CAKE_HOME sessions listed in truth_goal.jsonl
+    site(labelled) -> rows                           a website's own sessions, labelled afterwards (held out)
     named(cases) -> rows                             threshold A7's User-Agents, nothing else known
 
 A row: {"id", "source", "group", "truth": {"class", "row", ...}, "class", "row", "name", "kind", "verification",
@@ -24,6 +25,7 @@ from agentcake.evaluation import evidence as evidence_builder
 
 TOO_LITTLE = "too_little_data"
 RECORDED, SELFCOLLECT = "recorded", "selfcollect"  # people's agent recordings; the ones we ran ourselves
+SITE = "site"  # a website's own sessions, labelled afterwards: held out
 
 
 def row(row_id, source, group, truth, evidence, site=None, holdout=None):
@@ -126,6 +128,13 @@ def public_humans(items):
 def store(labelled):
     return [row(item["h"], "store", item["truth"].get("group") or item["truth"].get("case"), item["truth"],
                 item["evidence"]) for item in labelled]
+
+
+def site(labelled):
+    """A copy of a website's data folder read through its list (sources.py): each session with its line's answer,
+    group and site, judged as AgentCake judged it there."""
+    return [row(item["h"], SITE, item["truth"].get("group"), item["truth"], item["evidence"], item["truth"].get("site"))
+            for item in labelled]
 
 
 def named(cases):

@@ -19,9 +19,22 @@ another product is listed as outranked; a level whose evidence names several pro
 the list entry that made it one. Products without a trace of their own (browser-use, Playwright MCP and Stagehand
 drive Playwright or the DevTools protocol) stay unnamed: a name is never guessed.
 
+A browser people also use by hand (a kind marked "browser" in kinds.json, such as an AI desktop app's own browser,
+named by its User-Agent or by a product rule) says where the page is open, not who acts in it. Its name never counts
+toward the class (strong_name, class_evidence; the name layer finds no agent in it) and its product rule is a fact for
+neither side (env_reasons): automation traces and behaviour decide, as in any other browser, and when they find an
+agent, the browser's name is the agent's (levels 2 and 3) unless another product's rule names it. A rule its list entry
+says that browser matches by design (names.json "by_design", measured) is left out (unexplained): it says nothing about
+automation in that browser.
+
     strong_name(identity, hits, lists_) -> entry or None   levels 1 to 3, which the class depends on (verdict.py)
     attribute(identity, cls, row, traces, automation, lists_, settings=None, marked=False) -> Attribution
     env_candidates(hits, settings) -> rows for the labels table: the names environment hits point to
+    browser_rules(hits, lists_) -> the hard product rules among hits that name a browser people also use by hand
+    unexplained(hits, identity) -> the hits without the rules the declared browser matches by design
+    class_evidence(identity) -> the kinds of evidence the name and verification layers give the class
+    row_of(named, identity, browsers, lists_) -> the Agent row of the name the class rests on, else the browser's
+    env_reasons(hits, browsers) -> the environment layer's reasons, a browser's own product rule in no side's tone
 
 identity: verdict_identity.Identity; traces: the environment hits the class rests on (hard product and extension hits,
 soft hits that counted); automation: the hard automation and spoofing hits; marked: whether the behaviour timeline was
@@ -32,10 +45,11 @@ from dataclasses import dataclass
 
 from agentcake import datafiles
 from agentcake.detect.verdict_identity import IMPERSONATION, VERIFIED
-from agentcake.detect.verdict_text import reason
+from agentcake.detect.verdict_text import NO_TONE, env_reason, reason
 
 SETTINGS_FILE = "data/verdict.json"
 AGENT, MIXED, BOT = "agent", "mixed", "bot"
+HARD = "hard"  # env_rules.json strength of a trace that counts alone
 PRODUCT, EXTENSION, CLOUD_HOST = "product", "extension", "cloud_host"
 AUTOMATED_ROW = "automated"
 DECLARED = "declared"
@@ -59,13 +73,49 @@ class Attribution:
 
 
 def strong_name(identity, hits, lists_):
-    """A verified name, else the product all product rules agree on, else a declared one (None if impersonated)."""
+    """A verified name, else the product all product rules agree on, else a declared one (None if impersonated); a
+    browser people also use by hand is none of them (see the module docstring)."""
     if identity.status == VERIFIED:
         return identity.entry
-    products = _distinct(_entries(lists_, [hit.names for hit in hits if hit.kind == PRODUCT and hit.names]))
+    products = [entry for entry in _distinct(_entries(lists_, [hit.names for hit in hits
+                                                                 if hit.kind == PRODUCT and hit.names]))
+                if not entry.get("browser")]
     if len(products) == 1:
         return products[0]
-    return identity.entry
+    return None if _is_browser(identity.entry) else identity.entry
+
+
+def browser_rules(hits, lists_):
+    """The hard product rules among the hits that name a browser people also use by hand."""
+    return [hit for hit in hits if hit.strength == HARD and hit.kind == PRODUCT and hit.names
+            and _is_browser(lists_.name(hit.names))]
+
+
+def unexplained(hits, identity):
+    """The hits, without those the browser the session declares matches by design (its list entry's by_design)."""
+    explained = set((identity.declared or {}).get("by_design") or ())
+    return [hit for hit in hits if hit.rule not in explained]
+
+
+def class_evidence(identity):
+    """The kinds of evidence the name and verification layers give the class: a browser's declared name gives none,
+    the published agent range its address is in still counts."""
+    if _is_browser(identity.entry) and identity.status != VERIFIED:
+        return [kind for kind in identity.evidence if kind != DECLARED]
+    return list(identity.evidence)
+
+
+def row_of(named, identity, browsers, lists_):
+    """The Agent row of the name the class rests on, else of the browser the page is open in, else None."""
+    declared = [identity.declared] if _is_browser(identity.declared) else []
+    found = _distinct(declared + _entries(lists_, [hit.names for hit in browsers]))
+    shown = named or (found[0] if len(found) == 1 else None)
+    return (shown or {}).get("row")
+
+
+def env_reasons(hits, browsers):
+    """The environment layer's reasons: a browser's own product rule says where the page is open, for neither side."""
+    return [dict(env_reason(hit), tone=NO_TONE) if hit in browsers else env_reason(hit) for hit in hits]
 
 
 def attribute(identity, cls, row, traces, automation, lists_, settings=None, marked=False):
@@ -77,7 +127,8 @@ def attribute(identity, cls, row, traces, automation, lists_, settings=None, mar
     if cls not in (AGENT, MIXED):
         return Attribution()
     levels = (("verified", identity.via, [identity.entry] if identity.status == VERIFIED else []),
-              ("product_rule", "product-rule", _entries(lists_, [h.names for h in traces if h.kind == PRODUCT])),
+              ("product_rule", "product-rule",
+               _agents_first(_entries(lists_, [h.names for h in traces if h.kind == PRODUCT]))),
               (DECLARED, DECLARED, [identity.declared] if identity.declared and identity.status != IMPERSONATION
                else []),
               ("extension_trace", "extension-trace", _entries(lists_, [h.suggests for h in traces])),
@@ -133,6 +184,16 @@ def _distinct(entries):
             seen.add(entry["id"])
             out.append(entry)
     return out
+
+
+def _is_browser(entry):
+    return bool(entry and entry.get("browser"))
+
+
+def _agents_first(entries):
+    """The entries that are no browser people also use by hand, else all of them: a browser's own product rule names
+    the agent only when no other product rule does (strong_name leaves it out the same way)."""
+    return [entry for entry in entries if not _is_browser(entry)] or entries
 
 
 def _naming_reasons(level, method, entry):

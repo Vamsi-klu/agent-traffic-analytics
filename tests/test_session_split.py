@@ -99,6 +99,7 @@ class Splitting(WebCase):
         self.con.close()
         delete.delete_sessions([TAB])
         self.con = store.db()
+        self.addCleanup(self.con.close)
         self.assertEqual(self.one("SELECT COUNT(*) FROM sessions")[0], 0)
         self.assertEqual(self.one("SELECT COUNT(*) FROM session_web")[0], 0)
         self.assertEqual(self.one("SELECT COUNT(*) FROM batches")[0], 0)

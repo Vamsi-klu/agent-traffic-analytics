@@ -18,11 +18,11 @@ The page script, `cake.js`, is the one line a site adds. It records:
 - **The session replay** (rrweb): the page and how it changes. Every form input is masked: only its length is kept.
   Text typed into editable elements (`contenteditable`) is masked the same way. Elements marked `data-cake-private`,
   password fields and payment card fields (`autocomplete="cc-…"`) are not recorded at all: the replay shows an empty
-  box of their size. So are the parts of your pages you list on the settings page ("Hide these parts of your pages",
+  box of their size. So are the parts of your pages you list on the settings page ("Mask elements",
   the `hide_selectors` setting, CSS selectors).
 - **Raw input events**: where the mouse, pointer or finger was and when, wheel and scroll movements, and whether each
   event came from the device (the browser's `isTrusted`). A key press is kept only as its time and its class (letter,
-  digit, space, symbol, delete, enter, tab, modifier, arrow, other), never which key. An input is kept only as the
+  digit, space, symbol, delete, enter, tab, modifier, arrow, unidentified, other), never which key. An input is kept only as the
   kind of input (typed, pasted, deleted, …) and the field's length, never the text. Nothing typed into a private
   element is kept, not even its timing.
 - **What the browser shows about itself**: user agent and client hints, screen and window sizes, time zone, the
@@ -141,9 +141,9 @@ AgentCake is an open-source project. We're looking for early users to help shape
 first time you open the local dashboard, AgentCake asks you to register: with your e-mail address we can ask you for
 feedback and tell you about product updates. You give your e-mail address (required) and your company (optional),
 and there is a separate box for product updates: you get product update e-mails only if you tick it, and every one of
-them lets you unsubscribe. The page says: "Your registration details will be sent to Tartini AI. No website traffic,
-session replay or product usage telemetry is sent." Next to the button, "See what's sent" shows exactly what will be
-sent.
+them lets you unsubscribe. The page says: "Only your registration details are sent to Tartini AI. AgentCake doesn't
+send website traffic, session replays, or product usage telemetry." Next to the button, "View registration data"
+shows exactly what will be sent.
 
 - **What is sent**: your e-mail address, your company if you gave one, whether you ticked the product-updates box, and
   the version of the consent text you were shown. Nothing else: no installation id, no AgentCake version, no usage
@@ -154,7 +154,7 @@ sent.
   the settings page can show them.
 - **Where**: to Tartini AI (tartini.ai), whose server records it in its log, kept for 30 days, and once a day sends
   that day's new registrations to admin@tartini.ai in one e-mail; it is not stored in a database. The address it is
-  sent to is the `register_url` setting; the request carries the text "See what's sent" shows, exactly, and a
+  sent to is the `register_url` setting; the request carries the text "View registration data" shows, exactly, and a
   User-Agent of only the product's name.
 - **What waits for it**: only the local dashboard. The collecting of visits by `cake.js`, the command line and
   `agentcake doctor` all work without registering.

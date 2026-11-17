@@ -29,13 +29,13 @@ exclude = ["bin/left-out"]
 """
 FILES = {
     "pyproject.toml": PYPROJECT,
-    "README.md": "# A made-up Agent Cake\n\nFor the release tests.\n",
+    "README.md": "# A made-up AgentCake\n\nFor the release tests.\n",
     "SERVER.md": "# Server\n",
     "bin/agentcake": "#!/bin/sh\necho made-up\n",
     "bin/left-out": "left out by the exclude pattern\n",
-    "agentcake/__init__.py": f'"""A made-up Agent Cake for the release tests.\n\nNot the real one."""\n\n__version__ = "{VERSION}"\n',
+    "agentcake/__init__.py": f'"""A made-up AgentCake for the release tests.\n\nNot the real one."""\n\n__version__ = "{VERSION}"\n',
     "agentcake/cli.py": "def main():\n    print('made-up cli')\n    return 0\n",
-    "agentcake/data/product.json": '{"name": "Agent Cake"}\n',
+    "agentcake/data/product.json": '{"name": "AgentCake"}\n',
 }
 
 

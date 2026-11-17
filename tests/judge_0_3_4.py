@@ -1,6 +1,6 @@
 """cake 0.3.4's judge, kept with the tests as the reference agentcake/detect/timeline.py is checked against.
 
-Nothing in Agent Cake runs it: the four-layer verdict (agentcake/detect/verdict.py) took its place, and
+Nothing in AgentCake runs it: the four-layer verdict (agentcake/detect/verdict.py) took its place, and
 timeline.py is its per-action half read from the raw-event format. tests/test_timeline.py runs both on the same
 input and expects the same numbers, and expects our PostHog study's results for this judge on the lab's rrweb
 recordings. It was agentcake/detect/legacy.py (cake.py 0.3.4's judge, with its numbers in data/model.json and its

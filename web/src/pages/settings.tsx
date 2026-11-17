@@ -1,9 +1,9 @@
-// Settings. Like PostHog 1.0's setup page: your website's domain (the project: the top bar shows it) and the
-// line to add to its pages; then where visits come from and when each last arrived (asked again every refresh_ms, so a first visit shows within 10 seconds), what
-// the server half says about your site's server, retention and the disk (as cake 0.3.4: keep everything by default, a
-// budget, free space from old human-only replays, and below the disk's floor), the page script's two settings, how
-// AgentCake decides (the four layers and the lists' age, which are not settings), the registration and deleting
-// everything. Data: GET /api/settings and GET /api/register; each change is saved at once with POST /api/settings,
+// Settings, like PostHog 1.0's setup page, in rows of two cards: your website's domain (the project: the top bar shows
+// it) and the line to add to its pages, beside the page script's two settings; where visits come from and when each
+// last arrived (asked again every refresh_ms), with what the server middleware says about your site's server, beside how
+// AgentCake decides (the four layers and the lists' age, which are not settings); keeping data (as cake 0.3.4: keep
+// everything by default, a budget whose cleanup deletes the oldest replays of every kind of session, and the disk's
+// floor), beside the registration and deleting everything. Data: GET /api/settings and GET /api/register; each change is saved at once with POST /api/settings,
 // which answers the new state; "Delete all data" posts /api/delete after its Dialog.
 import { useEffect, useState } from "react"
 import { Code, Database, Fingerprint, Globe, HardDrive, Plug, Server, ShieldCheck, Trash2 } from "lucide-react"
@@ -17,12 +17,12 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
-import { BudgetWarning, Columns, CopyBlock, PageHeader, SettingRow, Status, StorageUse } from "@/components/cake/bits"
+import { BudgetWarning, Columns, CopyBlock, DocumentLink, PageHeader, SettingRow, Status, StorageUse } from "@/components/cake/bits"
 import { Loaded } from "@/components/cake/page-state"
 import { LAYERS } from "@/components/cake/reasons"
 import { api, asApiError, useApi } from "@/data/api"
 import type { Connection, LayerId, Registration, Settings, SettingsUpdate } from "@/data/types"
-import { PERCENT, bytes, mbToBytes, percent } from "@/lib/format"
+import { NO_VALUE, PERCENT, bytes, mbToBytes, percent } from "@/lib/format"
 import { PRODUCT_NAME } from "@/lib/product"
 import { WORDS, sessionCount } from "@/lib/words"
 import { useSetProjectDomain } from "@/pages/project"
@@ -79,6 +79,7 @@ function SettingsForm({ initial, registration }: { initial: Settings; registrati
     return () => clearInterval(timer)
   }, [initial.refresh_ms])
   const budget = mbToBytes(s.budget_mb), used = s.storage.used_bytes, warn = s.storage.warn_at_pct
+  const where = s.route === "server" ? "this server" : "this computer"
   const lastSeen = (when: string | null) => <span className="text-xs text-muted-foreground">{when ? `Last received: ${when}` : "No data yet"}</span>
   const status = (source: keyof Settings["sources"]) => (
     <div className="flex flex-col items-end gap-1"><Status tone={CONNECTION[s.sources[source]].tone}>{CONNECTION[s.sources[source]].label}</Status>{lastSeen(s.last_seen[source])}</div>
@@ -89,7 +90,7 @@ function SettingsForm({ initial, registration }: { initial: Settings; registrati
       {error && <Alert variant="destructive"><AlertDescription>{`Your change couldn't be saved. ${error}`}</AlertDescription></Alert>}
       <Columns ratio="1-1" equalHeight>
         <Card>
-          <CardHeader><CardTitle className="flex items-center gap-2"><Globe className="size-5" aria-hidden />Your website</CardTitle></CardHeader>
+          <CardHeader><CardTitle icon={Globe}>Your website</CardTitle></CardHeader>
           <CardContent className="flex flex-col gap-3">
             <Label htmlFor="site-domain">Your website's domain</Label>
             <form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); void save({ site_domain: domain }).then((saved) => { if (saved) { setDomain(saved.site_domain); setProjectDomain(saved.site_domain) } }) }}>
@@ -97,13 +98,13 @@ function SettingsForm({ initial, registration }: { initial: Settings; registrati
               <Button type="submit" variant="outline" disabled={domain === s.site_domain}>Save</Button>
             </form>
             <p id="site-domain-about" className="text-xs text-muted-foreground">Visits from other domains are stored but not included in dashboard metrics.</p>
-            <SettingRow title="Site key" desc="The public site key is included in each page's source code and sent with every visit." control={<code className="font-mono text-sm">{s.site_key ?? "—"}</code>} />
+            <SettingRow title="Site key" desc="The public site key is included in each page's source code and sent with every visit." control={<code className="font-mono text-sm">{s.site_key ?? NO_VALUE}</code>} />
             <p className="text-sm">{WORDS.scriptWhere}</p>
             <CopyBlock text={s.script_tag} />
           </CardContent>
         </Card>
         <Card>
-          <CardHeader><CardTitle className="flex items-center gap-2"><Code className="size-5" aria-hidden />Page script</CardTitle></CardHeader>
+          <CardHeader><CardTitle icon={Code}>Page script</CardTitle></CardHeader>
           <CardContent className="flex flex-col gap-3">
             <SettingRow title="Extra automation detection" tags={<Badge variant="tag">Off by default</Badge>}
               desc="Detects some automation tools and browser extensions by monitoring how they find elements on your page. This modifies functions that your page calls."
@@ -123,20 +124,20 @@ function SettingsForm({ initial, registration }: { initial: Settings; registrati
       </Columns>
       <Columns ratio="1-1" equalHeight>
         <Card>
-          <CardHeader><CardTitle className="flex items-center gap-2"><Plug className="size-5" aria-hidden />Data sources</CardTitle></CardHeader>
+          <CardHeader><CardTitle icon={Plug}>Data sources</CardTitle></CardHeader>
           <CardContent>
             <SettingRow title="Your website" tags={<Badge variant="tag">{s.route === "server" ? "On a server" : "On this computer"}</Badge>}
               desc={s.route === "server" ? "Visits reach this server through your website's domain." : "Visits from a website on this computer (localhost) are recorded here."} control={status("site")} />
             <SettingRow title="Server middleware" tags={<Badge variant="tag">Optional</Badge>} control={status("server_half")}
               desc={<>The server middleware adds signed tokens to your pages. You can also import access logs. Both sources show each request's headers, signature validity, and IP address owner.{s.server_half.logs && <span className="mt-1 block">{`Last log import: ${s.server_half.logs.last} (${s.server_half.logs.format})`}{[...s.server_half.logs.missing, ...s.server_half.logs.empty].length > 0 && <span className="block">{`This log doesn't include ${[...s.server_half.logs.missing, ...s.server_half.logs.empty].join(", ")}.`}</span>}</span>}</>} />
             {s.server_half.missing.length > 0 && (
-              <Alert variant="warn"><Server aria-hidden /><AlertDescription className="text-foreground">{`Your server didn't receive ${s.server_half.missing.join(", ")} on its latest page requests. A proxy, CDN, or load balancer in front of the server removes these headers before the server middleware can record them.`}</AlertDescription></Alert>
+              <Alert variant="warn"><Server aria-hidden /><AlertDescription>{`Your server didn't receive ${s.server_half.missing.join(", ")} on its latest page requests. A proxy, CDN, or load balancer in front of the server removes these headers before the server middleware can record them.`}</AlertDescription></Alert>
             )}
-            {s.route === "this_computer" && <Alert variant="warn"><Server aria-hidden /><AlertDescription className="text-foreground">{`This computer can't receive data from public visits. To record them, install ${PRODUCT_NAME} on a server your site can reach. For setup steps, see SERVER.md.`}</AlertDescription></Alert>}
+            {s.route === "this_computer" && <Alert variant="warn"><Server aria-hidden /><AlertDescription><>This computer can't receive data from public visits. To record them, install {PRODUCT_NAME} on a server your site can reach. For setup steps, see <DocumentLink path="SERVER.md" />.</></AlertDescription></Alert>}
           </CardContent>
         </Card>
         <Card>
-          <CardHeader><CardTitle className="flex items-center gap-2"><Fingerprint className="size-5" aria-hidden />How detection works</CardTitle></CardHeader>
+          <CardHeader><CardTitle icon={Fingerprint}>How detection works</CardTitle></CardHeader>
           <CardContent>
             {(Object.keys(LAYERS) as LayerId[]).map((id) => (
               <SettingRow key={id} title={`${LAYERS[id].n} · ${LAYERS[id].name}`} desc={LAYER_WORDS[id]} control={<Badge variant="tag">{LAYER_WHERE[id]}</Badge>} />
@@ -145,7 +146,7 @@ function SettingsForm({ initial, registration }: { initial: Settings; registrati
               control={<Badge variant="tag">{s.lists.stale ? "Out of date" : "Up to date"}</Badge>} />
             {s.lists.stale && (
               <div className="flex flex-col gap-2">
-                <Alert variant="warn"><AlertDescription className="text-foreground">{`These lists are more than ${s.lists.max_age_days} days old. To get newer lists, run this command or upgrade ${PRODUCT_NAME}:`}</AlertDescription></Alert>
+                <Alert variant="warn"><AlertDescription>{`These lists are more than ${s.lists.max_age_days} days old. To get newer lists, run this command or upgrade ${PRODUCT_NAME}:`}</AlertDescription></Alert>
                 <CopyBlock text={s.lists.update_command} />
               </div>
             )}
@@ -154,19 +155,19 @@ function SettingsForm({ initial, registration }: { initial: Settings; registrati
       </Columns>
       <Columns ratio="1-1" equalHeight>
         <Card>
-          <CardHeader><CardTitle className="flex items-center gap-2"><HardDrive className="size-5" aria-hidden />Data retention</CardTitle></CardHeader>
+          <CardHeader><CardTitle icon={HardDrive}>Data retention</CardTitle></CardHeader>
           <CardContent className="flex flex-col gap-3">
             <ToggleGroup type="single" variant="outline" value={String(s.retention_days)} onValueChange={(v) => v && void save({ retention_days: Number(v) })} aria-label="Session retention" className="flex-wrap">
               {s.retention_choices.map((d) => <ToggleGroupItem key={d} value={String(d)}>{d === 0 ? "Keep everything" : `${d} days`}</ToggleGroupItem>)}
             </ToggleGroup>
             {s.retention_days === 0
               ? <p className="text-sm text-muted-foreground">Sessions are kept until you delete them.</p>
-              : <Alert variant="warn"><AlertDescription className="text-foreground">Sessions older than {s.retention_days} days are deleted every night, including Agent sessions.</AlertDescription></Alert>}
+              : <Alert variant="warn"><AlertDescription>Sessions older than {s.retention_days} days are deleted every night, including Agent sessions.</AlertDescription></Alert>}
             <StorageUse usedBytes={used} budgetBytes={budget} warnAtPct={warn} daysLeft={s.storage.days_left}
               disk={s.storage.disk} replaysStopped={s.storage.replays_stopped} />
             <BudgetWarning usedPct={percent(used, budget)} warnAtPct={warn} freeAtPct={s.storage.free_to_pct} autoFree={s.auto_free} full={s.storage.replays_stopped === "budget"} />
             <p className="text-xs text-faint-foreground">{`A warning appears here and on the dashboard when usage reaches ${warn}% (${bytes((budget * warn) / 100)}).`}</p>
-            <SettingRow title="Disk budget" desc={`The maximum disk space the database can use on ${s.route === "server" ? "this server" : "this computer"}.`}
+            <SettingRow title="Disk budget" desc={`The maximum disk space the database can use on ${where}.`}
               control={<Select value={String(s.budget_mb)} onValueChange={(v) => void save({ budget_mb: Number(v) })}><SelectTrigger aria-label="Disk budget"><SelectValue /></SelectTrigger><SelectContent>{s.budget_choices_mb.map((mb) => <SelectItem key={mb} value={String(mb)}>{bytes(mbToBytes(mb))}</SelectItem>)}</SelectContent></Select>} />
             <SettingRow title="Automatic cleanup" tags={<Badge variant="tag">On by default</Badge>}
               desc={s.auto_free
@@ -178,10 +179,10 @@ function SettingsForm({ initial, registration }: { initial: Settings; registrati
         <div className="flex flex-col gap-5">
           <RegistrationCard registration={registration} />
           <Card className="flex-1">
-            <CardHeader><CardTitle className="flex items-center gap-2"><Database className="size-5" aria-hidden />Your data</CardTitle></CardHeader>
+            <CardHeader><CardTitle icon={Database}>Your data</CardTitle></CardHeader>
             <CardContent className="flex flex-col gap-3">
               <p className="text-sm text-muted-foreground">{`${s.database.path} · ${bytes(used)} · ${sessionCount(s.database.sessions)}`}</p>
-              <DeleteEverything sessions={s.database.sessions} where={s.route === "server" ? "this server" : "this computer"} onDeleted={() => api.settings().then(setS, () => undefined)} />
+              <DeleteEverything sessions={s.database.sessions} where={where} onDeleted={() => api.settings().then(setS, () => undefined)} />
             </CardContent>
           </Card>
         </div>
@@ -194,7 +195,7 @@ function SettingsForm({ initial, registration }: { initial: Settings; registrati
 function RegistrationCard({ registration: r }: { registration: Registration }) {
   return (
     <Card>
-      <CardHeader><CardTitle className="flex items-center gap-2"><ShieldCheck className="size-5" aria-hidden />Data collection and registration</CardTitle></CardHeader>
+      <CardHeader><CardTitle icon={ShieldCheck}>Data collection and registration</CardTitle></CardHeader>
       <CardContent className="flex flex-col gap-3 text-sm">
         <p className="font-extrabold">{PRODUCT_NAME} doesn't collect usage data or telemetry.</p>
         {r.sent ? (

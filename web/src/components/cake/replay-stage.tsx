@@ -3,7 +3,7 @@
 // under it (play, time, speed, Jump to hand-off). The player's frame and cursor take the theme's tokens (index.css,
 // "Replay player"); the cursor carries the name of who acts.
 import type { ReactNode } from "react"
-import { Pause, Play, RotateCw, SkipForward } from "lucide-react"
+import { Pause, Play, SkipForward } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
@@ -13,6 +13,7 @@ import { SPEEDS, type ReplayState } from "@/lib/use-replay"
 import { WORDS } from "@/lib/words"
 import { Hint } from "./bits"
 import { Crumb } from "./crumb"
+import { RetryButton } from "./page-state"
 
 /** What the stage says when the replay is gone or cut short. */
 const MISSING: Record<ReplayMissing, string> = { freed: WORDS.replayFreed, dropped: WORDS.replayDropped, none: WORDS.replayNone }
@@ -34,15 +35,15 @@ export function ReplayStage({ replay }: { replay: StageProps }) {
       </div>
       <div className="relative aspect-video overflow-hidden bg-muted">
         <div ref={replay.mount} className="cake-replay absolute inset-0" />
-        {replay.status === "loading" && <StageNote><Crumb pose="look" className="w-16" label="Loading illustration" />{WORDS.replayLoading}</StageNote>}
+        {replay.status === "loading" && <StageNote><Crumb pose="look" className="w-16" label={WORDS.crumb.loading} />{WORDS.replayLoading}</StageNote>}
         {replay.status === "failed" && (
           <StageNote>
-            <Crumb pose="oops" className="w-20" label="Error illustration" />
+            <Crumb pose="oops" className="w-20" label={WORDS.crumb.error} />
             <span><b className="text-foreground">{WORDS.replayFailed}</b> {replay.error}</span>
-            <Button variant="outline" size="sm" onClick={replay.retry}><RotateCw aria-hidden />Try again</Button>
+            <RetryButton onClick={replay.retry} />
           </StageNote>
         )}
-        {replay.status === "missing" && <StageNote><Crumb pose="sleep" className="w-20" label="Empty state illustration" />{missingText(replay.missing)}</StageNote>}
+        {replay.status === "missing" && <StageNote><Crumb pose="sleep" className="w-20" label={WORDS.crumb.empty} />{missingText(replay.missing)}</StageNote>}
         {replay.waiting && <Badge variant="tag" className="absolute top-2 right-2">{WORDS.replayWaiting}</Badge>}
       </div>
     </div>

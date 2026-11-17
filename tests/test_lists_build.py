@@ -169,13 +169,21 @@ class BuildTest(unittest.TestCase):
         self.assertIn("Spider", about["skipped"])
         self.assertNotIn("spider", self.names)
 
+    def test_our_own_entry_keeps_the_rules_its_browser_matches_by_design(self):
+        browser = self.names["antigravity-browser"]
+        self.assertEqual((browser["kind"], browser["sources"], browser["by_design"]),
+                         ("ai-desktop-app", ["cake"], ["env.auto.chromium-only-brand"]))
+        self.assertNotIn("by_design", self.names["claude-agent"])
+
     def test_an_override_corrects_the_name_a_source_gives(self):
         claude = self.names["claude-chrome"]
         self.assertEqual((claude["name"], claude["kind"], claude["sources"]),
                          ("Claude in Chrome", "ai-browser-extension", ["botscent"]))
 
     def test_cake_additions_keep_their_evidence(self):
-        self.assertEqual(self.names["claude-agent"]["evidence"], "unverified")
+        self.assertEqual((self.names["grokagent"]["evidence"], self.names["grokagent"]["sources"][0]),
+                         ("unverified", "cake"))
+        self.assertNotIn("evidence", self.names["claude-agent"])  # its operator documents it now
         self.assertEqual(self.names["claude-agent"]["sources"][0], "cake")
 
     def test_every_address_format_is_read_and_collapsed(self):

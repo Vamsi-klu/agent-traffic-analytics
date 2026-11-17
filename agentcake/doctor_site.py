@@ -1,7 +1,7 @@
 """`doctor`, the lines about the user's website files: website_checks(c, folder).
 
 Three lines. The website settings are complete (site_domain, site_dir). Every file that must load cake.js does, from
-this Agent Cake's address and with its site key (site_code.py says which files: every page of a static site, the
+this AgentCake's address and with its site key (site_code.py says which files: every page of a static site, the
 Next.js layout, every template with </head>; in server mode the address is path_prefix on the site's own domain,
 SERVER.md); the WordPress plugin adds the line itself, so there only a page opened can tell (doctor_live.py). The server
 half's middleware is mounted where setup --print --site said, with the files it needs beside it; a static site has no
@@ -16,7 +16,7 @@ LEGACY_SCRIPT_PATH = "/c.js"  # protocol: 0.3.x pages load c.js; routes.py serve
 
 
 def script_addresses(c):
-    """Where a page may load the page script from: this Agent Cake's address, as cake.js or 0.3.x's c.js."""
+    """Where a page may load the page script from: this AgentCake's address, as cake.js or 0.3.x's c.js."""
     return [cake_root(c) + path for path in (SCRIPT_PATH, LEGACY_SCRIPT_PATH)]
 
 

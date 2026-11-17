@@ -19,7 +19,8 @@ export type Span = { kind: SegKind; left: number; width: number }
 export type HandoffMark = { at: number; label: string; row: 0 | 1 }
 
 const KIND: Record<Segment["who"], SegKind> = { human: "h", agent: "a", unsure: "u" }
-const segClass: Record<SegKind, string> = { h: "bg-human", a: "bg-agent", u: "pattern-dots" }
+/** Each kind's fill, in bars, timelines and the legend's swatches: the verdict colours, Unknown's dots. */
+export const segClass: Record<SegKind, string> = { h: "bg-human", a: "bg-agent", u: "pattern-dots" }
 const segName: Record<SegKind, string> = { h: TAXONOMY.verdicts.human.label, a: TAXONOMY.verdicts.agent.label, u: TAXONOMY.unsure.label }
 /** How far an arrow key moves the replay. */
 const KEY_STEP_MS = 5000

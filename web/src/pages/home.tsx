@@ -3,7 +3,7 @@
 // and then follows `agentcake setup --print --site` (SERVER.md for a server) and doctor; or set it up by hand: 1 the
 // website's address (site_domain, the project the top bar shows), 2 where AgentCake runs (a server for a public website,
 // SERVER.md, the default; this computer for a site on it), 3 the page script, by hand or in a terminal, with the server
-// half as an optional part. Under both, the website's first visit, asked for again every refresh_ms and shown when it
+// middleware as an optional part. Under both, the website's first visit, asked for again every refresh_ms and shown when it
 // comes, as PostHog 1.0's setup page asked "What URL will you be using PostHog on?", gave the snippet, and its
 // dashboard waited under "Start sending events" until the first. Sessions an earlier AgentCake's demo shop recorded
 // don't connect the website: the home page stays here until the website's own first session (recorded.site), and the
@@ -19,7 +19,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { CopyBlock, Status } from "@/components/cake/bits"
+import { CopyBlock, DocumentLink, Status } from "@/components/cake/bits"
 import { OnboardingLayout, OnboardingStep, OrSeparator } from "@/components/cake/onboarding"
 import { Loaded } from "@/components/cake/page-state"
 import { SessionRow } from "@/components/cake/session-row"
@@ -115,7 +115,7 @@ function Steps({ setup, initial, onOpen }: { setup: Setup; initial: Settings; on
                 <TabsContent value="server" className="flex flex-col gap-2">
                   <p className="text-sm">You can't collect data from visitors to your public website if {PRODUCT_NAME} is only accessible on your computer. To collect their visit data, run {PRODUCT_NAME} on a server that can receive data from their browsers, then connect your website to it.</p>
                   <CopyBlock text={setup.server} />
-                  <p className="text-xs text-faint-foreground">For the full steps, see SERVER.md.</p>
+                  <p className="text-xs text-faint-foreground">For the full steps, see <DocumentLink path="SERVER.md" />.</p>
                 </TabsContent>
                 <TabsContent value="computer"><p className="text-sm">A website that runs on this computer, such as a development server on localhost, sends its visits to {PRODUCT_NAME} automatically, with no setup.</p></TabsContent>
               </Tabs>
@@ -137,7 +137,7 @@ function Steps({ setup, initial, onOpen }: { setup: Setup; initial: Settings; on
                 <CopyBlock text={setup.terminal} />
               </TabsContent>
             </Tabs>
-            <p className="text-xs text-faint-foreground">Optional: The server middleware adds details about each page request that only your server can see. The setup prints the middleware for your framework. For more information, see SERVER.md.</p>
+            <p className="text-xs text-faint-foreground">Optional: The server middleware adds details about each page request that only your server can see. The setup prints the middleware for your framework. For more information, see <DocumentLink path="SERVER.md" />.</p>
           </OnboardingStep>
         </div>
       )}

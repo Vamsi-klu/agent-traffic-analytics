@@ -3,13 +3,14 @@
 // small readers of what cake.js sends. Like tests/browser/demo_walk.mjs, cake gets its own CAKE_HOME and a free port of
 // 127.0.0.1, so a person's own cake (~/.cake, its port) is never touched.
 import { execFileSync, spawn } from "node:child_process"
-import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs"
+import { mkdtempSync, readFileSync, rmSync } from "node:fs"
 import { createRequire } from "node:module"
 import net from "node:net"
 import os from "node:os"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 import zlib from "node:zlib"
+import { executablePath } from "./chromium.mjs"
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 const repo = path.join(here, "..", "..")
@@ -26,7 +27,6 @@ const GZIP_MAGIC = Buffer.from([0x1f, 0x8b]) // cake.js gzips its bigger batches
 const QUERY = "import json, sqlite3, sys\ncon = sqlite3.connect(sys.argv[1])\n" +
   "print(json.dumps(con.execute(sys.argv[2], json.loads(sys.argv[3])).fetchall()))"
 // Playwright's Chromium as web/scripts/shots.mjs finds it; WebKit and Firefox from Playwright's own cache.
-const CHROMIUM_GUESS = path.join(os.homedir(), "Library/Caches/ms-playwright/chromium-1228/chrome-mac-x64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing")
 
 export const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 export const tokenIn = (serverTiming) => (/(?:^|,)\s*cake;desc="([^"]+)"/.exec(serverTiming || "") || [])[1] || null
@@ -45,9 +45,8 @@ export function today() {
 // chromium-bfcache (the back-forward cache on, as Chrome ships), webkit, firefox.
 function optionsOf(name) {
   if (!name.startsWith("chromium")) return [playwright[name], { headless: true }]
-  const executablePath = process.env.CAKE_CHROME || (existsSync(CHROMIUM_GUESS) ? CHROMIUM_GUESS : undefined)
   const ignoreDefaultArgs = name === "chromium-bfcache" ? ["--disable-back-forward-cache"] : []
-  return [playwright.chromium, { executablePath, headless: true, ignoreDefaultArgs }]
+  return [playwright.chromium, { executablePath: executablePath(), headless: true, ignoreDefaultArgs }]
 }
 
 // The browser's version, or an error when it is not installed.

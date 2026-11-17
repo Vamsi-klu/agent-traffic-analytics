@@ -67,6 +67,8 @@ export const WORDS = {
   replayWaiting: "Loading the next part…",
   replayNoPage: "No page content was recorded at this point. The replay shows only pointer movements and clicks.",
   replayPosition: "Replay position",
+  /** What Crumb's drawing is to a screen reader where it stands for a state. */
+  crumb: { loading: "Loading illustration", error: "Error illustration", empty: "Empty state illustration" },
   jumpToHandoff: "Jump to hand-off",
   pagesVisited: "Pages visited",
   noActions: "No actions recorded",

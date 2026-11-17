@@ -5,14 +5,12 @@
 INSTALL.md is what a coding agent follows to install AgentCake, one command at a time: every code block holds one
 command, with no `&&`, `;`, `|`, `$` or `NAME=value`, because Claude Code's approval rules match a command by how it
 starts and cannot check a variable in advance. Its download URLs, file names and version are the ones
-tools/release.py builds from agentcake/__init__.py. While the repository is a private preview, its release
-and raw.githubusercontent.com addresses need a GitHub sign-in that curl does not have: INSTALL.md's step 2 and both
-READMEs download the release with `gh release download` before the same `shasum -c` line; the
-READMEs' own checks (install sentence, pictures, badges, the Chinese translation) are in test_readme_docs.py. Every
-`agentcake` command the documents show is one the command line lists in `agentcake help`, with
-settings that exist, and INSTALL.md's own `agentcake` commands run in a scratch CAKE_HOME without a usage error. Every
-link to a file of the repository exists, the local page's port is the default one, and the least Python INSTALL.md
-and the READMEs name is pyproject.toml's requires-python (read as test_server_docs.py reads it). INSTALL.md and
+tools/release.py builds from agentcake/__init__.py. The READMEs' own checks (install sentence, pictures, badges, the
+Chinese translation) are in test_readme_docs.py. Every `agentcake` command the documents show is one the command line
+lists in `agentcake help`, with settings that exist, and INSTALL.md's own `agentcake` commands run in a scratch
+CAKE_HOME without a usage error. Every link to a file of the repository exists (README.md gives them as full addresses
+at this release's tag, which PyPI shows too), the local page's port is the default one, and the least Python
+INSTALL.md and the READMEs name is pyproject.toml's requires-python (read as test_server_docs.py reads it). INSTALL.md and
 AGENTS.md say the installing agent never registers for the user, and no root document or file of docs/ splits
 the product's name.
 Two lessons of trial installs by coding agents: the download is checked by `shasum -c`'s OK line alone, and a download that fails
@@ -112,9 +110,24 @@ def urls(markdown):
     return LINK_ADDRESS.findall(markdown) + WRITTEN_URL.findall(LINK_ADDRESS.sub("]", markdown))
 
 
-def gh_download(tag, repository):
-    """The command that downloads every file of a release with a signed-in GitHub CLI, into the current folder."""
-    return f"gh release download {tag} --repo {repository}"
+def repository_file(url, repository):
+    """(tag, path) for a full address of a file of the repository at a tag: its page on GitHub or its raw address, as
+    README.md gives its pictures and links so that they work on PyPI too; None for any other address."""
+    owner_and_name = re.escape(repository)
+    match = re.match(rf"https://(?:github\.com/{owner_and_name}/blob|raw\.githubusercontent\.com/{owner_and_name})"
+                     r"/([^/\s]+)/([^?#\s]+)", url)
+    return match.groups() if match else None
+
+
+def local_file(target, document, repository):
+    """The file of this checkout that a link or a picture of a document names: a relative path, read from the
+    document's folder, or a full address of a file of the repository (repository_file); None for any other address."""
+    pinned = repository_file(target, repository)
+    if pinned:
+        return os.path.join(ROOT, *pinned[1].split("/"))
+    if re.match(r"^(\w+:|#)", target):
+        return None
+    return os.path.normpath(os.path.join(os.path.dirname(document), target.split("#")[0]))
 
 
 def release_tag():
@@ -193,21 +206,15 @@ class InstallDocuments(unittest.TestCase):
         self.assertLessEqual(names, self.release_files | {self.release_folder})
         self.assertEqual(set(VERSION.findall(self.install)), {self.version})
 
-    def test_a_private_preview_is_downloaded_with_gh_and_checked_the_same_way(self):
-        """While the repository is private, curl gets a 404 for its release; INSTALL.md's step 2 checks that the GitHub
-        CLI is signed in and downloads the release into this folder with it, and the one shasum line comes after both
-        ways of downloading. Both READMEs' Install give the same command, in the sentence for a private preview."""
-        download = gh_download(self.tag, self.repository())
+    def test_the_release_is_downloaded_with_curl_and_then_checked(self):
+        """The repository is public: INSTALL.md's step 2 downloads the release with curl, with no sign-in, and checks it
+        with the one shasum line after the downloads."""
         step = section(self.install, "Step 2. Download the release and check it")
         commands = [block[0] for block in code_blocks(step)]
-        self.assertIn("gh auth status", commands)
-        self.assertIn(download, commands)
-        checksum = commands.index("shasum -a 256 -c SHA256SUMS --ignore-missing")
-        self.assertLess(commands.index(download), checksum)
-        self.assertLess(max(i for i, command in enumerate(commands) if command.startswith("curl ")), checksum)
-        for path, install_heading, _ in READMES:
-            install = section(read(path), install_heading)
-            self.assertIn(f"`{download}`", install, path)
+        downloads = [i for i, command in enumerate(commands) if command.startswith("curl ")]
+        self.assertTrue(downloads)
+        self.assertLess(max(downloads), commands.index("shasum -a 256 -c SHA256SUMS --ignore-missing"))
+        self.assertFalse([command for command in commands if command.startswith("gh ")], commands)
 
     def test_one_repository_everywhere(self):
         found = repositories(self.install) | repositories(self.readme)
@@ -243,12 +250,18 @@ class InstallDocuments(unittest.TestCase):
 
     # ---------------------------------------------------------------------------------------- links and addresses
     def test_links_to_files_of_the_repository_exist(self):
+        """A relative link, or a full address of a file of the repository (README.md's), which names this release's
+        tag."""
+        repository = self.repository()
         for path in SHOWN_TO_AGENTS:
             for target in LINK.findall(read(path)):
-                if re.match(r"^(https?:|mailto:|#)", target):
-                    continue
-                local = os.path.join(os.path.dirname(path), target.split("#")[0])
-                self.assertTrue(os.path.exists(local), f"{os.path.basename(path)} links to {target}, which is missing")
+                pinned = repository_file(target, repository)
+                if pinned:
+                    self.assertEqual(pinned[0], self.tag, f"{os.path.basename(path)}: {target}")
+                local = local_file(target, path, repository)
+                if local:
+                    self.assertTrue(os.path.exists(local),
+                                    f"{os.path.basename(path)} links to {target}, which is missing")
 
     def test_the_least_python_is_pyproject_requires_python(self):
         for path in (INSTALL_MD, README_MD):
@@ -306,7 +319,7 @@ class InstallDocuments(unittest.TestCase):
             self.assertIn(words, sandbox)
 
     def test_the_documents_spell_the_product_as_readme_does(self):
-        """One word: AgentCake. The root documents and docs/ never split README's name ("Agent Cake"); README's
+        """One word: AgentCake. The root documents and docs/ never split README's name ("AgentCake"); README's
         pictures in docs/assets/ are not text."""
         split = re.sub(r"(?<=[a-z])(?=[A-Z])", " ", self.readme_name)
         documents = glob.glob(os.path.join(ROOT, "*.md")) + [path for path in glob.glob(os.path.join(ROOT, "docs", "*"))

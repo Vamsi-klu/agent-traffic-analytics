@@ -130,7 +130,7 @@ def browser_headers(rng, ua, language, dest="document", signed=False):
 
 
 def requests(count, seed, start_ms):
-    """count requests over about an hour from start_ms: mostly page views, then static files, uploads to Agent Cake,
+    """count requests over about an hour from start_ms: mostly page views, then static files, uploads to AgentCake,
     redirects, 404s and HEADs, a few signed, a few from IPv6."""
     rng, ipv6, out, t = random.Random(seed), published_ipv6(), [], start_ms
     for _ in range(count):

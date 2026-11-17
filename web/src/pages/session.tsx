@@ -1,4 +1,4 @@
-// One session: replay + who acted when + pages visited + four-layer reasons + server half + every action (DESIGN.md §6). Data:
+// One session: replay + who acted when + pages visited + four-layer reasons + server middleware + all actions (DESIGN.md §6.4). Data:
 // /api/session/<id>; the replay plays in rrweb-player, chunk by chunk from …/replay?chunk=<n> (lib/use-replay.ts).
 import { ArrowLeft, Search, Sparkles, Timer } from "lucide-react"
 import { Link, useParams } from "react-router"
@@ -47,7 +47,7 @@ function SessionBody({ d }: { d: SessionDetail }) {
   const s = d.session
   const replay = useReplay(d, (n, signal) => api.replayChunk(s.id, n, signal), cursorLabels(d))
   const live = replay.status !== "missing"
-  const acted = s.share.human + s.share.agent + s.share.unsure > 0 // the actions Every action lists, by who took them
+  const acted = s.share.human + s.share.agent + s.share.unsure > 0 // the actions All actions lists, by who took them
   return (
     <>
       <div className="flex flex-col gap-2">
@@ -67,7 +67,7 @@ function SessionBody({ d }: { d: SessionDetail }) {
           {replay.missing === "dropped" && <Alert variant="warn"><AlertDescription>{missingText("dropped")}</AlertDescription></Alert>}
           {replay.noPage && <Alert variant="info" data-replay-note="no-page"><AlertDescription>{WORDS.replayNoPage}</AlertDescription></Alert>}
           <Card>
-            <CardHeader><CardTitle className="flex items-center gap-2"><Timer className="size-5" aria-hidden />Activity timeline</CardTitle><CardAction><Legend /></CardAction></CardHeader>
+            <CardHeader><CardTitle icon={Timer}>Activity timeline</CardTitle><CardAction><Legend /></CardAction></CardHeader>
             <CardContent className="flex flex-col gap-4">
               <SessionTimeline {...timelineView(d.timeline, { playheadMs: live ? replay.timeMs : undefined })}
                 seek={live && replay.status === "ready" ? { durationMs: d.timeline.duration_ms, valueMs: replay.timeMs, valueText: positionText(d, replay.timeMs), onSeek: replay.seek } : undefined} />
@@ -80,9 +80,9 @@ function SessionBody({ d }: { d: SessionDetail }) {
           <SessionPages pages={d.pages} onJump={replay.status === "ready" ? replay.jumpTo : undefined} />
         </div>
         <Card>
-          <CardHeader><CardTitle className="flex items-center gap-2"><Search className="size-5" aria-hidden />Why this classification</CardTitle></CardHeader>
+          <CardHeader><CardTitle icon={Search}>Why this classification</CardTitle></CardHeader>
           <CardContent className="flex flex-col gap-3">
-            <Alert variant="info"><Sparkles aria-hidden /><AlertDescription className="text-foreground"><span>{d.summary}</span></AlertDescription></Alert>
+            <Alert variant="info"><Sparkles aria-hidden /><AlertDescription><span>{d.summary}</span></AlertDescription></Alert>
             {d.layers.map((layer) => <ReasonLayer key={layer.layer} layer={layer} />)}
           </CardContent>
         </Card>
@@ -96,7 +96,7 @@ function SessionBody({ d }: { d: SessionDetail }) {
   )
 }
 
-/** Every action, each time a link that moves the replay there. */
+/** All actions, each time a link that moves the replay there. */
 function Actions({ d, replay }: { d: SessionDetail; replay: ReplayState }) {
   const canSeek = replay.status === "ready"
   return (

@@ -69,9 +69,6 @@ class Batch:
     visitor: Optional[str] = None     # `vid`, the visitor id cake.js keeps in the browser (static/src/visitor.js)
     person: Optional[str] = None      # `idh`, the identify hash kept with it (static/src/identify.js)
 
-    def record_count(self):
-        return sum(len(records) for records in self.records.values())
-
 
 def decode_body(body, limit):
     """The JSON bytes of an upload: the body, or what its gzip stream unzips to (at most limit bytes)."""

@@ -1,6 +1,6 @@
 """`agentcake doctor`, the lines about this computer: agentcake/doctor_machine.py.
 
-    python3 -I -m unittest discover -s tests -p test_doctor_machine.py -v      (from the Agent Cake folder)
+    python3 -I -m unittest discover -s tests -p test_doctor_machine.py -v      (from the AgentCake folder)
 
 Python and compression.zstd; the free disk space against disk_min_free_mb (below it new replays are not stored and
 none is deleted for it, a failure that says they start again on their own and how to change it), with

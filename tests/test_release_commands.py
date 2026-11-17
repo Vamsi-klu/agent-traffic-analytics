@@ -18,9 +18,9 @@ from tools.releasing.settings import ReleaseError
 class Commands(unittest.TestCase):
     def test_the_log_shows_the_program_by_name_and_paths_inside_the_tree_relative(self):
         tree = scratch(self)
-        command = [sys.executable, "-I", os.path.join(tree, "agentcake", "build_js.py"), "--check"]
+        command = [sys.executable, "-I", os.path.join(tree, "tools", "build_js.py"), "--check"]
         self.assertEqual(commands.shown(command, tree),
-                         f"{os.path.basename(sys.executable)} -I agentcake/build_js.py --check")
+                         f"{os.path.basename(sys.executable)} -I tools/build_js.py --check")
 
     def test_a_missing_program_says_node_and_npm_are_needed(self):
         tree = scratch(self)

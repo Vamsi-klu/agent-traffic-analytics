@@ -18,7 +18,7 @@ import { Switch } from "@/components/ui/switch"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
-import { BudgetWarning, CopyBlock, DiskStoppedWarning, Hint, InfoTip, PageHeader, StatCard, StorageMeter, StorageUse } from "@/components/cake/bits"
+import { BudgetWarning, CopyBlock, DiskStoppedWarning, DocumentLink, Hint, InfoTip, PageHeader, StatCard, StorageMeter, StorageUse } from "@/components/cake/bits"
 import { Crumb, CrumbHead } from "@/components/cake/crumb"
 import { OnboardingStep, OrSeparator } from "@/components/cake/onboarding"
 import { ProjectLink } from "@/components/cake/project-link"
@@ -39,7 +39,7 @@ import { PathsTable, TABLE_ICONS, WebStatsTable } from "@/components/cake/web-st
 import { RegisterCard } from "@/components/cake/register-card"
 import { UNREACHABLE, api, useApi } from "@/data/api"
 import type { LayerReasons, Overview, Registration, ServerHalf, SessionPage, SessionSummary, WebAnalytics } from "@/data/types"
-import { mbToBytes } from "@/lib/format"
+import { NO_VALUE, mbToBytes } from "@/lib/format"
 import type { ReplayState } from "@/lib/use-replay"
 import { PRODUCT_NAME } from "@/lib/product"
 import { UNNAMED } from "@/lib/taxonomy"
@@ -98,7 +98,7 @@ export function ComponentsPage() {
   const data = useApi((signal) => Promise.all([api.overview({}, signal), api.registration(signal), api.sessions({}, signal), api.web({}, signal)]), [])
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Components" lead={`This page shows every component and variant that ${PRODUCT_NAME} uses. Add new styles as variants here and in DESIGN.md.`} />
+      <PageHeader title="Components" lead={<>This page shows every component and variant that {PRODUCT_NAME} uses. Add new styles as variants here and in <DocumentLink path="DESIGN.md" />.</>} />
       <Loaded state={data} what="the component overview">{([overview, registration, sessions, web]) => <Overview overview={overview} registration={registration} sessions={sessions.results} web={web} />}</Loaded>
     </div>
   )
@@ -120,6 +120,7 @@ function Overview({ overview: o, registration, sessions, web }: {
         ]}>
         <Button>Default</Button><Button variant="outline">Outline</Button><Button variant="secondary">Secondary</Button>
         <Button variant="ghost">Ghost</Button><Button variant="destructive"><Trash2 aria-hidden />Destructive</Button><Button variant="link">Link</Button>
+        <p className="w-full text-sm">For setup steps, see <DocumentLink path="SERVER.md" />.</p>
       </Block>
       <Block name="Button · size" use="Use the Large size only in hero sections and the Default size for most other buttons. Use the Small size for buttons inside cards and rows. Every icon-only button has a tooltip that names its action.">
         <Button size="lg"><Play aria-hidden />Large</Button><Button>Default</Button><Button size="sm">Small</Button><Button size="xs">Extra small</Button>
@@ -170,7 +171,7 @@ function Overview({ overview: o, registration, sessions, web }: {
           <StatCard label="Sessions" value={String(o.counts.all)} mark={<Activity className="size-4" aria-hidden />} help={<InfoTip label="Sessions" lines={CLARITY.sessions} />} />
           <StatCard label={`${VERDICTS.human.label} ${WORDS.sessions}`} value={String(o.counts.human)} sub={`${o.counts.thin} ${WORDS.withThinEvidence}`} mark={<User className="size-4 text-human-foreground" aria-hidden />} />
           <StatCard label={`${VERDICTS.bot.label} ${WORDS.sessions}`} value={String(o.counts.bot)} mark={<Cpu className="size-4 text-unsure-foreground" aria-hidden />} muted help={<BotHelp bot={o.coverage.bot} />} />
-          <StatCard label="Visitors" value={web.visitors.all === null ? "—" : String(web.visitors.all)} sub={web.visitors.all === null ? WORDS.noVisitorIds : undefined}
+          <StatCard label="Visitors" value={web.visitors.all === null ? NO_VALUE : String(web.visitors.all)} sub={web.visitors.all === null ? WORDS.noVisitorIds : undefined}
             mark={<UsersRound className="size-4" aria-hidden />} />
         </div>
       </Block>

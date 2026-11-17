@@ -5,7 +5,8 @@ Name layer (step 1): what the session declares, read from the User-Agent of each
 navigator.platform and from the signer that Signature-Agent names, each looked up in the bundled lists (lists.py).
 Names count only when they agree (botscent's rule, src/core/verdict.ts, MIT, 7f948003: the idea, not the
 code). A tool anyone can run (a kind marked generic in kinds.json: HeadlessChrome, curl, Cloudflare Browser Run)
-names no product; it only says that the browser is automated.
+names no product; it only says that the browser is automated. A browser people also use by hand (a kind marked browser,
+such as Antigravity's in-app browser) is a fact for neither side (name.ua-browser) and no claim to verify.
 
 Verification layer (step 2): a declared name holds when something that cannot be claimed confirms it: a Web Bot Auth
 signature verified with the signer's bundled key (webbotauth.py), the operator's published address range
@@ -165,7 +166,8 @@ def _ua_claims(user_agents, lists_, found):
     claims = []
     for match, halves in seen.values():
         halves = tuple(_distinct(halves))
-        reason_id = "name.ua-generic" if _is_generic(match) else "name.ua"
+        reason_id = ("name.ua-generic" if _is_generic(match)
+                     else "name.ua-browser" if match.get("browser") else "name.ua")
         found.add(dict(reason(reason_id, halves[0], match["matched"], half=list(halves), name=match["name"],
                               kind_label=match["kind_label"]), halves=list(halves)))
         found.candidate(match, "ua", "declared", halves=list(halves), matched=match["matched"])
@@ -289,7 +291,7 @@ def _verify_name(entry, evidence, lists_, found, signed):
                          operator=publishers[0].get("operator")))
         return _with_range({"status": IMPERSONATION, "impersonating": entry, "evidence": ("impersonation",)},
                            infrastructure)
-    if not signed:
+    if not signed and not entry.get("browser"):  # which browser the page is open in is no claim to verify
         found.add(reason("verify.no-range", None, entry["id"], name=entry["name"]))
     return _with_range(self_reported, infrastructure)
 

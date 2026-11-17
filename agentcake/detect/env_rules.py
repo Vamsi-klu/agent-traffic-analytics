@@ -90,16 +90,6 @@ class Hit:
     names: str | None = None
     suggests: str | None = None
 
-    def as_dict(self):
-        out = {"rule": self.rule, "layer": self.layer, "kind": self.kind, "half": self.half,
-               "strength": self.strength, "grade": self.grade, "value": self.value}
-        if self.pages is not None:
-            out["pages"] = list(self.pages)
-        for key in ("names", "suggests"):
-            if getattr(self, key) is not None:
-                out[key] = getattr(self, key)
-        return out
-
 
 @dataclass(frozen=True)
 class EnvResult:
@@ -166,17 +156,6 @@ def evaluate(signals, table=None, enabled=None):
     return EnvResult(tuple(hits), tuple(unknown), tuple(off))
 
 
-def botscent_reasons(hits, table=None):
-    """The botscent page-half reason ids these hits stand for: what botscent's own verdict should have listed."""
-    table = table or load_rules()
-    reasons = []
-    for hit in hits:
-        for reason in table.rule(hit.rule).botscent:
-            if reason not in reasons:
-                reasons.append(reason)
-    return reasons
-
-
 def _rule(entry, legend, script_settings):
     if not isinstance(entry, dict):
         raise EnvRulesError(f"a rule must be an object, got {entry!r}")
@@ -226,6 +205,6 @@ def parse_rules(data):
 
 @lru_cache(maxsize=None)
 def load_rules(path=RULES_FILE):
-    """The rule table shipped with Agent Cake (or another file, for tests); read once per path."""
+    """The rule table shipped with AgentCake (or another file, for tests); read once per path."""
     with open(path, encoding="utf-8") as handle:
         return parse_rules(json.load(handle))

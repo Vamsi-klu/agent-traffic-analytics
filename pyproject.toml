@@ -1,8 +1,9 @@
-# Agent Cake as a wheel: no dependencies, standard library only. flit_core builds the wheel from a checkout
-# (`pip wheel .`); it is not shipped and Agent Cake does not need it to run. Everything inside agentcake/ (schema.sql,
+# AgentCake as a wheel: no dependencies, standard library only. flit_core builds the wheel from a checkout
+# (`pip wheel .`); it is not shipped and AgentCake does not need it to run. Everything inside agentcake/ (schema.sql,
 # static/, data/) goes into the wheel. A release (tools/release.py) writes the same wheel itself from
-# this file's [project] table, with the local pages compiled into agentcake/ and cake.js minified, and the release
-# folder (agentcake-<version>.tar.gz, also a source distribution) from [tool.flit.sdist] below.
+# this file's [project] table, with the local pages compiled into agentcake/ and cake.js minified, without what only a
+# checkout uses (cake.js's sources, the evaluation: tools/releasing/release.json), and the release folder
+# (agentcake-<version>.tar.gz, also a source distribution) from [tool.flit.sdist] below.
 [build-system]
 requires = ["flit_core >=3.12,<4"]  # 3.12: the licence as an SPDX expression (PEP 639)
 build-backend = "flit_core.buildapi"
@@ -15,6 +16,12 @@ requires-python = ">=3.11"
 dependencies = []
 license = "MIT"
 license-files = ["LICENSE", "THIRD_PARTY.md"]  # in the wheel's .dist-info/licenses/ and the release folder
+
+# The project's links on PyPI, under PyPA's well-known labels; a file is linked at this release's tag, as README does.
+[project.urls]
+Source = "https://github.com/tartini-ai/agent-traffic-analytics"
+Issues = "https://github.com/tartini-ai/agent-traffic-analytics/issues"
+Changelog = "https://github.com/tartini-ai/agent-traffic-analytics/blob/v0.5.0/CHANGELOG.md"
 
 [project.scripts]
 agentcake = "agentcake.cli:main"

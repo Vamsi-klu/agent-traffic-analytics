@@ -17,16 +17,16 @@
 // Writes <out>/<scenario>-<run>.json: the pages in the order they opened and every click (with the page it was on and
 // whether its target is inside an element cake.js must not record, which the replay therefore does not show).
 // playwright-core comes from CAKE_PLAYWRIGHT or web/node_modules/playwright-core, Chromium from CAKE_CHROME or the
-// local Playwright cache (as web/scripts/shots.mjs does). Only made-up details are typed.
+// local Playwright cache (chromium.mjs, as web/scripts/shots.mjs does). Only made-up details are typed.
 // CAKE_CPU_THROTTLE=<n> runs the scenarios' pages n times slower (Chromium's CPU throttling, as in DevTools): a loaded
 // machine, made repeatable.
-import { existsSync } from 'node:fs'
 import { mkdir, writeFile } from 'node:fs/promises'
 import { createRequire } from 'node:module'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import zlib from 'node:zlib'
 import { CONSENT_PREPARE, consentScenarios } from './consent.mjs'
+import { executablePath } from './chromium.mjs'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 const repo = path.resolve(here, '..', '..')
@@ -62,10 +62,7 @@ const between = (low, high) => low + Math.random() * (high - low)
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
 function launch() {
-  const app = 'chrome-mac-x64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing'
-  const guess = path.join(process.env.HOME, 'Library/Caches/ms-playwright/chromium-1228', app)
-  const executablePath = process.env.CAKE_CHROME || (existsSync(guess) ? guess : undefined)
-  return chromium.launch({ executablePath })
+  return chromium.launch({ executablePath: executablePath() })
 }
 
 function track(page, log) {

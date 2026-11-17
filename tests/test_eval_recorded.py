@@ -111,6 +111,19 @@ class SelfCollected(unittest.TestCase):
         self.assertIn("selfcollect/cc-devtools-mcp", printed)
         self.assertNotIn("selfcollect/cic-mcp", printed)
 
+    def test_every_a2_line_leaves_too_little_data_out_and_says_how_many(self):
+        """A2's statistic: judged sessions of those groups, too little data left out (A8 counts them), and each line
+        says how many it left out. The lab and store lines counted them as misses, unlike the statistic."""
+        lab = [dict(row("claude-chrome", judged), truth={"class": "agent"}) for judged in ("agent", "too_little_data")]
+        store = [dict(row("claude-chrome", judged), truth={"class": "agent", "case": "T3"})
+                 for judged in ("agent", "too_little_data")]
+        posthog = [row(SETTINGS["posthog"]["agent_group"], judged) for judged in ("agent", "too_little_data")]
+        lines = self.a2({"lab": lab, "store": store, "posthog": posthog})
+        for source in ("lab", "store", "posthog"):
+            with self.subTest(source):
+                line = lines[source]
+                self.assertEqual((line["count"], line["n"], line["details"]["not_judged"]), (1, 1, 1))
+
     def test_the_scoreboard_counts_them_as_agents_of_their_product(self):
         board = SETTINGS["scoreboard"]
         self.assertIn("selfcollect", board["agent_sources"])

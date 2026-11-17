@@ -84,14 +84,8 @@ def recordings(clean_humans):
 
 def splices(agents, humans, params, raw_input, handoff_limit_s):
     """agents, humans: [(name, events)]; every agent with every human by every pattern of params."""
-    rows = []
-    for agent_name, agent_events in agents:
-        for human_name, human_events in humans:
-            for pattern_name, pattern in params["patterns"].items():
-                spliced = splice.build(agent_events, human_events, pattern, params)
-                if spliced is not None:
-                    rows.append({"agent": agent_name, "human": human_name, "pattern": pattern_name,
-                                 **_splice_row(spliced, raw_input)})
+    rows = [{"agent": agent, "human": human, "pattern": pattern, **_splice_row(spliced, raw_input)}
+            for agent, human, pattern, spliced in splice.each(agents, humans, params)]
     judged = [r for r in rows if r["verdict"] != "too_little_data"]
     summary = {"splices": len(rows), "judged": len(judged), "verdicts": tally(r["verdict"] for r in rows),
                "agent_or_mixed": sum(1 for r in judged if r["verdict"] == "agent" or r["timeline_handoffs"]),

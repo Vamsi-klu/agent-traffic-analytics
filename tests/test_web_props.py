@@ -149,5 +149,23 @@ class Fill(WebCase):
         self.assertTrue(any('"ty":"page"' in text for text in texts))
 
 
+
+class Addresses(unittest.TestCase):
+    """A visit's source from its addresses: one that cannot be read (an upload's u and ref are any text) has no query
+    and no domain, as a missing one has, and never stops the request that describes sessions."""
+
+    def test_an_address_that_cannot_be_read_has_no_query_and_no_domain(self):
+        for url in ("https://[?utm_source=x", "http://[/cart", "", None):
+            with self.subTest(url=url):
+                self.assertEqual(web_props._query(url), {})
+                self.assertEqual(web_props._domain(url), "")
+
+    def test_a_readable_address_gives_its_query_and_its_host(self):
+        self.assertEqual(web_props._query("https://shop.example/?utm_source=x&gclid=1"),
+                         {"utm_source": ["x"], "gclid": ["1"]})
+        self.assertEqual(web_props._domain("https://User@Shop.Example:8080/cart"), "shop.example:8080")
+        self.assertEqual(web_props._domain(7), "")
+
+
 if __name__ == "__main__":
     unittest.main()

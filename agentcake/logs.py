@@ -6,15 +6,15 @@ logs_command(args) -> exit code: 0, 1 when an error stops the import, 2 on a usa
 reads each file line by line in the format named, given as the web server's own format string, or detected from the
 first lines (log_formats.py). Its page requests (is_page_request: a GET, not a redirect, not a static file, a document
 when the log says) go to /edge (edge_api.py) in batches signed with the server half's secret of this CAKE_HOME: to
-this computer's Agent Cake, or with --to to the public listener of an Agent Cake server (http://192.0.2.10:8080/cake),
+this computer's AgentCake, or with --to to the public listener of an AgentCake server (http://192.0.2.10:8080/cake),
 whose secret must then be in this CAKE_HOME's srv_secret. A record holds the line's time, address, method, target,
-status, Host, scheme and the headers data/logs.json "send_headers" lists, never cookies or credentials; Agent Cake keeps
+status, Host, scheme and the headers data/logs.json "send_headers" lists, never cookies or credentials; AgentCake keeps
 what the matched ones say and never the address. The file is not copied, and nothing of it is written or printed
 here. --since 10m sends only the lines of the last 10 minutes (units s, m, h, d), for a run every few minutes; Agent
 Cake keeps a line sent twice once.
 
 One summary per file: lines, page requests sent, matched, already imported, dropped, other lines, older, unreadable;
-then the recommended headers the format lacks and those empty on every page request, which also go to Agent Cake with
+then the recommended headers the format lacks and those empty on every page request, which also go to AgentCake with
 every batch for doctor (log_report.py). `logs formats` prints the formats and the recommended configuration lines.
 """
 import itertools
@@ -22,7 +22,6 @@ import json
 import re
 import secrets
 import sys
-import time
 import urllib.error
 import urllib.request
 from collections import Counter
@@ -37,6 +36,7 @@ from agentcake.edge_secret import ensure_secret, srv_secret
 from agentcake.edge_signature import HEADER, sign
 from agentcake.edge_token import skipped_path
 from agentcake.responses import JSON
+from agentcake.storage_config import now_ms as clock_ms
 from agentcake.units import MS_PER_S
 from agentcake.wording import text
 
@@ -91,7 +91,7 @@ def import_command(args):
         print(text("logs_no_secret", path=paths.tilde(paths.secret_file())), file=sys.stderr)
         return 1
     sender = Sender((options.to or base_url(c)).rstrip("/") + EDGE["route"], secret, c)
-    now_ms = int(time.time() * MS_PER_S)
+    now_ms = clock_ms()
     since_ms = None if options.since_s is None else now_ms - options.since_s * MS_PER_S
     for path in options.files:
         try:
@@ -177,7 +177,7 @@ def is_page_request(record):
 
 
 def to_json(record):
-    """The record as /edge reads it; only the headers data/logs.json lets go to Agent Cake."""
+    """The record as /edge reads it; only the headers data/logs.json lets go to AgentCake."""
     names = SPEC["send_headers"]["names"]
     return {"t": record.t_ms, "ip": record.ip, "m": record.method, "u": record.target, "s": record.status,
             "h": record.host, "sc": record.scheme,
@@ -272,7 +272,7 @@ class Sender:
         self.max_body = c["public_max_body_bytes"]
 
     def post(self, body):
-        signature = sign(self.secret, body, int(time.time() * MS_PER_S))
+        signature = sign(self.secret, body, clock_ms())
         request = urllib.request.Request(self.url, data=body, method="POST",
                                          headers={"Content-Type": JSON, HEADER: signature})
         try:

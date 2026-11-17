@@ -1,4 +1,5 @@
-"""The four layers of "Why this verdict" (the session page draws them): each layer's state and reasons, from the verdict.
+"""The four layers of "Why this classification" (the session page draws them): each layer's state and reasons,
+from the verdict.
 
 The verdict (judging.py) keeps each layer's state, which way it leans and how sure (verdict.py's layers: {"state",
 "why"?, "leans", "percent"}; detect/confidence.py; None in a verdict kept before 0.4.0) and its reasons layer by layer

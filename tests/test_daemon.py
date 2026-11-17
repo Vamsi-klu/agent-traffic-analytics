@@ -4,7 +4,7 @@ here, running_here(), the one answer to "is a cake running on this data folder?"
 once the process has exited, says so when it has not within stop_wait_s and keeps its pid file, and says why when it
 may not stop it or cannot read the pid file; a pid file whose process has ended is removed.
 
-    python3 -I -m unittest discover -s tests -p test_daemon.py -v      (from the Agent Cake folder)
+    python3 -I -m unittest discover -s tests -p test_daemon.py -v      (from the AgentCake folder)
 """
 import contextlib
 import errno

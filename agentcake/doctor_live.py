@@ -3,7 +3,7 @@
 doctor asks for the page at url (site_url, or doctor --url) the way a browser opens a page typed into its address bar
 (data/doctor.json page_request: Accept and Sec-Fetch-*), with the three Web Bot Auth headers added, holding values that
 say they are a test. Four lines: the page loads cake.js with this site key; its response's Server-Timing carries a cake
-token that this Agent Cake's secret signed, inside the time window tokens count in (edge_token.read_token); the token
+token that this AgentCake's secret signed, inside the time window tokens count in (edge_token.read_token); the token
 holds the Sec-Fetch values doctor sent; and the signature headers doctor sent reached the site's server. Anything in
 front of the site's server that removes headers (a proxy, a CDN) shows as the headers that did not arrive. A static
 site has no server half, so no token there is a SKIP. A sandbox that forbids the connection is named.

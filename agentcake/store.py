@@ -65,8 +65,12 @@ def db():
     os.makedirs(paths.home(), exist_ok=True)
     timeout_s = load_cfg()["db_timeout_s"]
     con = sqlite3.connect(paths.db_file(), timeout=timeout_s)
-    if not _is_set_up(con):
-        _set_up_once(con, timeout_s)
+    try:
+        if not _is_set_up(con):
+            _set_up_once(con, timeout_s)
+    except BaseException:  # the caller gets no connection to close, so this one is closed here before the error goes on
+        con.close()
+        raise
     return con
 
 

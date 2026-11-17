@@ -1,26 +1,28 @@
 """Files sent to browsers: the page script cake.js, the rrweb recorder and player from static/, and the
 compiled local pages.
 
-cake.js is built from static/src/ by build_js.py and committed as static/cake.js; it is served with this
-installation's runtime values filled in. The recorder stays at /rrweb-record.min.js for pages that still have a
-0.3.x cake.js cached (the new cake.js has rrweb inside).
+cake.js is built from static/src/ by the repository's tools/build_js.py and committed as static/cake.js; it is served
+with this installation's runtime values filled in between its two runtime markers (with_runtime). The recorder stays
+at /rrweb-record.min.js for pages that still have a 0.3.x cake.js cached (the new cake.js has rrweb inside).
 
 The local pages are the web/ app compiled to static files (paths.web_folder, like PostHog 1.0's frontend build that
 Django serves): / is its index.html, and the pages route by the URL's # part, so no other path needs it; any other
 file of the build is served by its suffix (data/web.json). Without a build (a checkout where `npm run build` has not
 run) / answers 503 with how to build it. The pages read their data from /api (agentcake/api/).
 """
+import json
 import os
 import pathlib
 from http import HTTPStatus
 from urllib.parse import unquote
 
-from agentcake import build_js, config, paths
-from agentcake.datafiles import load
+from agentcake import config, paths
+from agentcake.datafiles import load, read
 from agentcake.responses import CSS, JS, TEXT, Response, not_found
 from agentcake.wording import text
 
 CACHE_CONTROL = "Cache-Control"
+CAKEJS = "data/cakejs.json"
 
 
 def runtime_values(c):
@@ -31,7 +33,23 @@ def runtime_values(c):
 
 def cake_js(request):
     """/cake.js and /c.js, on both listeners."""
-    return Response(HTTPStatus.OK, build_js.served_script(runtime_values(config.load_cfg())), JS)
+    return Response(HTTPStatus.OK, served_script(runtime_values(config.load_cfg())), JS)
+
+
+def served_script(values):
+    """cake.js as cake serves it: the committed build with this installation's runtime values filled in."""
+    build = load(CAKEJS)["build"]
+    return with_runtime(read(build["out"]), values, build["runtime_marker"])
+
+
+def with_runtime(script, values, marker=None):
+    """script with values (a JSON object) between its runtime markers, replacing what was there."""
+    marker = f"/*{marker or load(CAKEJS)['build']['runtime_marker']}*/"
+    start = script.index(marker) + len(marker)
+    end = script.index(marker, start)
+    # Escaping "/" keeps a value from ever writing "/*" or "*/" next to the markers.
+    filled = json.dumps(values, separators=(",", ":"), sort_keys=True).replace("/", "\\/")
+    return script[:start] + filled + script[end:]
 
 
 def static_file(request):

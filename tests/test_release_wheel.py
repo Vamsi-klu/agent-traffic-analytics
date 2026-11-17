@@ -18,7 +18,7 @@ import zipfile
 from release_trees import ROOT, VERSION, make_tree, scratch, settings
 
 import agentcake  # noqa: E402  (release_trees puts the repository on sys.path)
-from agentcake import eval as eval_command, wording
+from agentcake import cli, wording
 from tools.releasing import wheel
 from tools.releasing.project import Project
 
@@ -117,17 +117,13 @@ class Installs(unittest.TestCase):
         out = self.agentcake("--version")
         self.assertEqual((out.returncode, out.stdout.strip()), (0, f"agentcake {agentcake.__version__}"))
 
-    def test_eval_help_works_without_a_checkout(self):
-        out = self.agentcake("eval", "--help")
-        self.assertEqual(out.returncode, 0, out.stderr)
-        self.assertIn("--thresholds", out.stdout)
-
-    def test_eval_without_a_checkout_says_where_its_files_are(self):
-        out = self.agentcake("eval")
-        self.assertEqual(out.returncode, eval_command.EXIT_USAGE)
-        self.assertEqual(out.stderr.strip(), wording.text("eval_no_thresholds"))
-        for words in ("checkout", "bin/agentcake eval", "--thresholds"):
-            self.assertIn(words, out.stderr)
+    def test_eval_says_it_runs_from_a_checkout(self):
+        """The evaluation stays in the checkout with its data sets (release.json "package_files"): the installed
+        command says where it runs, for --help too."""
+        for args in (("eval",), ("eval", "--help")):
+            out = self.agentcake(*args)
+            self.assertEqual((out.returncode, out.stderr.strip()), (cli.EXIT_USAGE, wording.text("eval_from_checkout")))
+            self.assertIn("bin/agentcake eval", out.stderr)
 
 
 if __name__ == "__main__":

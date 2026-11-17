@@ -55,6 +55,29 @@ async function hint(page, element, text, how = "hover") {
   return box
 }
 
+/** Once the page has run every task queued before this call. React renders an update in a task of its own, posted
+ *  through a MessageChannel, which a fake clock leaves alone. */
+const handled = (page) => page.evaluate(() => new Promise((done) => {
+  const channel = new MessageChannel()
+  channel.port1.onmessage = () => done()
+  channel.port2.postMessage(null)
+}))
+
+/** Moves the pointer between (0, 0) and (1, 1), away from every trigger and tooltip, until no tooltip is open, and
+ *  returns how many moves it took. Radix closes a tooltip on a pointer move outside its trigger, the tooltip and the
+ *  grace area between them, but watches for that move only once React has handled the move that left the trigger, in
+ *  a task of its own. On a busy page a move can come before that task and be lost, so it moves again until the tooltip
+ *  closes. The page's clock isn't moved. */
+async function moveAwayUntilClosed(page) {
+  const until = Date.now() + WAIT_MS
+  for (let moves = 1; ; moves++) {
+    await page.mouse.move(moves % 2, moves % 2)
+    await handled(page)
+    if (!(await page.locator('[data-slot="tooltip-content"]:not([data-state="closed"])').count())) return moves
+    assert.ok(Date.now() < until, `a tooltip is still open after ${moves} moves away from it`)
+  }
+}
+
 test("no page uses the browser's own hover box: no title attribute and no SVG <title>", async () => {
   const pages = [["#/dashboard", CHARTS], ["#/sessions", LIST], ["#/sessions?filter=agent", '[aria-label="Human involvement"]'],
     ["#/sessions?filter=human", '[aria-label="Evidence"]'], ["#/sessions/7f3a-c1", REPLAY], ["#/sessions/19fc-90", REPLAY],
@@ -122,13 +145,12 @@ test("every tooltip opens after PostHog's 400 ms of hovering, and at once on key
     const icon = tab.page.getByRole("button", { name: "About Sessions", exact: true })
     await icon.hover()
     await tab.page.clock.runFor(399)
+    await handled(tab.page)  // a tooltip opened by then is on the page
     assert.equal(await tooltip(tab.page).count(), 0, "not yet at 399 ms")
     await tab.page.clock.runFor(1)
     await tooltip(tab.page).filter({ hasText: CLARITY.sessions[0] }).waitFor({ timeout: WAIT_MS })
-    // away from the icon and the tooltip (the second move is where Radix sees the pointer is gone): it closes with the
-    // clock still paused, no close delay
-    await tab.page.mouse.move(0, 0)
-    await tab.page.mouse.move(1, 1)
+    // away from the icon and the tooltip: it closes with the clock still paused, so with no close delay
+    await moveAwayUntilClosed(tab.page)
     await tooltip(tab.page).first().waitFor({ state: "detached", timeout: WAIT_MS })
     await tab.page.getByRole("button", { name: "About Visitors", exact: true }).focus()
     await tooltip(tab.page).filter({ hasText: WORDS.about.visitors }).waitFor({ timeout: WAIT_MS })

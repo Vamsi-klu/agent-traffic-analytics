@@ -46,14 +46,22 @@ class IndicatorReasons(unittest.TestCase):
         (reason,) = said([span(20000, 40000, held_to=35100)], steps)
         self.assertEqual((reason["id"], reason["value"]), ("behavior.indicator-tail", [20000, 40000, 35100]))
         self.assertEqual(reason["facts"]["until_ms"], 31100)
-        self.assertEqual(reason["text"], "Claude in Chrome was active from 0:16 to 0:36. Actions up to 0:31 are counted "
-                                         "as the agent's actions.")
+        self.assertEqual(reason["text"], "Actions while Claude in Chrome's working indicator was visible count as agent "
+                                         "actions until the agent stopped.")
         self.assertEqual(reason["grade"], markers.load_table().markers[WORKING]["grade"])
 
     def test_an_unsure_step_or_evidence_in_the_tail_counts_too(self):
         (unsure,) = said([span(20000, 40000, held_to=35100)], [step(37000, "unsure")])
         (moved,) = said([span(20000, 40000, held_to=35100)], evidence=[step(38000, "human", "move")])
         self.assertEqual((unsure["id"], moved["id"]), ("behavior.indicator-tail", "behavior.indicator-tail"))
+
+    def test_the_spans_of_one_mark_give_one_reason_with_no_time(self):
+        """Each page shows the indicator anew (T5: 0:12-0:19, 0:20-0:27, 0:28-1:19): one reason names it, with no time,
+        and keeps the first span's start and the last span's end in its value."""
+        (reason,) = said([span(12000, 19000), span(20000, 27000), span(28000, 79000)], [step(25000, "agent")])
+        self.assertEqual((reason["id"], reason["value"]), ("behavior.indicator", [12000, 79000]))
+        self.assertEqual(reason["text"], "All actions while Claude in Chrome's working indicator was visible count as "
+                                         "agent actions.")
 
     def test_spans_without_a_timeline_mark_give_no_reason(self):
         self.assertEqual(said([]), [])

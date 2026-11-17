@@ -13,7 +13,7 @@ import unittest
 
 from release_trees import ROOT, scratch, settings
 
-from agentcake import build_js  # noqa: E402  (release_trees puts the repository on sys.path)
+from agentcake import assets  # noqa: E402  (release_trees puts the repository on sys.path)
 from tools.releasing import cakejs
 from tools.releasing.settings import ReleaseError
 
@@ -73,10 +73,10 @@ class RealEsbuild(unittest.TestCase):
     def test_the_bundled_licences_and_the_header_are_kept(self):
         for text in cakejs.licences(ROOT, settings()):
             self.assertIn(text, self.result)
-        self.assertTrue(self.result.startswith("/*! Agent Cake page script (cake.js)"))
+        self.assertTrue(self.result.startswith("/*! AgentCake page script (cake.js)"))
 
     def test_cake_fills_in_the_runtime_values_as_it_serves_the_script(self):
-        served = build_js.with_runtime(self.result, {"site_key": "k-made-up"}, MARKER)
+        served = assets.with_runtime(self.result, {"site_key": "k-made-up"}, MARKER)
         self.assertIn(f'/*{MARKER}*/{{"site_key":"k-made-up"}}/*{MARKER}*/', served)
 
     def test_it_is_smaller(self):
@@ -85,7 +85,7 @@ class RealEsbuild(unittest.TestCase):
     def test_node_parses_it(self):
         path = os.path.join(scratch(self), "cake.min.js")
         with open(path, "w", encoding="utf-8") as f:
-            f.write(build_js.with_runtime(self.result, {"site_key": "k-made-up"}, MARKER))
+            f.write(assets.with_runtime(self.result, {"site_key": "k-made-up"}, MARKER))
         done = subprocess.run(["node", "--check", path], capture_output=True, text=True)
         self.assertEqual(done.returncode, 0, done.stderr)
 

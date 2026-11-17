@@ -1,4 +1,4 @@
-// Agent Cake page script, part: the session replay recorder, stream "e".
+// AgentCake page script, part: the session replay recorder, stream "e".
 //
 // rrweb's record (bundled into cake.js unchanged, see THIRD_PARTY.md) with the privacy rules of
 // agentcake/data/privacy.json: every input masked (the replay keeps its length), text typed into

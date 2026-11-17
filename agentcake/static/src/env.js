@@ -1,4 +1,4 @@
-// Agent Cake page script, part: the environment of a page view and the globals automation leaves,
+// AgentCake page script, part: the environment of a page view and the globals automation leaves,
 // stream "x".
 //
 // Ported from the research lab's env.js (our research code, 11/11;

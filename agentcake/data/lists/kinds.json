@@ -1,7 +1,7 @@
 {
-  "$comment": "The kinds a listed name can have, and what each means for a session: an agent is AI or automation working for a human; a bot is a named program that is not an agent. 'row' is the line of the dashboard's Agent block an agent kind is counted in ('ai': AI in a real browser; 'automated': Automated browser). A 'generic' kind names a tool anyone can run, so a more specific name matched in the same User-Agent wins over it. Labels are interface text (English only).",
+  "$comment": "The kinds a listed name can have, and what each means for a session: an agent is AI or automation working for a human; a bot is a named program that is not an agent. 'row' is the line of the dashboard's Agent block an agent kind is counted in ('ai': AI in a real browser; 'automated': Automated browser). A 'generic' kind names a tool anyone can run, so a more specific name matched in the same User-Agent wins over it. A 'browser' kind names a browser people also use by hand, such as an AI desktop app's own browser: the name says where the page is open, not who acts in it, so it names the agent when one acts and never makes a session an agent's (agentcake/detect/attribute.py). Labels are interface text (English only).",
   "kinds": {
-    "ai-desktop-app": {"category": "agent", "row": "ai", "label": "an AI desktop app browser"},
+    "ai-desktop-app": {"category": "agent", "row": "ai", "label": "an AI desktop app browser", "browser": true},
     "ai-browser-extension": {"category": "agent", "row": "ai", "label": "an AI browser extension"},
     "cloud-agent": {"category": "agent", "row": "ai", "label": "a self-declared cloud agent"},
     "ai-assistant": {"category": "agent", "row": "ai", "label": "an AI assistant fetching pages"},

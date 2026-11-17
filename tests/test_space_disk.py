@@ -1,4 +1,4 @@
-"""The floor of free disk (disk_min_free_mb, 10 GB): below it Agent Cake stores no new replay and deletes none for it,
+"""The floor of free disk (disk_min_free_mb, 10 GB): below it AgentCake stores no new replay and deletes none for it,
 with auto_free on or off; new replays start again on their own once there is room. A floor of 0 turns the check off.
 
     python3 -I -m unittest discover -s tests -p test_space_disk.py -v      (from the repository folder)
@@ -169,7 +169,9 @@ class FloorOverHttp(unittest.TestCase):
     def post(self, sid):
         ev = [{"type": 3, "timestamp": int(time.time() * 1000), "data": {"source": 2, "type": 2, "x": 1, "y": 1}}] * 5
         body = json.dumps({"k": self.key, "s": sid, "u": "https://example.com/", "ua": "Mozilla/5.0", "e": ev}).encode()
-        return urllib.request.urlopen(urllib.request.Request(self.base + "/collect", data=body, method="POST"), timeout=5).status
+        with urllib.request.urlopen(urllib.request.Request(self.base + "/collect", data=body, method="POST"),
+                                    timeout=5) as response:
+            return response.status
 
     def health(self):
         with urllib.request.urlopen(self.base + "/api/health", timeout=5) as r:

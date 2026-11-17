@@ -48,10 +48,10 @@ if it doesn't (`src/components/cake/page-state.tsx`). The contract has three par
 | `GET /api/session/<id>/replay?chunk=<n>` | `ReplayChunk`: the rrweb events of chunk n (one per 10 s, as listed in the session); the replay page asks for a chunk only when it needs it | `replay` |
 | `GET /api/settings` | `Settings` | `settings` |
 | `POST /api/settings` (JSON, only the fields to change) | the whole `Settings`; 400 with an error body for a bad value | `settings-update` (body) |
-| `POST /api/delete` (JSON: `{"all": true}`) | every session deleted, as `agentcake delete` deletes one: the settings page's "Delete everything", after its Dialog | — |
+| `POST /api/delete` (JSON: `{"all": true}`) | every session deleted, as `agentcake delete` deletes one: the settings page's "Delete all data", after its Dialog | — |
 | `GET /api/setup` | `Setup`: the sentence for a coding agent (EN / 中文), commands, example preview, how many sessions are recorded (the home page is the dashboard from the first one on) | `setup` |
 | `GET /api/register` | `Registration`: whether this data folder has registered (until it has, every page shows the registration card), what it sent and when, the checks the card makes, where to ask for deletion | `register` |
-| `POST /api/register` (JSON: the text "See what is sent" shows) | the new `Registration` once Tartini AI took it; 400 for a body the page doesn't write, 409 when registered already, 502 / 503 saying why it wasn't sent | `register-payload` (body) |
+| `POST /api/register` (JSON: the text "View registration data" shows) | the new `Registration` once Tartini AI took it; 400 for a body the page doesn't write, 409 when registered already, 502 / 503 saying why it wasn't sent | `register-payload` (body) |
 | `GET /api/health` | `Health`: for `agentcake doctor` (the fields of cake 0.3.4); the pages don't use it | `health` |
 | any error | `ApiErrorBody` `{"error": "…"}` | `error` |
 

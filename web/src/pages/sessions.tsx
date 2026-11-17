@@ -21,9 +21,10 @@ import { SessionRow } from "@/components/cake/session-row"
 import { Legend } from "@/components/cake/verdict"
 import { api, asApiError, useApi } from "@/data/api"
 import type { AgentTurns, DateRange, Evidence, SessionSummary, SessionsPage as Page, SessionsQuery, Verdict, WebDimension } from "@/data/types"
-import { ALL, ANY_AGENT, RANGE_KEYS, VERDICT_FILTERS, choiceQuery, pick, readEvidence, readRange, readTurns } from "@/lib/filters"
+import { ALL, ANY_AGENT, VERDICT_FILTERS, choiceQuery, pick, readEvidence, readRange, readTurns } from "@/lib/filters"
 import { TAXONOMY, TURNS_ORDER } from "@/lib/taxonomy"
-import { RANGES, WORDS, sessionCount } from "@/lib/words"
+import { WORDS, sessionCount } from "@/lib/words"
+import { RangeFilter } from "@/pages/dashboard"
 
 /** The verdict filter's chips in order, each in its verdict's colours (All is neutral). */
 const CHIPS: { value: Verdict | typeof ALL; label: string; variant: "outline" | Verdict }[] = [
@@ -111,8 +112,7 @@ function SessionList({ query, page, filters, set, clear, row, clearRow }: {
           <Separator orientation="vertical" className="h-6 max-md:hidden" />
           <Select value={filters.agent} onValueChange={set("agent")}><SelectTrigger aria-label="Agent"><SelectValue /></SelectTrigger>
             <SelectContent><SelectItem value={ANY_AGENT}>All agents</SelectItem>{page.agent_names.map((a) => <SelectItem key={a} value={a}>{a}</SelectItem>)}</SelectContent></Select>
-          <Select value={filters.range} onValueChange={set("range")}><SelectTrigger aria-label="Date range"><SelectValue /></SelectTrigger>
-            <SelectContent>{RANGE_KEYS.map((r) => <SelectItem key={r} value={r}>{RANGES[r]}</SelectItem>)}</SelectContent></Select>
+          <RangeFilter range={filters.range} onRange={set("range")} />
           {row && (
             <span className="inline-flex items-center gap-1">
               <Badge variant="tag">{`${WORDS.web.dimensions[row.dimension]}: ${row.label}`}</Badge>
@@ -144,7 +144,7 @@ function SessionList({ query, page, filters, set, clear, row, clearRow }: {
         <div className="flex flex-col gap-3">{rows.map((s) => <SessionRow key={s.id} s={s} />)}</div>
       ) : (
         <Card variant="sunk"><CardContent className="flex flex-col items-center gap-3 py-6 text-center">
-          <Crumb pose="sleep" className="w-32" label="Empty state illustration" />
+          <Crumb pose="sleep" className="w-32" label={WORDS.crumb.empty} />
           <h3 className="text-lg font-semibold">No sessions match your filters</h3>
           <p className="text-sm text-muted-foreground">Try selecting a longer date range or clearing the agent filter.</p>
           <Button variant="outline" size="sm" onClick={clear}>Clear filters</Button>

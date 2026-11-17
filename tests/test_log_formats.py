@@ -1,6 +1,6 @@
 """Reading web server access logs: agentcake/log_formats.py.
 
-    python3 -I -m unittest discover -s tests -p test_log_formats.py -v      (from the Agent Cake folder)
+    python3 -I -m unittest discover -s tests -p test_log_formats.py -v      (from the AgentCake folder)
 
 Five samples of 100 lines each, written from made-up requests the way each web server writes them (log_samples.py):
 nginx combined, nginx with the recommended log_format, Apache combined, Apache with the recommended LogFormat, and

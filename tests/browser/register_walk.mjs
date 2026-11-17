@@ -6,12 +6,12 @@
 //                        the pages, open the page again and wait for the card
 // Prints its report ({scenario, steps, shown, alert}) as one JSON line and keeps a screenshot per step in <dir>.
 // playwright-core comes from CAKE_PLAYWRIGHT or web/node_modules/playwright-core, Chromium from CAKE_CHROME or
-// Playwright's cache.
-import { existsSync } from 'node:fs'
+// Playwright's cache (chromium.mjs).
 import { mkdir } from 'node:fs/promises'
 import { createRequire } from 'node:module'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { executablePath } from './chromium.mjs'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 const args = Object.fromEntries(process.argv.slice(2).reduce((pairs, a, i, all) => (a.startsWith('--') ? [...pairs, [a.slice(2), all[i + 1]]] : pairs), []))
@@ -22,9 +22,7 @@ const EMAIL = 'owner@example.com'
 const COMPANY = 'Bäckerei Ünal'
 
 function launch() {
-  const guess = path.join(process.env.HOME, 'Library/Caches/ms-playwright/chromium-1228/chrome-mac-x64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing')
-  const executablePath = process.env.CAKE_CHROME || (existsSync(guess) ? guess : undefined)
-  return chromium.launch({ executablePath })
+  return chromium.launch({ executablePath: executablePath() })
 }
 
 const browser = await launch()

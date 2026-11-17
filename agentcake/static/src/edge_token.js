@@ -1,4 +1,4 @@
-// Agent Cake page script, part: the server-half token.
+// AgentCake page script, part: the server-half token.
 //
 // As in cake 0.3.3: the site's server (its cake middleware) puts a signed token in
 // the Server-Timing header of the response that opened this page (`Server-Timing: cake;desc="c1.<body>.<sig>"`).

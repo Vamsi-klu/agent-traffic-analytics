@@ -149,11 +149,11 @@ export type LayerState = Verdict | "human_agent" | "unknown" | "no_hit" | "off"
 export type ReasonKind = "user_agent" | "server" | "page" | "browser" | "clicks" | "keys" | "motion" | "model"
 /** A reason: what it means (text) and, under it, what was seen in technical words (detail), null when it has none. */
 export type Reason = { kind: ReasonKind; tone: "human" | "agent" | "none"; text: string; detail: string | null }
-/** One of the four layers of "Why this verdict", in the order name, verify, environment, behavior. leans: the side its
+/** One of the four layers of "Why this classification", in the order name, verify, environment, behavior. leans: the side its
  *  evidence points to, and percent how sure it is of that side (1–99); both null when it judged nothing (no hit, off,
  *  too little data). */
 export type LayerReasons = { layer: LayerId; state: LayerState; reasons: Reason[]; percent: number | null; leans: "agent" | "human" | "bot" | null }
-/** One action in "Every action": what, never what was typed (inputs are masked), and the page it was taken on. */
+/** One action in "All actions": what, never what was typed (inputs are masked), and the page it was taken on. */
 export type Action = { at_ms: number; who: Actor; what: string; page: string }
 /** One page of a session, in the order the pages opened: the first is where the visit came in, the last where it left
  * . A single-page app's new address is a new page. */
@@ -163,7 +163,7 @@ export type SessionPage = {
   /** When the page opened, and how long the visit stayed: until the next page opened, the last page until the end. */
   at_ms: number
   duration_ms: number
-  /** The visitor's actions on the page: "Every action" without its Open rows. */
+  /** The visitor's actions on the page: "All actions" without its Open rows. */
   actions: number
   /** Who acted on the page, named as the session categories name it: a human only, an agent only, a human and an
    *  agent (Human + agent), or unknown when all its actions are; a page without actions takes who acted when it
@@ -212,7 +212,7 @@ export type ServerPage = {
 }
 /** The network cake.js's uploads came from, as the load balancer saw it (server mode); never the address itself. */
 export type Network = { country: string | null; range: string | null; ja4: string | null; protocol: string | null }
-/** The "Server half" table of a session. */
+/** The session page's Server middleware table. */
 export type ServerHalf = {
   /** One row per page request whose token arrived, in time order. */
   pages: ServerPage[]
@@ -311,7 +311,7 @@ export type Setup = {
   /** Commands for the Terminal and On a server tabs, one per line, placeholders only. */
   terminal: string
   server: string
-  /** Shown as "example data" until real sessions arrive. */
+  /** Shown as "Sample data" until real sessions arrive. */
   example: { sessions: SessionSummary[]; timeline: Timeline }
   /** At any time: the sessions the lists show, how many of them the website sent (site: all but those an earlier
    *  AgentCake's demo shop recorded) and how many are Agent sessions. Until the website's first session the home page
@@ -326,7 +326,7 @@ export type Setup = {
  *  before anything else. Also the answer to a POST that was sent. */
 export type Registration = {
   registered: boolean
-  /** What was sent, exactly as "See what is sent" showed it, and when (formatted by the server); null before. */
+  /** What was sent, exactly as "View registration data" showed it, and when (formatted by the server); null before. */
   sent: { body: string; when: string } | null
   /** The checks the card makes before its button turns on, the ones cake makes before it sends: the email address
    *  matches email_pattern as a whole and has at most email_max_chars characters; a company at most company_max_chars. */
@@ -337,14 +337,14 @@ export type Registration = {
   delete_contact: string
 }
 
-/** POST body (Content-Type: application/json): the registration exactly as the card's "See what is sent" shows it,
+/** POST body (Content-Type: application/json): the registration exactly as the card's "View registration data" shows it,
  *  JSON.stringify(payload, null, 2) with the keys in this order, company only when given. cake sends that text on
  *  unchanged (agentcake/register.py); a body in any other form is a 400. */
 export type RegistrationPayload = { email: string; company?: string; product_updates: boolean; consent_version: string }
 
 // ---------------------------------------------------------------- GET /api/health
 
-/** Read by `agentcake doctor` and the install check (same fields as Agent Cake 0.3.4); the pages don't use it. */
+/** Read by `agentcake doctor` and the install check (same fields as AgentCake 0.3.4); the pages don't use it. */
 export type Health = {
   ok: boolean
   version: string

@@ -40,7 +40,7 @@ def setting(tree, rule, what):
 
 
 def package_folder(tree, settings, rule):
-    """The folder inside the package that a data file of the commit names (setting()). Agent Cake looks there at run
+    """The folder inside the package that a data file of the commit names (setting()). AgentCake looks there at run
     time, so the release reads the name from the same place."""
     value = setting(tree, rule, f"where in the package {rule['folder']}/ goes")
     return os.path.join(tree, settings["package"], value)

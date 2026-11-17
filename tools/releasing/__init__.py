@@ -1,10 +1,11 @@
-"""Building a release of Agent Cake: what tools/release.py runs. Not shipped, not imported by agentcake.
+"""Building a release of AgentCake: what tools/release.py runs. Not shipped, not imported by agentcake.
 
 A release is four files, made from one git commit and nothing else, so that building the same commit again gives the
 same bytes (with the same Python, its zlib, and Node: release.json "toolchain"):
 
-- agentcake-<version>-py3-none-any.whl: the package, with the local pages compiled into it and cake.js minified; no
-  dependencies. `uv tool install` or pip installs it; a server unpacks it (SERVER.md).
+- agentcake-<version>-py3-none-any.whl: the package, with the local pages compiled into it and cake.js minified, without
+  what only a checkout uses (release.json "package_files"); no dependencies. `uv tool install` or pip installs it; a
+  server unpacks it (SERVER.md).
 - agentcake.pyz: the same package as one file that Python runs: `python3 agentcake.pyz <command>` (pyz_main.py).
 - agentcake-<version>.tar.gz: the release folder, bin/agentcake and the package, with what a server install needs
   (SERVER.md, deploy/cake.service, Dockerfile, .dockerignore and the wheel); it is also a source distribution.
@@ -14,7 +15,7 @@ The modules, in the order build.py runs them:
 
 - settings.py: release.json, and the error every step raises;
 - source.py: the commit, its time (every file in the release carries it) and a clean copy of it to build in;
-- bundled_lists.py: the lists that ship with Agent Cake: refreshed online before a release, checked at build;
+- bundled_lists.py: the lists that ship with AgentCake: refreshed online before a release, checked at build;
 - webapp.py: `npm ci && npm run build` of web/, copied into the package;
 - notices.py: the third-party notices that build writes into the pages, checked once they are in the package;
 - middleware.py: the sites' middleware, edge/, copied into the package;

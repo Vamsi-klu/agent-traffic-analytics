@@ -1,6 +1,6 @@
 """How the name and verification lists are read: agentcake/detect/lists.py.
 
-    python3 -I -m unittest discover -s tests -p test_lists_reading.py -v      (from the Agent Cake folder)
+    python3 -I -m unittest discover -s tests -p test_lists_reading.py -v      (from the AgentCake folder)
 
 The release's lists are parsed once per process, whichever CAKE_HOME asks, and again only when their files change;
 each load keeps its own record of the updates it skipped. Address blocks are read as ipaddress reads them, faster:

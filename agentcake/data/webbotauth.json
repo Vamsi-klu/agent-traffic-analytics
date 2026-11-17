@@ -2,7 +2,7 @@
   "$comment": "Web Bot Auth verification (agentcake/detect/webbotauth.py): what a signature must carry, how far its times may be from this computer's clock, which keys are never trusted, what one verification may cost, and the text of each reason. Protocol: draft-ietf-webbotauth-httpsig-protocol-01 over RFC 9421. Each setting is described in $doc.",
   "$doc": {
     "tag": "The tag parameter that marks a Web Bot Auth signature (draft -01 section 5.2). Signatures with another tag are not looked at.",
-    "algorithms": "alg parameter values Agent Cake verifies. Only Ed25519 is implemented; another alg gives declared, unsupported-algorithm.",
+    "algorithms": "alg parameter values AgentCake verifies. Only Ed25519 is implemented; another alg gives declared, unsupported-algorithm.",
     "required_parameters": "Signature parameters a Web Bot Auth signature must have (draft -01 section 5.2). Without one: declared, incomplete.",
     "required_components_any": "The signature must cover at least one of these (draft -01 section 5.2). Otherwise: declared, incomplete.",
     "signature_agent_schemes": "URL schemes accepted in Signature-Agent (draft -01 section 5.2.1 requires https).",

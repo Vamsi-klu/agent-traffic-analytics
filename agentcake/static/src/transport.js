@@ -1,4 +1,4 @@
-// Agent Cake page script, part: batches, sequence numbers and sending (format: docs/collect-format.md).
+// AgentCake page script, part: batches, sequence numbers and sending (format: docs/collect-format.md).
 //
 // Every record the other parts make goes through C.push(stream, record) into this page view's buffer. The streams
 // are "e" (rrweb events), "r" (raw input records) and "x" (signal records). C.flush(why) sends the buffer as one or

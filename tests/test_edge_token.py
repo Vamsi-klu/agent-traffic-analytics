@@ -1,6 +1,6 @@
 """Keeping the server half's tokens: edge_token.take_token, as collect calls it for each batch of cake.js.
 
-    python3 -I -m unittest discover -s tests -p test_edge_token.py -v      (from the Agent Cake folder)
+    python3 -I -m unittest discover -s tests -p test_edge_token.py -v      (from the AgentCake folder)
 
 Each test has its own CAKE_HOME with a secret, and posts batches the way cake.js sends them (or calls take_token with
 its own clock). A token is kept once (ok). The page view that brought it bringing it again is dup. Another page view

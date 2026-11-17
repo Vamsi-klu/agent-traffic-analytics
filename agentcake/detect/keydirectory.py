@@ -39,7 +39,7 @@ BASE64URL = re.compile(r"[A-Za-z0-9_-]*=*")
 
 @dataclass(frozen=True)
 class Key:
-    """One key of a signer. public_key is None for a key type Agent Cake cannot verify (RSA, EC, X25519)."""
+    """One key of a signer. public_key is None for a key type AgentCake cannot verify (RSA, EC, X25519)."""
 
     thumbprint: str
     kid: object
@@ -88,7 +88,7 @@ def thumbprint(jwk):
 
 
 def signer_identifier(value, settings):
-    """The signer a Signature-Agent value names, or None when it is not an URL Agent Cake accepts.
+    """The signer a Signature-Agent value names, or None when it is not an URL AgentCake accepts.
 
     The scheme must be one of settings.signature_agent_schemes; no user information, fragment or IP literal. The
     query is dropped (draft -01 section 5.5). The bare origin and the well-known directory path give the host.

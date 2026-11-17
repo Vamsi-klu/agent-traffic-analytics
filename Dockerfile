@@ -1,4 +1,4 @@
-# Agent Cake on a server as one container: the whole program (one process, one SQLite database) on python:3.14-slim,
+# AgentCake on a server as one container: the whole program (one process, one SQLite database) on python:3.14-slim,
 # installed from the release wheel. SERVER.md, "Install with Docker", says how to build, set up and run it.
 #
 # Build: put agentcake-<version>-py3-none-any.whl, checked against the release's SHA256SUMS, alone in dist/ next to

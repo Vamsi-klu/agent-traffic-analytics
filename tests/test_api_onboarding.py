@@ -1,6 +1,6 @@
 """GET /api/setup (agentcake/api/onboarding.py): the home page's ways to connect and its example preview.
 
-    python3 -I -m unittest discover -s tests -p test_api_onboarding.py -v      (from the Agent Cake folder)
+    python3 -I -m unittest discover -s tests -p test_api_onboarding.py -v      (from the AgentCake folder)
 
 The answer fits the contract. The sentence for a coding agent comes in English and Chinese, with this
 installation's launcher and ~ for the home folder (the same words `agentcake sentence` prints in Chinese); the

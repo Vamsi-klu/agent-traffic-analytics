@@ -91,9 +91,13 @@
       "hit": [{"auto": {"runtimeEnableLeak": {"prepareStackTraceCount": 40}}},
               {"auto": {"runtimeEnableLeak": {"nameGetterCount": 120}}},
               {"auto": {"runtimeEnableLeak": {"rounds": 1, "prepareStackTraceCount": 1, "nameGetterCount": 2, "stackLookupCount": 0, "firstHitRound": 1}}},
-              {"auto": {"runtimeEnableLeak": {"rounds": 1, "prepareStackTraceCount": 0, "nameGetterCount": 2, "stackLookupCount": 0, "firstHitRound": 1}}}],
+              {"auto": {"runtimeEnableLeak": {"rounds": 1, "prepareStackTraceCount": 0, "nameGetterCount": 2, "stackLookupCount": 0, "firstHitRound": 1}}},
+              {"auto": {"runtimeEnableLeak": {"console": "frame", "rounds": 1, "prepareStackTraceCount": 1, "nameGetterCount": 2, "stackLookupCount": 0, "firstHitRound": 1}}}],
       "miss": [{}, {"env": {"uaData": null}, "auto": {"runtimeEnableLeak": {"nameGetterCount": 120}}},
-               {"auto": {"runtimeEnableLeak": {"rounds": 3, "prepareStackTraceCount": 0, "nameGetterCount": 3, "stackLookupCount": 0, "firstHitRound": null}}}]
+               {"auto": {"runtimeEnableLeak": {"rounds": 3, "prepareStackTraceCount": 0, "nameGetterCount": 3, "stackLookupCount": 0, "firstHitRound": null}}},
+               {"auto": {"runtimeEnableLeak": {"console": "frame", "rounds": 3, "prepareStackTraceCount": 0, "nameGetterCount": 3, "stackLookupCount": 0, "firstHitRound": null}}},
+               {"auto": {"runtimeEnableLeak": {"console": "none", "rounds": 0, "prepareStackTraceCount": 0, "nameGetterCount": 0, "stackLookupCount": 0, "firstHitRound": null, "error": "SecurityError"}}},
+               {"auto": {"runtimeEnableLeak": {"console": "page", "rounds": 1, "prepareStackTraceCount": 1, "nameGetterCount": 3, "stackLookupCount": 1, "firstHitRound": 1}}}]
     },
     "env.auto.ipc-flooding-off": {
       "hit": [{"auto": {"ipcFlooding": {"applied": 300, "all300": true}}}],

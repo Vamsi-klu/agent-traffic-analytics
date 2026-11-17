@@ -1,6 +1,6 @@
 """tests/json_schema.py, the Python twin of web/scripts/json-schema.mjs.
 
-    python3 -I -m unittest discover -s tests -p test_json_schema.py -v      (from the Agent Cake folder)
+    python3 -I -m unittest discover -s tests -p test_json_schema.py -v      (from the AgentCake folder)
 
 The contract's own schemas pass check_schema() and every sample answer in web/src/data/fixtures/ fits its schema here
 too, as `npm run check:ui` finds with the JavaScript validator; each keyword refuses what it should, with the same

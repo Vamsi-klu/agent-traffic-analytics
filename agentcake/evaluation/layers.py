@@ -1,4 +1,4 @@
-"""What each part of Agent Cake finds alone and together (each layer alone against all of them).
+"""What each part of AgentCake finds alone and together (each layer alone against all of them).
 
     by_half(rows, settings) -> [{"keep", "groups": {group: {"n", "right"}}, "n", "right"}]
     by_layer(rows, settings) -> the same for the judging layers

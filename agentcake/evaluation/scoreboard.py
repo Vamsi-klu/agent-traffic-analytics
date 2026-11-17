@@ -1,7 +1,7 @@
 """The behaviour layer's scoreboard, reported the way the industry reports.
 
     build(rows, takeover_rows, settings, limit_s) -> {"agents", "humans", "pooled_humans", "precision", "sites",
-                                                      "mixed"}
+                                                      "mixed", "held_out"}
 
 What it reports, after Akamai's research prototype and AgentShield:
 - agents: per data set and agent product, how many sessions there were, how many had enough actions to judge
@@ -18,6 +18,9 @@ What it reports, after Akamai's research prototype and AgentShield:
 - sites: the same counts per site, so that a rule that only holds on one site shows.
 - mixed: per data set of mixed sessions, the per-action accuracy, the agent-share error and the hand-offs (A3-A5, as
   takeovers.summary() measures them).
+- held_out: per held-out data set (settings "scoreboard.held_out_sources": a website's own sessions, labelled
+  afterwards), its agent and human cells counted the same way, and nowhere else: never pooled with the other humans,
+  so no precision, pooled rate or site count changes with it.
 
 Rows are sessions.row()'s; a row may carry "site" (where it was recorded) and its group names the agent product
 through settings "scoreboard.products". Nothing is judged here: every verdict is already on the rows.
@@ -43,7 +46,18 @@ def build(rows, takeover_rows, settings, limit_s):
             "precision": [_precision(cell, pools, board) for cell in agent_cells],
             "sites": _sites(agents, [m for m in humans if not m["weak"]], confidence),
             "mixed": {source: takeovers.summary(items, "verdict", limit_s)
-                      for source, items in takeover_rows.items() if items}}
+                      for source, items in takeover_rows.items() if items},
+            "held_out": {source: _held_out(rows, source, board) for source in board["held_out_sources"]
+                         if rows.get(source)}}
+
+
+def _held_out(rows, source, board):
+    """A held-out data set's agent cells per product and human cells per group, as build() counts the others."""
+    confidence = board["confidence"]
+    agents = _members(rows, [source], AGENT, board)
+    humans = _members(rows, [source], HUMAN, board)
+    return {"agents": [_agent_cell(key, items, confidence) for key, items in _grouped(agents, ("source", "product"))],
+            "humans": [_human_cell(key, items, confidence) for key, items in _grouped(humans, ("source", "group"))]}
 
 
 def _members(rows, sources, truth_class, board):

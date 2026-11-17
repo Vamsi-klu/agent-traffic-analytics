@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Find values written into Agent Cake's code instead of its settings, data files or design tokens.
+"""Find values written into AgentCake's code instead of its settings, data files or design tokens.
 
     python3 tools/check_hardcode.py [repository folder]      (default: the folder above tools/)
 
@@ -14,14 +14,16 @@ exit code is 0 when the count is 0.
 """
 import ast
 import io
-import json
 import os
 import re
 import sys
 import tokenize
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-LIMITS = os.path.join(ROOT, "tools", "limits.json")
+if ROOT not in sys.path:
+    sys.path.insert(0, ROOT)  # run as a script under python3 -I, the repository root is not on sys.path
+
+from tools.code_checks import folder_argument, limits  # noqa: E402
 ALLOWED_NUMBERS = (0, 1)  # -1 is the number 1 with a minus sign in front
 PROTOCOL = re.compile(r"(#|//)\s*protocol:\s*\S")
 COLOUR = re.compile(r"#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3,4})\b|\b(?:rgba?|hsla?)\(")
@@ -34,8 +36,7 @@ JS_NUMBER = re.compile(r"(?<![\w$.])(?:0[xX][0-9a-fA-F_]+|0[bB][01_]+|0[oO][0-7_
 
 
 def exempt_paths():
-    with open(LIMITS, encoding="utf-8") as f:
-        return json.load(f)["check_hardcode"]["exempt"]
+    return limits("check_hardcode")["exempt"]
 
 
 def string_findings(value):
@@ -156,7 +157,7 @@ def hardcoded(root, exempt=None):
 
 
 def main(argv):
-    root = os.path.abspath(argv[0]) if argv else ROOT
+    root = folder_argument(argv, __doc__)
     found = hardcoded(root)
     for rel, line, what in found:
         print(f"{rel}:{line}: {what}: move it to defaults.json, a data file or a token (or mark a protocol constant)")

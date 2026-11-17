@@ -1,6 +1,6 @@
 """The privacy scan: tools/privacy_scan.py and tools/privacy/.
 
-    python3 -I -m unittest discover -s tests -p test_privacy_scan.py -v      (from the Agent Cake folder)
+    python3 -I -m unittest discover -s tests -p test_privacy_scan.py -v      (from the AgentCake folder)
 
 A data folder made the way cake makes one (store.db(), streams, cake.log, a backup, an export) gets one planted thing
 of every kind, in a database cell, in replay chunks (zstd and zlib), in a dead chunk a reclaim has not removed, in
@@ -94,7 +94,7 @@ class CleanData(Folder):
         self.visit(secrets.token_hex(16), clean_events(NOW))
         self.visit(secrets.token_hex(16), clean_events(NOW + 10_000), stream="env", cfg=dict(SETTINGS, codec="zlib"))
         self.write("config.json", json.dumps({"port": 7878, "public_listen": "0.0.0.0:8080", "site_key": "ck_1a2b3c"}))
-        self.write("cake.log", "Agent Cake 0.4.0 serving http://127.0.0.1:7878/ (data folder ~/.cake)\n"
+        self.write("cake.log", "AgentCake 0.4.0 serving http://127.0.0.1:7878/ (data folder ~/.cake)\n"
                                "public listener on [::1]:8080, 2026-11-12 20:09:54\n")
         self.write("lists/2026-11-12/ip_ranges.json", json.dumps({"ranges": [{"v4": ["20.171.206.0/24"]}]}))
         self.write("srv_secret", secrets.token_urlsafe(48))

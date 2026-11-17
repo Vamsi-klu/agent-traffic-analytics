@@ -1,7 +1,7 @@
 """The signature on POST /edge: agentcake/edge_signature.py (these tests moved here with
-it from test_edge_api.py), what `logs import` signs a batch with and what makes a request one Agent Cake accepts.
+it from test_edge_api.py), what `logs import` signs a batch with and what makes a request one AgentCake accepts.
 
-    python3 -I -m unittest discover -s tests -p test_edge_signature.py -v      (from the Agent Cake folder)
+    python3 -I -m unittest discover -s tests -p test_edge_signature.py -v      (from the AgentCake folder)
 """
 import os
 import sys

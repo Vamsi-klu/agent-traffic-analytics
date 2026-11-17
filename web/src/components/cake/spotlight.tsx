@@ -74,7 +74,7 @@ export function SpotlightEmpty() {
     <Card variant="highlight">
       <CardContent className="flex flex-col gap-3">
         <Eyebrow />
-        <div className="flex items-center gap-3"><Crumb pose="look" className="w-24 shrink-0" label="Empty state illustration" /><h3 className="text-lg font-semibold">No agent visits yet</h3></div>
+        <div className="flex items-center gap-3"><Crumb pose="look" className="w-24 shrink-0" label={WORDS.crumb.empty} /><h3 className="text-lg font-semibold">No agent visits yet</h3></div>
         <p className="text-sm">When an AI agent visits your website, its session appears in Agent sessions.</p>
         <p className="text-xs text-muted-foreground">Human and Bot sessions are still recorded and stored. Key metrics includes both, and Deep dive includes Human sessions.</p>
       </CardContent>

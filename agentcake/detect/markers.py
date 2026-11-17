@@ -78,7 +78,7 @@ def _check_page_mark(mark, attributes):
         raise MarkersError(f"{mark_id}: its selector reads {unread}, which page.attributes does not list")
 
 
-def _check_meta(mark_id, meta, kinds, grades, sources):
+def _check_meta(mark_id, meta, kinds, grades, sources, turn_kinds):
     missing = [field for field in _META_FIELDS if field not in meta]
     if missing:
         raise MarkersError(f"{mark_id}: missing {missing}")
@@ -87,7 +87,10 @@ def _check_meta(mark_id, meta, kinds, grades, sources):
     strays = [source for source in meta["sources"] if source not in sources]
     if strays:
         raise MarkersError(f"{mark_id}: sources {strays} are not in source_refs")
-    if "{span}" not in meta["text"]:
+    if meta["kind"] in turn_kinds:  # its reason gives no time: the summary says when the agent was active
+        if any("{span}" in meta[field] for field in ("text", "detail")):
+            raise MarkersError(f"{mark_id}: a turn kind's mark is named without a time, so its words have no {{span}}")
+    elif "{span}" not in meta["text"]:
         raise MarkersError(f"{mark_id}: its text has no {{span}}")
 
 
@@ -101,7 +104,7 @@ def parse_table(data, grades=None):
         for mark in page["markers"]:
             _check_page_mark(mark, page["attributes"])
         for mark_id, meta in markers.items():
-            _check_meta(mark_id, meta, kinds, grades, data["source_refs"])
+            _check_meta(mark_id, meta, kinds, grades, data["source_refs"], data["turn_kinds"])
         strays = [kind for kind in data["turn_kinds"] if kind not in kinds]
         if strays:
             raise MarkersError(f"turn_kinds {strays} are not in the kinds legend")
@@ -119,7 +122,7 @@ def parse_table(data, grades=None):
 
 @lru_cache(maxsize=None)
 def load_table(path=TABLE_FILE):
-    """The mark table shipped with Agent Cake (or another file, for tests)."""
+    """The mark table shipped with AgentCake (or another file, for tests)."""
     with open(path, encoding="utf-8") as handle:
         return parse_table(json.load(handle))
 

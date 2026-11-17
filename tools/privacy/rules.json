@@ -2,7 +2,7 @@
   "about": "What tools/privacy_scan.py looks for in a data folder and what it leaves out, each with why. It prints how many and where, never what matched.",
   "own_addresses": {
     "addresses": ["127.0.0.1", "0.0.0.0", "::1"],
-    "why": "Agent Cake's own listen addresses. The scanned folder's public_listen host is added: also cake's own. Nothing else is left out, not even the documentation ranges tests plant."
+    "why": "AgentCake's own listen addresses. The scanned folder's public_listen host is added: also cake's own. Nothing else is left out, not even the documentation ranges tests plant."
   },
   "version_before_address": {
     "pattern": "(?:[A-Za-z]/|version\\W{0,4})$",

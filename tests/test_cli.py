@@ -1,8 +1,8 @@
 """The command line, the way people run it: start, status, ping, doctor, stop and --version, and the 0.3.x
 entry points (bin/cake, cake.py) that existing installs and older deploy/cake.service files still use. A Python
-older than Agent Cake needs gets a sentence saying so from every entry point.
+older than AgentCake needs gets a sentence saying so from every entry point.
 
-    python3 -I -m unittest discover -s tests -v      (from the Agent Cake folder)
+    python3 -I -m unittest discover -s tests -v      (from the AgentCake folder)
 
 Every command runs in its own process against a scratch CAKE_HOME and a free port, never the user's ~/.cake. Each
 command imports its own module when it runs: `--version` loads only the settings, the words and the paths,
@@ -13,7 +13,7 @@ import json, os, shutil, socket, subprocess, sys, tempfile, tomllib, unittest
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 import agentcake  # noqa: E402
-from agentcake import wording  # noqa: E402
+from agentcake import cli, wording  # noqa: E402
 from cake_server import free_port, pages_stub  # noqa: E402
 
 MAIN_FILE = os.path.join(ROOT, "agentcake", "__main__.py")
@@ -168,6 +168,54 @@ class Stop(unittest.TestCase):
             listener.bind(("127.0.0.1", int(env["CAKE_PORT"])))
 
 
+class Arguments(unittest.TestCase):
+    """--help after a command prints its usage, and an option the command does not take is refused: neither starts,
+    stops, migrates or pings anything, nor writes into the data folder (`serve --help` used to start a server on the
+    user's ~/.cake and port)."""
+
+    ANSWER_S = 30  # far longer than any of these takes; a command still running by then started something
+
+    def answer(self, *args):
+        env = scratch_env()
+        self.addCleanup(shutil.rmtree, env["CAKE_HOME"], True)
+        self.addCleanup(run, AGENTCAKE, env, "stop")  # in case `start` did start one
+        try:
+            out = subprocess.run(AGENTCAKE + list(args), env=env, capture_output=True, text=True, timeout=self.ANSWER_S)
+        except subprocess.TimeoutExpired:
+            self.fail(f"agentcake {' '.join(args)} was still running after {self.ANSWER_S} s")
+        self.assertEqual(os.listdir(env["CAKE_HOME"]), [], f"agentcake {' '.join(args)} wrote into the data folder")
+        return out
+
+    def test_help_after_a_command_prints_the_help(self):
+        for command in ("serve", "start", "stop", "migrate", "ping", "doctor", "setup", "status"):
+            with self.subTest(command):
+                out = self.answer(command, "--help")
+                self.assertEqual((out.returncode, out.stdout), (0, cli.help_text() + "\n"))
+
+    def test_help_after_a_command_with_a_usage_line_prints_that_line(self):
+        for command in ("config", "secret", "lists", "delete"):
+            with self.subTest(command):
+                out = self.answer(command, "-h")
+                self.assertEqual((out.returncode, out.stdout.strip()), (0, wording.text(f"{command}_usage")))
+
+    def test_a_word_the_command_does_not_take_is_named(self):
+        """The command is known, so not "unknown command": the word it does not take is named."""
+        for args, word in ((("status", "bogus"), "bogus"), (("serve", "--port", "9"), "--port"),
+                           (("start", "--foreground"), "--foreground"), (("migrate", "--force"), "--force"),
+                           (("setup", "--print", "--sites"), "--sites")):
+            with self.subTest(args):
+                out = self.answer(*args)
+                self.assertEqual((out.returncode, out.stdout.strip()),
+                                 (2, wording.text("option_unknown", subcommand=args[0], word=word)))
+
+    def test_an_option_without_its_value_says_it_needs_one(self):
+        for args in (("doctor", "--dir"), ("doctor", "--url"), ("setup", "--site", "--dir")):
+            with self.subTest(args):
+                out = self.answer(*args)
+                self.assertEqual((out.returncode, out.stdout.strip()),
+                                 (2, wording.text("option_needs_value", subcommand=args[0], word=args[-1])))
+
+
 class LegacyEntryPoint(unittest.TestCase):
     """`python3 cake.py <command>`, the way 0.3.x installs and older deploy/cake.service files start cake."""
 
@@ -189,7 +237,7 @@ def run_in_python(version_info, entry, env, *args):
 
 
 class OlderPython(unittest.TestCase):
-    """Agent Cake needs the Python that data/product.json names (pyproject.toml's requires-python says the same)."""
+    """AgentCake needs the Python that data/product.json names (pyproject.toml's requires-python says the same)."""
 
     def setUp(self):
         self.env = scratch_env()

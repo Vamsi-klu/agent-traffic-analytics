@@ -1,6 +1,6 @@
 """The predicate language the environment rules are written in: agentcake/detect/predicate.py.
 
-    python3 -I -m unittest discover -s tests -v      (from the Agent Cake folder)
+    python3 -I -m unittest discover -s tests -v      (from the AgentCake folder)
 
 Three-valued: a key that was not recorded makes a test unknown, a recorded null is a known "nothing"; the combinators
 keep unknown apart from false, and malformed predicates are refused.

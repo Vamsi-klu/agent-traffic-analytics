@@ -1,0 +1,54 @@
+# Upload a release of AgentCake to PyPI when the maintainer publishes it (we build it, people install it).
+#
+# .github/workflows/release.yml builds a v<version> tag into a draft release; the maintainer reads the draft and
+# publishes it, which runs this job. It builds nothing: it downloads the published release's wheel and SHA256SUMS,
+# checks the wheel against SHA256SUMS and uploads the wheel alone, so PyPI gets the same bytes as the release. The
+# release folder (agentcake-<version>.tar.gz) is not a source distribution PyPI could build from, and agentcake.pyz is
+# not a package: neither goes to PyPI.
+#
+# No token: PyPI's Trusted Publishing. The project's trusted publisher on PyPI names the owner tartini-ai, the
+# repository agent-traffic-analytics, this file (pypi.yml) and the environment pypi, so neither name may change
+# (tests/test_pypi_workflow.py). Actions are pinned by commit; the version is in the comment.
+name: pypi
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    environment:
+      name: pypi
+      url: https://pypi.org/p/agentcake
+    permissions:
+      contents: read # to download the release's files
+      id-token: write # Trusted Publishing: PyPI takes this job's identity token instead of a password
+    steps:
+      - name: Download the release's wheel and SHA256SUMS
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --dir release --pattern "*.whl" --pattern SHA256SUMS
+      - name: Check the wheel against SHA256SUMS
+        working-directory: release
+        shell: bash
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          shopt -s nullglob
+          wheels=(*.whl)
+          test "${#wheels[@]}" -eq 1
+          test "${wheels[0]}" = "agentcake-${TAG#v}-py3-none-any.whl"
+          awk -v wheel="${wheels[0]}" '$2 == wheel' SHA256SUMS | sha256sum -c
+      - name: Keep the wheel alone in the folder the upload reads
+        run: |
+          mkdir dist
+          mv release/*.whl dist/
+      - name: Upload the wheel to PyPI
+        uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # v1.14.3
+        with:
+          packages-dir: dist

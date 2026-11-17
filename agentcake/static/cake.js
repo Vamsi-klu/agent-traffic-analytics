@@ -1,4 +1,4 @@
-/*! Agent Cake page script (cake.js), upload format v1, build d731544b382f. Made by agentcake/build_js.py from agentcake/static/src/ and agentcake/data/cakejs.json; do not edit. Bundles rrweb record, BotD, botscent page half, whose licences follow. */
+/*! AgentCake page script (cake.js), upload format v1, build cbb415564f99. Made by tools/build_js.py from agentcake/static/src/ and agentcake/data/cakejs.json; do not edit. Bundles rrweb record, BotD, botscent page half, whose licences follow. */
 /*! rrweb record 2.0.0-alpha.18 (rrweb-io/rrweb, record UMD build as shipped with cake 0.3.x (local source checked at commit 3339038d)):
 MIT License
 
@@ -75,7 +75,7 @@ SOFTWARE.
   var TAG = document.currentScript
   var CFG = {"format_version":1,"collect_path":"collect","attr":{"site":"data-site","consent":"data-consent"},"consent":{"required":"required","commands":{"start":"start","stop":"stop"}},"defaults":{"hook_dom":false,"hide_selectors":""},"storage":{"session":"cake_sid","clock":"cake_clock","page_number":"cake_pn","pending":"cake_pending","frames_done":"cake_frames","visitor":"cake_vid"},"session":{"$comment":"How a tab's session is cut (session.js; the collector applies the same rules, session_split.py): PostHog's time rules (posthog-js packages/browser/src/sessionid.ts: DEFAULT_SESSION_IDLE_TIMEOUT_SECONDS 30 minutes, SESSION_LENGTH_LIMIT_MILLISECONDS 24 hours). Activity is what PostHog counts: its recorder's ACTIVE_SOURCES (lazy-loaded-session-recorder.ts: MouseMove, MouseInteraction, Scroll, ViewportResize, Input, TouchMove, MediaInteraction, Drag), as the raw input records that stand for them (activity_raw; a geometry record whose why is in activity_geo), and a page view, a page load or a new path (activity_signals). The clock is written to sessionStorage at most every persist_every_ms, and when the page is left. record: the signal record that begins a new session on a page, with why it began.","idle_ms":1800000,"max_ms":86400000,"persist_every_ms":1000,"activity_raw":["pointermove","mousemove","pointerdown","pointerup","mousedown","mouseup","click","dblclick","contextmenu","focus","blur","touchstart","touchend","scroll","input","change"],"activity_geo":["resize"],"activity_signals":["page","path"],"record":"session","why":{"idle":"idle","max":"max","reset":"reset"},"flush_why":"session"},"navigation":{"$comment":"A single-page app's page view (navigation.js): the record cake.js sends when location.pathname changes within a page load, as posthog-js counts a $pageview (capture_pageview 'history_change': the path, not the query string or the fragment).","record":"path"},"visitor":{"$comment":"The visitor id (visitor.js): kept in localStorage for max_age_ms after its last use, as PostHog's anonymous id is kept for cookie_expiration 365 days (posthog-js posthog-core.ts).","max_age_ms":31536000000},"identify":{"$comment":"window.cake.identify(id) and window.cake.reset() (identify.js), as posthog-js's identify() and reset() (posthog-core.ts). The browser sends only algorithm(site key + separator + id) in hexadecimal (the header's idh), never the id. An id is a non-empty string or a number, and not one of refused (posthog-js's _validateIdentifyId and isDistinctIdStringLike: placeholders, compared ignoring case). commands: the names a queued call (window.cake.push) uses. fault: where cake.js notes why an identify() did nothing (an 'err' record), with not_an_id or no_crypto as the message, never the value.","algorithm":"SHA-256","separator":":","refused":["undefined","null","distinct_id","distinctid"],"commands":{"identify":"identify","reset":"reset"},"fault":"identify","not_an_id":"identify() needs a non-empty string or a number as the id","no_crypto":"identify() needs the browser's SubtleCrypto (a page on https or localhost)"},"source":{"$comment":"Where a page view came from (source.js), as posthog-js event-utils.ts reads it: the campaign parameters PostHog's channel rules read (CAMPAIGN_PARAMS: the five UTM parameters and gad_source), each value cut to max_chars, and the ad-click parameters whose presence only is sent (PERSONAL_DATA_CAMPAIGN_PARAMS).","campaign":["utm_source","utm_medium","utm_campaign","utm_content","utm_term","gad_source"],"click_ids":["gclid","gclsrc","dclid","gbraid","wbraid","fbclid","msclkid","twclid","li_fat_id","igshid","ttclid","rdt_cid","epik","qclid","sccid","oppref","bfcid","irclid","_kx"],"max_chars":200},"id_bytes":16,"time_precision":10,"idle_timeout_ms":1000,"idle_gap_ms":50,"content_type":"text/plain","gzip_query":"?z=gzip","token":{"entry":"cake"},"batch":{"max_bytes":51200,"interval_min_ms":2000,"interval_max_ms":10000,"interval_growth":2,"keepalive_max_bytes":60000,"compress_min_bytes":2048,"pending_max_bytes":1048576,"max_record_bytes":4194304,"retry_statuses":[408,429,500,502,503,504]},"limits":{"records_per_page":{"e":100000,"r":200000,"x":5000},"error_chars":200},"rrweb":{"sampling":{"mousemove":50,"scroll":150,"input":"last"}},"raw":{"events":["pointermove","pointerdown","pointerup","pointerover","mousemove","mousedown","mouseup","mouseover","click","dblclick","contextmenu","wheel","keydown","keyup","input","change","focus","blur","touchstart","touchend"],"target_events":["pointerdown","pointerup","click","mouseover","focus","blur","input","keydown","keyup","mousedown","mouseup","change","dblclick","contextmenu","wheel"],"target_selector":"a,button,input,select,textarea,label,summary,[role=button],[role=link]","geo_poll_ms":500,"dom_scan_delay_ms":5000,"dom_attr_names_max":8},"env":{"frame_history_writes":300,"frame_burst_writes":50,"frame_burst_gap_ms":20,"probe_attr":"data-cake-probe","cdp_rounds":3,"cdp_message":"cake probe","cdp_round_ms":100,"cdp_name_lookups_per_round":1.5,"stack_chars":400,"distinctive_globals":{"awesomium":["awesomium"],"cef":["RunPerfTest"],"cefsharp":["CefSharp"],"coachjs":["emit"],"fminer":["fmget_targets"],"geb":["geb"],"nightmare":["__nightmare","nightmare"],"phantomas":["__phantomas"],"phantomjs":["callPhantom","_phantom"],"rhino":["spawn"],"selenium":["_Selenium_IDE_Recorder","_selenium","calledSelenium"],"wdio":["wdioElectron"],"webdriver":["webdriver","__webdriverFunc","__lastWatirAlert","__lastWatirConfirm","__lastWatirPrompt","_WEBDRIVER_ELEM_CACHE","ChromeDriverw","__driver_evaluate","__webdriver_evaluate","__selenium_evaluate","__fxdriver_evaluate","__driver_unwrapped","__webdriver_unwrapped","__selenium_unwrapped","__fxdriver_unwrapped","__webdriver_script_func","__webdriver_script_fn"],"domAutomation":["domAutomation","domAutomationController"]},"global_patterns":{"selenium_cdc_window":["^cdc_|^\\$cdc_|^([a-z]){3}_.*_(Array|Promise|Symbol)$",""],"selenium_cdc_document":["^\\$cdc_|^\\$wdc_|selenium|webdriver|driver",""],"playwright":["^__pw|playwright","i"],"puppeteer":["^puppeteer_|^__puppeteer","i"]},"hook":{"methods":["getElementById","querySelector","querySelectorAll","getElementsByClassName"],"markers":{"pptr":"pptr:","utilityScript":"UtilityScript.","puppeteerEval":"__puppeteer_evaluation_script__"},"checks_max":2000,"hits_max":20,"arg_chars":60,"stack_frames":5}},"probes":{"timeout_ms":3000,"source_chars":60,"high_entropy_hints":["fullVersionList","platformVersion","architecture","model","bitness"],"native_getters":{"Navigator":["webdriver","userAgent","platform","languages","plugins","hardwareConcurrency"]},"native_methods":{"Permissions":["query"],"WebGLRenderingContext":["getParameter"],"Function":["toString"]},"fonts":["Ubuntu","Droid Sans","Cambria","DejaVu Sans","Liberation Sans"],"font_bases":["monospace","serif","sans-serif"],"font_sample":"mmmmmmmmmmlli0123456789","font_px":32,"system_font_names":{"keywords":["-apple-system","BlinkMacSystemFont"],"apple_claim":"Macintosh|iPhone|iPad|iPod|MacIntel|Mac OS X","other_claim":"Windows NT|Win32|Win64|X11|Linux|Android|CrOS"}},"botscent":{"sample_ms":3000},"privacy":{"mask_all_inputs":true,"private_selector":"[data-cake-private], input[type=password], [autocomplete^=\"cc-\"]","mask_text_selector":"[contenteditable]:not([contenteditable=\"false\"])","private_dropped_events":["keydown","keyup","input","change"],"private_dropped_fields":["s","r"],"key_classes":{"single_character":[{"class":"digit","pattern":"\\d","flags":""},{"class":"space","pattern":"\\s","flags":""},{"class":"letter","pattern":"[a-z]","flags":"i"}],"single_character_other":"symbol","named":{"Backspace":"delete","Delete":"delete","Enter":"enter","Tab":"tab","Shift":"modifier","Control":"modifier","Alt":"modifier","Meta":"modifier","CapsLock":"modifier","Unidentified":"unidentified","":"unidentified"},"prefixes":{"Arrow":"arrow"},"other":"other"}},"markers":{"version":"2026-11-13","every_ms":250,"host":{"tag":"DIV","parents":["body","html"],"display":"contents"},"attributes":["id","rel","href","data-codex-favicon-badge","data-browser-use-highlight","data-browser-use-interaction-highlight","data-browser-use-coordinate-highlight","data-stagehand-mask","data-skyvern-otp-box","unique_id"],"markers":[{"id":"claude-chrome.working","spots":[{"x":0.5,"top":12},{"x":0.5,"bottom":12}]},{"id":"claude-chrome.waiting","spots":[{"x":0.5,"top":56}]},{"id":"claude-chrome.bottom","spots":[{"x":0.5,"bottom":52}]},{"id":"claude-chrome.page-dom","ids":["claude-agent-stop-container","claude-agent-stop-button","claude-agent-glow-border","claude-phantom-cursor","claude-static-indicator-container"]},{"id":"claude-chrome.styles","ids":["claude-agent-animation-styles"]},{"id":"comet.overlay","selector":"[id^=\"pplx-agent\"]"},{"id":"chatgpt-chrome.badge","selector":"head [data-codex-favicon-badge], head link[rel~=\"icon\"][href*=\"data-codex-favicon-badge\"]"},{"id":"fellou.highlight","ids":["eko-highlight-container"]},{"id":"browser-use.highlight","ids":["browser-use-debug-highlights","browser-use-demo-panel"],"selector":"[data-browser-use-highlight], [data-browser-use-interaction-highlight], [data-browser-use-coordinate-highlight]"},{"id":"stagehand.overlay","ids":["__v3_cursor_overlay__"],"selector":"[data-stagehand-mask]"},{"id":"skyvern.overlay","ids":["boundingBoxContainer"],"selector":"[data-skyvern-otp-box]"},{"id":"skyvern.ids","selector":"[unique_id]"}]}}
   var RUNTIME = /*cake:runtime*/{}/*cake:runtime*/
-  var BUILD = "d731544b382f"
+  var BUILD = "cbb415564f99"
   var C = {}
   var SCOPE = {}
   // ---- static/rrweb-record.min.js
@@ -194,7 +194,7 @@ return module.exports;
   // ---- static/src/botd.js
   ;(function () {
 /*
- * BotD, vendored for Agent Cake's page script.
+ * BotD, vendored for AgentCake's page script.
  * Source: @fingerprintjs/botd 2.0.0 on npm, dist/botd.esm.js (sha256 f438ed251dc7414ece9d4a2b6941441ad9ffae1a1905817f5f0c7366e701dd86);
  * the same 19 sources and detectors as github.com/fingerprintjs/BotD at commit 193c471a (package version 2.0.0).
  * Licence: MIT, Copyright (c) 2025 FingerprintJS, Inc (full text: botd.LICENSE.txt, also bundled into cake.js).
@@ -999,7 +999,7 @@ var index = { load };
   }
   // ---- static/src/util.js
   ;(function () {
-// Agent Cake page script, part: small shared helpers.
+// AgentCake page script, part: small shared helpers.
 //
 // build_js.py concatenates the parts in agentcake/static/src/ into agentcake/static/cake.js, each inside its own
 // function, and gives them in the enclosing scope:
@@ -1138,7 +1138,7 @@ C.stopAll = function () {
   }).call(SCOPE)
   // ---- static/src/session.js
   ;(function () {
-// Agent Cake page script, part: the session id, one per browser tab, cut by PostHog's time rules.
+// AgentCake page script, part: the session id, one per browser tab, cut by PostHog's time rules.
 //
 // A session is what one tab did with no more than CFG.session.idle_ms (30 minutes) between two moments of activity,
 // and at most CFG.session.max_ms (24 hours) long: the rules of posthog-js's packages/browser/src/sessionid.ts
@@ -1257,7 +1257,7 @@ C.session = {
   }).call(SCOPE)
   // ---- static/src/visitor.js
   ;(function () {
-// Agent Cake page script, part: the visitor id, which AgentCake counts visitors by, and the identify hash kept with it.
+// AgentCake page script, part: the visitor id, which AgentCake counts visitors by, and the identify hash kept with it.
 //
 // As PostHog does (posthog-js's posthog-core.ts: an anonymous id persisted with 'localStorage+cookie' for
 // cookie_expiration 365 days, renewed whenever it is written; posthog-js, MIT), the browser keeps a random id, made
@@ -1335,7 +1335,7 @@ C.visitor = {
   }).call(SCOPE)
   // ---- static/src/identify.js
   ;(function () {
-// Agent Cake page script, part: window.cake.identify(id) and window.cake.reset(), as posthog-js has them.
+// AgentCake page script, part: window.cake.identify(id) and window.cake.reset(), as posthog-js has them.
 //
 // A site with sign-in may call window.cake.identify(<its own id for the visitor>) once they sign in, and
 // window.cake.reset() when they sign out, so that AgentCake counts them as one visitor on every browser and device
@@ -1441,7 +1441,7 @@ C.identity = {
   }).call(SCOPE)
   // ---- static/src/source.js
   ;(function () {
-// Agent Cake page script, part: where a page view came from, and the browser's language and time zone.
+// AgentCake page script, part: where a page view came from, and the browser's language and time zone.
 //
 // The fields PostHog's web analytics groups sessions by (posthog-js's packages/browser-common/src/utils/
 // event-utils.ts; posthog-js, MIT), sent with each page record and with the record that begins a new session:
@@ -1497,7 +1497,7 @@ C.source = {
   }).call(SCOPE)
   // ---- static/src/navigation.js
   ;(function () {
-// Agent Cake page script, part: a single-page app's page views.
+// AgentCake page script, part: a single-page app's page views.
 //
 // A page view is what PostHog counts as one ($pageview): each page load (cake.js's page record) and, as posthog-js
 // does by default (capture_pageview 'history_change', packages/browser/src/extensions/history-autocapture.ts; MIT),
@@ -1524,7 +1524,7 @@ C.navigation = {
   }).call(SCOPE)
   // ---- static/src/schedule.js
   ;(function () {
-// Agent Cake page script, part: running the detectors after the page has loaded, a little at a time.
+// AgentCake page script, part: running the detectors after the page has loaded, a little at a time.
 //
 // A site that adds cake.js must not get slower. So only what has to see the page from its first moment runs when
 // cake.js starts (the input listeners, the replay's first snapshot); every detector waits for the page's load event
@@ -1592,7 +1592,7 @@ C.schedule = {
   }).call(SCOPE)
   // ---- static/src/transport.js
   ;(function () {
-// Agent Cake page script, part: batches, sequence numbers and sending (format: docs/collect-format.md).
+// AgentCake page script, part: batches, sequence numbers and sending (format: docs/collect-format.md).
 //
 // Every record the other parts make goes through C.push(stream, record) into this page view's buffer. The streams
 // are "e" (rrweb events), "r" (raw input records) and "x" (signal records). C.flush(why) sends the buffer as one or
@@ -1904,7 +1904,7 @@ function sendParked() {
   }).call(SCOPE)
   // ---- static/src/edge_token.js
   ;(function () {
-// Agent Cake page script, part: the server-half token.
+// AgentCake page script, part: the server-half token.
 //
 // As in cake 0.3.3: the site's server (its cake middleware) puts a signed token in
 // the Server-Timing header of the response that opened this page (`Server-Timing: cake;desc="c1.<body>.<sig>"`).
@@ -1941,7 +1941,7 @@ C.token = {
   }).call(SCOPE)
   // ---- static/src/raw.js
   ;(function () {
-// Agent Cake page script, part: raw input events and page-structure changes, stream "r".
+// AgentCake page script, part: raw input events and page-structure changes, stream "r".
 //
 // Ported from the research lab's raw.js (our research code, 11/11;
 // our own code). It records raw values only; cake judges later. The field names are the lab's, so the lab's
@@ -2192,7 +2192,7 @@ C.raw = {
   }).call(SCOPE)
   // ---- static/src/replay.js
   ;(function () {
-// Agent Cake page script, part: the session replay recorder, stream "e".
+// AgentCake page script, part: the session replay recorder, stream "e".
 //
 // rrweb's record (bundled into cake.js unchanged, see THIRD_PARTY.md) with the privacy rules of
 // agentcake/data/privacy.json: every input masked (the replay keeps its length), text typed into
@@ -2242,7 +2242,7 @@ C.replay = {
   }).call(SCOPE)
   // ---- static/src/automation.js
   ;(function () {
-// Agent Cake page script, part: probes for a browser driven over the DevTools protocol, stream "x".
+// AgentCake page script, part: probes for a browser driven over the DevTools protocol, stream "x".
 //
 // The ideas of these checks come from rebrowser-bot-detector (github.com/rebrowser/rebrowser-bot-detector, commit
 // 55fa59b); the code is our own. That repository declares MIT in its package.json but has no licence file, so none of
@@ -2250,7 +2250,8 @@ C.replay = {
 //   1. A DevTools-protocol client with the Runtime domain on (Puppeteer, Playwright) has console messages serialised
 //      at once, so a logged error is formatted right away: Error.prepareStackTrace runs for it and its name is read
 //      more often (research lab, 11/11: per round 1 formatting and 3 name reads for Playwright, 0 and 1 for Claude in
-//      Chrome).
+//      Chrome). Our own addition: the probe logs in a frame of its own, never through the page's console, which a
+//      site's console recorder wraps and reads just as the protocol does.
 //   2. Chrome ignores a burst of same-document history updates beyond its IPC flooding limit, unless it was started
 //      with --disable-ipc-flooding-protection, as Puppeteer and Playwright start it.
 //   3. A document the automation tool served itself has a navigation entry no network or service worker made.
@@ -2261,9 +2262,24 @@ C.replay = {
 // read them.
 
 // ---------------------------------------------------------------- 1. the logged-error probe
-var leak = { rounds: 0, prepareStackTraceCount: 0, nameGetterCount: 0, stackLookupCount: 0, firstHitRound: null }
+// Each round runs in a realm no page script has touched: an about:blank frame made, used and removed within the
+// round's one task. A site's own console recorder (rrweb's console plugin, an analytics or error-tracking script)
+// wraps the page's console and reads every argument it is given, which counts like the protocol's serialisation; it
+// never sees this frame's console. Nor can it reach the frame between rounds: rrweb's plugin also wraps the console
+// of every same-origin frame it records, once the frame has loaded, so a frame kept from one round to the next could
+// be wrapped by then. A DevTools-protocol client with Runtime on serialises the console calls of every frame of the
+// page, so it still shows. A page where no frame can be used gets no probe (console "none"): the page's own console
+// would count the site's recorder again.
+var leak = {
+  rounds: 0,
+  prepareStackTraceCount: 0,
+  nameGetterCount: 0,
+  stackLookupCount: 0,
+  firstHitRound: null,
+  console: 'frame'
+}
 
-// V8's own format, for any other error formatted while the counting hook is in place.
+// V8's own format, for the watched error formatted while the counting hook is in place.
 function plainStack(error, callSites) {
   return [String(error)]
     .concat(
@@ -2274,50 +2290,60 @@ function plainStack(error, callSites) {
     .join('\n')
 }
 
-function countFormatting() {
-  var own = Object.getOwnPropertyDescriptor(Error, 'prepareStackTrace')
-  if (own && !own.configurable) return // the page fixed it: this round cannot see formatting
-  var watched = new Error(CFG.env.cdp_message)
-  var outer = Error.prepareStackTrace
-  Object.defineProperty(Error, 'prepareStackTrace', {
-    configurable: true,
-    writable: true,
-    value: function (error, callSites) {
-      if (error === watched) leak.prepareStackTraceCount++
-      return outer ? outer(error, callSites) : plainStack(error, callSites)
-    }
-  })
+// Runs probe(window of a new hidden frame) and removes the frame, all in the caller's task; false when no frame could
+// be made or used (its error is kept in the record).
+function inFreshRealm(probe) {
+  var frame = document.createElement('iframe')
+  frame.setAttribute(CFG.env.probe_attr, '')
+  frame.style.display = 'none'
   try {
-    console.debug(watched)
+    ;(document.body || document.documentElement).appendChild(frame)
+    probe(frame.contentWindow)
+    return true
+  } catch (e) {
+    leak.error = String(e.name || e)
+    return false
   } finally {
-    if (own) Object.defineProperty(Error, 'prepareStackTrace', own)
-    else delete Error.prepareStackTrace
+    frame.remove()
   }
 }
 
-function countReads(property, field) {
-  var watched = new Error(CFG.env.cdp_message)
+// The realm is new and thrown away after the round, so its Error.prepareStackTrace is ours to set.
+function countFormatting(realm) {
+  var watched = new realm.Error(CFG.env.cdp_message)
+  realm.Error.prepareStackTrace = function (error, callSites) {
+    if (error === watched) leak.prepareStackTraceCount++
+    return plainStack(error, callSites)
+  }
+  realm.console.debug(watched)
+}
+
+function countReads(realm, property, field) {
+  var watched = new realm.Error(CFG.env.cdp_message)
   var value = property === 'name' ? watched.name : ''
-  Object.defineProperty(watched, property, {
+  realm.Object.defineProperty(watched, property, {
     configurable: true,
     get: function () {
       leak[field]++
       return value
     }
   })
-  console.debug(watched)
+  realm.console.debug(watched)
 }
 
+// rounds counts the rounds that ran: none when the first frame could not be used.
 function probeRound() {
-  leak.rounds++
-  countFormatting()
-  countReads('name', 'nameGetterCount')
-  countReads('stack', 'stackLookupCount')
-  var nameReadsPerRound = leak.nameGetterCount / leak.rounds
-  var seen = leak.prepareStackTraceCount > 0 || leak.stackLookupCount > 0
-  seen = seen || nameReadsPerRound > CFG.env.cdp_name_lookups_per_round
+  var ran = inFreshRealm(function (realm) {
+    countFormatting(realm)
+    countReads(realm, 'name', 'nameGetterCount')
+    countReads(realm, 'stack', 'stackLookupCount')
+    leak.rounds++
+  })
+  if (!ran) leak.console = 'none'
+  var seen = ran && (leak.prepareStackTraceCount > 0 || leak.stackLookupCount > 0)
+  seen = seen || (ran && leak.nameGetterCount / leak.rounds > CFG.env.cdp_name_lookups_per_round)
   if (seen && leak.firstHitRound === null) leak.firstHitRound = leak.rounds
-  if (!seen && leak.rounds < CFG.env.cdp_rounds) {
+  if (ran && !seen && leak.rounds < CFG.env.cdp_rounds) {
     C.later(probeRound, CFG.env.cdp_round_ms)
     return
   }
@@ -2447,7 +2473,7 @@ C.automation = {
   }).call(SCOPE)
   // ---- static/src/env.js
   ;(function () {
-// Agent Cake page script, part: the environment of a page view and the globals automation leaves,
+// AgentCake page script, part: the environment of a page view and the globals automation leaves,
 // stream "x".
 //
 // Ported from the research lab's env.js (our research code, 11/11;
@@ -2641,7 +2667,7 @@ C.env = {
   }).call(SCOPE)
   // ---- static/src/probes.js
   ;(function () {
-// Agent Cake page script, part: the asynchronous environment probes of a page view, stream "x".
+// AgentCake page script, part: the asynchronous environment probes of a page view, stream "x".
 //
 // The research lab's asynchronous checks (env.js, 11/11), in our own code: the worker-consistency and
 // native-tampering ideas come from rebrowser-bot-detector (no code of it is used, see automation.js). Added: the
@@ -2881,7 +2907,7 @@ C.probes = {
   }).call(SCOPE)
   // ---- static/src/markers.js
   ;(function () {
-// Agent Cake page script, part: the marks agent products draw on the page, and when each was there (threshold A5),
+// AgentCake page script, part: the marks agent products draw on the page, and when each was there (threshold A5),
 // stream "x".
 //
 // Some agent products draw on the page while they work: Claude in Chrome a "working" tag and a Stop button, Comet a
@@ -3099,7 +3125,7 @@ C.markers = {
   }).call(SCOPE)
   // ---- static/src/detectors.js
   ;(function () {
-// Agent Cake page script, part: what the two bundled detectors find in the page, stream "x".
+// AgentCake page script, part: what the two bundled detectors find in the page, stream "x".
 //
 // BotD (FingerprintJS, MIT) and botscent's page half (MIT) run in the page; neither sends anything anywhere (cake's
 // copy of BotD has its telemetry request removed, botscent has no network code). cake keeps what they report, raw:
@@ -3182,7 +3208,7 @@ C.detectors = {
   }).call(SCOPE)
   // ---- static/src/cake_main.js
   ;(function () {
-// Agent Cake page script, part: start, stop and window.cake.
+// AgentCake page script, part: start, stop and window.cake.
 //
 // As in cake 0.3.3, a site adds one line:
 // <script src="https://<cake>/cake.js" data-site="<key>" defer></script>.

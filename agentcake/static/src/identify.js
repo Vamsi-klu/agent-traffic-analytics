@@ -1,4 +1,4 @@
-// Agent Cake page script, part: window.cake.identify(id) and window.cake.reset(), as posthog-js has them.
+// AgentCake page script, part: window.cake.identify(id) and window.cake.reset(), as posthog-js has them.
 //
 // A site with sign-in may call window.cake.identify(<its own id for the visitor>) once they sign in, and
 // window.cake.reset() when they sign out, so that AgentCake counts them as one visitor on every browser and device

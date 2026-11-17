@@ -16,6 +16,7 @@ import zipfile
 from release_trees import ROOT, VERSION, make_tree, scratch, settings
 
 import agentcake  # noqa: E402  (release_trees puts the repository on sys.path)
+from agentcake.wording import text  # noqa: E402
 from tools.releasing import pyz
 from tools.releasing.project import Project
 
@@ -154,6 +155,11 @@ class RealPackage(unittest.TestCase):
             self.assertEqual(out.returncode, 0, out.stderr)
             self.assertIn(expected, out.stdout)
         self.assertEqual(os.listdir(locked), [])
+
+    def test_eval_says_it_runs_from_a_checkout(self):
+        """A release leaves the evaluation out (release.json "package_files"): the command says where it runs."""
+        out = run(self.path, "eval", "--gate", home=self.home)
+        self.assertEqual((out.returncode, out.stderr.strip()), (2, text("eval_from_checkout")))
 
     def test_an_older_python_is_told_which_python_is_needed(self):
         older = shutil.which("python3.9") or "/usr/bin/python3"

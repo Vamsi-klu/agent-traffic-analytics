@@ -23,7 +23,6 @@ another site key, 413 too large or too many records) and is counted in the refus
 visit cannot mark itself a test.
 """
 import json
-import time
 from http import HTTPStatus
 from urllib.parse import urlencode
 
@@ -31,7 +30,7 @@ from agentcake import collect_store, config, evidence, judging, netfacts, sessio
 from agentcake.datafiles import load, sizes
 from agentcake.detect import httpsig, lists, webbotauth
 from agentcake.responses import HTML, TEXT, Response
-from agentcake.units import MS_PER_S
+from agentcake.storage_config import now_ms as clock_ms
 
 FETCH_METADATA_PREFIX = "sec-fetch"  # the browser's Sec-Fetch-* request headers (W3C Fetch Metadata)
 TOKEN_STATUS_HEADER = "X-Cake-Token"
@@ -52,7 +51,7 @@ def from_public(request):
 
 
 def collect(request, public):
-    c, now = config.load_cfg(), int(time.time() * MS_PER_S)
+    c, now = config.load_cfg(), clock_ms()
     try:
         batch = read(request.body, c)
     except upload.Refused as refusal:

@@ -1,6 +1,6 @@
 """Deleting a visit in the process that owns the data folder: agentcake/delete.py.
 
-    python3 -I -m unittest discover -s tests -p test_delete.py -v      (from the Agent Cake folder)
+    python3 -I -m unittest discover -s tests -p test_delete.py -v      (from the AgentCake folder)
 
 After the first of two planted visits (tests/delete_fixtures.py) is deleted, its id and its canary are nowhere: not in
 any table, not in the database file's raw bytes, not in any replay chunk once decompressed, not in the backup, not in

@@ -1,10 +1,10 @@
 """Recorded uploads sent through collect and read back: every rrweb event and raw record comes back the same.
 
-    python3 -I -m unittest discover -s tests -v      (from the Agent Cake folder)
+    python3 -I -m unittest discover -s tests -v      (from the AgentCake folder)
 
 Made-up visits (tests/synthetic_sessions.py), cut into upload format version 1 batches per page and posted in order,
 then again shuffled with copies: each visit's rrweb events and raw records come back one for one, with their page
-view. The same round trip on Agent Cake's own recordings is kept with those recordings, outside the published repository.
+view. The same round trip on AgentCake's own recordings is kept with those recordings, outside the published repository.
 """
 import gzip
 import hashlib

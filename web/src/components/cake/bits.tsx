@@ -8,7 +8,7 @@ import { Progress } from "@/components/ui/progress"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import type { Disk, ReplaysStopped } from "@/data/types"
 import { PERCENT, aboutDays, bytes, percent } from "@/lib/format"
-import { PRODUCT_NAME } from "@/lib/product"
+import { PRODUCT_NAME, SOURCE } from "@/lib/product"
 import { cn } from "@/lib/utils"
 
 /** Terminal-style block with a Copy button: commands and the one sentence for a coding agent. */
@@ -26,10 +26,9 @@ export function CopyBlock({ text, className }: { text: string; className?: strin
   )
 }
 
-/** Page title + one sentence + optional actions on the right. */
 /** A page's title, with a lead under it and actions on the right. as="h2": the same title for each part of a page that
  *  has several (the dashboard's Key metrics, Deep dive and Reference, under the page's own h1). */
-export function PageHeader({ title, lead, actions, as: Heading = "h1" }: { title: string; lead?: string; actions?: ReactNode; as?: "h1" | "h2" }) {
+export function PageHeader({ title, lead, actions, as: Heading = "h1" }: { title: string; lead?: ReactNode; actions?: ReactNode; as?: "h1" | "h2" }) {
   return (
     <div className="flex flex-wrap items-end justify-between gap-3">
       <div className="flex flex-col gap-1"><Heading className="text-3xl font-semibold">{title}</Heading>{lead && <p className="text-muted-foreground">{lead}</p>}</div>
@@ -38,8 +37,18 @@ export function PageHeader({ title, lead, actions, as: Heading = "h1" }: { title
   )
 }
 
-/** Section title row. */
-/** A section's title, with a link or a note on the right (the session page's Server half and Every action). */
+/** A document of the repository a sentence names (SERVER.md), as a link to it at this version's tag (SOURCE), opened in a
+ *  new tab; the page loads nothing from the repository. The link look (Button link: underline, focus ring) set in the
+ *  sentence's own type, without the button's height, padding and border, so it reads as a word of the sentence. */
+export function DocumentLink({ path }: { path: string }) {
+  return (
+    <Button variant="link" asChild className="inline h-auto border-0 p-0 align-baseline [font-size:inherit] [font-weight:inherit] [line-height:inherit]">
+      <a href={`${SOURCE}/${path}`} target="_blank" rel="noopener noreferrer">{path}</a>
+    </Button>
+  )
+}
+
+/** A section's title, with a link or a note on the right (the session page's Server middleware and All actions). */
 export function SectionTitle({ children, aside }: { children: ReactNode; aside?: ReactNode }) {
   return (
     <div className="mt-8 mb-3 flex flex-wrap items-baseline justify-between gap-2">
@@ -130,6 +139,11 @@ export function StorageMeter({ usedPct, warnAtPct }: { usedPct: number; warnAtPc
   )
 }
 
+/** A warning about the disk, in the one look both disk warnings have. */
+function DiskAlert({ text }: { text: string }) {
+  return <Alert variant="warn"><HardDrive aria-hidden /><AlertDescription>{text}</AlertDescription></Alert>
+}
+
 /** Why new replays aren't stored while the disk is below its floor: its free space, how far below the floor that is
  *  (the two can round to the same size) and the floor. None is deleted for it; a full budget has its own warning. */
 const DISK_STOPPED: Partial<Record<NonNullable<ReplaysStopped>, (free: string, short: string, floor: string) => string>> = {
@@ -157,7 +171,7 @@ export function StorageUse({ usedBytes, budgetBytes, warnAtPct, daysLeft, disk, 
 export function DiskStoppedWarning({ disk, replaysStopped }: { disk: Disk; replaysStopped: ReplaysStopped }) {
   const diskStopped = replaysStopped && DISK_STOPPED[replaysStopped]
   if (!diskStopped) return null
-  return <Alert variant="warn"><HardDrive aria-hidden /><AlertDescription className="text-foreground">{diskStopped(bytes(disk.free), bytes(disk.min_free - disk.free), bytes(disk.min_free))}</AlertDescription></Alert>
+  return <DiskAlert text={diskStopped(bytes(disk.free), bytes(disk.min_free - disk.free), bytes(disk.min_free))} />
 }
 
 /** The disk budget's warning (DESIGN.md §1.1, like 0.3.4's), on the dashboard and the settings page: from warnAtPct on,
@@ -174,7 +188,7 @@ export function BudgetWarning({ usedPct, warnAtPct, freeAtPct, autoFree, full }:
   const nowFull = autoFree
     ? "The disk budget is full. All remaining replays belong to active sessions and can't be deleted yet. Visits and classifications are still recorded, and new replays resume when cleanup or a larger budget makes room."
     : "The disk budget is full, so new replays aren't stored. Visits and classifications are still recorded. To store replays again, increase the budget or turn on Automatic cleanup in Settings."
-  return <Alert variant="warn"><HardDrive aria-hidden /><AlertDescription className="text-foreground">{full ? nowFull : `Disk budget used: ${usedPct}%. ${next}`}</AlertDescription></Alert>
+  return <DiskAlert text={full ? nowFull : `Disk budget used: ${usedPct}%. ${next}`} />
 }
 
 /** System status with a dot: receiving / waiting / not connected. */
@@ -196,9 +210,9 @@ export function SettingRow({ title, tags, desc, control }: { title: string; tags
   )
 }
 
-/** Page columns. Pages never write their own grid ratios. 3-2 = main + side; 1-1 = two equal columns. Stacks below lg. */
-/** Page columns. equalHeight: one row of cards side by side, each as tall as the tallest (cards in a row always match);
- *  without it, columns that each stack their own cards. */
+/** Page columns: pages never write their own grid ratios. 3-2 = main + side; 1-1 = two equal columns; one column below
+ *  lg. equalHeight: one row of cards side by side, each as tall as the tallest (cards in a row always match); without
+ *  it, columns that each stack their own cards. */
 export function Columns({ ratio, equalHeight = false, children, className }: { ratio: "3-2" | "1-1"; equalHeight?: boolean; children: ReactNode; className?: string }) {
   return <div className={cn("grid gap-5", equalHeight ? "items-stretch" : "items-start", ratio === "3-2" ? "lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]" : "lg:grid-cols-2", className)}>{children}</div>
 }

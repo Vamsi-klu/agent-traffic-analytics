@@ -1,10 +1,10 @@
 """POST /edge: agentcake/edge_api.py, the resource `logs import` sends a web server's log records to.
 
-    python3 -I -m unittest discover -s tests -p test_edge_api.py -v      (from the Agent Cake folder)
+    python3 -I -m unittest discover -s tests -p test_edge_api.py -v      (from the AgentCake folder)
 
 Only a web server holding the server half's secret (srv_secret) may send records: each request carries the HMAC of
 its time and body (the signature itself: test_edge_signature.py). Without it, with another secret, with a time outside the page tokens' window, with a body changed
-after signing, or when this Agent Cake has no secret at all, the answer is 403 and nothing is read. A signed request
+after signing, or when this AgentCake has no secret at all, the answer is 403 and nothing is read. A signed request
 with an envelope that cannot be read is 400; a good one is matched and answered with its counts. Both listeners
 answer /edge, the public one below path_prefix, the way SERVER.md says.
 """

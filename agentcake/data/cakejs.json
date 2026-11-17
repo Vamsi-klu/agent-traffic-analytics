@@ -1,5 +1,5 @@
 {
-  "_doc": "Agent Cake's page script (cake.js). build_js.py puts the 'script' object into agentcake/static/cake.js as CFG, with the data files under 'build' -> 'data' added (privacy.json's rules become CFG.privacy, agent_markers.json's page part CFG.markers); no number or name is written in the script sources. 'build' lists the sources in the order they are put together (paths relative to agentcake/). Units are in the key names; _bytes limits count JSON characters, except keepalive_max_bytes, which counts the bytes on the wire. The upload format is docs/collect-format.md.",
+  "_doc": "AgentCake's page script (cake.js). tools/build_js.py puts the 'script' object into agentcake/static/cake.js as CFG, with the data files under 'build' -> 'data' added (privacy.json's rules become CFG.privacy, agent_markers.json's page part CFG.markers); no number or name is written in the script sources. 'build' lists the sources in the order they are put together (paths relative to agentcake/). Units are in the key names; _bytes limits count JSON characters, except keepalive_max_bytes, which counts the bytes on the wire. The upload format is docs/collect-format.md.",
   "build": {
     "out": "static/cake.js",
     "runtime_marker": "cake:runtime",

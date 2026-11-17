@@ -1,6 +1,6 @@
 """agentcake/activity.py: when a session's recorded actions began and ended.
 
-    python3 -I -m unittest discover -s tests -p test_activity.py -v      (from the Agent Cake folder)
+    python3 -I -m unittest discover -s tests -p test_activity.py -v      (from the AgentCake folder)
 
 A session's length runs from its first to its last recorded action: a page opened, or the visitor's pointer, keys,
 wheel or touch. Focus, visibility, window geometry, elements added to the page and the page leaving are not actions,

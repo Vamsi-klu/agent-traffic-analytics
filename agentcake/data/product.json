@@ -1,1 +1,2 @@
-{"name": "AgentCake", "command": "agentcake", "python": "3.11"}
+{"name": "AgentCake", "command": "agentcake", "python": "3.11",
+ "source": "https://github.com/tartini-ai/agent-traffic-analytics/blob/v{version}"}

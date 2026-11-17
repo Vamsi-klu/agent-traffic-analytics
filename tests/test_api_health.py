@@ -1,6 +1,6 @@
 """GET /api/health and /healthz (agentcake/api/health.py).
 
-    python3 -I -m unittest discover -s tests -p test_api_health.py -v      (from the Agent Cake folder)
+    python3 -I -m unittest discover -s tests -p test_api_health.py -v      (from the AgentCake folder)
 
 /api/health answers the contract (cake 0.3.4's fields, and the disk 0.4.0 added); real_sessions leaves out self-checks
 and uploads from another site. /healthz is the load balancer's: "ok".

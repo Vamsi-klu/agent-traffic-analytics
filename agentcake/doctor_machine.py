@@ -1,6 +1,6 @@
 """`doctor`, the lines about this computer: machine_checks(c).
 
-python_check(): the Python that runs Agent Cake and whether it has compression.zstd (without it replays are stored
+python_check(): the Python that runs AgentCake and whether it has compression.zstd (without it replays are stored
 with zlib and take more disk). disk_check(c): the free space on the disk of the data folder (or of the folder it
 will be made in) against disk_min_free_mb (space.disk_space): below it new replays are not stored until there is
 room, and none is deleted for it, a FAIL; the line gives the floor and the free space and says how to free space or
@@ -86,7 +86,7 @@ def commands_on_path(name, path):
 
 
 def this_installation():
-    """The commands that run this Agent Cake: bin/agentcake of its release folder or checkout, and the installed wheel's
+    """The commands that run this AgentCake: bin/agentcake of its release folder or checkout, and the installed wheel's
     `agentcake` this process was started as (paths.running_command)."""
     return [command for command in (paths.bin_script(), paths.running_command()) if command]
 

@@ -1,10 +1,10 @@
 // Records the sample sessions' replays: real rrweb events, recorded by cake.js in the test site's shop (tests/site,
 // the demo shop until 0.4.0), read back from
-// Agent Cake's database, written as the sample answers of GET /api/session/<id>/replay?chunk=<n>.
+// AgentCake's database, written as the sample answers of GET /api/session/<id>/replay?chunk=<n>.
 //
 //   cd web && node scripts/replay-fixtures.mjs        (about three minutes: the walks take as long as the sessions)
 //
-// It starts its own Agent Cake (bin/agentcake serve, a scratch CAKE_HOME, a free port, a secret) and the test site
+// It starts its own AgentCake (bin/agentcake serve, a scratch CAKE_HOME, a free port, a secret) and the test site
 // (tests/site/site_server.py on a free port, its pages signed with that secret), walks the shop once per
 // sample session in Playwright's Chromium (scripts/replay-walks.mjs), reads each session's rrweb events page by page
 // (streams.read_events with_page: each page view's events, which must follow one another in time, one tab) and its
@@ -67,7 +67,7 @@ async function startCake() {
   const base = `http://${LOOPBACK}:${port}`
   for (const started = Date.now(); ; await sleep(POLL_MS)) {
     if (await fetch(`${base}/api/health`).then((r) => r.ok, () => false)) break
-    if (child.exitCode !== null || Date.now() - started > START_TIMEOUT_MS) throw new Error(`Agent Cake did not start:\n${output}`)
+    if (child.exitCode !== null || Date.now() - started > START_TIMEOUT_MS) throw new Error(`AgentCake did not start:\n${output}`)
   }
   const siteKey = () => readJson(path.join(home, "config.json")).site_key
   const site = spawn("python3", ["-I", path.join(repo, "tests", "site", "site_server.py"), "--cake", base, "--site-key", siteKey(),

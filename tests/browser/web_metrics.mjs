@@ -9,10 +9,11 @@
 //   profile      another profile opens the page: another visitor id
 //   consent      data-consent="required": nothing stored before Accept, the visitor id after it, none after Reject
 import { createRequire } from 'node:module'
-import { existsSync, readFileSync } from 'node:fs'
+import { readFileSync } from 'node:fs'
 import { mkdir, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { executablePath } from './chromium.mjs'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 const repo = path.resolve(here, '..', '..')
@@ -30,10 +31,7 @@ const MINUTE_MS = 60 * 1000
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
 function launch() {
-  const app = 'chrome-mac-x64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing'
-  const guess = path.join(process.env.HOME, 'Library/Caches/ms-playwright/chromium-1228', app)
-  const executablePath = process.env.CAKE_CHROME || (existsSync(guess) ? guess : undefined)
-  return chromium.launch({ executablePath })
+  return chromium.launch({ executablePath: executablePath() })
 }
 
 /** What the page keeps: the visitor id, the session id and its clock. */

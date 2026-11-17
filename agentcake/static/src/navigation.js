@@ -1,4 +1,4 @@
-// Agent Cake page script, part: a single-page app's page views.
+// AgentCake page script, part: a single-page app's page views.
 //
 // A page view is what PostHog counts as one ($pageview): each page load (cake.js's page record) and, as posthog-js
 // does by default (capture_pageview 'history_change', packages/browser/src/extensions/history-autocapture.ts; MIT),

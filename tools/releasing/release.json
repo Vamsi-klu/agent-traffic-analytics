@@ -1,5 +1,5 @@
 {
-  "$comment": "How tools/release.py builds a release of Agent Cake. Paths are relative to the repository, or to the commit being built. Each value is written once: the version only in agentcake/__init__.py; the package's name, Python, command and shipped files in pyproject.toml; the folder the compiled pages go to in agentcake/data/web.json; the runtime marker of cake.js in agentcake/data/cakejs.json.",
+  "$comment": "How tools/release.py builds a release of AgentCake. Paths are relative to the repository, or to the commit being built. Each value is written once: the version only in agentcake/__init__.py; the package's name, Python, command and shipped files in pyproject.toml; the folder the compiled pages go to in agentcake/data/web.json; the runtime marker of cake.js in agentcake/data/cakejs.json.",
   "package": "agentcake",
   "version_file": "agentcake/__init__.py",
   "out_dir": "dist",
@@ -22,7 +22,7 @@
     "data_folder": "agentcake/data"
   },
   "web": {
-    "$comment": "The local pages: built in the exported commit's web folder (npm ci runs no install script of any package: none is needed, and npm 10 and 11 then install alike) and copied into the package, under the folder agentcake/data/web.json names (settings_key), where agentcake.paths.web_dir() looks first.",
+    "$comment": "The local pages: built in the exported commit's web folder (npm ci runs no install script of any package: none is needed, and npm 10 and 11 then install alike) and copied into the package, under the folder agentcake/data/web.json names (settings_key), where agentcake.paths.web_folder() looks first.",
     "folder": "web",
     "dist": "dist",
     "commands": [["npm", "ci", "--ignore-scripts", "--no-audit", "--no-fund", "--prefer-offline"], ["npm", "run", "build"]],
@@ -45,7 +45,7 @@
   "cakejs": {
     "$comment": "cake.js is minified with esbuild, pinned in tools/releasing/package.json and package-lock.json and used only here. The target is the syntax cake.js's sources already need (optional chaining), so esbuild rewrites no syntax and adds none newer. The runtime slot stands in for cake.js's runtime marker while esbuild runs (a comment inside an expression is not kept).",
     "file": "agentcake/static/cake.js",
-    "check": ["agentcake/build_js.py", "--check"],
+    "check": ["tools/build_js.py", "--check"],
     "config_file": "agentcake/data/cakejs.json",
     "tools_folder": "tools/releasing",
     "install": ["npm", "ci", "--ignore-scripts", "--no-audit", "--no-fund", "--prefer-offline"],
@@ -54,10 +54,12 @@
     "runtime_slot": "__agentcake_runtime__"
   },
   "package_files": {
-    "$comment": "Never shipped, wherever they are in the package.",
+    "$comment": "Never shipped, wherever they are in the package. skip_paths: files of the package that only a checkout uses, as patterns of their path (fnmatch, * also matches /): cake.js's sources, which build_js.py joins into static/cake.js (the release ships that file minified, with the licences of its vendored parts in its comments; the licence files stay, since rrweb's also covers the recorder and player files next to cake.js), and the evaluation, `agentcake eval` with its settings (eval.json, splice.json), which needs the checkout's eval/ and its data sets (an installed AgentCake says so, cli.py).",
     "skip_dirs": ["__pycache__", "node_modules", ".git"],
     "skip_suffixes": [".pyc", ".pyo"],
-    "skip_names": [".DS_Store"]
+    "skip_names": [".DS_Store"],
+    "skip_paths": ["agentcake/static/src/*.js", "agentcake/eval.py", "agentcake/evaluation/*", "agentcake/data/eval.json",
+                   "agentcake/data/splice.json"]
   },
   "scan": {
     "$comment": "scan.py looks for this computer's paths and the git user's name and email in every file of a release; a value shorter than min_chars (a home folder like /root, a short user name) is skipped, since it could turn up by chance in minified code.",

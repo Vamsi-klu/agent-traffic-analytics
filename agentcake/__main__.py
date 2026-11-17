@@ -20,7 +20,7 @@ PACKAGE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 def python_too_old():
-    """The sentence for a Python older than Agent Cake needs, or None when this one will do."""
+    """The sentence for a Python older than AgentCake needs, or None when this one will do."""
     def data(name):
         archive = os.path.dirname(PACKAGE_DIR)
         if os.path.isfile(archive):  # imported from agentcake.pyz itself

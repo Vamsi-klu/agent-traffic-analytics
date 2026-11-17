@@ -15,10 +15,10 @@
 //
 // tests/browser/test_demo_walk.py runs it from the test suite. Playwright comes from web/node_modules (CAKE_PLAYWRIGHT:
 // another playwright-core folder); the browser is Playwright's Chromium, found as web/scripts/shots.mjs finds it
-// (CAKE_CHROME: another executable); cake runs on python3 (CAKE_PYTHON: another interpreter). Exit status 1 unless
-// every page has a good token, kept for its session.
+// (chromium.mjs; CAKE_CHROME: another executable); cake runs on python3 (CAKE_PYTHON: another interpreter). Exit
+// status 1 unless every page has a good token, kept for its session.
 import { execFileSync, spawn } from "node:child_process"
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { createRequire } from "node:module"
 import net from "node:net"
 import os from "node:os"
@@ -26,6 +26,7 @@ import path from "node:path"
 import { fileURLToPath } from "node:url"
 import { startShop } from "./revisit_kit.mjs"
 import zlib from "node:zlib"
+import { executablePath } from "./chromium.mjs"
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 const repo = path.join(here, "..", "..")
@@ -80,9 +81,7 @@ function today() {
 }
 
 function launch(headless) {
-  const guess = path.join(process.env.HOME, "Library/Caches/ms-playwright/chromium-1228/chrome-mac-x64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing")
-  const executablePath = process.env.CAKE_CHROME || (existsSync(guess) ? guess : undefined)
-  return chromium.launch({ executablePath, headless })
+  return chromium.launch({ executablePath: executablePath(), headless })
 }
 
 const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms))

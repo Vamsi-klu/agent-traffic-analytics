@@ -22,16 +22,14 @@ import json
 import re
 import urllib.error
 import urllib.request
-from urllib.parse import urlsplit
 
-from agentcake import store
+from agentcake import addresses, store
 from agentcake.datafiles import load
 from agentcake.responses import JSON
 from agentcake.wording import product
 
 SETTING = "registration"  # the key of the settings table (store.setting) that holds what this data folder sent
 FIELDS = ("email", "company", "product_updates", "consent_version")  # in the order the page writes them
-REQUIRED = ("email", "product_updates", "consent_version")
 INDENT = 2  # protocol: the page writes the body with JSON.stringify(payload, null, 2)
 SCHEMES = ("http", "https")  # protocol: the receiving address is a web address
 
@@ -101,9 +99,9 @@ class _NoRedirect(urllib.request.HTTPRedirectHandler):
 
 def send(body, url, timeout_s=None):
     """POST body (the text payload() returned) to url once; NotSent when it did not get a 2xx answer."""
-    parts = urlsplit(url)
-    host = parts.netloc or url
-    if parts.scheme not in SCHEMES or not parts.hostname:
+    parts = addresses.split(url)  # None for an address urllib cannot read, which a mistyped register_url can be
+    host = (parts.netloc if parts else "") or url
+    if parts is None or parts.scheme not in SCHEMES or not parts.hostname:
         raise NotSent("register_unreachable", host=host, reason=url)
     request = urllib.request.Request(url, data=body.encode("utf-8"), method="POST",
                                      headers={"Content-Type": JSON, "User-Agent": product()["name"]})

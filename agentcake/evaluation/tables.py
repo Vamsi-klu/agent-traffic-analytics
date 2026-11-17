@@ -2,15 +2,16 @@
 
     build(data, settings, limit_s, with_logistic) -> results
 
-results: "rows" (each data set's sessions with their four-layer verdict, sessions.py), "scoreboard" (the behaviour
-layer reported the industry's way, scoreboard.py), "heldout" (thresholds set from data, tested on the sites they
-were not set from, heldout.py), "calibration" (the percents against the answers, calibration.py), "segments" (the lab's
-per-segment test and its splices, segments.py), "takeovers" (mixed sessions per data set, takeovers.py: splices of
-the lab's human-like scripts and of its Claude in Chrome with clean recordings, a splice's human side always a real
-person, and of Claude in Chrome with PostHog's probably-human units; PostHog's mixed replays; CAKE_HOME sessions with
-recorded hand-offs; the recorder's hand-offs, scored against the stretches between their marks), "baselines"
-(baselines.py), "layers" (layers.py), "humans" (humans.py), "bots" (bots.py) and "store_sessions" (N1's page views
-and tokens).
+results: "rows" (each data set's sessions with their four-layer verdict, sessions.py; a website's own labelled
+sessions, "site", are held out: only the sessions table and the scoreboard's held-out cells read them), "scoreboard"
+(the behaviour layer reported the industry's way, scoreboard.py), "heldout" (thresholds set from data, tested on the
+sites they were not set from, heldout.py), "calibration" (the percents against the answers, calibration.py),
+"segments" (the lab's per-segment test and its splices, segments.py), "takeovers" (mixed sessions per data set,
+takeovers.py: splices of the lab's human-like scripts and of its Claude in Chrome with clean recordings, a splice's
+human side always a real person, and of Claude in Chrome with PostHog's probably-human units; PostHog's mixed
+replays; CAKE_HOME sessions with recorded hand-offs; the recorder's hand-offs, scored against the stretches between
+their marks), "baselines" (baselines.py), "layers" (layers.py), "humans" (humans.py), "bots" (bots.py) and
+"store_sessions" (N1's page views and tokens).
 
 PostHog's data is split as the behaviour model's study split it: the validation set is every session that holds a mixed replay or a Claude
 in Chrome unit; its splices pair those Claude in Chrome units with its own probably-human units, and the dev set's
@@ -33,7 +34,8 @@ def build(data, settings, limit_s, with_logistic=True):
             "recordings": sessions.recordings(data["recordings"], HUMAN),
             "recorded": sessions.recorded(data["recorded"]),
             sessions.SELFCOLLECT: sessions.recorded(data.get(sessions.SELFCOLLECT) or [], sessions.SELFCOLLECT),
-            "store": sessions.store(data["store"]), "named": sessions.named(data["named"]),
+            "store": sessions.store(data["store"]), sessions.SITE: sessions.site(data.get(sessions.SITE) or []),
+            "named": sessions.named(data["named"]),
             "public_humans": sessions.public_humans(data.get("public_humans") or [])}
     posthog = data["posthog"]
     if posthog:

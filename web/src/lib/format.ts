@@ -43,6 +43,9 @@ export function aboutDays(days: number): string {
   return "more than a year"
 }
 
+/** What a value reads as when there is none: a number without data, a field the API left empty (DESIGN.md §6). */
+export const NO_VALUE = "—"
+
 /** A whole, in percent. */
 export const PERCENT = 100
 
@@ -59,6 +62,5 @@ export function siteAddress(domain: string) {
   return `${local ? "http" : "https"}://${domain}/`
 }
 
-const MS_PER_MINUTE = 60000
 /** Minutes with one decimal ("2.6"), for active time spent. */
-export const minutes = (ms: number) => (ms / MS_PER_MINUTE).toFixed(1)
+export const minutes = (ms: number) => (ms / (SECOND_MS * MINUTE_S)).toFixed(1)

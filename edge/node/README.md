@@ -179,7 +179,7 @@ await verifyToken(secret, token) // { result: "ok" | "stale" | "bad", payload }
 ## Tests
 
 ```sh
-node --test test/
+node --test test/*.test.js
 ```
 
 The token format is pinned by the test vectors in the AgentCake repository, `tests/vectors/edge_token.json`, which

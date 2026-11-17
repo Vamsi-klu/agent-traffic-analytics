@@ -1,7 +1,7 @@
 """The "Every action" list of GET /api/session/<id> and each actor's share of it (agentcake/api/actions.py), on the
-actions agentcake/data/actions.json defines for the whole of Agent Cake (detect/visitor_actions.py).
+actions agentcake/data/actions.json defines for the whole of AgentCake (detect/visitor_actions.py).
 
-    python3 -I -m unittest discover -s tests -p test_api_actions.py -v      (from the Agent Cake folder)
+    python3 -I -m unittest discover -s tests -p test_api_actions.py -v      (from the AgentCake folder)
 
 Sessions are written into a scratch CAKE_HOME as collect leaves them (cake.js's raw records and its page record). Keys
 and typing on one field are one action, keys with no typing on a target another; a wheel and the scrolling it causes

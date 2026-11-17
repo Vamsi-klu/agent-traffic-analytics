@@ -2,7 +2,7 @@
 
 Used by `tests/test_ed25519.py`, `tests/test_sfv.py` and `tests/test_webbotauth.py`. All keys here are the
 published test keys of RFC 9421 Appendix B.1; they must never be trusted outside tests (draft-ietf-webbotauth-httpsig-protocol-01
-section 6.8), and Agent Cake's default settings reject the Ed25519 one (`agentcake/data/webbotauth.json`).
+section 6.8), and AgentCake's default settings reject the Ed25519 one (`agentcake/data/webbotauth.json`).
 
 ## From cloudflare/web-bot-auth (copied unchanged)
 
@@ -18,7 +18,7 @@ text in `LICENSE-cloudflare-web-bot-auth.txt` (the repository has no NOTICE file
 | `web_bot_auth_signature_agent_v2.json` | `5efff4fa640956ad5ef8664f34c6dbea82495c1e14ab129e7496529085753cbb` |
 
 The two `architecture` files each hold two RSA-PSS and two Ed25519 signatures of `GET https://example.com/path/to/resource`;
-Agent Cake verifies Ed25519 only, so the RSA-PSS ones are expected to come out as declared (algorithm not supported).
+AgentCake verifies Ed25519 only, so the RSA-PSS ones are expected to come out as declared (algorithm not supported).
 
 ## Transcribed from IETF documents
 

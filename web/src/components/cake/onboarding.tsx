@@ -1,6 +1,6 @@
-// "No data yet" layout used by every empty state: two columns, PostHog-style structure, Frosting look.
-// Left: mascot, title, the ways to connect and their steps (OnboardingStep). Right: example preview.
-// DESIGN.md §6 (empty states)
+// The onboarding's layout (DESIGN.md §6.3): the home page until the website's first session, and the dashboard until
+// the first session of any kind. Two columns, PostHog 1.0's setup page's structure, the Frosting look. Left: mascot,
+// title, the ways to connect and their steps (OnboardingStep). Right: the example preview.
 import type { ReactNode } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
@@ -49,12 +49,14 @@ export function OrSeparator() {
   )
 }
 
-/** What the lists will look like, from /api/setup's example (always labelled "example data"). */
-export function ExamplePreview({ example, title = "Preview of your sessions" }: { example: Example; title?: string }) {
+const PREVIEW_TITLE = "Preview of your sessions"
+
+/** What the lists will look like, from /api/setup's example (always labelled "Sample data"). */
+export function ExamplePreview({ example }: { example: Example }) {
   return (
-    <Card variant="sunk" className="lg:sticky lg:top-20" aria-label={`${title} (sample data)`}>
+    <Card variant="sunk" className="lg:sticky lg:top-20" aria-label={`${PREVIEW_TITLE} (sample data)`}>
       <CardContent className="flex flex-col gap-3">
-        <div className="flex items-center justify-between gap-2"><h3 className="text-lg font-semibold">{title}</h3><Badge variant="tag">Sample data</Badge></div>
+        <div className="flex items-center justify-between gap-2"><h3 className="text-lg font-semibold">{PREVIEW_TITLE}</h3><Badge variant="tag">Sample data</Badge></div>
         <div className="pointer-events-none flex flex-col gap-2">
           {example.sessions.map((s) => <SessionRow key={s.id} s={s} compact />)}
         </div>

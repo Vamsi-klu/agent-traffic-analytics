@@ -13,11 +13,11 @@
 //             the same page changing every CHURN_MS (the selectors are matched at every look); the same page with
 //             Claude in Chrome's working tag shown (its spots are hit-tested at every look)
 // playwright-core and Chromium are found as drive.mjs finds them.
-import { existsSync } from 'node:fs'
 import { mkdir, writeFile } from 'node:fs/promises'
 import { createRequire } from 'node:module'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { executablePath } from './chromium.mjs'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 const repo = path.resolve(here, '..', '..')
@@ -39,10 +39,7 @@ const CHURN_MS = 100
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
 function launch() {
-  const app = 'chrome-mac-x64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing'
-  const guess = path.join(process.env.HOME, 'Library/Caches/ms-playwright/chromium-1228', app)
-  const executablePath = process.env.CAKE_CHROME || (existsSync(guess) ? guess : undefined)
-  return chromium.launch({ executablePath })
+  return chromium.launch({ executablePath: executablePath() })
 }
 
 async function open(browser, url) {

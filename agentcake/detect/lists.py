@@ -10,8 +10,10 @@ sources.json. Nothing in this module opens a connection. `agentcake lists update
     Lists.load(bundled_dir, user_root) -> the snapshot in use (the release's own folder is parsed once per process)
     current()            -> the same for this CAKE_HOME, cached for this process
     .match_ua(ua)        -> {id, name, operator, category: agent | bot, kind, kind_label, row, evidence, sources,
-                             matched} for a declared name, a dict with id None and `conflict` when the User-Agent
-                             declares several, or None
+                             browser, by_design, matched} for a declared name (browser: its kind names a browser
+                             people also use by hand; by_design: the environment rules that browser matches by
+                             design, measured), a dict with id None and `conflict` when the User-Agent declares
+                             several, or None
     .match_ip(address)   -> {range, range_id, range_kind, operator, verifies, cloud, cdn, relay}; None if not an address
     .signer(host)        -> {host, name, ..., keys, keys_fetched_at} or None; .key_directories() -> {host: [JWK]}
     .status(max_age_days, today) -> {built, age_days, max_age_days, stale, location, sources, skipped}
@@ -216,7 +218,7 @@ class Lists:
         return {"id": entry["id"], "name": entry["name"], "operator": entry.get("operator"),
                 "category": kind["category"], "kind": entry["kind"], "kind_label": kind["label"],
                 "row": kind.get("row"), "evidence": entry.get("evidence", "listed"), "sources": list(entry["sources"]),
-                "matched": matched}
+                "browser": bool(kind.get("browser")), "by_design": list(entry.get("by_design", ())), "matched": matched}
 
     def _conflict(self, entries):
         """Several names declared at once name none; category and kind stay when they all agree."""
@@ -227,8 +229,8 @@ class Lists:
                 "category": categories.pop() if len(categories) == 1 else None, "kind": kind,
                 "kind_label": self._kinds[kind]["label"] if kind else None,
                 "row": self._kinds[kind].get("row") if kind else None, "evidence": "conflict",
-                "sources": sorted({s for entry in entries for s in entry["sources"]}), "matched": None,
-                "conflict": sorted(entry["id"] for entry in entries)}
+                "sources": sorted({s for entry in entries for s in entry["sources"]}), "browser": False,
+                "by_design": [], "matched": None, "conflict": sorted(entry["id"] for entry in entries)}
 
     def match_ua(self, ua):
         """The name a User-Agent declares. A match inside a longer one gives way to it (Googlebot-Image over

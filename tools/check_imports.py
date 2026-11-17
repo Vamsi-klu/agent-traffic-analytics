@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check that Agent Cake's code imports nothing but the Python standard library and agentcake.
+"""Check that AgentCake's code imports nothing but the Python standard library and agentcake.
 
     python3 tools/check_imports.py [folder]      (default: agentcake/ next to tools/; e.g. tools to check the tools)
 
@@ -13,12 +13,15 @@ each with its reason: a tool's half that runs only in a venv of its own. Prints 
 count; the exit code is 0 when it is 0.
 """
 import ast
-import json
 import os
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-LIMITS = os.path.join(ROOT, "tools", "limits.json")
+if ROOT not in sys.path:
+    sys.path.insert(0, ROOT)  # run as a script under python3 -I, the repository root is not on sys.path
+
+from tools.code_checks import folder_argument, limits  # noqa: E402
+
 OWN_PACKAGE = "agentcake"
 DEFAULT_FOLDER = os.path.join(ROOT, OWN_PACKAGE)
 
@@ -39,15 +42,10 @@ def python_files(folder):
         yield from (os.path.join(root, f) for f in sorted(files) if f.endswith(".py"))
 
 
-def limits():
-    with open(LIMITS, encoding="utf-8") as f:
-        return json.load(f)["check_imports"]
-
-
 def stdlib_modules():
     """The standard library's top-level module names, with the newer ones tools/limits.json lists (compression,
     Python 3.14) that this Python may not have."""
-    return set(sys.stdlib_module_names) | set(limits()["newer_stdlib"])
+    return set(sys.stdlib_module_names) | set(limits("check_imports")["newer_stdlib"])
 
 
 def local_modules(folder):
@@ -64,7 +62,7 @@ def offending_imports(folder):
     """(file relative to the folder's parent, line, module) for each import that is neither the standard library,
     agentcake nor the folder's own code."""
     allowed = stdlib_modules() | {OWN_PACKAGE} | local_modules(folder)
-    exempt = set(limits().get("exempt", {}))
+    exempt = set(limits("check_imports").get("exempt", {}))
     found = []
     for path in python_files(folder):
         rel = os.path.relpath(path, os.path.dirname(os.path.normpath(folder))).replace(os.sep, "/")
@@ -79,7 +77,7 @@ def offending_imports(folder):
 
 
 def main(argv):
-    folder = os.path.abspath(argv[0]) if argv else DEFAULT_FOLDER
+    folder = folder_argument(argv, __doc__, DEFAULT_FOLDER, "the folder to check (default: agentcake/ next to tools/)")
     found = offending_imports(folder)
     for path, line, module in found:
         print(f"{path}:{line}: imports {module}, which is not in the standard library, {OWN_PACKAGE} or this folder")

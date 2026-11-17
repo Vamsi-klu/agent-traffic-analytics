@@ -35,13 +35,13 @@ import functools
 import hashlib
 import json
 import os
-import time
 import traceback
 
 from agentcake import activity, datafiles, evidence, paths, store
 from agentcake.config import load_cfg
 from agentcake.detect import verdict, verdict_text
 from agentcake.detect.schedule import Schedule, State
+from agentcake.storage_config import now_ms as clock_ms
 from agentcake.units import MS_PER_S, PERCENT
 
 OLD_VERDICTS = {"not_sure": "unsure", "too_little_data": "unsure"}  # 0.3.4's verdict column knew human/agent/unsure
@@ -55,10 +55,6 @@ OLDER_JUDGE = ("SELECT id FROM sessions WHERE judged_ms > 0 AND model_version IS
 
 def load_numbers():
     return datafiles.load("data/api.json")
-
-
-def _now_ms():
-    return int(time.time() * MS_PER_S)
 
 
 def model_files(root):
@@ -153,7 +149,7 @@ def tick(now_ms, c=None, limit=None):
 def on_open(session_id, now_ms=None, c=None):
     """A page that shows the session was opened: judge it when its verdict is stale or an older judge's (cake
     0.3.4's among them). Returns whether it was judged (None for no such session)."""
-    c, now_ms = c or load_cfg(), now_ms or _now_ms()
+    c, now_ms = c or load_cfg(), now_ms or clock_ms()
 
     def work(con):
         row = con.execute("SELECT end_ms, judged_ms, model_version FROM sessions WHERE id=?", (session_id,)).fetchone()
@@ -171,7 +167,7 @@ def on_open(session_id, now_ms=None, c=None):
 def catch_up(limit=None, now_ms=None, c=None):
     """Before the dashboard or the sessions list is drawn: judge the sessions with data newer than their verdict,
     latest first, at most limit (stale_judge_batch_sessions). Returns how many were judged."""
-    c, now_ms = c or load_cfg(), now_ms or _now_ms()
+    c, now_ms = c or load_cfg(), now_ms or clock_ms()
 
     def work(con):
         stale = con.execute("SELECT id FROM sessions WHERE judged_ms < end_ms ORDER BY end_ms DESC LIMIT ?",
@@ -206,7 +202,7 @@ def _judge_logged(con, session_id, now_ms, c):
 def rejudge(con, session_id, now_ms=None, c=None):
     """Judge the session now and write the verdict, in the caller's transaction; returns the verdict (None when
     the session is unknown or its replay was freed, whose verdict stands)."""
-    now_ms = now_ms or _now_ms()
+    now_ms = now_ms or clock_ms()
     row = con.execute("SELECT replay_freed_ms FROM sessions WHERE id=?", (session_id,)).fetchone()
     if row is None:
         return None

@@ -18,7 +18,7 @@ export type Replayer = {
   addEvent(event: ReplayEvent): void
   readonly wrapper: HTMLElement
 }
-/** The trail the cursor leaves; its colour comes from a token (use-replay.ts reads it from the page). */
+/** The trail the cursor leaves; its colour comes from a token (replay-engine.ts reads it from the page). */
 export type MouseTail = { strokeStyle: string }
 
 export type PlayerProps = {

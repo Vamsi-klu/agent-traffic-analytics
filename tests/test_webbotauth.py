@@ -374,13 +374,6 @@ class Sessions(unittest.TestCase):
         self.assertEqual(self.sessions.verify("s2", request([])).outcome, NONE)
         self.assertEqual(self.sessions.verify("s2", self.signed).outcome, VERIFIED)
 
-    def test_a_forgotten_session_is_verified_again(self):
-        with mock.patch.object(webbotauth.ed25519, "verify", wraps=webbotauth.ed25519.verify) as verify:
-            self.sessions.verify("s3", self.signed)
-            self.sessions.forget("s3")
-            self.sessions.verify("s3", self.signed)
-        self.assertEqual(verify.call_count, 2)
-
     def test_the_oldest_session_leaves_the_cache_first(self):
         small = dataclasses.replace(SHIPPED, session_cache_size=2)
         sessions = webbotauth.SessionVerifier({"agent.example": [AGENT.jwk]}, small, clock=lambda: NOW + 10)

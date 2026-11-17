@@ -214,10 +214,6 @@ class SessionVerifier:
                     self._results.popitem(last=False)
         return result
 
-    def forget(self, session_id):
-        with self._lock:
-            self._results.pop(session_id, None)
-
 
 def _check(request, label, member, values, agents, directory, now_s, settings):
     """The SignatureCheck of the signature ``label``: cheap checks first, the Ed25519 arithmetic last."""

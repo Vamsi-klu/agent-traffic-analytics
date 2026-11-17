@@ -498,7 +498,7 @@ agentcake migrate
 
 AgentCake needs Python 3.11 or newer and nothing outside Python's standard library. It keeps replays as compressed
 chunks: with zstd from Python 3.14's standard library (`compression.zstd`) when it can, otherwise with zlib, which every
-Python has and which takes more disk (the sizes are in `README.md`, "Where replays are stored, and how big"). After 14
+Python has and which takes more disk. After 14
 days, at night, the chunks are compressed again, harder; a server without a battery counts as on mains power for that.
 `agentcake doctor` says which compression is in use.
 

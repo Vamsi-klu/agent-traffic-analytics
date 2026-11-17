@@ -3,7 +3,7 @@ or from inside the .pyz when the bootstrap runs a command from the zip without u
 those commands work where CAKE_HOME cannot be written, such as a coding agent's sandbox. And none of those files names
 a key twice in one object: json.load keeps only the last one, so the first would be dead text nobody notices.
 
-    python3 -I -m unittest discover -s tests -p test_datafiles.py -v      (from the Agent Cake folder)
+    python3 -I -m unittest discover -s tests -p test_datafiles.py -v      (from the AgentCake folder)
 """
 import json
 import os

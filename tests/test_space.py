@@ -1,7 +1,7 @@
-"""Agent Cake's disk rules on the chunk storage: cake 0.3.4's eight space tests, rewritten for replays kept as
+"""AgentCake's disk rules on the chunk storage: cake 0.3.4's eight space tests, rewritten for replays kept as
 chunks without loosening any of their assertions, and the rules 0.4.0 adds.
 
-    python3 -I -m unittest discover -s tests -p test_space.py -v      (from the Agent Cake folder)
+    python3 -I -m unittest discover -s tests -p test_space.py -v      (from the AgentCake folder)
 
 Each test runs in its own CAKE_HOME. Sessions of every kind are mixed together, each with a replay (the rrweb stream)
 plus raw input and environment signals, sealed into chunk files, and the budget is made small, so cake has reached
@@ -279,7 +279,8 @@ class FullOverHttp(unittest.TestCase):
     def post(self, sid):
         ev = [{"type": 3, "timestamp": int(time.time() * 1000), "data": {"source": 2, "type": 2, "x": 1, "y": 1}}] * 5
         body = json.dumps({"k": self.key, "s": sid, "u": "https://example.com/", "ua": "Mozilla/5.0", "e": ev}).encode()
-        return urllib.request.urlopen(urllib.request.Request(self.url, data=body, method="POST"), timeout=5).status
+        with urllib.request.urlopen(urllib.request.Request(self.url, data=body, method="POST"), timeout=5) as response:
+            return response.status
 
     def set_cfg(self, **kv):
         c = self.cake.load_cfg()

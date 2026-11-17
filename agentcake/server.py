@@ -14,7 +14,7 @@ from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, urlsplit
 
-from agentcake import __version__, maintenance, paths, routes
+from agentcake import __version__, addresses, maintenance, paths, routes
 from agentcake.config import LOCAL_HOST, base_url, ensure_cfg, load_cfg
 from agentcake.edge_secret import srv_secret
 from agentcake.netfacts import ranges
@@ -30,6 +30,17 @@ def answer(table, method, request):
 class LocalHandler(BaseHTTPRequestHandler):
     def log_message(self, *a):
         pass
+
+    def parse_request(self):
+        """The request line as http.server reads it, with a target urllib can read: one it cannot (an unclosed IPv6
+        bracket, "GET http://[ HTTP/1.1", which anyone can send) is answered 400 the way http.server answers any
+        request line it cannot read, before a view sees it. Both listeners read their request lines here."""
+        if not super().parse_request():
+            return False
+        if addresses.split(self.path) is None:
+            self.send_error(HTTPStatus.BAD_REQUEST)
+            return False
+        return True
 
     def out(self, code, body, ctype=HTML, extra=None, cors=False):
         b = body.encode() if isinstance(body, str) else body

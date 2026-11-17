@@ -85,7 +85,7 @@ def _detail(con, session_id, summary):
     visit = pages.Visit(views, found, epoch)
     listed = visit.listed(length)
     layers = reasons.layers(layers_json, reasons_json, epoch, turns == HUMAN_AGENT, verdict)
-    story = Story(epoch, runs if verdict != BOT else [], summary["agent"], layers, judged)
+    story = Story(epoch, runs if verdict != BOT else [], summary["agent"], layers, judged, found)
     return {"session": dict(summary, duration_ms=length, pages=len(listed), share=actions.share(found)),
             "title": title(verdict, turns, verdict_class, summary["agent"], runs, evidence, judged),
             "summary": verdict_summary(verdict, turns or evidence, detail.get("judging"), kept, story),
@@ -162,9 +162,9 @@ def told(runs, handoffs=None):
 
 
 # What the summary tells beside the verdict: the recording's start (epoch ms), the stored runs (t_start, t_end, actor),
-# the agent's name (None: unnamed), the layers as the page shows them (reasons.layers) and the judge's own hand-offs
-# (None: a verdict kept before it kept them).
-Story = namedtuple("Story", "epoch runs agent layers handoffs", defaults=(None,))
+# the agent's name (None: unnamed), the layers as the page shows them (reasons.layers), the judge's own hand-offs
+# (None: a verdict kept before it kept them) and the actions Every action lists (actions.recorded; None: not given).
+Story = namedtuple("Story", "epoch runs agent layers handoffs acts", defaults=(None, None))
 
 
 def verdict_summary(verdict, group, judging_class, kept, story=None):
@@ -192,11 +192,14 @@ def _deciding(verdict, kept):
 
 
 def _turns_told(verdict, story):
-    """Who acted when, turn by turn, on the timeline's clock: the first turn from its start to its end, then each
-    hand-off at the moment the timeline marks it (told()); None when no human or agent run is there to tell."""
+    """Who acted when, turn by turn, on the timeline's clock: the first turn from its actor's first action to its last
+    (_acted(): the times Every action lists), then each hand-off at the moment the timeline marks and the reasons name,
+    the new actor's first action (told()): one time for each on the page. None when no human or agent run is there to
+    tell."""
     turns = told(story.runs, story.handoffs)
     if not turns or (verdict == HUMAN and any(turn["who"] != HUMAN for turn in turns)):
         return None
+    turns = [_acted(turns, story.acts)] + turns[1:]
     words, seen = answers.words()["summary"], set()
     at = lambda t: markers.clock(max(0, t - story.epoch))  # noqa: E731  (a moment as the player writes it)
     said = []
@@ -209,6 +212,17 @@ def _turns_told(verdict, story):
                                                                                                at=at(turn["start"])))
         seen.add(turn["who"])
     return " ".join(said)
+
+
+def _acted(turns, acts):
+    """The first turn from its actor's first action to its last before the next hand-off (acts: actions.recorded's, in
+    time order): the times Every action gives that actor, every action when a whole-session verdict gave it them all,
+    inside its runs or not. Without an action there, the run's own times. A later turn is told only by its start, the
+    hand-off's moment, which told() gives."""
+    first = turns[0]
+    until = turns[1]["start"] if len(turns) > 1 else float("inf")
+    times = [act.t for act in acts or () if act.who == first["who"] and act.t < until]
+    return dict(first, start=times[0], end=times[-1]) if times else first
 
 
 def _who(actor, agent, again, words):

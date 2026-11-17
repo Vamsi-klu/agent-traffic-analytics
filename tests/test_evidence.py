@@ -30,14 +30,6 @@ CHROME = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KH
 LB = load("data/lb_headers.json")["headers"]
 
 
-class FixedTime:
-    def __init__(self, ms):
-        self.ms = ms
-
-    def time(self):
-        return self.ms / S
-
-
 def page_batch(pv, n, at_ms, sid=SID, prerendering=False, shown=True, env=None, token=None, **fields):
     """A page view's first batch: its page record, an environment record, raw input visible or not."""
     signals = [{"t": at_ms, "ty": "page", "n": n, "nav": "navigate", "prerendering": prerendering,
@@ -65,7 +57,7 @@ class EvidenceCase(unittest.TestCase):
         message = http.client.HTTPMessage()
         for name, value in {"User-Agent": CHROME, "Accept-Language": "en-US", **headers}.items():
             message[name] = value
-        with mock.patch.object(collect, "time", FixedTime(at_ms)):
+        with mock.patch.object(collect, "clock_ms", return_value=at_ms):
             answer = (collect.from_public if public else collect.from_local)(
                 Request("/collect", {}, message, json.dumps(body).encode()))
         self.assertEqual(answer.status, 204, answer.body)

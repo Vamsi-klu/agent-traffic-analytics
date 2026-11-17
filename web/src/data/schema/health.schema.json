@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "health.schema.json",
   "title": "Health",
-  "description": "GET /api/health : read by `agentcake doctor` and the install check (the same fields as Agent Cake 0.3.4); the pages don't use it.",
+  "description": "GET /api/health : read by `agentcake doctor` and the install check (the same fields as AgentCake 0.3.4); the pages don't use it.",
   "type": "object",
   "additionalProperties": false,
   "required": ["ok", "version", "home", "site_key", "sessions", "real_sessions", "selfcheck_visits", "space"],

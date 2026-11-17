@@ -1,6 +1,6 @@
 # Installing AgentCake: instructions for an AI coding assistant
 
-You are installing **AgentCake 0.4.2** for the user. AgentCake does AI agent traffic analytics for a website: for
+You are installing **AgentCake 0.5.0** for the user. AgentCake does AI agent traffic analytics for a website: for
 each visit it shows whether a human, an AI agent or a bot was acting, and when a human and an agent took turns, with
 the replay and the reasons. It runs only on this computer (macOS or Linux): one program and one small database in
 `~/.cake`, and a **local page** at `http://127.0.0.1:7878/`. The first time the user opens it, it asks them to register,
@@ -19,7 +19,7 @@ How to work:
 
 ## Step 1. Choose how to install
 
-If you are already in AgentCake's own folder (its source, or the unpacked release folder `agentcake-0.4.2/`), skip
+If you are already in AgentCake's own folder (its source, or the unpacked release folder `agentcake-0.5.0/`), skip
 to step 4: the command is that folder's `bin/agentcake`, by its full path (it needs `python3` 3.11 or newer).
 
 Otherwise, look for uv:
@@ -43,49 +43,26 @@ start again at step 1:
 
 ## Step 2. Download the release and check it
 
-The release page is https://github.com/tartini-ai/agent-traffic-analytics/releases/tag/v0.4.2
+The release page is https://github.com/tartini-ai/agent-traffic-analytics/releases/tag/v0.5.0
 If the user gave you another release page for this version, download the same files from there. First the checksums:
 
 ```sh
-curl -fsSLO https://github.com/tartini-ai/agent-traffic-analytics/releases/download/v0.4.2/SHA256SUMS
+curl -fsSLO https://github.com/tartini-ai/agent-traffic-analytics/releases/download/v0.5.0/SHA256SUMS
 ```
 
 Route A, the wheel:
 
 ```sh
-curl -fsSLO https://github.com/tartini-ai/agent-traffic-analytics/releases/download/v0.4.2/agentcake-0.4.2-py3-none-any.whl
+curl -fsSLO https://github.com/tartini-ai/agent-traffic-analytics/releases/download/v0.5.0/agentcake-0.5.0-py3-none-any.whl
 ```
 
 Route B, the one-file version:
 
 ```sh
-curl -fsSLO https://github.com/tartini-ai/agent-traffic-analytics/releases/download/v0.4.2/agentcake.pyz
+curl -fsSLO https://github.com/tartini-ai/agent-traffic-analytics/releases/download/v0.5.0/agentcake.pyz
 ```
 
-**Private preview.** While the repository is private, these addresses need a GitHub sign-in: curl stops with
-`The requested URL returned error: 404`, and this file could only be read with `gh`. Then download with the GitHub
-CLI instead of the curl commands above. First see whether it is signed in:
-
-```sh
-gh auth status
-```
-
-If it is, download every file of the release into this folder:
-
-```sh
-gh release download v0.4.2 --repo tartini-ai/agent-traffic-analytics
-```
-
-If `gh` is missing or not signed in, **ASK** the user to set it up in their own terminal, signed in to an account
-that can see the repository, and wait; never sign in for them:
-
-- the GitHub CLI: https://cli.github.com/
-- then `gh auth login`
-
-If gh says `release not found`, the signed-in account cannot see the repository: tell the user, and do not try
-other addresses.
-
-Then check what you downloaded, whichever way you downloaded it:
+Then check what you downloaded:
 
 ```sh
 shasum -a 256 -c SHA256SUMS --ignore-missing
@@ -106,7 +83,7 @@ do not install or run it: tell the user the download does not match the release.
 Route A:
 
 ```sh
-uv tool install --python 3.14 ./agentcake-0.4.2-py3-none-any.whl
+uv tool install --python 3.14 ./agentcake-0.5.0-py3-none-any.whl
 ```
 
 uv installs the `agentcake` command in its own folder for tools, and downloads Python 3.14 if this computer has none
@@ -127,7 +104,7 @@ example `python3 /Users/<name>/agentcake/agentcake.pyz`. Leave the file where it
 **From here on, `agentcake` in a command stands for that full command.** Write it out in full every time, also where
 AgentCake's own messages say just `agentcake`.
 
-**Check:** `agentcake --version` prints `agentcake 0.4.2`.
+**Check:** `agentcake --version` prints `agentcake 0.5.0`.
 
 ## Step 4. Start AgentCake
 
@@ -136,7 +113,7 @@ agentcake start
 ```
 
 It runs AgentCake in the background on 127.0.0.1 (port 7878) and prints the local page's address. If it says
-AgentCake is already running, run `agentcake status`: its `"version"` should be `0.4.2`. An older version is an
+AgentCake is already running, run `agentcake status`: its `"version"` should be `0.5.0`. An older version is an
 earlier install using the same data folder: **ASK** the user before you stop it with `agentcake stop`, then start
 again. Its visits stay, and this version reads them.
 
@@ -220,7 +197,7 @@ count each signed-in visitor once across browsers and devices (above).
   start`, `agentcake doctor`; on route A, `uv tool dir --bin` first, and `agentcake` in the folder it prints), and
   go on from what they send back. Do not try other folders, and never sudo.
 - A sandbox without network access cannot download: curl stops with `Could not resolve host` or
-  `Couldn't connect to server`, and gh with `error connecting to api.github.com`. Tell the user there is no network
+  `Couldn't connect to server`. Tell the user there is no network
   access here, and ask them to give you network access or to run the step in their own terminal. Do not say a server
   is down or has to be started.
 - Nor can it reach 127.0.0.1. doctor then says no connection is allowed from here and that AgentCake may well be

@@ -1,12 +1,12 @@
 """The sessions of a CAKE_HOME that a truth list names, read without writing anything (cases T3, T5,
-T6, T8 and T22 run on a real Agent Cake and labelled afterwards).
+T6, T8 and T22 run on a real AgentCake and labelled afterwards).
 
     labelled(truth_rows, settings, home=None) -> [{"h", "truth", "evidence", "page_views", "tokens"}]
 
 The database is opened read only (connect_readonly), in the CAKE_HOME given or the current one; its replay chunks are
 read from its replay folder and its settings from its config.json, which the readers find through CAKE_HOME, so
 CAKE_HOME is set to it while they read. A session is listed by its short hash, sha256("cake-goal|" + session id)[:12]
-(data/eval.json "short_hash"), so the list never holds a session id. Its evidence is exactly what Agent Cake judges:
+(data/eval.json "short_hash"), so the list never holds a session id. Its evidence is exactly what AgentCake judges:
 agentcake/evidence.py's session_evidence(), with the behaviour layer run as verdict.judge() runs
 it. page_views and tokens: the session's page views, and those whose server-half token reached cake.
 """
@@ -26,7 +26,7 @@ READ_ONLY, IMMUTABLE = "mode=ro", "&immutable=1"  # protocol: SQLite URI paramet
 def connect_readonly(home=None):
     """A read-only connection to the database of `home` (default: the current CAKE_HOME), or None without one.
 
-    With no write-ahead log next to it (Agent Cake is not running) the file is opened as immutable, so SQLite does
+    With no write-ahead log next to it (AgentCake is not running) the file is opened as immutable, so SQLite does
     not even create its -wal and -shm files; with one (it is running), read-only, so the newest rows are seen.
     """
     home = home or paths.home()
@@ -40,9 +40,11 @@ def connect_readonly(home=None):
 
 def labelled(truth_rows, settings, home=None):
     """The listed sessions found in the database, with their answer and evidence (see the module docstring)."""
+    if not truth_rows:  # before connecting: a connection is closed only on the way out of the try below
+        return []
     with _cake_home(home):
         con = connect_readonly()
-        if con is None or not truth_rows:
+        if con is None:
             return []
         try:
             wanted = {row["h"]: row for row in truth_rows}

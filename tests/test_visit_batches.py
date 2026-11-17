@@ -1,6 +1,6 @@
 """A visit's stored uploads in cake.js's upload format: agentcake/visit_batches.py.
 
-    python3 -I -m unittest discover -s tests -p test_visit_batches.py -v      (from the Agent Cake folder)
+    python3 -I -m unittest discover -s tests -p test_visit_batches.py -v      (from the AgentCake folder)
 
 What collect stored comes back as one batch per page view, with the page view's header from its first batch and its
 records in time order, each once; a cake 0.3.4 visit comes back as one batch without a page view.

@@ -1,4 +1,4 @@
--- Agent Cake's database (SQLite in WAL mode, $CAKE_HOME/cake.db). store.db() runs this on every open: every statement
+-- AgentCake's database (SQLite in WAL mode, $CAKE_HOME/cake.db). store.db() runs this on every open: every statement
 -- is IF NOT EXISTS (the one INSERT, WHERE NOT EXISTS). A database made by an older cake gets the newer columns from
 -- store.ADDED_COLUMNS.
 -- Replays are not in here: they are compressed 10-second chunks in $CAKE_HOME/replays/<date>/<hour>.bin, and the

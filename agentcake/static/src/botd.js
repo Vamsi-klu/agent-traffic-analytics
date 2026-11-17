@@ -1,5 +1,5 @@
 /*
- * BotD, vendored for Agent Cake's page script.
+ * BotD, vendored for AgentCake's page script.
  * Source: @fingerprintjs/botd 2.0.0 on npm, dist/botd.esm.js (sha256 f438ed251dc7414ece9d4a2b6941441ad9ffae1a1905817f5f0c7366e701dd86);
  * the same 19 sources and detectors as github.com/fingerprintjs/BotD at commit 193c471a (package version 2.0.0).
  * Licence: MIT, Copyright (c) 2025 FingerprintJS, Inc (full text: botd.LICENSE.txt, also bundled into cake.js).

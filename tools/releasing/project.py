@@ -1,7 +1,7 @@
 """What is released: the version, the core metadata from pyproject.toml, and which files are the package.
 
 The version is written only in agentcake/__init__.py (__version__) and read here with ast, without importing the
-package. Everything else that describes the package (name, Python, command, readme, license) is pyproject.toml's,
+package. Everything else that describes the package (name, Python, command, readme, license, links) is pyproject.toml's,
 the table flit_core reads when a wheel is built from a checkout (`pip wheel .`), so a release and a source build
 describe the package alike; the summary is the first line of the package's docstring (dynamic "description"), as
 flit_core takes it. A key of [project] that this module does not write into the metadata stops the release instead
@@ -11,6 +11,7 @@ Core metadata: https://packaging.python.org/specifications/core-metadata/ (2.2; 
 information, PEP 639). File names: the wheel and source distribution formats (PEP 427, PEP 625).
 """
 import ast
+import fnmatch
 import glob
 import os
 import re
@@ -23,7 +24,8 @@ LICENSE_METADATA_VERSION = "2.4"  # protocol: License-Expression and License-Fil
 WHEEL_TAG = "py3-none-any"  # protocol: pure Python 3, any ABI, any platform
 README_TYPES = {".md": "text/markdown", ".rst": "text/x-rst", ".txt": "text/plain"}  # protocol: core metadata
 HANDLED_KEYS = {"name", "version", "description", "dynamic", "readme", "requires-python", "dependencies", "scripts",
-                "license", "license-files"}
+                "license", "license-files", "urls"}
+URL_LABEL_MAX_CHARS = 32  # protocol: core metadata, Project-URL: a label of at most 32 characters, then a comma
 FROM_PACKAGE = {"version", "description"}  # the dynamic fields this module reads from the package
 
 
@@ -39,7 +41,7 @@ class Project:
             raise ReleaseError(f"pyproject.toml [project] has {', '.join(unknown)}, which tools/releasing/project.py "
                                "does not put into the metadata yet: add it there first")
         if self.table.get("dependencies"):
-            raise ReleaseError("pyproject.toml lists dependencies: Agent Cake ships as a wheel without any")
+            raise ReleaseError("pyproject.toml lists dependencies: AgentCake ships as a wheel without any")
         unread = sorted(set(self.table.get("dynamic", [])) - FROM_PACKAGE)
         if unread or "version" in self.table:
             raise ReleaseError("pyproject.toml must leave the version to agentcake/__init__.py (dynamic) and have no "
@@ -87,7 +89,8 @@ class Project:
 
     def package_files(self):
         """(path in the release, path on disk, executable) of every file of the package, in sorted order, without
-        what release.json "package_files" says is never shipped."""
+        what release.json "package_files" says is never shipped: what no computer needs (skip_dirs, skip_names,
+        skip_suffixes) and the files that only a checkout uses (skip_paths)."""
         skip = self.settings["package_files"]
         top = os.path.join(self.root, self.package)
         files = []
@@ -98,6 +101,8 @@ class Project:
                     continue
                 path = os.path.join(folder, name)
                 rel = os.path.relpath(path, self.root).replace(os.sep, "/")
+                if any(fnmatch.fnmatchcase(rel, pattern) for pattern in skip["skip_paths"]):
+                    continue
                 files.append((rel, path, is_executable(path)))
         return sorted(files)
 
@@ -116,6 +121,7 @@ class Project:
         if license_expression is not None:
             fields.append(("License-Expression", license_expression))
         fields += [("License-File", name) for name in license_files]
+        fields += [("Project-URL", f"{label}, {url}") for label, url in self.project_urls()]
         body = ""
         readme = self.readme()
         if readme:
@@ -129,6 +135,16 @@ class Project:
                 body = f.read()
         head = "".join(f"{key}: {value}\n" for key, value in fields)
         return head + "\n" + body if body else head
+
+    def project_urls(self):
+        """(label, address) of each link in pyproject.toml's [project.urls], in its order: PyPI lists them as the
+        project's links."""
+        urls = self.table.get("urls", {})
+        for label, url in urls.items():
+            if len(label) > URL_LABEL_MAX_CHARS or "," in label or not isinstance(url, str):
+                raise ReleaseError(f"pyproject.toml [project.urls]: {label!r} needs a label of at most "
+                                   f"{URL_LABEL_MAX_CHARS} characters without a comma, and an address in quotes")
+        return list(urls.items())
 
     def entry_points(self):
         """entry_points.txt: the commands pyproject.toml's [project.scripts] names."""

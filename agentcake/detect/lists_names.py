@@ -28,8 +28,8 @@ def _same_text(text):
     return text.rstrip("/").lower()
 
 
-def _real(mapping):
-    """A mapping from sources.json without its "$comment"."""
+def without_comments(mapping):
+    """A mapping from sources.json without its "$comment" (lists_keys reads the recipe the same way)."""
     return {key: value for key, value in mapping.items() if not key.startswith("$")}
 
 
@@ -67,7 +67,8 @@ class _Registry:
 
 def _add_cake(registry, own):
     for item in own:
-        entry = registry.get(item["id"], "cake", {k: item.get(k) for k in ("name", "operator", "evidence", "note")})
+        entry = registry.get(item["id"], "cake", {k: item.get(k) for k in ("name", "operator", "evidence", "note",
+                                                                         "by_design")})
         registry.set_kind(entry, "cake", item["kind"])
         for pattern in item["patterns"]:
             registry.add_pattern(entry, pattern["match"], pattern["text"], "cake")
@@ -121,7 +122,7 @@ def posthog_literal(pattern):
 
 def _add_posthog(registry, recipe, text, guard):
     definitions = parse_posthog(text, recipe)
-    fixes, hints, excluded, named = _real(recipe["patterns"]), [], [], 0
+    fixes, hints, excluded, named = without_comments(recipe["patterns"]), [], [], 0
     for pattern, fields in definitions:
         if pattern in recipe["exclude"]:
             excluded.append(pattern)
@@ -193,7 +194,7 @@ def _add_ai_robots(registry, recipe, text, aliases):
 def _finish(registry, recipe, kinds):
     """Each name's final kind (override, else the first source in precedence) and display name (override, else the
     first source's), and the disagreements."""
-    overrides, names, disagreements = _real(recipe["overrides"]), [], []
+    overrides, names, disagreements = without_comments(recipe["overrides"]), [], []
     for list_id in sorted(registry.entries):
         entry = registry.entries[list_id]
         ranked = [entry["kinds"][s] for s in recipe["precedence"] if s in entry["kinds"]]
@@ -206,7 +207,7 @@ def _finish(registry, recipe, kinds):
         out = {"id": list_id, "name": fix.get("name") or entry["name"] or list_id, "operator": entry["operator"],
                "kind": kind,
                "patterns": entry["patterns"], "sources": entry["sources"]}
-        out.update({k: entry[k] for k in ("evidence", "note") if entry.get(k)})
+        out.update({k: entry[k] for k in ("evidence", "note", "by_design") if entry.get(k)})
         names.append(out)
     return names, disagreements
 
@@ -218,7 +219,7 @@ def build_names(recipe, kinds, files, guard):
     platforms, botscent = _add_botscent(registry, recipe["botscent"], files["botscent"])
     hints, posthog = _add_posthog(registry, recipe["posthog"], files["posthog"]["bot_definitions"], guard)
     robots = _add_ai_robots(registry, recipe["ai-robots-txt"], files["ai-robots-txt"]["robots"],
-                            _real(recipe["aliases"]))
+                            without_comments(recipe["aliases"]))
     names, disagreements = _finish(registry, recipe, kinds)
     counts = {"cake": {"named": len(recipe["cake"])}, "botscent": botscent, "posthog": posthog,
               "ai-robots-txt": robots}

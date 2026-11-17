@@ -240,10 +240,10 @@ test("the note goes once the playhead reaches the first page that was recorded, 
 test("a chunk that doesn't come shows what happened and Try again, which then plays", async () => {
   const tab = await openTab(app)
   try {
-    await tab.page.route(`**/api/session/${AGENT}/replay?chunk=0`, (route) => route.fulfill({ status: 503, json: { error: "Agent Cake is busy." } }))
+    await tab.page.route(`**/api/session/${AGENT}/replay?chunk=0`, (route) => route.fulfill({ status: 503, json: { error: "AgentCake is busy." } }))
     await tab.page.goto(app.url(`#/sessions/${AGENT}`))
     await tab.page.waitForSelector('[data-replay="failed"]', { timeout: WAIT_MS })
-    assert.match(await tab.page.locator('[data-replay="failed"]').innerText(), /Couldn't load the replay\. Agent Cake is busy\./)
+    assert.match(await tab.page.locator('[data-replay="failed"]').innerText(), /Couldn't load the replay\. AgentCake is busy\./)
     await tab.page.unroute(`**/api/session/${AGENT}/replay?chunk=0`)
     await tab.page.getByRole("button", { name: "Try again" }).click()
     await tab.page.waitForSelector('[data-replay="ready"]', { timeout: WAIT_MS })

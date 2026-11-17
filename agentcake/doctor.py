@@ -1,7 +1,7 @@
 """`doctor`: the self-check a coding agent runs after installing, and after connecting a website.
 
 doctor(folder, url) prints one line per check (doctor_lines.py: PASS, FAIL, WARN, SKIP), in three groups:
-- Agent Cake itself: it answers on 127.0.0.1 (reach(): nothing listening is "not running, start it"; a connection that
+- AgentCake itself: it answers on 127.0.0.1 (reach(): nothing listening is "not running, start it"; a connection that
   a sandbox forbids is said to be the sandbox's doing, never "not running"), its local page opens, it serves
   the page script with this installation's site key, a visit arrived: a self-check or a real one (server_checks();
   since 0.4.0 there is no demo shop to check), replays can be stored (replay_storage():
@@ -38,12 +38,12 @@ from agentcake.site_code import SiteCode
 from agentcake.site_setup import SCRIPT_PATH
 from agentcake.wording import text
 
-REFUSED, BLOCKED = "refused", "blocked"  # why Agent Cake did not answer: nothing listens; this process may not connect
+REFUSED, BLOCKED = "refused", "blocked"  # why AgentCake did not answer: nothing listens; this process may not connect
 Reach = namedtuple("Reach", "health problem error")  # the /api/health answer, else why not and the error's words
 
 
 def reach(c):
-    """Whether Agent Cake answers on 127.0.0.1:<port>. A refused connection means nothing listens there (REFUSED); one
+    """Whether AgentCake answers on 127.0.0.1:<port>. A refused connection means nothing listens there (REFUSED); one
     that fails with an error of data/doctor.json's blocked_errors means this process may not connect at all (BLOCKED:
     a sandbox, such as an AI tool's without network access); any other failure is reported in its own words."""
     try:
@@ -135,7 +135,7 @@ def _chunks_needing_zstd():
 
 
 def not_reached(reached, base):
-    """The four server lines when Agent Cake did not answer: what happened, and the three lines that needed it."""
+    """The four server lines when AgentCake did not answer: what happened, and the three lines that needed it."""
     needed = [text(check) for check in ("doctor_page", "doctor_script", "doctor_visit")]
     if reached.problem == BLOCKED:
         return [(text("doctor_running"), False, text("doctor_blocked", base=base, error=reached.error))] + \

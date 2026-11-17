@@ -3,20 +3,16 @@
 SETTINGS holds the chunk length, the compression codec and levels, the folder names, the night recompression rules
 and the CSS de-duplication switch; the storage modules take every number from it. Functions whose behaviour a test
 varies take a `cfg` argument that defaults to SETTINGS. ms_from_days() and when() turn days and epoch milliseconds
-into the units the code needs without unit literals.
+into the units the code needs without unit literals; now_ms() is this computer's clock in epoch milliseconds, the
+one every module reads (each imports it under a name of its own, which a test replaces to fix the time).
 """
-import json
-import os
 from datetime import datetime, timedelta, timezone
 
-from agentcake import paths
+from agentcake.datafiles import load
 
-STORAGE_FILE = os.path.join(paths.PACKAGE_DIR, "data", "storage.json")
+SETTINGS = load("data/storage.json")
 ONE_MS = timedelta(milliseconds=1)
 EPOCH = datetime.fromtimestamp(0, timezone.utc)
-
-with open(STORAGE_FILE, encoding="utf-8") as f:
-    SETTINGS = json.load(f)
 
 
 def ms_from_days(days):

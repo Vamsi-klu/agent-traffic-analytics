@@ -1,7 +1,7 @@
 """The content-blocker check before a release (tools/blockers/): what it checks and how it decides, without the
 internet. The check itself downloads the blockers' lists and runs them (tools/blockers/check.py, live.py).
 
-    python3 -I -m unittest discover -s tests -v      (from the Agent Cake folder)
+    python3 -I -m unittest discover -s tests -v      (from the AgentCake folder)
 """
 import os
 import shutil

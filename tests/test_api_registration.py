@@ -69,7 +69,8 @@ class Register(RegistrationCase):
         state = self.state()
         self.assertEqual((state["registered"], state["sent"]), (False, None))
         self.assertEqual(state["delete_contact"], "admin@tartini.ai", "the address PRIVACY.md gives")
-        self.assertIn("write to admin@tartini.ai", open(os.path.join(os.path.dirname(HERE), "PRIVACY.md")).read())
+        with open(os.path.join(os.path.dirname(HERE), "PRIVACY.md"), encoding="utf-8") as f:
+            self.assertIn("write to admin@tartini.ai", f.read())
 
     def test_a_press_sends_once_exactly_what_the_page_showed_and_it_is_kept(self):
         receiver, body = self.receiver(), written(product_updates=True)

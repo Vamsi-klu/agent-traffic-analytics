@@ -1,4 +1,4 @@
-// Agent Cake page script, part: start, stop and window.cake.
+// AgentCake page script, part: start, stop and window.cake.
 //
 // As in cake 0.3.3, a site adds one line:
 // <script src="https://<cake>/cake.js" data-site="<key>" defer></script>.

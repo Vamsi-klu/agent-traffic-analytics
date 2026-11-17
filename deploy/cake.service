@@ -1,4 +1,4 @@
-# Agent Cake on a Linux server as one systemd service (SERVER.md, "Install with systemd").
+# AgentCake on a Linux server as one systemd service (SERVER.md, "Install with systemd").
 #
 # The program is the release wheel unpacked into /opt/cake/app with Python's own zipfile
 # (sudo python3 -I -m zipfile -e agentcake-<version>-py3-none-any.whl /opt/cake/app), run by the system's python3. Its
@@ -13,7 +13,7 @@
 #   sudo systemctl daemon-reload
 #   sudo systemctl enable --now cake
 [Unit]
-Description=Agent Cake (which visits to a website were an AI agent, which a human), server mode
+Description=AgentCake (which visits to a website were an AI agent, which a human), server mode
 After=network-online.target
 Wants=network-online.target
 

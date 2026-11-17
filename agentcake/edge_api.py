@@ -1,7 +1,7 @@
 """POST /edge: a web server's page requests from its access log, signed with the server half's secret.
 
 `agentcake logs import` (logs.py) reads a log where it lies and sends its page requests here in batches, each an
-envelope {"v", "run", "format", "fields", "records"} (data/logs.json "edge"). Only a sender holding this Agent Cake's
+envelope {"v", "run", "format", "fields", "records"} (data/logs.json "edge"). Only a sender holding this AgentCake's
 server-half secret ($CAKE_HOME/srv_secret, the one a site's middleware signs page tokens with) is heard: the header
 Cake-Edge-Signature signs the request's time and body with it (edge_signature.py says how).
 No signature, another secret, a body changed after signing, a time outside the page tokens' window (the settings
@@ -11,12 +11,11 @@ import's report, and the answer is their counts as JSON; then the sessions they 
 (judging.on_log_lines), so that a final verdict takes its log lines in.
 
 Both listeners answer it (routes.py). The web server that writes the log is usually the load balancer in front of
-Agent Cake (SERVER.md), the one host the firewall lets reach the public port, and the load balancer's path rules never
+AgentCake (SERVER.md), the one host the firewall lets reach the public port, and the load balancer's path rules never
 forward /edge from the internet; on one machine, `logs import` sends to the local page's port. The records hold
 visitors' addresses: log_match looks them up and hashes them, and nothing here keeps or prints them.
 """
 import json
-import time
 from http import HTTPStatus
 
 from agentcake import config, judging, log_match, log_report, store
@@ -24,7 +23,7 @@ from agentcake.datafiles import load
 from agentcake.edge_secret import srv_secret
 from agentcake.edge_signature import HEADER, verified
 from agentcake.responses import JSON, TEXT, Response
-from agentcake.units import MS_PER_S
+from agentcake.storage_config import now_ms as clock_ms
 
 SPEC = load("data/logs.json")
 EDGE = SPEC["edge"]
@@ -34,7 +33,7 @@ REPORTED_FIELDS = ("missing", "empty")
 
 
 def receive(request):
-    c, now_ms = config.load_cfg(), int(time.time() * MS_PER_S)
+    c, now_ms = config.load_cfg(), clock_ms()
     if not verified(srv_secret(), request.headers.get(HEADER), request.body, now_ms, c):
         return Response(HTTPStatus.FORBIDDEN, "forbidden", TEXT)
     envelope = read_envelope(request.body)
@@ -67,15 +66,11 @@ def read_envelope(body):
     records, run, name, caps = data.get("records"), data.get("run"), data.get("format"), EDGE["max_chars"]
     if not isinstance(records, list) or len(records) > MAX_RECORDS:
         return None
-    if not (_short_text(run, caps["run"]) and _short_text(name, caps["format"])):
+    if not (log_match.short_text(run, caps["run"]) and log_match.short_text(name, caps["format"])):
         return None
     fields = data.get("fields") if isinstance(data.get("fields"), dict) else {}
     return {"run": run, "format": name, "records": records,
             "fields": {kind: _field_names(fields.get(kind)) for kind in REPORTED_FIELDS}}
-
-
-def _short_text(value, cap):
-    return isinstance(value, str) and 0 < len(value) <= cap
 
 
 def _field_names(value):

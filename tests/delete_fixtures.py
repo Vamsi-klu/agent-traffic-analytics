@@ -1,6 +1,6 @@
 """What the delete tests share: two made-up visits in every table, in chunk files of three hours and
 open windows, with a stylesheet of their own and one they share, in a migrate backup and in cake.log, each with a
-canary string of its own; and readers that look for them without trusting Agent Cake's own code: a database file's raw
+canary string of its own; and readers that look for them without trusting AgentCake's own code: a database file's raw
 bytes, every cell of every table, every chunk found by its magic and decompressed (zstd and zlib).
 
 tests/test_delete.py (agentcake/delete.py) and tests/test_delete_command.py (`agentcake delete`, POST /api/delete) use

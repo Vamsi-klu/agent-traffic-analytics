@@ -1,7 +1,12 @@
-@import "tailwindcss";
+@import "tailwindcss" source(none);
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "./styles/tokens.css";
+
+/* Utilities are made only for the class names in the pages' own code. Left to itself, Tailwind reads every file under
+   web/, so a word in a script, a test, a sample answer or a licence text that reads as a class name (a "blur" in a
+   comment) would add a rule no page uses to the CSS that ships. */
+@source "./**/*.{ts,tsx}";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -82,14 +87,12 @@
   }
 }
 
-/* Unsure texture (dots) and agent hatching for high contrast: pattern utilities, colours from tokens */
+/* Pattern utilities, colours from tokens: Unknown's dots, the half human, half agent dot of Human + agent, and agent
+   hatching for high contrast */
 @utility pattern-dots {
   background-color: var(--unsure-soft);
   background-image: radial-gradient(var(--unsure) 1px, transparent 1.2px);
   background-size: 5px 5px;
-}
-@utility pattern-mixed {
-  background-image: linear-gradient(90deg, var(--human-soft) 50%, var(--agent-soft) 50%);
 }
 @utility pattern-mixed-solid {
   background-image: linear-gradient(90deg, var(--human) 50%, var(--agent) 50%);

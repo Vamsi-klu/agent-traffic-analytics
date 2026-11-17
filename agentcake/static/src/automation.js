@@ -1,4 +1,4 @@
-// Agent Cake page script, part: probes for a browser driven over the DevTools protocol, stream "x".
+// AgentCake page script, part: probes for a browser driven over the DevTools protocol, stream "x".
 //
 // The ideas of these checks come from rebrowser-bot-detector (github.com/rebrowser/rebrowser-bot-detector, commit
 // 55fa59b); the code is our own. That repository declares MIT in its package.json but has no licence file, so none of
@@ -6,7 +6,8 @@
 //   1. A DevTools-protocol client with the Runtime domain on (Puppeteer, Playwright) has console messages serialised
 //      at once, so a logged error is formatted right away: Error.prepareStackTrace runs for it and its name is read
 //      more often (research lab, 11/11: per round 1 formatting and 3 name reads for Playwright, 0 and 1 for Claude in
-//      Chrome).
+//      Chrome). Our own addition: the probe logs in a frame of its own, never through the page's console, which a
+//      site's console recorder wraps and reads just as the protocol does.
 //   2. Chrome ignores a burst of same-document history updates beyond its IPC flooding limit, unless it was started
 //      with --disable-ipc-flooding-protection, as Puppeteer and Playwright start it.
 //   3. A document the automation tool served itself has a navigation entry no network or service worker made.
@@ -17,9 +18,24 @@
 // read them.
 
 // ---------------------------------------------------------------- 1. the logged-error probe
-var leak = { rounds: 0, prepareStackTraceCount: 0, nameGetterCount: 0, stackLookupCount: 0, firstHitRound: null }
+// Each round runs in a realm no page script has touched: an about:blank frame made, used and removed within the
+// round's one task. A site's own console recorder (rrweb's console plugin, an analytics or error-tracking script)
+// wraps the page's console and reads every argument it is given, which counts like the protocol's serialisation; it
+// never sees this frame's console. Nor can it reach the frame between rounds: rrweb's plugin also wraps the console
+// of every same-origin frame it records, once the frame has loaded, so a frame kept from one round to the next could
+// be wrapped by then. A DevTools-protocol client with Runtime on serialises the console calls of every frame of the
+// page, so it still shows. A page where no frame can be used gets no probe (console "none"): the page's own console
+// would count the site's recorder again.
+var leak = {
+  rounds: 0,
+  prepareStackTraceCount: 0,
+  nameGetterCount: 0,
+  stackLookupCount: 0,
+  firstHitRound: null,
+  console: 'frame'
+}
 
-// V8's own format, for any other error formatted while the counting hook is in place.
+// V8's own format, for the watched error formatted while the counting hook is in place.
 function plainStack(error, callSites) {
   return [String(error)]
     .concat(
@@ -30,50 +46,60 @@ function plainStack(error, callSites) {
     .join('\n')
 }
 
-function countFormatting() {
-  var own = Object.getOwnPropertyDescriptor(Error, 'prepareStackTrace')
-  if (own && !own.configurable) return // the page fixed it: this round cannot see formatting
-  var watched = new Error(CFG.env.cdp_message)
-  var outer = Error.prepareStackTrace
-  Object.defineProperty(Error, 'prepareStackTrace', {
-    configurable: true,
-    writable: true,
-    value: function (error, callSites) {
-      if (error === watched) leak.prepareStackTraceCount++
-      return outer ? outer(error, callSites) : plainStack(error, callSites)
-    }
-  })
+// Runs probe(window of a new hidden frame) and removes the frame, all in the caller's task; false when no frame could
+// be made or used (its error is kept in the record).
+function inFreshRealm(probe) {
+  var frame = document.createElement('iframe')
+  frame.setAttribute(CFG.env.probe_attr, '')
+  frame.style.display = 'none'
   try {
-    console.debug(watched)
+    ;(document.body || document.documentElement).appendChild(frame)
+    probe(frame.contentWindow)
+    return true
+  } catch (e) {
+    leak.error = String(e.name || e)
+    return false
   } finally {
-    if (own) Object.defineProperty(Error, 'prepareStackTrace', own)
-    else delete Error.prepareStackTrace
+    frame.remove()
   }
 }
 
-function countReads(property, field) {
-  var watched = new Error(CFG.env.cdp_message)
+// The realm is new and thrown away after the round, so its Error.prepareStackTrace is ours to set.
+function countFormatting(realm) {
+  var watched = new realm.Error(CFG.env.cdp_message)
+  realm.Error.prepareStackTrace = function (error, callSites) {
+    if (error === watched) leak.prepareStackTraceCount++
+    return plainStack(error, callSites)
+  }
+  realm.console.debug(watched)
+}
+
+function countReads(realm, property, field) {
+  var watched = new realm.Error(CFG.env.cdp_message)
   var value = property === 'name' ? watched.name : ''
-  Object.defineProperty(watched, property, {
+  realm.Object.defineProperty(watched, property, {
     configurable: true,
     get: function () {
       leak[field]++
       return value
     }
   })
-  console.debug(watched)
+  realm.console.debug(watched)
 }
 
+// rounds counts the rounds that ran: none when the first frame could not be used.
 function probeRound() {
-  leak.rounds++
-  countFormatting()
-  countReads('name', 'nameGetterCount')
-  countReads('stack', 'stackLookupCount')
-  var nameReadsPerRound = leak.nameGetterCount / leak.rounds
-  var seen = leak.prepareStackTraceCount > 0 || leak.stackLookupCount > 0
-  seen = seen || nameReadsPerRound > CFG.env.cdp_name_lookups_per_round
+  var ran = inFreshRealm(function (realm) {
+    countFormatting(realm)
+    countReads(realm, 'name', 'nameGetterCount')
+    countReads(realm, 'stack', 'stackLookupCount')
+    leak.rounds++
+  })
+  if (!ran) leak.console = 'none'
+  var seen = ran && (leak.prepareStackTraceCount > 0 || leak.stackLookupCount > 0)
+  seen = seen || (ran && leak.nameGetterCount / leak.rounds > CFG.env.cdp_name_lookups_per_round)
   if (seen && leak.firstHitRound === null) leak.firstHitRound = leak.rounds
-  if (!seen && leak.rounds < CFG.env.cdp_rounds) {
+  if (ran && !seen && leak.rounds < CFG.env.cdp_rounds) {
     C.later(probeRound, CFG.env.cdp_round_ms)
     return
   }

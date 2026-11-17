@@ -1,6 +1,6 @@
 # Evaluation
 
-`agentcake eval` measures how Agent Cake judges sessions whose answers you know, and `agentcake eval --gate` compares
+`agentcake eval` measures how AgentCake judges sessions whose answers you know, and `agentcake eval --gate` compares
 the measures with the thresholds in `thresholds.json`. Run it from a checkout of this repository
 (`bin/agentcake eval`): an installed AgentCake does not carry this folder and says so. It only reads: it writes no
 verdict and sends nothing.
@@ -43,6 +43,27 @@ session id never appears, only its short hash.
 names the same locations once instead of on every command: `cake_home`, `truth_goal`, `thresholds`,
 `named_user_agents`.
 
+## A website's own labelled sessions (held out)
+
+Copy a website's AgentCake data folder, including `cake.db`, `replays/` and `config.json`. Without `config.json`,
+AgentCake judges the sessions as if recorded on a computer and skips the address-range and signature checks. AgentCake
+opens a copy without its `-wal` file in read-only, immutable mode. Pass the folder with `--site-home`. List the sessions
+whose answers you know in a file and pass it with `--truth-site`. Only the listed sessions are read. The report counts
+them on their own, in the sessions table and in the scoreboard's held-out lines, and nowhere else: no pooled rate,
+precision, site count, calibration or threshold reads them, so they test what was tuned on other data. One line per
+session; the session id never appears.
+
+| Field | Meaning |
+|---|---|
+| `h` | the short hash, as in `truth_goal.jsonl` |
+| `site` | the website, e.g. `shop.example` |
+| `group` | who or what ran it, e.g. `owner` (the site's owner browsing), `claude-chrome`, `codex-browser` |
+| `class` | the class it should get: `human`, `agent`, `mixed`, `bot` or `too_little_data` |
+| `row`, `name` | optional, only when certain: `ai` or `automated`; the list id |
+| `checked` | the day it was checked |
+
+In `sources.json`, the keys are `site_home` and `truth_site`.
+
 ## What the report says
 
 One line per measure it could run, with its data set, the number of sessions, the result and, with `--gate`, the
@@ -60,8 +81,8 @@ sessions were judged Human + agent.
 
 ## README's figures
 
-README's "How it decides" gives the size of the test data; its results are this section's, counted on 2026-11-15 with
-AgentCake 0.4.2's code: one run of `agentcake eval` over every data set it reads that has answers, the converted public
+README's "How it decides" gives the size of the test data; its results are this section's, counted on 2026-11-16 with
+AgentCake 0.5.0's code: one run of `agentcake eval` over every data set it reads that has answers, the converted public
 humans included, and six public sets of people that the scripts which converted them judged the same way, apart from
 `agentcake eval` (the percent a session shows is calibrated on what `agentcake eval` reads, so a set kept out of it
 stays held out). The sessions are real people's, so they are not in this repository and the counts can't be repeated
@@ -104,10 +125,10 @@ no licence, so it is in no total.
   - **PostHog's replays** hold behaviour only: no keys, no wheel, nothing the other layers read. 17 of their 47 agent
     replays were recognized: Claude in Chrome 17 of 30, Playwright 0 of 13, Meta Muse 0 of 2, the other 2 none.
   - **Too few actions:** in 241 agent sessions the behaviour layer had too few actions to judge, and the lab's signal
-    recordings hold none; the other layers recognized most of them. 12 stayed too little data, which counts as Human
-    with thin evidence: 8 PostHog replays and 4 signal recordings of Claude in Chrome.
-  - **The recorder's agents:** Antigravity's browser 5 of 10 and Codex Computer Use 77 of 112 (the rest Not sure),
-    ChatGPT's Chrome extension 6 of 7.
+    recordings hold none; the other layers recognized most of them. 17 stayed too little data, which counts as Human
+    with limited evidence: 8 PostHog replays, 4 signal recordings of Claude in Chrome and 5 of Antigravity's browser.
+  - **The recorder's agents:** Antigravity's browser 5 of 10 (the other 5 too little data), Codex Computer Use 77 of
+    112 (the rest Not sure), ChatGPT's Chrome extension 6 of 7.
 - **2 of 7,122 sessions by at least 403 real people judged agent.** Judged agent: Agent, or Human + agent. People are
   counted where a set says who recorded each session (the recorder's 1, SERENE's 13, the held-out sets' 389–399, as
   DUX's two files may share people); PSAI, CaptchaSolve30k, motion-attestation, the lab and PostHog's visitors don't

@@ -1,6 +1,6 @@
 """Server mode end to end (0.3.3, data rules 0.3.4): 35 checks against one real `agentcake serve`.
 
-    python3 -I -m unittest discover -s tests -v      (from the Agent Cake folder)
+    python3 -I -m unittest discover -s tests -v      (from the AgentCake folder)
 
 Moved from our own research code (smoke_server_mode.py). One server
 runs in a scratch CAKE_HOME on two free ports, set up through the command line the way SERVER.md says. The test plays

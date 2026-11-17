@@ -12,7 +12,6 @@ TEXT = "text/plain"
 JSON = "application/json"
 JS = "application/javascript"
 CSS = "text/css"
-FONT_TTF = "font/ttf"
 
 
 @dataclass

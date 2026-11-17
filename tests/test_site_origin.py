@@ -1,6 +1,6 @@
 """Where an upload came from: agentcake/site_origin.py.
 
-    python3 -I -m unittest discover -s tests -p test_site_origin.py -v      (from the Agent Cake folder)
+    python3 -I -m unittest discover -s tests -p test_site_origin.py -v      (from the AgentCake folder)
 
 The website (site_domain and its subdomains; on the local listener also a dev server on this computer) or another site,
 read from the Origin header, else the Referer, else the batch's own URL. There is no demo shop any more: a page

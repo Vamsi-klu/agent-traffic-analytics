@@ -1,7 +1,7 @@
 #!/bin/sh
-# Agent Cake launcher: runs the agentcake package in the folder above this one with the system python3, in isolated
+# AgentCake launcher: runs the agentcake package in the folder above this one with the system python3, in isolated
 # mode (-I: nothing is imported from the current folder or PYTHON* variables). `python3 -I -m agentcake` would not
 # find a package that is not installed, so the package's __main__.py is run by its path; it adds that folder itself,
-# after telling a python3 older than Agent Cake needs to upgrade.
+# after telling a python3 older than AgentCake needs to upgrade.
 DIR="$(cd "$(dirname "$0")/.." && pwd)"
 exec python3 -I "$DIR/agentcake/__main__.py" "$@"

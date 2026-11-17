@@ -20,8 +20,8 @@ from agentcake.detect import lists  # noqa: E402
 BUNDLED = os.path.join(HERE, "agentcake", "data", "lists")
 TEST_NET = "192.0.2.10"  # RFC 5737 documentation range: in nobody's published list
 
-# Threshold A7: (User-Agent, list id, category, kind). Strings are the vendors' documented forms; Claude-Agent's comes
-# from a second-hand source and is marked unverified in the list.
+# Threshold A7: (User-Agent, list id, category, kind). Strings are the vendors' documented forms (Claude-Agent's since
+# Anthropic's help center documented it in November 2026).
 A7 = [
     ("Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko); compatible; ChatGPT-User/1.0; +https://openai.com/bot",
      "chatgpt-user", "agent", "ai-assistant"),
@@ -106,12 +106,28 @@ class NamesTest(unittest.TestCase):
                 self.assertTrue(found["name"])
                 self.assertTrue(found["sources"])
 
-    def test_cakes_own_additions_are_marked_unverified(self):
-        claude = self.snapshot.match_ua(A7[2][0])
+    def test_cakes_own_additions_say_whether_their_operator_documents_them(self):
+        claude = self.snapshot.match_ua(A7[2][0])  # Anthropic's help center documents the Claude-Agent token
         grok = self.snapshot.match_ua("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) "
                                       "Chrome/139.0.0.0 Safari/537.36 GrokAgent/1.0 (u:0123456789abcdef)")
-        self.assertEqual(claude["evidence"], "unverified")
+        self.assertEqual((claude["id"], claude["evidence"]), ("claude-agent", "listed"))
         self.assertEqual((grok["id"], grok["category"], grok["evidence"]), ("grokagent", "agent", "unverified"))
+
+    def test_antigravitys_browser_is_named_by_its_versioned_token(self):
+        for version in ("2.32.0", "2.32.1"):
+            with self.subTest(version=version):
+                found = self.snapshot.match_ua(
+                    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) "
+                    f"Chrome/152.0.7977.167 Safari/537.36 Antigravity/{version}")
+                self.assertEqual((found["id"], found["kind"], found["browser"], found["matched"]),
+                                 ("antigravity-browser", "ai-desktop-app", True, "Antigravity"))
+                self.assertEqual(found["by_design"], ["env.auto.chromium-only-brand"])
+        fetcher = self.snapshot.match_ua("Mozilla/5.0 (compatible; Google-Jetski-Antigravity)")
+        self.assertEqual((fetcher["id"], fetcher["browser"], fetcher["by_design"]),
+                         ("google-jetski-antigravity", False, []))
+        for ua in ("Mozilla/5.0 Antigravity 2.32.1", "Mozilla/5.0 NotAntigravity/1.0"):
+            with self.subTest(ua=ua):
+                self.assertIsNone(self.snapshot.match_ua(ua))
 
     def test_classes_posthog_names_are_named(self):
         for ua, category, kind, word in POSTHOG_CLASSES:

@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="../../assets/readme/crumb.png" alt="AgentCake" width="112">
+<img src="https://raw.githubusercontent.com/tartini-ai/agent-traffic-analytics/v0.5.0/docs/assets/readme/crumb.png" alt="AgentCake" width="112">
 
 # AgentCake — AI agent 流量分析
 
@@ -14,11 +14,11 @@
 
 ## 问题
 
-你的网站访问量很大，但购买产品的客户数量却没有增加，甚至有所减少。想要了解原因? 首先，请确定是谁在访问你的网站。
+你的网站访问量很大，转化率却停滞不前，甚至还在下降？这些访问里，会不会有一部分来自 AI agent？
 
-Microsoft Clarity 在 2026 年的四周内[分析了超过 520 万个有 AI agent 参与的会话](https://clarity.microsoft.com/blog/agentic-analytics-what-agents-do-on-websites/)。在短短三周内，每周的 agent 会话数几乎翻了一番。
+HUMAN Security 发现，[来自 AI agent 和 agentic 浏览器的流量同比增长了 7,851%](https://www.humansecurity.com/newsroom/2026-state-of-ai-traffic-cyberthreat-benchmark-report/)。
 
-如果分析工具无法识别这些 agent，它们的访问可能会计入真人流量。这样，日常报告就无法反映这部分 agent 流量。
+如果分析工具无法识别这些 agent，它们的访问可能会计入真人流量，让日常报告产生误导。
 
 ## 解决方案
 
@@ -30,9 +30,37 @@ Microsoft Clarity 在 2026 年的四周内[分析了超过 520 万个有 AI agen
 2. **发现 AI agent 遇到问题的环节。** 了解按其使用场景调整流程能否改善 agent 的使用体验。
 3. **查看最常访问你网站的 AI agent** (例如 Claude in Chrome、Grok Bot 和 Muse)。了解如何为它们优化网站，以提高转换率。
 
-![演示: 依次查看仪表板、会话列表和 Claude in Chrome 将操作交给真人的会话](../../assets/readme/demo.png)
+![演示: 依次滚动浏览仪表板、查看会话列表和 Claude in Chrome 将操作交给真人的会话](https://raw.githubusercontent.com/tartini-ai/agent-traffic-analytics/v0.5.0/docs/assets/readme/demo.png)
 
 *此录制内容来自一个测试商店。Claude in Chrome 将一件 T 恤加入购物车，然后真人接管并完成结账。*
+
+### 仪表板预览
+
+<!-- The line of no-break spaces under each picture keeps it this wide: without it a browser shrinks the five to fit one row instead of letting the row scroll sideways. -->
+<table>
+  <tr>
+    <td width="720">
+      <img src="https://raw.githubusercontent.com/tartini-ai/agent-traffic-analytics/v0.5.0/docs/assets/readme/preview-key-metrics.png" alt="Key metrics" width="720"><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    </td>
+    <td width="720">
+      <img src="https://raw.githubusercontent.com/tartini-ai/agent-traffic-analytics/v0.5.0/docs/assets/readme/preview-top-agents.png" alt="Top agents 和 Trends" width="720"><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    </td>
+    <td width="720">
+      <img src="https://raw.githubusercontent.com/tartini-ai/agent-traffic-analytics/v0.5.0/docs/assets/readme/preview-paths.png" alt="Paths 和 Sources" width="720"><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    </td>
+    <td width="720">
+      <img src="https://raw.githubusercontent.com/tartini-ai/agent-traffic-analytics/v0.5.0/docs/assets/readme/preview-devices.png" alt="Devices 和 Geography" width="720"><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    </td>
+    <td width="720">
+      <img src="https://raw.githubusercontent.com/tartini-ai/agent-traffic-analytics/v0.5.0/docs/assets/readme/preview-sessions.png" alt="Session replay" width="720"><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    </td>
+  </tr>
+</table>
 
 - **区分真人、AI agent 和机器人。** AgentCake 会将每个会话归入一个分类: Human、Agent 或 Bot。AI agent 会话又分为 Agent only 和 Human + agent。
 - **识别 AI agent，并标明确定程度。** 对于能识别的 agent (例如 Claude in Chrome、ChatGPT 和 Muse)，AgentCake 会显示其名称，并标记为 Verified 或 Likely。其余 agent 列为 Unnamed。
@@ -45,16 +73,14 @@ Microsoft Clarity 在 2026 年的四周内[分析了超过 520 万个有 AI agen
 在一个新的空文件夹中打开 Claude Code、Codex 或其他 coding agent，然后粘贴以下说明:
 
 ```text
-请使用 curl 或 GitHub CLI 安装 AgentCake 0.4.2。按照
-https://raw.githubusercontent.com/tartini-ai/agent-traffic-analytics/v0.4.2/INSTALL.md
+请使用 curl 或 GitHub CLI 安装 AgentCake 0.5.0。按照
+https://raw.githubusercontent.com/tartini-ai/agent-traffic-analytics/v0.5.0/INSTALL.md
 中的步骤操作。完成后，说明要打开的本地页面和连接网站的步骤。
 ```
 
 Coding agent 将下载并校验发行版，启动 AgentCake，然后运行 `agentcake doctor`。接着，打开 http://127.0.0.1:7878/ 并注册。页面会引导你连接网站。
 
 需要 macOS 或 Linux，并安装 Python 3.11 或更高版本，或者安装 uv。[`INSTALL.md`](../../../INSTALL.md) 提供了相同的手动步骤。
-
-在存储库仍为私有期间，请先登录 GitHub CLI (`gh auth login`)。你的 agent 会用 `gh release download v0.4.2 --repo tartini-ai/agent-traffic-analytics` 下载发布文件。
 
 ## 分类方式
 
@@ -65,9 +91,7 @@ AgentCake 会在你的电脑或服务器上检查四层证据。这些证据可�
 - **Environment** 层会检测自动化痕迹、虚假的浏览器身份和某些 agent 添加的页面标记。
 - **Behavior** 层使用行为模型分析每一次指针移动、按键和滚动。
 
-行为模型会为每个操作评分。行为模型会先查找两种独立的证据，例如指针移动和打字，再决定是否将会话归为 agent 会话。
-
-测试数据包括 1,118 个自行录制的 AI agent 会话和 7,122 个真人会话。大部分真人会话来自 9 个公开数据集。其中 5 个数据集从未用于开发或调整 AgentCake。
+测试数据包括 1,118 个自行录制的 AI agent 会话和 7,122 个真人会话。AgentCake 也可能判断出错，我们正在持续改进模型的表现。
 
 有关每个数字的计算方式，请参阅 [`eval/README.md`](../../../eval/README.md)。
 

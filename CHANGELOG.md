@@ -3,6 +3,96 @@
 Every release of AgentCake, newest first. Each release's files and their `SHA256SUMS` are on
 [GitHub Releases](https://github.com/tartini-ai/agent-traffic-analytics/releases).
 
+## 0.5.0
+
+The first public release: the repository is public, and the release's wheel is on PyPI. The browsers built into AI
+apps now name the browser without deciding who acted, Antigravity's in-app browser is recognized, the bundled lists are
+new, a site that records its own console no longer looks like a debugging connection, and the release files carry only
+what an installation runs.
+
+### Install
+
+- **A public repository**: the release downloads with curl, without a GitHub sign-in. [`README.md`](README.md) and
+  [`INSTALL.md`](INSTALL.md) no longer describe the private preview's download with the GitHub CLI.
+- **PyPI**: when a release is published, `.github/workflows/pypi.yml` checks the release's wheel against its
+  `SHA256SUMS` and uploads that wheel, and nothing else, to PyPI as `agentcake`, with Trusted Publishing and no token.
+- README's pictures and links name their files at the release's tag, so the README shows the same on GitHub and on
+  PyPI.
+
+### Detection
+
+- **The browsers built into AI apps only name the browser**: the in-app browsers of Antigravity, Codex and Cursor,
+  ChatGPT Desktop, Claude Desktop and PostHog Desktop are browsers that people also use by hand. Their name, from the
+  User-Agent or from a product rule, no longer makes a session Agent or Human + agent by itself. Automation traces and
+  behavior decide who acted, as in any other browser, and the browser's name is the agent's when the session is Agent
+  or Human + agent. When another product rule names the agent in such a browser, such as ChatGPT for Chrome's badge,
+  the session names that agent instead of saying that its names disagree. Sessions in Codex's in-app browser keep their
+  class and name, and some show a lower percent.
+- **Antigravity in-app browser**: recognized by the `Antigravity/<version>` that ends its User-Agent, in every version.
+  Its list of browser brands, which names only Chromium, no longer counts as an automation trace there.
+- **Debugging connections**: the page script's check for a DevTools-protocol client now logs in a hidden frame of its
+  own, which it removes at once. A site's own console recorder (rrweb's console plugin, analytics and error trackers)
+  reads what the page logs, as such a client does, so every visitor of that site matched the check; a client with
+  Runtime enabled still does. Sessions recorded by an earlier page script are judged as before. On a page whose
+  sandbox policy keeps the frame apart, the check doesn't run.
+- **Bundled lists, built on 2026-11-16**: HatchFeed, which ai.robots.txt lists as the link-preview fetcher of Meta's
+  Muse, is a new name. On a server, OAI-AdsBot is verified against OpenAI's published addresses, and a visitor that
+  calls itself OAI-AdsBot from anywhere else is an impersonation, as with GPTBot and OAI-SearchBot. Claude-Agent's
+  entry follows Anthropic's own documentation.
+
+### Evaluation
+
+- **A website's own labelled sessions, held out**: given a copy of a website's data folder (with its `config.json`, so
+  that a server's sessions are judged as on a server) and a list of its sessions whose answers you know, `agentcake eval
+  --site-home <folder> --truth-site <list>` counts them on their own, in the sessions table and the scoreboard's
+  held-out lines, and in no pooled rate, calibration or threshold ([`eval/README.md`](eval/README.md)).
+- A rate in the report says how many sessions it left out as too little data, and A2 says, as A1 does, that A8 counts
+  them.
+- The figures in [`eval/README.md`](eval/README.md) are counted again with this release's code. They are unchanged,
+  except that 5 sessions in Antigravity's in-app browser are now too little data instead of Not sure.
+
+### Fixes
+
+- **Help for one command**: `--help` or `-h` after a command prints its help and runs nothing. Before, `agentcake start
+  --help` started AgentCake, `agentcake stop --help` stopped it and `agentcake ping --help` sent a test visit. A word a
+  command doesn't take, or an option without its value, now stops it before anything runs, and the error names the
+  word or the option.
+- **The documents a sentence names**: where the command line, the API or the local pages name `SERVER.md` or
+  `PRIVACY.md`, they give its address in the repository at this version's tag. An installation from the wheel or
+  `agentcake.pyz` doesn't carry these files, so a coding agent couldn't find them.
+- **An address that can't be read**, such as one with an unclosed IPv6 bracket, no longer stops a session from being
+  judged or a server's log lines from being matched: the page view is matched by its time alone, as one without an
+  address. A request whose target can't be read gets a 400 on both listeners instead of no answer, and a mistyped
+  `register_url` of that kind is reported as unreachable, as any other address that isn't one.
+- **One time for an agent on a session page**: the summary says an agent was active from its first to its last action,
+  as Every action lists them, and the reasons give no other time for it. A reason that rests on a working indicator,
+  such as Claude in Chrome's, no longer names the times the indicator was visible, which could run past the agent's
+  last action.
+
+### Removed
+
+- The release files no longer carry the evaluation code: `agentcake eval` runs from a checkout of the source, which has
+  its thresholds and data sets, and an installed AgentCake says so. Nor do they carry the page script's sources or the
+  tool that builds it from them, now `tools/build_js.py` in the source (an installation serves the built cake.js, whose
+  first line names that tool), or `copy.zh.json`, which nothing read.
+
+### Deprecated
+
+- cake 0.3.x's entry points, `bin/cake` and `cake.py`, and the recorder file that pages set up for cake 0.3.x still
+  load, `/rrweb-record.min.js` (`/cake/rrweb-record.min.js` on a server), will be removed in the next release. Use
+  `bin/agentcake` or the installed `agentcake` command; the page script has had the recorder inside since 0.4.0.
+
+### Other changes
+
+- [`README.md`](README.md) asks whether some of a site's visits come from AI agents, cites HUMAN Security's figure for
+  the growth of traffic from AI agents and agentic browsers, and says that AgentCake can make mistakes. It has a new
+  animation and, under it, a row of pictures of the dashboard and the session list that scrolls sideways.
+- The name is written AgentCake, one word, everywhere: in the documents, the comments and the first line of the page
+  script, whose build id changes with it while its code stays the same.
+- Every warning and note on the local pages has the same look: its text in the alert's own colour, with a contrast of
+  at least 6.5:1 in both themes. Before, the disk warnings, some warnings in Settings, a session's summary and the
+  dashboard's note that a website isn't connected used the main text colour.
+
 ## 0.4.2
 
 Web analytics for human and agent sessions on the dashboard, visitors counted across devices when your site says who

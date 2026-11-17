@@ -1,5 +1,5 @@
 {
-  "about": "Web server access logs for `agentcake logs import`: the formats Agent Cake reads, what each web server's format string means, which lines are page requests, which of their headers go to Agent Cake, and what the recommended formats add to the usual ones. A format is described by the web server's own format string and compiled into a parser, the idea GoAccess uses for its log formats (github.com/allinurl/goaccess, MIT); no GoAccess code is used. The format strings and config lines are the same as in docs/nginx.conf.example, docs/apache.conf.example and docs/Caddyfile.example, which tests/test_log_formats.py checks.",
+  "about": "Web server access logs for `agentcake logs import`: the formats AgentCake reads, what each web server's format string means, which lines are page requests, which of their headers go to AgentCake, and what the recommended formats add to the usual ones. A format is described by the web server's own format string and compiled into a parser, the idea GoAccess uses for its log formats (github.com/allinurl/goaccess, MIT); no GoAccess code is used. The format strings and config lines are the same as in docs/nginx.conf.example, docs/apache.conf.example and docs/Caddyfile.example, which tests/test_log_formats.py checks.",
 
   "formats": {
     "caddy-json": {
@@ -42,7 +42,7 @@
              "nginx": "nginx-custom", "apache": "apache-custom"},
 
   "nginx": {
-    "about": "nginx log_format variables (nginx.org/en/docs/http/ngx_http_log_module.html) that carry a field Agent Cake reads; $http_<name> is the request header <name>, with _ for -. Other variables are matched and left out.",
+    "about": "nginx log_format variables (nginx.org/en/docs/http/ngx_http_log_module.html) that carry a field AgentCake reads; $http_<name> is the request header <name>, with _ for -. Other variables are matched and left out.",
     "header_prefix": "http_",
     "roles": {"remote_addr": "ip", "realip_remote_addr": "ip", "msec": "time_s", "time_local": "time_clf",
               "time_iso8601": "time_iso", "request": "request", "request_method": "method", "request_uri": "target",
@@ -50,7 +50,7 @@
               "host": "host", "scheme": "scheme"}
   },
   "apache": {
-    "about": "mod_log_config directives (httpd.apache.org/docs/2.4/mod/mod_log_config.html) that carry a field Agent Cake reads; %{Name}i is the request header Name. %t without an argument is written in brackets. Other directives are matched and left out.",
+    "about": "mod_log_config directives (httpd.apache.org/docs/2.4/mod/mod_log_config.html) that carry a field AgentCake reads; %{Name}i is the request header Name. %t without an argument is written in brackets. Other directives are matched and left out.",
     "header_letter": "i",
     "roles": {"a": "ip", "h": "ip", "t": "time_clf_bracketed", "r": "request", "m": "method", "U": "path", "q": "query_marked",
               "H": "protocol", "s": "status", "V": "host"},
@@ -72,7 +72,7 @@
   },
 
   "send_headers": {
-    "about": "The headers of a page request sent to Agent Cake: what the network facts keep (data/netfacts.json) and what verifies a Web Bot Auth signature. Never cookies, credentials or the Referer, even when a log holds them (Caddy logs every header).",
+    "about": "The headers of a page request sent to AgentCake: what the network facts keep (data/netfacts.json) and what verifies a Web Bot Auth signature. Never cookies, credentials or the Referer, even when a log holds them (Caddy logs every header).",
     "names": ["user-agent", "accept-language", "sec-fetch-site", "sec-fetch-mode", "sec-fetch-dest", "sec-fetch-user",
               "sec-ch-ua", "sec-ch-ua-mobile", "sec-ch-ua-platform", "signature-agent", "signature-input", "signature"]
   },

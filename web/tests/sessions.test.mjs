@@ -52,16 +52,22 @@ test("each verdict chip has its badge's colours, by one rule picked or not; All 
   const tab = await open()
   try {
     const looks = async () => {
-      const chips = await tab.page.locator('[aria-label="Session type"] > *').evaluateAll((els) => els.map((el) => {
+      // found and read in one evaluation: the list mounts again when the picked filter's sessions arrive, and a chip
+      // found in one step (evaluateAll) can be gone, its computed colours empty, by the next
+      const chips = await tab.page.evaluate(() => [...document.querySelectorAll('[aria-label="Session type"] > *')].map((el) => {
         const style = getComputedStyle(el)
         return { variant: el.dataset.variant, background: style.backgroundColor, color: style.color }
       }))
+      // the badge's colours straight from its tokens (a Bot's are unsure's), never through utility classes: the CSS
+      // that ships has only the classes the pages use
       const badges = await tab.page.evaluate(() => Object.fromEntries(["human", "agent", "bot"].map((v) => {
+        const token = v === "bot" ? "unsure" : v
         const probe = document.createElement("span")
-        probe.className = { human: "bg-human-soft text-human-foreground", agent: "bg-agent-soft text-agent-foreground", bot: "bg-unsure-soft text-unsure-foreground" }[v]
+        probe.style.backgroundColor = `var(--${token}-soft)`
+        probe.style.color = `var(--${token}-foreground)`
         document.body.append(probe)
         const style = getComputedStyle(probe), out = { background: style.backgroundColor, color: style.color, strong: "" }
-        probe.className = { human: "bg-human-foreground", agent: "bg-agent-foreground", bot: "bg-unsure-foreground" }[v]
+        probe.style.backgroundColor = `var(--${token}-foreground)`
         out.strong = getComputedStyle(probe).backgroundColor
         probe.remove()
         return [v, out]

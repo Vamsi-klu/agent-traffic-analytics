@@ -32,12 +32,13 @@ Then open http://127.0.0.1:7878/. [`AGENTS.md`](AGENTS.md) says the same for a c
 - [`web/`](web/): the local pages (React, shadcn/ui, the Frosting theme), built into files that `agentcake` serves.
 - [`edge/`](edge/): the optional middleware for your website's server: Node, PHP, Python and WordPress.
 - [`bin/`](bin/): the `agentcake` command.
-- [`docs/`](docs/): the FAQ, the upload format, web server examples, README's pictures and its translations.
+- [`docs/`](docs/): the FAQ, the upload format, the privacy notice template, web server examples, README's pictures
+  and its translations.
 - [`deploy/`](deploy/): the systemd service for a Linux server ([`SERVER.md`](SERVER.md)).
 - [`eval/`](eval/): how README's accuracy figures are measured.
 - [`tests/`](tests/): the tests, one `test_<module>.py` per module, with their fixtures and the browser tests.
 - [`tools/`](tools/): the checks below, the release build and the scripts that build the bundled lists.
-- [`.github/`](.github/): the issue forms, the pull request template and the release workflow.
+- [`.github/`](.github/): the issue forms, the pull request template and the release and PyPI workflows.
 
 ## Tests and checks
 
@@ -51,14 +52,15 @@ python3 tools/check_imports.py tools
 python3 tools/check_size.py
 ```
 
-Each check reports 0. The browser tests run when `CAKE_PLAYWRIGHT` names `web/node_modules/playwright-core`, and say
-why they are skipped otherwise. For a change to the local pages, also run, in `web/`:
+Each check reports 0. The browser tests run when `web/node_modules/playwright-core` is there (or `CAKE_PLAYWRIGHT`
+names another copy), and say why they are skipped otherwise. For a change to the local pages, also run, in `web/`:
 
 ```sh
 npm ci
 npm run check:ui
 npm run build
 npm run visual
+npm test
 ```
 
 ## Rules the checks keep

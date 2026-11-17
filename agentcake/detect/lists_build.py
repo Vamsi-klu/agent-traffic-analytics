@@ -1,4 +1,4 @@
-"""Fetches the sources of the lists and writes a snapshot. This is the only part of Agent Cake that goes online,
+"""Fetches the sources of the lists and writes a snapshot. This is the only part of AgentCake that goes online,
 and only when a release is built (tools/build_lists.py) or someone runs `agentcake lists update`; never while cake
 runs.
 

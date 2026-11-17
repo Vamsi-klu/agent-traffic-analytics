@@ -26,9 +26,9 @@ from what cake.js records (static/src/source.js, visitor.js) and what the collec
 """
 import json
 from collections import namedtuple
-from urllib.parse import parse_qs, urlsplit
+from urllib.parse import parse_qs
 
-from agentcake import streams, web_channel, web_device, web_time
+from agentcake import addresses, streams, web_channel, web_device, web_time
 from agentcake.datafiles import load
 
 SCRIPT = load("data/cakejs.json")["script"]
@@ -191,17 +191,12 @@ def _old_entry(record, url, start_ms):
 def _query(address):
     """The query parameters of an address, {} for none or for an address urllib cannot read (an upload's u is any text:
     left unread, such a session would stop every request that describes sessions, as /api/web does)."""
-    try:
-        return parse_qs(urlsplit(address).query) if address else {}
-    except ValueError:
-        return {}
+    parts = addresses.split(address)
+    return parse_qs(parts.query) if parts else {}
 
 
 def _domain(address):
-    """The host (and port) of an address, lower case, as the browser's URL.host gives it; '' for none."""
-    if not isinstance(address, str) or not address:
-        return ""
-    try:
-        return urlsplit(address).netloc.rpartition("@")[-1].lower()
-    except ValueError:
-        return ""
+    """The host (and port) of an address, lower case, as the browser's URL.host gives it; '' for none or for one
+    that cannot be read."""
+    parts = addresses.split(address) if isinstance(address, str) else None
+    return parts.netloc.rpartition("@")[-1].lower() if parts else ""

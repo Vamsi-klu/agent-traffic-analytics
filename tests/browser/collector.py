@@ -30,7 +30,7 @@ ROOT = os.path.dirname(os.path.dirname(HERE))
 sys.path.insert(0, ROOT)
 
 sys.path.insert(0, os.path.join(ROOT, "tests", "site"))
-from agentcake import build_js  # noqa: E402  (the repository root is put on sys.path first)
+from agentcake import assets  # noqa: E402  (the repository root is put on sys.path first)
 import site_server  # noqa: E402  (tests/site: the shop's pages and files)
 
 SITE_KEY = "test-site-key"
@@ -50,7 +50,7 @@ class Collector:
         self.out_dir = out_dir
         os.makedirs(out_dir, exist_ok=True)
         script = read(os.path.join(ROOT, "agentcake", "static", "cake.js"))
-        self.script = build_js.with_runtime(script, runtime or {}).encode()
+        self.script = assets.with_runtime(script, runtime or {}).encode()
         self.tokens = itertools.count(1)
         self.lock = threading.Lock()
 

@@ -1,7 +1,7 @@
-"""The lists that ship with Agent Cake: refreshed online before a release, checked when it is built.
+"""The lists that ship with AgentCake: refreshed online before a release, checked when it is built.
 
 As PostHog keeps its bot lists in the code and refreshes them with a script before a release
-(products/web_analytics/scripts/refresh_bot_ip_ranges.py), Agent Cake's lists, address ranges and signing keys
+(products/web_analytics/scripts/refresh_bot_ip_ranges.py), AgentCake's lists, address ranges and signing keys
 (tools/build_lists.py) and time zones (tools/build_timezones.py) are rebuilt by `release.py refresh` in the working
 tree; the person releasing reads the summary and the diff, runs the tests and commits. `release.py build` then works
 offline from that commit, and refuses one whose lists were built more than release.json "lists" -> "max_age_days"

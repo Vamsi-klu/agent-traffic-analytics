@@ -1,24 +1,21 @@
-// The "Server half" of a session (DESIGN.md §6): what the site's server saw of each page request, from the tokens that
+// The session page's Server middleware (DESIGN.md §6.4): what the site's server saw of each page request, from the tokens that
 // came with the session (SERVER.md), and the network cake.js's uploads came from (server mode only). Data from
 // /api/session/<id> (`server`); with no rows it says why, in cake's words or the interface's.
 import { Network as NetworkIcon } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import type { Network, ServerHalf, ServerPage } from "@/data/types"
-import { clock } from "@/lib/format"
+import { NO_VALUE, clock } from "@/lib/format"
 import { WORDS } from "@/lib/words"
 
-/** A value the request did not carry, or cake can't tell. */
-const NONE = "—"
-
-const fetchText = (f: ServerPage["fetch"]) => [f.site, f.mode, f.dest, f.user].map((v) => v ?? NONE).join(" · ")
+const fetchText = (f: ServerPage["fetch"]) => [f.site, f.mode, f.dest, f.user].map((v) => v ?? NO_VALUE).join(" · ")
 
 function signatureText(s: ServerPage["signature"]) {
   if (!s) return "Not signed"
   return `${s.verified ? "Verified" : "Not verified"}${s.agent ? ` · ${s.agent}` : ""}`
 }
 
-const sameText = (same: boolean | null) => (same === null ? NONE : same ? "Same" : "Different")
+const sameText = (same: boolean | null) => (same === null ? NO_VALUE : same ? "Same" : "Different")
 
 /** "Country: US", "Published IP range: 203.0.113.0/24", "TLS JA4: t13d…", "Protocol: HTTP/2": each part only when known. */
 function networkParts(n: Network) {

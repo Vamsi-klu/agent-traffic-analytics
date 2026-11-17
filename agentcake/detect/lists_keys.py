@@ -14,9 +14,7 @@ days", as chatgpt.com does) is bundled with rolling_expiry_s instead of exp, fol
 """
 import json
 
-
-def _real(mapping):
-    return {key: value for key, value in mapping.items() if not key.startswith("$")}
+from agentcake.detect.lists_names import without_comments
 
 
 def roll_expiry(fresh, previous, previous_fetched, now, tolerance):
@@ -55,8 +53,8 @@ def build_signers(recipe, botscent_signers, fetch, previous, now):
     """previous: ({host: [JWK]}, {host: fetched epoch seconds}) of the snapshot in use, for rolling expiries."""
     previous_keys, previous_fetched = previous
     hosts = dict(botscent_signers)
-    hosts.update({host: extra["name"] for host, extra in _real(recipe["extra"]).items()})
-    signing = _real(recipe["signing"])
+    hosts.update({host: extra["name"] for host, extra in without_comments(recipe["extra"]).items()})
+    signing = without_comments(recipe["signing"])
     unknown = sorted(set(signing) - set(hosts))
     if unknown:
         raise ValueError(f"signers.signing names hosts that are not signers: {', '.join(unknown)}")

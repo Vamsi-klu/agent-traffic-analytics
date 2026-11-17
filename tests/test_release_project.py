@@ -3,15 +3,20 @@ pyproject.toml, and the package is every file of agentcake/ except what is never
 
     python3 -I -m unittest discover -s tests -v      (from the repository root)
 """
+import re
+import string
 import unittest
 
 from release_trees import ROOT, VERSION, edit_pyproject, make_tree, settings, write
+from test_install_docs import README_MD, release_tag, repositories
 
 import agentcake  # noqa: E402  (release_trees puts the repository on sys.path)
 from tools.releasing.project import Project
 from tools.releasing.settings import ReleaseError
 
 NO_DEPENDENCIES = "dependencies = []"
+# protocol: the labels PyPA's "Well-known Project URLs in Metadata" names, normalized as it says
+WELL_KNOWN_LABELS = ("homepage", "source", "download", "changelog", "releasenotes", "documentation", "issues", "funding")
 
 
 class Version(unittest.TestCase):
@@ -39,9 +44,9 @@ class Metadata(unittest.TestCase):
         head, body = text.split("\n\n", 1)
         self.assertEqual(head.splitlines(), [
             "Metadata-Version: 2.2", "Name: agentcake", f"Version: {VERSION}",
-            "Summary: A made-up Agent Cake for the release tests.", "Requires-Python: >=3.11",
+            "Summary: A made-up AgentCake for the release tests.", "Requires-Python: >=3.11",
             "Description-Content-Type: text/markdown"])
-        self.assertEqual(body, "# A made-up Agent Cake\n\nFor the release tests.\n")
+        self.assertEqual(body, "# A made-up AgentCake\n\nFor the release tests.\n")
 
     def test_a_license_expression_and_file_need_metadata_2_4(self):
         tree = make_tree(self, {"LICENSE": "made-up licence text\n"})
@@ -81,6 +86,49 @@ class Metadata(unittest.TestCase):
         self.assertEqual(Project(make_tree(self), settings()).entry_points(),
                          "[console_scripts]\nagentcake = agentcake.cli:main\n")
 
+    def test_project_urls_become_project_url_fields_in_their_order(self):
+        tree = make_tree(self)
+        edit_pyproject(tree, "[project.scripts]", '[project.urls]\nSource = "https://example.com/source"\n'
+                       'Issues = "https://example.com/issues"\n\n[project.scripts]')
+        lines = Project(tree, settings()).metadata().splitlines()
+        self.assertEqual([line for line in lines if line.startswith("Project-URL: ")],
+                         ["Project-URL: Source, https://example.com/source",
+                          "Project-URL: Issues, https://example.com/issues"])
+
+    def test_a_link_label_the_metadata_cannot_hold_stops_the_release(self):
+        """Core metadata: a label of at most 32 characters, then a comma and the address."""
+        for label in ("A label of more than thirty-two characters", "Source, mirror"):
+            with self.subTest(label=label):
+                tree = make_tree(self)
+                edit_pyproject(tree, "[project.scripts]",
+                               f'[project.urls]\n"{label}" = "https://example.com/"\n\n[project.scripts]')
+                with self.assertRaisesRegex(ReleaseError, r"\[project\.urls\]"):
+                    Project(tree, settings()).metadata()
+
+
+class Links(unittest.TestCase):
+    """The repository's own [project.urls], which PyPI lists as the project's links."""
+
+    def test_each_label_is_one_pypi_knows(self):
+        """PyPA's well-known labels, compared as the specification says: lower case, without punctuation or spaces."""
+        labels = [label for label, _ in Project(ROOT, settings()).project_urls()]
+        self.assertTrue(labels)
+        for label in labels:
+            normal = "".join(c for c in label if c not in string.punctuation and not c.isspace()).lower()
+            self.assertIn(normal, WELL_KNOWN_LABELS, label)
+
+    def test_each_link_is_readmes_repository_and_a_file_is_at_this_release(self):
+        """The same repository README links to; a link to a file names this release's tag, as README's links do."""
+        with open(README_MD, encoding="utf-8") as f:
+            readme_repositories = repositories(f.read())
+        _, tag = release_tag()
+        for label, url in Project(ROOT, settings()).project_urls():
+            with self.subTest(label=label):
+                self.assertEqual(repositories(url), readme_repositories)
+                at = re.search(r"/(?:blob|tree)/([^/]+)/", url)
+                if at:
+                    self.assertEqual(at.group(1), tag)
+
 
 class Files(unittest.TestCase):
     def test_package_files_leave_out_compiled_python_and_junk(self):
@@ -90,6 +138,14 @@ class Files(unittest.TestCase):
         names = [name for name, _, _ in Project(tree, settings()).package_files()]
         self.assertEqual(names, ["agentcake/__init__.py", "agentcake/cli.py", "agentcake/data/product.json",
                                  "agentcake/web/index.html"])
+
+    def test_package_files_leave_out_cake_js_sources_and_keep_their_licences(self):
+        tree = make_tree(self, {"agentcake/static/cake.js": "/*! built */\n", "agentcake/static/src/part.js": "x\n",
+                                "agentcake/static/src/vendored.LICENSE.txt": "made-up licence text\n"})
+        names = [name for name, _, _ in Project(tree, settings()).package_files()]
+        self.assertIn("agentcake/static/cake.js", names)
+        self.assertIn("agentcake/static/src/vendored.LICENSE.txt", names)
+        self.assertNotIn("agentcake/static/src/part.js", names)
 
     def test_package_files_say_which_are_executable(self):
         tree = make_tree(self, {"agentcake/tool.sh": "#!/bin/sh\n"}, executable=("agentcake/tool.sh",))

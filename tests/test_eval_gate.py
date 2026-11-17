@@ -22,7 +22,7 @@ if REPO not in sys.path:
     sys.path.insert(0, REPO)
 
 from agentcake import cli  # noqa: E402
-from agentcake.evaluation import gate  # noqa: E402
+from agentcake.evaluation import gate, report  # noqa: E402
 
 THRESHOLDS = os.path.join(REPO, "eval", "thresholds.json")
 NAMED = os.path.join(REPO, "eval", "named_user_agents.json")
@@ -101,6 +101,33 @@ class Judge(unittest.TestCase):
                 json.dump(bad, f)
             with self.subTest(bad=bad), self.assertRaises(gate.ThresholdsError):
                 gate.load(path)
+
+
+class MeasuredElsewhere(unittest.TestCase):
+    def test_every_file_a_threshold_names_as_its_measurement_is_in_the_repository(self):
+        with open(THRESHOLDS, encoding="utf-8") as f:
+            entries = json.load(f)["thresholds"]
+        named = {word.rstrip(",") for entry in entries for word in entry["measured_by"].split()
+                 if "/" in word and word.rstrip(",").endswith((".py", ".js", ".mjs"))}
+        self.assertIn("edge/node/scripts/latency.js", named)  # N3's latency, measured over 1,000 requests
+        for path in sorted(named):
+            with self.subTest(path):
+                self.assertTrue(os.path.isfile(os.path.join(REPO, path)))
+
+
+class Report(unittest.TestCase):
+    def test_a_ratio_says_how_many_sessions_it_left_out_unjudged(self):
+        verdict = judge(entry(), [measurement("a", 0.95, 20, count=19),
+                                  measurement("r", 1.0, 5, count=5, details={"not_judged": 5})])
+        row = next(line for line in report.markdown_gate([verdict]) if line.startswith("| X1 |"))
+        self.assertIn("a: 95.0% (19/20) pass", row)
+        self.assertIn("r: 100.0% (5/5; 5 left out (too little data or no visit))", row)
+
+    def test_a_reference_line_whose_sessions_were_all_left_out_still_says_so(self):
+        verdict = judge(entry(), [measurement("a", 0.95, 20, count=19),
+                                  measurement("r", None, 0, count=0, details={"not_judged": 5})])
+        row = next(line for line in report.markdown_gate([verdict]) if line.startswith("| X1 |"))
+        self.assertIn("r: no samples (5 left out (too little data or no visit))", row)
 
 
 def refuse(*args, **kwargs):

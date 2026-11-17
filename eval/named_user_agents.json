@@ -1,5 +1,5 @@
 {
-  "_about": "Threshold A7: the 10 named User-Agents and the answer for each (the list id, Agent or Bot, and the kind), the same 10 the list tests use (tests/test_lists.py; tests/test_eval_tables.py checks the two agree). The strings are each vendor's documented form; Claude-Agent's comes from a second-hand source and is marked unverified in the list. `agentcake eval` judges each as a local session with nothing but its User-Agent.",
+  "_about": "Threshold A7: the 10 named User-Agents and the answer for each (the list id, Agent or Bot, and the kind), the same 10 the list tests use (tests/test_lists.py; tests/test_eval_tables.py checks the two agree). The strings are each vendor's documented form (Anthropic's help center has documented Claude-Agent's since November 2026). `agentcake eval` judges each as a local session with nothing but its User-Agent.",
   "cases": [
     {"user_agent": "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko); compatible; ChatGPT-User/1.0; +https://openai.com/bot",
      "name": "chatgpt-user", "class": "agent", "kind": "ai-assistant"},

@@ -1,4 +1,4 @@
-// Agent Cake page script, part: the session id, one per browser tab, cut by PostHog's time rules.
+// AgentCake page script, part: the session id, one per browser tab, cut by PostHog's time rules.
 //
 // A session is what one tab did with no more than CFG.session.idle_ms (30 minutes) between two moments of activity,
 // and at most CFG.session.max_ms (24 hours) long: the rules of posthog-js's packages/browser/src/sessionid.ts

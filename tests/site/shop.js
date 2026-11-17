@@ -26,7 +26,7 @@
   var PER_PAGE = 6;
   var app = document.getElementById('app');
   var page = document.body.getAttribute('data-page');
-  var productName = document.body.getAttribute('data-product'); // Agent Cake's name, from data/product.json (shop.py)
+  var productName = document.body.getAttribute('data-product'); // AgentCake's name, from data/product.json (shop.py)
   var qs = new URLSearchParams(location.search);
 
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }

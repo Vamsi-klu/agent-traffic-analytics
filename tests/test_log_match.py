@@ -1,10 +1,10 @@
 """Matching log lines to visits: agentcake/log_match.py, fed the way `logs import` feeds it.
 
-    python3 -I -m unittest discover -s tests -p test_log_match.py -v      (from the Agent Cake folder)
+    python3 -I -m unittest discover -s tests -p test_log_match.py -v      (from the AgentCake folder)
 
 A made-up hour of a shop: visitors who agreed to analytics run cake.js, whose uploads go through collect's own storage
 (collect_store.record, the load balancer giving each visitor's address); other visitors only show in the web server's
-log, with static files, uploads to Agent Cake, redirects and 404s around the page requests. Some visitors share an
+log, with static files, uploads to AgentCake, redirects and 404s around the page requests. Some visitors share an
 address (an office behind one NAT), some of those a User-Agent too, some open two tabs, a few leave a tab in the
 background long enough that cake.js's first upload comes late, two people behind one address open the same link
 within a second (only their User-Agents tell them apart), and the web server's clock runs a little ahead.
@@ -40,7 +40,7 @@ N5_MIN = 0.95  # threshold N5: log lines matched to their visit by address hash,
 T0 = 1794500000000  # when the shop's hour begins (epoch ms)
 HOUR_MS = 3_600_000
 IMPORT_AT = T0 + 3 * HOUR_MS
-SERVER_CLOCK_AHEAD_MS = 700  # the web server's clock against Agent Cake's
+SERVER_CLOCK_AHEAD_MS = 700  # the web server's clock against AgentCake's
 SITE_KEY = "ck_logmatchtest"
 NAT_PAIRS = 12
 LB = netfacts.lb_headers()
@@ -51,7 +51,7 @@ class PageView:
     session: str
     pv: str
     path: str
-    opened_ms: int        # when the page request reached the web server (Agent Cake's clock)
+    opened_ms: int        # when the page request reached the web server (AgentCake's clock)
     uploads: list = field(default_factory=list)
 
 
@@ -120,7 +120,7 @@ def visit_pages(rng, session, start):
         first = opened + (rng.randrange(31_000, 60_000) if late else rng.randrange(300, 9_000))
         leave = opened + rng.randrange(4_000, 90_000)
         # cake.js sends every 2 to 10 s; matching reads a page view's first upload, so its first, one later and the
-        # beacon sent when the page is left (it reaches Agent Cake after the next page request) stand for them all
+        # beacon sent when the page is left (it reaches AgentCake after the next page request) stand for them all
         view.uploads.append(first)
         if leave > first + 2_000:
             view.uploads.append(rng.randrange(first + 2_000, leave))

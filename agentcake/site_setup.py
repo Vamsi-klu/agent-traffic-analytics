@@ -1,4 +1,4 @@
-"""Setting Agent Cake up, printed for a coding agent to follow: `setup --print`, `setup --print --site`,
+"""Setting AgentCake up, printed for a coding agent to follow: `setup --print`, `setup --print --site`,
 `snippet`, `sentence`.
 
 setup_print_local() prints what to tell the user after install (the self-check, the local page, registering, and
@@ -8,7 +8,7 @@ setup_print_site(folder) reads the website's code (site_code.py) and prints the 
 installation's edge folder (the file that makes the app, the files to copy, where its secret comes from); how to check
 it all with doctor; what is left for the user. The page script's address is the local page's on this computer and, in
 server mode (public_listen), path_prefix on the site's own domain (/cake/cake.js, SERVER.md), where visitors' browsers
-reach Agent Cake. The words are in data/copy.en.json.
+reach AgentCake. The words are in data/copy.en.json.
 Named site_setup, not setup, so it is never mistaken for a packaging setup.py.
 """
 import os
@@ -31,7 +31,7 @@ def server_mode(c):
 
 
 def cake_root(c):
-    """Where visitors' browsers reach Agent Cake: the local page on this computer; in server mode, path_prefix on the
+    """Where visitors' browsers reach AgentCake: the local page on this computer; in server mode, path_prefix on the
     site's own domain (a path, so one line serves every page of the site wherever it is deployed)."""
     return (c.get("path_prefix") or "") if server_mode(c) else base_url(c)
 
@@ -61,10 +61,10 @@ def plugin_address(c):
 
 
 def edge_dir():
-    """This installation's edge folder (the sites' middleware: node, python, php, wordpress), the way paths.web_dir()
-    finds the local pages: $CAKE_EDGE_DIR when it is set; else the folder a release carries inside the package (the
-    wheel, the .pyz and the unpacked package all have agentcake/edge); else the one beside the package, as a
-    checkout has it. None when there is none. The folder's name is data/site_files.json's edge_folder."""
+    """This installation's edge folder (the sites' middleware: node, python, php, wordpress), the way
+    paths.web_folder() finds the local pages: $CAKE_EDGE_DIR when it is set; else the folder a release carries inside
+    the package (the wheel, the .pyz and the unpacked package all have agentcake/edge); else the one beside the
+    package, as a checkout has it. None when there is none. The folder's name is data/site_files.json's edge_folder."""
     if os.environ.get(EDGE_DIR_ENV):
         return os.path.abspath(os.path.expanduser(os.environ[EDGE_DIR_ENV]))
     name = load("data/site_files.json")["edge_folder"]

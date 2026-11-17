@@ -1,6 +1,6 @@
 """Reading one upload from cake.js: agentcake/upload.py, upload format version 1 (docs/collect-format.md).
 
-    python3 -I -m unittest discover -s tests -p test_upload.py -v      (from the Agent Cake folder)
+    python3 -I -m unittest discover -s tests -p test_upload.py -v      (from the AgentCake folder)
 
 A gzip body is unzipped within its limit; a version 1 batch must carry its dedup key (s, pv, seq); a cake 0.3.4 batch
 has none and is still read; records keep their order, their page view and their content; a record without a usable
@@ -41,6 +41,11 @@ def v1(**fields):
 
 def read(batch, max_records=20000):
     return upload.read_batch(batch, CAPS, max_records)
+
+
+def record_count(batch):
+    """How many records a read batch kept, over all its streams."""
+    return sum(len(records) for records in batch.records.values())
 
 
 def refusal(fn, *args):
@@ -123,7 +128,7 @@ class Records(unittest.TestCase):
         self.assertEqual([json.loads(r.text) for r in batch.records["env"]], sent["x"])
         self.assertEqual({r.page for records in batch.records.values() for r in records}, {PV})
         self.assertEqual([r.ts for r in batch.records["raw"]], [int(T0 + 2.4)], "the stream's time is whole ms")
-        self.assertEqual(batch.record_count(), 7)
+        self.assertEqual(record_count(batch), 7)
 
     def test_text_is_compact_utf8_json_and_odd_characters_survive(self):
         record = {"t": T0, "ty": "err", "msg": "Café ☕ line sep\r\nend \U0001F600 \ud83d"}
@@ -148,7 +153,7 @@ class Records(unittest.TestCase):
     def test_too_many_records_are_refused_before_they_are_read(self):
         sent = v1(e=[{"type": 3, "timestamp": T0}] * 6, r=[], x=[])
         self.assertEqual(refusal(read, sent, 5), ("post_limit", HTTPStatus.REQUEST_ENTITY_TOO_LARGE, 6))
-        self.assertEqual(read(sent, 6).record_count(), 6)
+        self.assertEqual(record_count(read(sent, 6)), 6)
 
 
 if __name__ == "__main__":

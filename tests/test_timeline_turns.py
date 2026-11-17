@@ -190,9 +190,12 @@ class IndicatorTail(unittest.TestCase):
 
 
 HOST = {"tag": "DIV", "nattr": 0, "attrs": [], "open_shadow": 0, "disp": "contents", "parent": "body", "how": "added"}
-INDICATOR_TAIL_TEXT = "Claude in Chrome was active {span}. Actions up to {until} are counted as the agent's actions."
-INDICATOR_TAIL_DETAIL = ("Claude in Chrome's “working” indicator appears on the screen {span}. The indicator stays on for a few "
-                         "seconds after the agent stops. Actions after that point are classified by the behavior model.")
+# The indicator's reason gives no time (the summary says when the agent was active); its span stays in the value.
+INDICATOR_TAIL_TEXT = ("Actions while Claude in Chrome's working indicator was visible count as agent actions until the "
+                       "agent stopped.")
+INDICATOR_TAIL_DETAIL = ("Claude in Chrome shows its “working” indicator on the screen while it works. The indicator stays on "
+                         "for a few seconds after the agent stops. The behavior model classified the actions after the agent "
+                         "stopped.")
 
 
 def hand_off_session(indicator=True):
@@ -218,8 +221,8 @@ class ThroughTheVerdict(unittest.TestCase):
         reasons = {r["id"]: r for r in result["reasons"]}
         self.assertIn("env.product.claude-chrome-indicator", reasons)
         said = reasons["behavior.indicator"]
-        self.assertEqual(said["text"], "Claude in Chrome was active from 0:16 to 0:33. All actions during this time "
-                                       "count as agent actions.")
+        self.assertEqual(said["text"], "All actions while Claude in Chrome's working indicator was visible count as agent "
+                                       "actions.")
         self.assertEqual(said["grade"], markers.load_table().markers[WORKING]["grade"])
 
     def test_without_the_indicator_the_host_alone_needs_company(self):
@@ -243,8 +246,8 @@ class ThroughTheVerdict(unittest.TestCase):
         self.assertNotIn("behavior.indicator", reasons, "not every action while it was lit is the agent's")
         said = reasons["behavior.indicator-tail"]
         self.assertEqual(said["value"], [20000, 40000, 40000 - TAIL_MS])
-        self.assertEqual(said["text"], INDICATOR_TAIL_TEXT.format(span="from 0:16 to 0:36", until="0:31"))
-        self.assertEqual(said["detail"], INDICATOR_TAIL_DETAIL.format(span="from 0:16 to 0:36"))
+        self.assertEqual(said["text"], INDICATOR_TAIL_TEXT)
+        self.assertEqual(said["detail"], INDICATOR_TAIL_DETAIL)
         self.assertEqual(said["grade"], markers.load_table().markers[WORKING]["grade"])
 
 

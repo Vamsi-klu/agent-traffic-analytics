@@ -1,4 +1,0 @@
-{
-  "about": "The Chinese translation of the sentence for a coding agent (copy.en.json site_sentence), which the Chinese README quotes; the local page, /api/setup and `agentcake sentence` give it in English only.",
-  "site_sentence": "把这个网站接到 {name}。先问我网站的地址、{name} 装在哪，以及代码里找不到的其他信息。建议装在网站访问得到的服务器上：公开网站的访客连不到这台电脑，所以装在这台电脑上只适合我在这台电脑上跑的网站。如果 {name} 装在服务器上，照 SERVER.md 做。然后在这个网站的代码目录里运行 `{launcher} setup --print --site`，按它打印的步骤做，再运行 `{launcher} doctor`，告诉我结果和还剩什么要我做。"
-}

@@ -1,5 +1,5 @@
 {
-  "$comment": "Where Agent Cake's name and verification lists come from and how they are built. tools/build_lists.py (when a release is made) and `agentcake lists update` (only when someone runs it) fetch every source below and write names.json, ip_ranges.json, signers.json and keys.json, and beside them each repository's licence file at the commit read (<source>.LICENSE.txt, unchanged); Agent Cake never fetches anything while it runs. This file and kinds.json are edited by hand; the four generated files are not. Every exclusion, correction and addition below says why.",
+  "$comment": "Where AgentCake's name and verification lists come from and how they are built. tools/build_lists.py (when a release is made) and `agentcake lists update` (only when someone runs it) fetch every source below and write names.json, ip_ranges.json, signers.json and keys.json, and beside them each repository's licence file at the commit read (<source>.LICENSE.txt, unchanged); AgentCake never fetches anything while it runs. This file and kinds.json are edited by hand; the four generated files are not. Every exclusion, correction and addition below says why.",
   "fetch": {
     "timeout_s": 30,
     "retries": 1,
@@ -67,9 +67,17 @@
         "name": "Claude-Agent",
         "operator": "Anthropic",
         "kind": "cloud-agent",
-        "evidence": "unverified",
         "patterns": [{"match": "token", "text": "Claude-Agent"}],
-        "note": "Anthropic's hosted browser. The User-Agent form 'compatible; Claude-Agent/1.0' is second-hand and botscent does not list it; Anthropic's own SAIL file names the service Claude-Agent and publishes its addresses (ip_ranges: anthropic-claude-agent)."
+        "note": "Anthropic's hosted browser, which Claude products such as Claude Duet use to act for a user. Anthropic's help center (support.claude.com, article 18234133, read 2026-11-16) documents the Claude-Agent token in the browser's own User-Agent, for example 'compatible; Claude-Agent/1.0', and the addresses it sends from in its SAIL file (ip_ranges: anthropic-claude-agent). botscent does not list it."
+      },
+      {
+        "id": "antigravity-browser",
+        "name": "Antigravity in-app browser",
+        "operator": "Google",
+        "kind": "ai-desktop-app",
+        "patterns": [{"match": "versioned", "text": "Antigravity"}],
+        "by_design": ["env.auto.chromium-only-brand"],
+        "note": "The built-in browser of Google's Antigravity app, which people also browse by hand (antigravity.google/docs/browser, 'Use the built-in browser manually', read 2026-11-16). Measured on 20 of 20 sessions, Antigravity 2.32.0 (2026-11-13) and 2.32.1 (2026-11-16): the User-Agent ends with Antigravity/<version> after Chrome/152 and Safari/537.36, and the brand list has only Chromium, as an Electron app's browser has, so env.auto.chromium-only-brand says nothing about automation in it. Google's crawler pages do not list it; the Google-Jetski-Antigravity User-Agent PostHog lists stays a name of its own."
       },
       {
         "id": "grokagent",
@@ -209,6 +217,7 @@
       {"id": "openai-chatgpt-user", "label": "OpenAI ChatGPT-User", "kind": "agent", "operator": "OpenAI", "format": "prefixes", "urls": ["https://openai.com/chatgpt-user.json"], "verifies": ["chatgpt-user"]},
       {"id": "openai-searchbot", "label": "OpenAI OAI-SearchBot", "kind": "bot", "operator": "OpenAI", "format": "prefixes", "urls": ["https://openai.com/searchbot.json"], "verifies": ["oai-searchbot"]},
       {"id": "openai-gptbot", "label": "OpenAI GPTBot", "kind": "bot", "operator": "OpenAI", "format": "prefixes", "urls": ["https://openai.com/gptbot.json"], "verifies": ["gptbot"]},
+      {"id": "openai-adsbot", "label": "OpenAI OAI-AdsBot", "kind": "bot", "operator": "OpenAI", "format": "prefixes", "urls": ["https://openai.com/adsbot.json"], "verifies": ["oai-adsbot"]},
       {"id": "perplexity-user", "label": "Perplexity-User", "kind": "agent", "operator": "Perplexity", "format": "prefixes", "urls": ["https://www.perplexity.ai/perplexity-user.json"], "verifies": ["perplexity-user"]},
       {"id": "perplexitybot", "label": "PerplexityBot", "kind": "bot", "operator": "Perplexity", "format": "prefixes", "urls": ["https://www.perplexity.ai/perplexitybot.json"], "verifies": ["perplexitybot"]},
       {"id": "anthropic-claude-agent", "label": "Anthropic Claude-Agent", "kind": "agent", "operator": "Anthropic", "format": "sail", "service": "Claude-Agent", "urls": ["https://claude.com/.well-known/sail"], "verifies": ["claude-agent"]},

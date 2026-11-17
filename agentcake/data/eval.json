@@ -1,7 +1,7 @@
 {
   "_about": "Settings of `agentcake eval` (agentcake/eval.py, agentcake/evaluation/). The thresholds it judges are in eval/thresholds.json, not here. No local paths: data that only lives on one machine is named on the command line or in a sources file (eval/sources.example.json).",
   "files": {
-    "_about": "Files of a checkout of Agent Cake, relative to the folder that holds the agentcake package: used when neither the command line nor the sources file names them, and skipped with a note when they are not there (an installed wheel has none of them).",
+    "_about": "Files of a checkout of AgentCake, relative to the folder that holds the agentcake package: used when neither the command line nor the sources file names them, and skipped with a note when they are not there (an installed wheel has none of them).",
     "sources": "eval/sources.json",
     "thresholds": "eval/thresholds.json",
     "named_user_agents": "eval/named_user_agents.json",
@@ -45,17 +45,18 @@
     "a2_labels": ["cic-panel", "cic-mcp"]
   },
   "scoreboard": {
-    "_about": "The behaviour layer reported the industry's way (agentcake/evaluation/scoreboard.py; after Akamai's research prototype and AgentShield): the evaluable share, recall per agent product, human false positives with their exact interval at `confidence`, precision when agents are each of `prevalences` of all sessions, and every count per site. agent_sources and human_sources: the data sets whose agent or human answers it counts (posthog's answers are reference only, eval/README.md; selfcollect is the recordings we ran ourselves, kept apart from people's recorded ones). recording: how each data set recorded input (raw: cake.js's raw events; rrweb: PostHog's recording, without keys, wheel or screen positions): precision pairs a product with the humans recorded the same way. products: the agent product a group or label belongs to (others are their own). sites: the site of a data set whose rows do not name one.",
+    "_about": "The behaviour layer reported the industry's way (agentcake/evaluation/scoreboard.py; after Akamai's research prototype and AgentShield): the evaluable share, recall per agent product, human false positives with their exact interval at `confidence`, precision when agents are each of `prevalences` of all sessions, and every count per site. agent_sources and human_sources: the data sets whose agent or human answers it counts (posthog's answers are reference only, eval/README.md; selfcollect is the recordings we ran ourselves, kept apart from people's recorded ones). recording: how each data set recorded input (raw: cake.js's raw events; rrweb: PostHog's recording, without keys, wheel or screen positions): precision pairs a product with the humans recorded the same way. products: the agent product a group or label belongs to (others are their own). sites: the site of a data set whose rows do not name one. held_out_sources: the data sets counted on their own and nowhere else (a website's own sessions, labelled afterwards, site: --site-home and --truth-site): never in agent_sources or human_sources, so no pooled rate, precision or site count reads them; nor are they in calibration's sources or heldout's fits, nor gated by eval/thresholds.json.",
     "confidence": 0.95,
     "prevalences": [0.01, 0.05],
     "agent_sources": ["lab", "recorded", "selfcollect", "store", "posthog"],
     "human_sources": ["recordings", "public_humans", "store", "posthog"],
-    "recording": {"lab": "raw", "recorded": "raw", "selfcollect": "raw", "store": "raw", "recordings": "raw", "public_humans": "raw", "posthog": "rrweb"},
+    "recording": {"lab": "raw", "recorded": "raw", "selfcollect": "raw", "store": "raw", "site": "raw", "recordings": "raw", "public_humans": "raw", "posthog": "rrweb"},
     "products": {"claude-chrome-bg": "claude-chrome", "cic-panel": "claude-chrome", "cic-mcp": "claude-chrome",
                  "pw-direct-headed": "playwright-direct", "pw-direct-headless": "playwright-direct",
                  "pw-humanlike-headed": "playwright-humanlike", "pw-humanlike-headless": "playwright-humanlike",
                  "fake-pw-humanlike": "playwright-humanlike"},
-    "sites": {"lab": "lab", "posthog": "tartini.ai", "store": "cake-home"}
+    "sites": {"lab": "lab", "posthog": "tartini.ai", "store": "cake-home"},
+    "held_out_sources": ["site"]
   },
   "heldout": {
     "_about": "Thresholds set from data (agentcake/evaluation/heldout.py): each rule listed is fitted from people's segments alone, the candidate that fires most while firing on at most budget of the measured segments of every data set of people; the eval fits it on all the people, and again without each site's people to judge that site (held out by site). Agents are never used, so every agent product is held out by construction. The rule's first condition is the one fitted.",
@@ -82,7 +83,7 @@
     "round_accuracy": 3
   },
   "baselines": {
-    "_about": "Whole-session models printed beside Agent Cake's own, never used to judge (cake-data/compare_models.py of 2026-11-11, our own code). choudhary: Choudhary et al.'s mouse-event rate over the session's input time (at least min_duration_s) below rate_below a second, or more than teleport_above of the clicks right after a jump (a click whose last move came at most click_window_ms before it, after a jump of more than jump_px in less than jump_ms, or with no move before it). lab_rules_hmm: the lab's rules on each action segment smoothed by its HMM, an agent when at least share of the segments score agent_p or more. superline: @superline-ai/agent-detection 0.0.8 (MIT, Copyright (c) 2025 Superline UG; weights from its dist/esm/model-parameters.js as we read them): a logistic model on 8 browser and behaviour features, an agent at 0.5 or more; a feature the session did not record is skipped, as superline's scoreFeatures does. environment: each browser feature and the key of the page's recorded environment it is read from.",
+    "_about": "Whole-session models printed beside AgentCake's own, never used to judge (cake-data/compare_models.py of 2026-11-11, our own code). choudhary: Choudhary et al.'s mouse-event rate over the session's input time (at least min_duration_s) below rate_below a second, or more than teleport_above of the clicks right after a jump (a click whose last move came at most click_window_ms before it, after a jump of more than jump_px in less than jump_ms, or with no move before it). lab_rules_hmm: the lab's rules on each action segment smoothed by its HMM, an agent when at least share of the segments score agent_p or more. superline: @superline-ai/agent-detection 0.0.8 (MIT, Copyright (c) 2025 Superline UG; weights from its dist/esm/model-parameters.js as we read them): a logistic model on 8 browser and behaviour features, an agent at 0.5 or more; a feature the session did not record is skipped, as superline's scoreFeatures does. environment: each browser feature and the key of the page's recorded environment it is read from.",
     "choudhary": {"rate_below": 10, "teleport_above": 0.2, "min_duration_s": 1.0, "click_window_ms": 100, "jump_ms": 50, "jump_px": 100},
     "lab_rules_hmm": {"agent_p": 0.5, "share": 0.5},
     "superline": {
@@ -120,12 +121,10 @@
     "owner_presumed": "owner-presumed",
     "pending": "pending",
     "user_strength": "user",
-    "user_labelled": "user-labelled",
-    "kt_separator": ":",
-    "repeat_mark": "#"
+    "user_labelled": "user-labelled"
   },
   "layers": {
-    "_about": "The table of what each part of Agent Cake finds alone and together. halves: where evidence is read (env_rules.json legend). A configuration keeps the halves it lists: the page half is cake.js in the page (its environment signals, its User-Agent and the behaviour of its events), the collector half is the collect endpoint (the upload requests' headers, signatures and network), the server half is the site's server (the page request's headers, signature and Sec-Purpose).",
+    "_about": "The table of what each part of AgentCake finds alone and together. halves: where evidence is read (env_rules.json legend). A configuration keeps the halves it lists: the page half is cake.js in the page (its environment signals, its User-Agent and the behaviour of its events), the collector half is the collect endpoint (the upload requests' headers, signatures and network), the server half is the site's server (the page request's headers, signature and Sec-Purpose).",
     "halves": ["page", "collector", "server"],
     "configurations": [["page"], ["collector"], ["server"], ["page", "collector"], ["page", "collector", "server"]],
     "judging_layers": [["behavior"], ["environment"], ["name", "verify"], ["name", "verify", "environment", "behavior"]]

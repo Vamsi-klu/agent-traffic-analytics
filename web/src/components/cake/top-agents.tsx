@@ -12,6 +12,7 @@ import { Bar, BarChart, LabelList, Rectangle, XAxis, YAxis } from "recharts"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart"
 import type { AgentNumbers } from "@/data/types"
+import { NO_VALUE } from "@/lib/format"
 import { UNNAMED } from "@/lib/taxonomy"
 import { WORDS } from "@/lib/words"
 import { AGENT_ROW_PX, AgentTick, TICK_AVATAR } from "./avatar"
@@ -76,14 +77,14 @@ export function TopAgentsChart({ agents }: { agents: AgentNumbers[] }) {
   // An agent without a value gets a bar 0 long, labelled "—" (recharts labels no bar whose value is null).
   const rows = agents.map((agent) => ({ name: agent.name ?? UNNAMED, found: value(agent) }))
     .sort((a, b) => (b.found ?? -1) - (a.found ?? -1))
-    .map(({ name, found }) => ({ name, value: found ?? 0, shown: found === null ? "—" : shown(found) }))
+    .map(({ name, found }) => ({ name, value: found ?? 0, shown: found === null ? NO_VALUE : shown(found) }))
   const config = { value: { label, color: "var(--chart-2)" } } satisfies ChartConfig
   const [frame, setFrame] = useState<HTMLDivElement | null>(null)
   const room = chartRoom(rows, useWidth(frame), frame)
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2"><Bot className="size-5" aria-hidden />{WORDS.agentsChart}<InfoTip label={`${WORDS.agentsChart} ${WORDS.chart}`} lines={[WORDS.agentsChartLead, WORDS.botsNotInChart]} /></CardTitle>
+        <CardTitle icon={Bot}>{WORDS.agentsChart}<InfoTip label={`${WORDS.agentsChart} ${WORDS.chart}`} lines={[WORDS.agentsChartLead, WORDS.botsNotInChart]} /></CardTitle>
         <MetricPicker chart={WORDS.agentsChart} metric={metric} onMetric={setMetric} />
       </CardHeader>
       <CardContent className="flex flex-1 flex-col gap-2">

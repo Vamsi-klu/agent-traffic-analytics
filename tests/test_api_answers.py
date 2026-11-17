@@ -1,6 +1,6 @@
 """agentcake/api/answers.py: who may ask /api, JSON bodies, and the error body every refusal carries.
 
-    python3 -I -m unittest discover -s tests -p test_api_answers.py -v      (from the Agent Cake folder)
+    python3 -I -m unittest discover -s tests -p test_api_answers.py -v      (from the AgentCake folder)
 
 Only this computer's own pages may ask: a Host that names another site (a DNS rebinding page) or an Origin that is
 not the page's own is refused 403, even for a GET; the local page reached through a tunnel on another port is still

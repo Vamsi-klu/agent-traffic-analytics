@@ -1,6 +1,6 @@
 """`agentcake logs import` and `agentcake logs formats`: agentcake/logs.py against a real `agentcake serve`.
 
-    python3 -I -m unittest discover -s tests -p test_logs.py -v      (from the Agent Cake folder)
+    python3 -I -m unittest discover -s tests -p test_logs.py -v      (from the AgentCake folder)
 
 The server runs in server mode with trust_lb, the test plays the load balancer and the visitors' browsers: a few
 visits upload through the public listener, and the web server's log holds their page requests among other lines and

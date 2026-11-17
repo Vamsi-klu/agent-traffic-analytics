@@ -1,6 +1,6 @@
 """Ed25519 signature verification (RFC 8032), verify only, in pure Python.
 
-Agent Cake checks Web Bot Auth signatures with the Python standard library alone, and the standard library has
+AgentCake checks Web Bot Auth signatures with the Python standard library alone, and the standard library has
 no Ed25519. This module is the verification of RFC 8032 section 5.1.7 for plain Ed25519 (no context, no prehash):
 
     1. split the 64-byte signature into R and S, require 0 <= S < L, decode the public key A (section 5.1.3);

@@ -3,8 +3,7 @@ what was deleted, as delete.delete_sessions() returns it; `agentcake delete` use
 the settings page's "Delete all data" (after its Dialog): every session in the database, each as thoroughly
 as one; with none left it answers {"sessions": []}. Only the local listener has it (routes.py), and only this
 computer's own pages, or a program on this computer such as `agentcake delete` (no Origin), may post its JSON
-(answers.local_only, answers.json_object). Moved here from agentcake/api.py when each resource of the API got its
-own module.
+(answers.local_only, answers.json_object).
 """
 import sqlite3
 from http import HTTPStatus

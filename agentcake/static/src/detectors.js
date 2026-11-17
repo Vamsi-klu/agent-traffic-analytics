@@ -1,4 +1,4 @@
-// Agent Cake page script, part: what the two bundled detectors find in the page, stream "x".
+// AgentCake page script, part: what the two bundled detectors find in the page, stream "x".
 //
 // BotD (FingerprintJS, MIT) and botscent's page half (MIT) run in the page; neither sends anything anywhere (cake's
 // copy of BotD has its telemetry request removed, botscent has no network code). cake keeps what they report, raw:

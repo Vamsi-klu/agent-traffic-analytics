@@ -1,19 +1,14 @@
-// The pictures README.md shows (docs/assets/readme/): Crumb's head as the icon at the top, and the dashboard, a session's
-// replay and the settings page. They are taken the way the visual baseline is (scripts/visual.mjs), from the same built app
-// and the same answers: the dashboard shows cake's own answers on the fixed test library at a fixed moment
-// (fixtures/library/, LIBRARY), the session and the settings the samples (src/data/fixtures/), so no visitor,
-// address or folder of any computer can be in them. Light theme, 1280 wide, drawn at twice the pixels so they stay sharp
-// where GitHub shrinks them to its column; each is the top of its page, as far down as README describes it.
-// The repository's social preview (social-preview.png, the picture a shared link to the repository shows) is the top of
-// the same dashboard at the size GitHub asks for, 1280x640 at one pixel per CSS pixel, which keeps it under GitHub's
-// 1 MB (it is uploaded in the repository's settings, under "Social preview").
-//   cd web && npm run build && node scripts/readme-images.mjs        (when a page, Crumb or the tokens change; commit them)
-// With --origin <url>, the dashboard, the session and the social preview are taken from that running AgentCake instead
-// (the maintainers serve their own test recordings this way, which stay out of the repository): the session is
-// --session <id>, else the first session its list calls Human + agent, shown at its first hand-off (the replay's own
-// Jump to hand-off, played to the mark and paused). Every request that would leave that AgentCake is refused, so a
-// replay never reaches the site it was recorded on.
-//   node scripts/readme-images.mjs --origin http://127.0.0.1:<port>/ [--session <id>]
+// Crumb's head as the icon at the top of README (docs/assets/readme/crumb.png), drawn from the favicon's SVG
+// (scripts/favicon.mjs), and the repository's social preview (social-preview.png, the picture a shared link to the
+// repository shows; it is uploaded in the repository's settings, under "Social preview"): the top of the dashboard at the
+// size GitHub asks for, 1280x640 at one pixel per CSS pixel, which keeps it under GitHub's 1 MB. Light theme. By default
+// the dashboard is cake's own answers on the fixed test library at a fixed moment (fixtures/library/, LIBRARY), taken
+// the way the visual baseline is (scripts/visual.mjs), so no visitor, address or folder of any computer can be in it.
+// With --origin <url> it is that running AgentCake's dashboard instead (the maintainers serve a copy of the demo data's
+// server home this way), and every request that would leave that AgentCake is refused.
+//   cd web && npm run build && node scripts/readme-images.mjs [--origin http://127.0.0.1:<port>/]
+// README's dashboard preview is readme-preview.mjs's; the maintainers' script that films README's demo takes
+// hideInReplay() from here.
 // Playwright and Chromium: as scripts/shots.mjs finds them.
 import { mkdir, writeFile } from "node:fs/promises"
 import path from "node:path"
@@ -25,21 +20,8 @@ import { launch, serve, shoot } from "./shots.mjs"
 const here = path.dirname(fileURLToPath(import.meta.url))
 const OUT = path.join(here, "..", "..", "docs", "assets", "readme")
 const ICON = { file: "crumb.png", size: 224 } // README shows it 112 px wide: twice that, for sharp screens
-const VIEW = { width: 1280, pixelRatio: 2 } // the visual baseline's width
-/** Each page's picture: its route, whether it is shot on the fixed test library, whether --origin's AgentCake gives it
- *  instead (the pages that show sessions; settings shows none, and a running AgentCake's page script line would name
- *  its own scratch port), and how much of the page from the top it keeps (CSS px), to just below the part README
- *  describes. */
-const PAGES = {
-  dashboard: { route: "#/dashboard", library: true, showcase: true, height: 1291 }, // the spotlight, the counts, session length, both charts
-  session: { route: "#/sessions/7f3a-c1", library: false, showcase: true, height: 1116 }, // the replay, who acted when, the four layers
-  settings: { route: "#/settings", library: false, showcase: false, height: 1465 }, // down to telemetry and registration
-}
-/** The social preview: GitHub's size "for best display" (VIEW.width wide), the dashboard README shows (--origin's, else the fixed test library's). */
-const SOCIAL = { file: "social-preview.png", route: "#/dashboard", height: 640, pixelRatio: 1 }
-const LIST = "api/sessions?range=7d" // what the session list asks when it opens (src/lib/filters.ts)
-const TOOK_TURNS = "human_agent" // an Agent session where a human and an agent took turns (agent_turns, src/data/types.ts)
-const SETTLE_MS = 600 // after pausing, for the replay to draw its frame
+/** The social preview: GitHub's size "for best display", the visual baseline's width. */
+const SOCIAL = { file: "social-preview.png", route: "#/dashboard", width: 1280, height: 640, pixelRatio: 1 }
 const option = (name) => { const at = process.argv.indexOf(name); return at > 0 ? process.argv[at + 1] : undefined }
 
 async function drawIcon(context, origin) {
@@ -53,11 +35,10 @@ async function drawIcon(context, origin) {
   return png
 }
 
-async function drawPage(page, url, height, before) {
-  await page.setViewportSize({ width: VIEW.width, height })
+async function drawPage(page, url, width, height) {
+  await page.setViewportSize({ width, height })
   await shoot(page, url)
-  if (before) await before(page)
-  return page.screenshot({ animations: "disabled", caret: "hide", clip: { x: 0, y: 0, width: VIEW.width, height } })
+  return page.screenshot({ animations: "disabled", caret: "hide", clip: { x: 0, y: 0, width, height } })
 }
 
 /** What a replay hides as README's pictures and demo show it: the test shop's own words that call it cake's demo shop,
@@ -92,27 +73,6 @@ export async function hideInReplay(page) {
   }, HIDDEN_IN_REPLAY)
 }
 
-/** The session --origin's pictures show: --session, else the first its list calls Human + agent. */
-async function showcaseSession(origin) {
-  if (option("--session")) return option("--session")
-  const found = (await (await fetch(origin + LIST)).json()).results.find((session) => session.agent_turns === TOOK_TURNS)
-  if (!found) throw new Error(`${origin}: no session where a human and an agent took turns`)
-  return found.id
-}
-
-/** On a session page: the replay at its first hand-off (Jump to hand-off, played up to the mark, paused). */
-function atHandoff(leadMs) {
-  return async (page) => {
-    await page.waitForFunction(() => document.querySelector("[data-replay]") && !document.querySelector('[data-replay="loading"]'))
-    await hideInReplay(page)
-    await page.locator("button:has(svg.lucide-skip-forward)").click()
-    await page.locator("button:has(svg.lucide-pause)").waitFor()
-    await page.waitForTimeout(leadMs)
-    await page.locator("button:has(svg.lucide-pause)").click()
-    await page.waitForTimeout(SETTLE_MS)
-  }
-}
-
 /** A browser context that refuses every request to anywhere but origins (a replay's pages stay on the stage). */
 async function onlyFrom(context, origins) {
   await context.route("**/*", (route) => {
@@ -133,28 +93,12 @@ async function main() {
     console.log(`${ICON.file}: Crumb's head, ${ICON.size} px`)
     await icons.close()
     const showcase = option("--origin")
-    const pages = { ...PAGES }, steps = {}
-    if (showcase) {
-      const id = await showcaseSession(showcase)
-      const lead = (await (await fetch(`${showcase}api/session/${id}`)).json()).replay.handoff_lead_ms
-      pages.session = { ...PAGES.session, route: `#/sessions/${id}` }
-      steps.session = atHandoff(lead)
-    }
-    const from = ({ library: onLibrary, showcase: shown }) => (showcase && shown ? showcase : onLibrary ? libraryOrigin : origin)
-    const context = await browser.newContext({ viewport: { width: VIEW.width, height: PAGES.dashboard.height }, colorScheme: "light",
-      reducedMotion: "reduce", deviceScaleFactor: VIEW.pixelRatio })
-    if (showcase) await onlyFrom(context, [showcase, origin, libraryOrigin])
-    const page = await context.newPage()
-    for (const [name, entry] of Object.entries(pages)) {
-      const png = await drawPage(page, `${from(entry)}index.html${entry.route}`, entry.height, steps[name])
-      await writeFile(path.join(OUT, `${name}.png`), png)
-      console.log(`${name}.png: ${entry.route}, ${VIEW.width}x${entry.height} at ${VIEW.pixelRatio}x${from(entry) === showcase ? " (--origin)" : ""}`)
-    }
-    const social = await browser.newContext({ viewport: { width: VIEW.width, height: SOCIAL.height }, colorScheme: "light",
+    const social = await browser.newContext({ viewport: { width: SOCIAL.width, height: SOCIAL.height }, colorScheme: "light",
       reducedMotion: "reduce", deviceScaleFactor: SOCIAL.pixelRatio })
     if (showcase) await onlyFrom(social, [showcase])
-    await writeFile(path.join(OUT, SOCIAL.file), await drawPage(await social.newPage(), `${from(PAGES.dashboard)}index.html${SOCIAL.route}`, SOCIAL.height))
-    console.log(`${SOCIAL.file}: ${SOCIAL.route}, ${VIEW.width}x${SOCIAL.height} at ${SOCIAL.pixelRatio}x`)
+    const dashboard = `${showcase ?? libraryOrigin}index.html${SOCIAL.route}`
+    await writeFile(path.join(OUT, SOCIAL.file), await drawPage(await social.newPage(), dashboard, SOCIAL.width, SOCIAL.height))
+    console.log(`${SOCIAL.file}: ${SOCIAL.route}, ${SOCIAL.width}x${SOCIAL.height} at ${SOCIAL.pixelRatio}x${showcase ? " (--origin)" : ""}`)
   } finally {
     await browser.close()
     samples.close()

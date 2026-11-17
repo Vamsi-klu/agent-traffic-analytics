@@ -13,6 +13,7 @@ import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/componen
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import type { WebAnalytics } from "@/data/types"
+import { NO_VALUE } from "@/lib/format"
 import { WORDS } from "@/lib/words"
 import { CardEmpty, InfoTip } from "./bits"
 import { METRICS, MetricPicker, TooltipValue, type Metric } from "./metric-picker"
@@ -44,11 +45,11 @@ export function TrendsChart({ trends }: { trends: WebAnalytics["trends"] }) {
       return single[index] ? <circle key={`${who}-${index}`} cx={cx} cy={cy} r={DOT_RADIUS} fill={`var(--color-${who})`} /> : <g key={`${who}-${index}`} />
     }
   }
-  const cell = (v: number | null) => (v === null ? "—" : shown(v))
+  const cell = (v: number | null) => (v === null ? NO_VALUE : shown(v))
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2"><TrendingUp className="size-5" aria-hidden />{WORDS.trends}<InfoTip label={`${WORDS.trends} ${WORDS.chart}`} lines={WORDS.about.trends} /></CardTitle>
+        <CardTitle icon={TrendingUp}>{WORDS.trends}<InfoTip label={`${WORDS.trends} ${WORDS.chart}`} lines={WORDS.about.trends} /></CardTitle>
         <CardAction><Legend unknown={false} /></CardAction>
         <MetricPicker chart={WORDS.trends} metric={metric} onMetric={setMetric} />
       </CardHeader>

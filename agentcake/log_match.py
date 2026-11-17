@@ -25,9 +25,8 @@ candidate page views whose uploads carried no address: no line can match those (
 """
 import json
 from collections import Counter, defaultdict, namedtuple
-from urllib.parse import urlsplit
 
-from agentcake import ip_salt, netfacts
+from agentcake import addresses, ip_salt, netfacts
 from agentcake.datafiles import load, sizes
 from agentcake.detect import httpsig, lists, webbotauth
 from agentcake.evidence import VERIFICATION_FIELDS, WEB_BOT_AUTH
@@ -111,18 +110,22 @@ def _well_formed(raw):
         return None
     t_ms, ip, method, target, status = raw.get("t"), raw.get("ip"), raw.get("m"), raw.get("u"), raw.get("s")
     host, scheme, headers = raw.get("h"), raw.get("sc"), raw.get("hd")
-    ok = (type(t_ms) is int and t_ms >= 0 and type(status) is int and _text(ip, caps["ip"])
-          and _text(method, caps["method"]) and _text(target, caps["target"])
-          and (host is None or _text(host, caps["host"])) and (scheme is None or _text(scheme, caps["scheme"]))
+    ok = (type(t_ms) is int and t_ms >= 0 and type(status) is int and short_text(ip, caps["ip"])
+          and short_text(method, caps["method"]) and short_text(target, caps["target"])
+          and (host is None or short_text(host, caps["host"]))
+          and (scheme is None or short_text(scheme, caps["scheme"]))
           and isinstance(headers, dict)
-          and all(_text(name, caps["field"]) and _text(value, caps["header"]) for name, value in headers.items()))
+          and all(short_text(name, caps["field"]) and short_text(value, caps["header"])
+                  for name, value in headers.items()))
     if not ok:
         return None
     return LogRecord(t_ms, ip, method, target, None, status, host, scheme,
                      {name.lower(): value for name, value in headers.items()})
 
 
-def _text(value, cap):
+def short_text(value, cap):
+    """Whether value is a text field an /edge envelope may hold: a string, not empty, of at most cap characters
+    (data/logs.json edge.max_chars; edge_api checks the envelope's own fields with it too)."""
     return isinstance(value, str) and 0 < len(value) <= cap
 
 
@@ -197,7 +200,8 @@ def _first_urls(con, session):
     paths = {}
     for pv, url in con.execute("SELECT pv, url FROM batches WHERE session_id=? ORDER BY pv, seq", (session,)):
         if pv not in paths and url:
-            paths[pv] = urlsplit(url).path or "/"
+            parts = addresses.split(url)  # an address that cannot be read has no path to match, only a time
+            paths[pv] = (parts.path or "/") if parts else None
     return paths
 
 

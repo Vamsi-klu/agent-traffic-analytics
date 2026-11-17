@@ -29,6 +29,8 @@ UPTIMEROBOT = "Mozilla/5.0+(compatible; UptimeRobot/2.0; http://www.uptimerobot.
 LIGHTHOUSE = CHROME_LINUX + " Chrome-Lighthouse"
 CHATGPT_USER = "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko); compatible; ChatGPT-User/1.0; +https://openai.com/bot"
 MANUS = CHROME_LINUX + " Manus-User/1.0"
+ANTIGRAVITY = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) "
+               "Chrome/152.0.7977.167 Safari/537.36 Antigravity/2.32.1")
 IPHONE = ("Mozilla/5.0 (iPhone; CPU iPhone OS 19_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) "
           "Version/19.0 Mobile/15E148 Safari/604.1")
 NOWHERE = "203.0.113.7"  # RFC 5737 documentation address: in no published range
@@ -45,6 +47,31 @@ def first_address(range_id):
 def network(address):
     """What the collect endpoint keeps of an address: the lists' answer, never the address."""
     return lists.current().match_ip(address)
+
+
+def hit_fields(found):
+    """An environment hit as JSON: its rule, layer, kind, half, strength, grade and value, with the pages it held on and
+    the names it gives or suggests when it has them (the lab fixtures write hits this way)."""
+    out = {"rule": found.rule, "layer": found.layer, "kind": found.kind, "half": found.half,
+           "strength": found.strength, "grade": found.grade, "value": found.value}
+    if found.pages is not None:
+        out["pages"] = list(found.pages)
+    for key in ("names", "suggests"):
+        if getattr(found, key) is not None:
+            out[key] = getattr(found, key)
+    return out
+
+
+def botscent_reasons(hits, table=None):
+    """The botscent page-half reason ids these hits stand for: what botscent's own verdict should have listed (the
+    rules' "botscent" field, in the order the hits name them)."""
+    table = table or env_rules.load_rules()
+    reasons = []
+    for found in hits:
+        for reason in table.rule(found.rule).botscent:
+            if reason not in reasons:
+                reasons.append(reason)
+    return reasons
 
 
 def hit(rule_id, pages=(0,), value=True):
@@ -159,7 +186,7 @@ CONTROLS = [
      lambda: evidence(uas=GOOGLEBOT, platform="Linux x86_64", behavior_result=behavior("agent", AGENT_RUN)),
      {"class": "agent", "row": "automated", "name": None, "verification": "impersonation", "confidence": "likely",
       "impersonating": "googlebot", "reasons": ["verify.ip-mismatch", "env.automated"], "behavior": "agent"}),
-    ("uptimerobot", "UptimeRobot's check, which publishes no range Agent Cake can check",
+    ("uptimerobot", "UptimeRobot's check, which publishes no range AgentCake can check",
      lambda: evidence(uas=UPTIMEROBOT, platform="Linux x86_64"),
      {"class": "bot", "row": None, "name": "uptimerobot", "verification": "self_reported", "confidence": "likely",
       "reasons": ["name.ua", "verify.no-range"], "behavior": "off"}),

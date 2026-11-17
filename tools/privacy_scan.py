@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Privacy scan of an Agent Cake data folder: before every release, and
+"""Privacy scan of an AgentCake data folder: before every release, and
 on a server install after a test visit.
 
     python3 -I tools/privacy_scan.py <CAKE_HOME> [more files or folders, such as exported JSON]
             [--canary <text> ...] [--json]
 
 Reads every file (tools/privacy/sources.py: each table cell of each database, each line of every replay chunk once
-decompressed, each line of every log, JSON or other file) and looks for what Agent Cake must never keep
+decompressed, each line of every log, JSON or other file) and looks for what AgentCake must never keep
 (tools/privacy/rules.py, tools/privacy/rules.json): IPv4 and IPv6 addresses other than its own listen addresses,
 the canary strings given (what a test typed into the page), card numbers and the test card 4242 4242 4242 4242,
 fields naming a pressed key, cookies, authorization headers and Bearer tokens, private key material, the value of the
@@ -36,7 +36,7 @@ SECRET_NAME = os.path.basename(paths.secret_file())
 
 
 def parse(argv):
-    parser = argparse.ArgumentParser(prog="privacy_scan.py", description="Privacy scan of an Agent Cake data folder.")
+    parser = argparse.ArgumentParser(prog="privacy_scan.py", description="Privacy scan of an AgentCake data folder.")
     parser.add_argument("home", help="the data folder (CAKE_HOME) to scan")
     parser.add_argument("more", nargs="*", help="more files or folders to scan, such as exported JSON")
     parser.add_argument("--canary", action="append", default=[], help="a string the test typed; may be repeated")

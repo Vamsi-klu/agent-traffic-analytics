@@ -14,12 +14,15 @@ Please don't open a public issue. Write to [admin@tartini.ai](mailto:admin@tarti
 - **No real visitors' data.** Leave out replays, IP addresses, e-mail addresses and site keys; if your report needs
   them, say so first and we'll agree how to send them.
 
+You can also report a vulnerability privately on GitHub. On the repository's **Security** tab, select **Report a
+vulnerability**.
+
 We reply to every report, and fix what we confirm in a new release whose notes credit you, unless you'd rather not be
 named.
 
 ## What is in scope
 
-- **The public half on a server:** the page script and the collect endpoint under your site's path
+- **The public half on a server:** everything the public listener answers under your site's path
   ([`SERVER.md`](SERVER.md), "What the public listener answers").
 - **The local page:** the dashboard, sessions, replay, settings and their JSON API, which listen on 127.0.0.1 only.
 - **What it promises not to keep:** anything [`PRIVACY.md`](PRIVACY.md) says is never recorded (what visitors type,

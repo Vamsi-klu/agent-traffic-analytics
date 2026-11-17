@@ -20,16 +20,13 @@ import datetime
 import time
 
 from agentcake.datafiles import load
+from agentcake.storage_config import now_ms  # the API's clock: the views call periods.now_ms(), tests replace it
 from agentcake.units import MS_PER_DAY, MS_PER_S, S_PER_HOUR
 
 DAY_KEY = "%Y-%m-%d"  # protocol: SQLite's date() format
 INTERVAL_KEYS = {"hour": "%Y-%m-%d %H", "day": DAY_KEY, "month": "%Y-%m"}  # protocol: local time, as day_key
 MS_PER_HOUR = S_PER_HOUR * MS_PER_S
 ALL_TIME = "all"  # the range of every session: no earlier range to compare with
-
-
-def now_ms():
-    return int(time.time() * MS_PER_S)
 
 
 def _numbers():

@@ -188,5 +188,20 @@ class ActiveTime(WebCase):
         self.assertIsNone(web_time.active(None, None, 0, None))
 
 
+
+class Addresses(unittest.TestCase):
+    """A page view's path from its address: an address that cannot be read (an upload's u is any text) is counted on
+    the root path, as one without an address is."""
+
+    def test_an_address_that_cannot_be_read_or_none_is_the_root_path(self):
+        for url in ("https://[", "http://[/cart", "", None):
+            with self.subTest(url=url):
+                self.assertEqual(web_time._path(url), web_time.ROOT)
+
+    def test_a_readable_address_gives_its_path_or_the_root(self):
+        self.assertEqual(web_time._path("https://shop.example/cart?x=1"), "/cart")
+        self.assertEqual(web_time._path("https://shop.example"), web_time.ROOT)
+
+
 if __name__ == "__main__":
     unittest.main()

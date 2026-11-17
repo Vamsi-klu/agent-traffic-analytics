@@ -28,7 +28,7 @@ import { Loaded } from "@/components/cake/page-state"
 import { api, useApi } from "@/data/api"
 import type { ActiveTime, DateRange, Overview, Verdict, WebAnalytics } from "@/data/types"
 import { RANGE_KEYS, readRange } from "@/lib/filters"
-import { mbToBytes, minutes, percent } from "@/lib/format"
+import { NO_VALUE, mbToBytes, minutes, percent } from "@/lib/format"
 import { TAXONOMY } from "@/lib/taxonomy"
 import { cn } from "@/lib/utils"
 import { CLARITY, RANGES, WORDS, metricName } from "@/lib/words"
@@ -37,15 +37,16 @@ import { Onboarding } from "@/pages/home"
 /** The text colour of each verdict's icon on the number cards: the colour its badge's word has. */
 const VERDICT_TONE: Record<Verdict, string> = { human: "text-human-foreground", agent: "text-agent-foreground", bot: "text-unsure-foreground" }
 
-/** "Human sessions", "Agent sessions", "Bot sessions": every count on the dashboard is named by what it counts. */
-const sessionsOf = (verdict: Verdict) => `${VERDICTS[verdict].label} ${WORDS.sessions}`
+/** "Agent sessions", "Human visitors", "Bot page views": every count on the dashboard is named by what it counts. */
+const countOf = (verdict: Verdict, unit: string) => `${VERDICTS[verdict].label} ${unit}`
 
 function VerdictIcon({ verdict }: { verdict: Verdict }) {
   const Icon = VERDICTS[verdict].icon
   return <Icon className={cn("size-4", VERDICT_TONE[verdict])} aria-hidden />
 }
 
-export function Filters({ range, onRange }: { range: DateRange; onRange: (v: string) => void }) {
+/** The date range filter, kept in the URL: the one Select the dashboard and the session list both show. */
+export function RangeFilter({ range, onRange }: { range: DateRange; onRange: (v: string) => void }) {
   return (
     <Select value={range} onValueChange={onRange}><SelectTrigger aria-label="Date range"><SelectValue /></SelectTrigger>
       <SelectContent>{RANGE_KEYS.map((r) => <SelectItem key={r} value={r}>{RANGES[r]}</SelectItem>)}</SelectContent></Select>
@@ -70,7 +71,7 @@ function Dashboard({ agentEver, demoOnly }: { agentEver: boolean; demoOnly: bool
   return (
     <div className="flex flex-col gap-5">
       <h1 className="sr-only">{WORDS.dashboard}</h1>
-      <PageHeader as="h2" title={WORDS.keyMetrics} actions={<Filters range={range} onRange={(value) => setParams((p) => { p.set("range", value); return p })} />} />
+      <PageHeader as="h2" title={WORDS.keyMetrics} actions={<RangeFilter range={range} onRange={(value) => setParams((p) => { p.set("range", value); return p })} />} />
       {demoOnly && <NotConnected />}
       <Loaded state={data} what="the dashboard">{([o, web]) => <DashboardBody o={o} web={web} range={range} agentEver={agentEver} demoOnly={demoOnly} />}</Loaded>
     </div>
@@ -83,7 +84,7 @@ function NotConnected() {
     <Alert variant="info">
       <Plug aria-hidden />
       <AlertTitle>{WORDS.notConnectedTitle}</AlertTitle>
-      <AlertDescription className="flex flex-col items-start gap-2 text-foreground">
+      <AlertDescription className="flex flex-col items-start gap-2">
         <span>{WORDS.notConnectedDemo}</span>
         <Button asChild variant="outline" size="sm"><Link to="/">{WORDS.connectWebsite}</Link></Button>
       </AlertDescription>
@@ -129,31 +130,30 @@ function DashboardBody({ o, web, range, agentEver, demoOnly }: {
 function Totals({ o, web, demoOnly }: { o: Overview; web: WebAnalytics; demoOnly: boolean }) {
   const { counts, coverage, page_views: views, pages_per_session: pages } = o
   const kinds = ["agent", "human", "bot"] as const
-  const of = (verdict: Verdict, unit: string) => `${VERDICTS[verdict].label} ${unit}`
   const all = metricName
-  const perSession = (value: number | null) => (value === null ? "—" : METRICS.pages_per_session.shown(value))
-  const visitors = (n: number | null) => ({ value: n === null ? "—" : String(n), sub: n === null ? WORDS.noVisitorIds : undefined })
+  const perSession = (value: number | null) => (value === null ? NO_VALUE : METRICS.pages_per_session.shown(value))
+  const visitors = (n: number | null) => ({ value: n === null ? NO_VALUE : String(n), sub: n === null ? WORDS.noVisitorIds : undefined })
   const time = (t: ActiveTime) => (t ? { value: METRICS.active_time.shown(activeMinutes(t.active_ms)), sub: WORDS.outOfTotalTime(minutes(t.total_ms)) }
-    : { value: "—", sub: WORDS.noSessionsInRange })
+    : { value: NO_VALUE, sub: WORDS.noSessionsInRange })
   return (
     <section aria-label={WORDS.totals} className="grid auto-rows-fr grid-cols-2 gap-4 lg:grid-cols-4">
       <StatCard label={all(WORDS.sessions)} value={String(counts.all)} sub={demoOnly ? WORDS.allFromDemoShop : undefined} mark={<Activity className="size-4" aria-hidden />}
         help={<InfoTip label={all(WORDS.sessions)} lines={CLARITY.sessions} />} />
-      <StatCard label={sessionsOf("agent")} value={String(counts.agent)} mark={<VerdictIcon verdict="agent" />} />
-      <StatCard label={sessionsOf("human")} value={String(counts.human)} sub={counts.thin ? `${counts.thin} ${WORDS.withThinEvidence}` : undefined} mark={<VerdictIcon verdict="human" />} />
-      <StatCard label={sessionsOf("bot")} value={String(counts.bot)} mark={<VerdictIcon verdict="bot" />} muted help={<BotHelp bot={coverage.bot} />} />
+      <StatCard label={countOf("agent", WORDS.sessions)} value={String(counts.agent)} mark={<VerdictIcon verdict="agent" />} />
+      <StatCard label={countOf("human", WORDS.sessions)} value={String(counts.human)} sub={counts.thin ? `${counts.thin} ${WORDS.withThinEvidence}` : undefined} mark={<VerdictIcon verdict="human" />} />
+      <StatCard label={countOf("bot", WORDS.sessions)} value={String(counts.bot)} mark={<VerdictIcon verdict="bot" />} muted help={<BotHelp bot={coverage.bot} />} />
       <StatCard label={all(WORDS.visitors)} {...visitors(web.visitors.all)} mark={<UsersRound className="size-4" aria-hidden />}
         help={<InfoTip label={all(WORDS.visitors)} lines={[WORDS.about.visitors, WORDS.visitorsAre]} />} />
-      {kinds.map((v) => <StatCard key={`${v}-visitors`} label={of(v, WORDS.visitors)} {...visitors(web.visitors[v])} mark={<VerdictIcon verdict={v} />} muted={v === "bot"} />)}
+      {kinds.map((v) => <StatCard key={`${v}-visitors`} label={countOf(v, WORDS.visitors)} {...visitors(web.visitors[v])} mark={<VerdictIcon verdict={v} />} muted={v === "bot"} />)}
       <StatCard label={all(WORDS.pageViews)} value={String(views.all)} mark={<FileText className="size-4" aria-hidden />}
         help={<InfoTip label={all(WORDS.pageViews)} lines={WORDS.about.pageViews} />} />
-      {kinds.map((v) => <StatCard key={`${v}-views`} label={of(v, WORDS.pageViews)} value={String(views[v])} mark={<VerdictIcon verdict={v} />} muted={v === "bot"} />)}
+      {kinds.map((v) => <StatCard key={`${v}-views`} label={countOf(v, WORDS.pageViews)} value={String(views[v])} mark={<VerdictIcon verdict={v} />} muted={v === "bot"} />)}
       <StatCard label={all(WORDS.activeTime)} {...time(web.active_time.all)} mark={<Timer className="size-4" aria-hidden />}
         help={<InfoTip label={all(WORDS.activeTime)} lines={CLARITY.activeTime} />} />
-      {kinds.map((v) => <StatCard key={`${v}-time`} label={of(v, WORDS.activeTime)} {...time(web.active_time[v])} mark={<VerdictIcon verdict={v} />} muted={v === "bot"} />)}
+      {kinds.map((v) => <StatCard key={`${v}-time`} label={countOf(v, WORDS.activeTime)} {...time(web.active_time[v])} mark={<VerdictIcon verdict={v} />} muted={v === "bot"} />)}
       <StatCard label={all(WORDS.pagesPerSession)} value={perSession(pages.all)} sub={pages.all === null ? WORDS.noSessionsInRange : undefined} mark={<Files className="size-4" aria-hidden />}
         help={<InfoTip label={all(WORDS.pagesPerSession)} lines={WORDS.about.pagesPerSession} />} />
-      {kinds.map((v) => <StatCard key={`${v}-pages`} label={of(v, WORDS.pagesPerSession)} value={perSession(pages[v])} sub={pages[v] === null ? WORDS.noSessionsInRange : undefined}
+      {kinds.map((v) => <StatCard key={`${v}-pages`} label={countOf(v, WORDS.pagesPerSession)} value={perSession(pages[v])} sub={pages[v] === null ? WORDS.noSessionsInRange : undefined}
         mark={<VerdictIcon verdict={v} />} muted={v === "bot"} />)}
     </section>
   )

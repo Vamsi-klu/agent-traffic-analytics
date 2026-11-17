@@ -1,7 +1,7 @@
 """The server half's shared secret, $CAKE_HOME/srv_secret: agentcake/edge_secret.py (from cake 0.3.3;
 these tests moved here with it from test_demo_token.py).
 
-    python3 -I -m unittest discover -s tests -p test_edge_secret.py -v      (from the Agent Cake folder)
+    python3 -I -m unittest discover -s tests -p test_edge_secret.py -v      (from the AgentCake folder)
 
 srv_secret() reads it and takes no secret shorter than secret_min_chars; create_secret() makes one readable by its
 owner only and never writes over a file that is there; ensure_secret() makes one on first use, once, whichever of many

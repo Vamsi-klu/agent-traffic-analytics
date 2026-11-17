@@ -1,4 +1,5 @@
-"""cake.js is built from agentcake/static/src/ by agentcake/build_js.py.
+"""cake.js is built from agentcake/static/src/ by tools/build_js.py, a tool of the repository that the package does
+not carry; the package serves the committed build with an installation's values filled in (agentcake/assets.py).
 
     python3 -I -m unittest discover -s tests -v      (from the repository root)
 
@@ -12,13 +13,15 @@ import hashlib
 import json
 import os
 import re
+import subprocess
 import sys
 import unittest
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 
-from agentcake import build_js  # noqa: E402  (the repository root is put on sys.path first)
+from agentcake import assets  # noqa: E402  (the repository root is put on sys.path first)
+from tools import build_js  # noqa: E402
 
 PACKAGE = os.path.join(ROOT, "agentcake")
 CONFIG_PATH = os.path.join(PACKAGE, "data", "cakejs.json")
@@ -115,7 +118,7 @@ class Build(unittest.TestCase):
 
     def test_committed_script_is_what_the_build_makes_now(self):
         committed = read(os.path.join(PACKAGE, self.config["build"]["out"]))
-        self.assertEqual(committed, self.script, "cake.js is stale: run python3 -I agentcake/build_js.py")
+        self.assertEqual(committed, self.script, "cake.js is stale: run python3 -I tools/build_js.py")
 
     def expected_config(self, config):
         expected = dict(config["script"])
@@ -181,12 +184,32 @@ class Build(unittest.TestCase):
         self.assertIn("fetch(", read(os.path.join(PACKAGE, "static", "src", "transport.js")))
 
     def test_runtime_values_are_filled_in_when_served(self):
-        served = build_js.with_runtime(self.script, {"site_key": "k-test", "hook_dom": True})
+        served = assets.with_runtime(self.script, {"site_key": "k-test", "hook_dom": True})
         self.assertIn('{"hook_dom":true,"site_key":"k-test"}', served)
-        again = build_js.with_runtime(served, {"site_key": "other"})
+        again = assets.with_runtime(served, {"site_key": "other"})
         self.assertIn('{"site_key":"other"}', again)
         self.assertNotIn("k-test", again)
         self.assertEqual(len(again) - len('{"site_key":"other"}'), len(self.script) - len("{}"))
+
+    def test_cake_serves_the_committed_build_with_the_installations_values(self):
+        values = {"site_key": "k-test", "hook_dom": False, "hide_selectors": []}
+        self.assertEqual(assets.served_script(values), assets.with_runtime(self.script, values))
+
+    def test_the_header_names_the_tool_that_made_it(self):
+        self.assertIn("Made by tools/build_js.py from agentcake/static/src/", self.script.split("\n", 1)[0])
+
+
+class Layout(unittest.TestCase):
+    """The package carries what runs (the built cake.js and assets.py, which serves it); building cake.js from its
+    sources is a tool of the repository, as the release leaves the sources out."""
+
+    def test_the_package_does_not_carry_the_build_tool(self):
+        self.assertFalse(os.path.exists(os.path.join(PACKAGE, "build_js.py")))
+
+    def test_the_check_runs_from_the_repository(self):
+        done = subprocess.run([sys.executable, "-I", os.path.join(ROOT, "tools", "build_js.py"), "--check"],
+                              capture_output=True, text=True)
+        self.assertEqual((done.returncode, done.stdout.strip()), (0, "cake.js is current"), done.stderr)
 
 
 if __name__ == "__main__":

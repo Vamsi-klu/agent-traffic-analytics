@@ -50,12 +50,14 @@
   ],
   "version": "{command} {version}",
   "unknown_command": "unknown command; try: {command} help",
+  "option_unknown": "{command} {subcommand} doesn't take {word}; try: {command} help",
+  "option_needs_value": "{command} {subcommand} {word} needs a value; try: {command} help",
   "not_running": "{name} is not running",
   "lists_not_updated": "lists not updated, the ones in use stay: {error}",
   "lists_usage": "usage: {command} lists | {command} lists update",
 
   "eval_options": {
-    "about": "Measures how well {name} judges sessions with known answers and checks the thresholds in eval/thresholds.json. It uses lab sessions, clean human recordings, splices and a CAKE_HOME's labelled sessions, with PostHog replays as reference only. Reads only.",
+    "about": "Measures how well {name} judges sessions with known answers and checks the thresholds in eval/thresholds.json. It uses lab sessions, clean human recordings, splices and a CAKE_HOME's labelled sessions, with PostHog replays as reference only and a website's own labelled sessions held out. Reads only.",
     "gate": "exit 0 only when every threshold this command measures passes (1 when one fails or has no data)",
     "out": "folder to write eval.md and eval.json into",
     "no_logistic": "skip training the lab's logistic regression on its splices (it takes minutes)",
@@ -72,9 +74,12 @@
     "cakejs_uploads": "folder of recorded cake.js uploads",
     "named_user_agents": "named User-Agents for threshold A7 (default: eval/named_user_agents.json)",
     "selfcollect": "the data folder of the recorder copy our own runs used (Claude Code with an MCP server, automation dressed up as a human)",
-    "truth_selfcollect": "the list of our own runs' recordings"
+    "truth_selfcollect": "the list of our own runs' recordings",
+    "site_home": "a copy of a website's data folder whose sessions --truth-site lists (held out: reported on its own)",
+    "truth_site": "the list of that website's labelled sessions"
   },
   "eval_no_thresholds": "No thresholds file: {command} eval reads eval/thresholds.json and its data sets from a checkout of {name}'s source, which a release does not carry. Run the checkout's bin/{command} eval, or give --thresholds and the data sets (see {command} eval --help).",
+  "eval_from_checkout": "{command} eval reads eval/thresholds.json and its data sets from a checkout of {name}'s source, which a release does not carry. Run the checkout's bin/{command} eval.",
   "eval_wrote": "Wrote {folder}/{report} and {folder}/{data}.",
   "eval_gate_pass": "Gate: every threshold measured here passes.",
   "eval_gate_fail": "Gate: not passing (failed or no data): {ids}.",
@@ -91,7 +96,7 @@
   "logs_unknown_format": "unknown --format {format}; the formats are {formats}",
   "logs_bad_since": "--since takes a number and a unit, s, m, h or d: for example --since 10m",
   "logs_cannot_read": "cannot read {file}: {error}",
-  "logs_no_secret": "no server middleware secret in {path}: on the {name} server `{command} secret print` prints it; put it there through a pipe (SERVER.md, \"Server logs\")",
+  "logs_no_secret": "no server middleware secret in {path}: on the {name} server `{command} secret print` prints it; put it there through a pipe (SERVER.md, \"Server logs\": {source}/SERVER.md)",
   "logs_refused_secret": "{url} answered {status}: the server middleware secret in {path} is not the one of that {name}",
   "logs_refused": "{url} answered {status}: the records were not taken",
   "logs_unreachable": "nothing answers at {url}: is {name} running there? ({error})",
@@ -185,7 +190,7 @@
   "doctor_logs_info": "{format}, last import {when}: {records} page requests, {matched} matched a visit",
   "doctor_logs_missing": "; not in the log format: {fields}",
   "doctor_logs_empty": "; empty on every page request: {fields}",
-  "doctor_logs_no_address": "; no line can match: the uploads carry no visitor address (turn on trust_lb behind your load balancer, SERVER.md)",
+  "doctor_logs_no_address": "; no line can match: the uploads carry no visitor address (turn on trust_lb behind your load balancer, SERVER.md: {source}/SERVER.md)",
   "doctor_logs_time": "%Y-%m-%d %H:%M UTC",
   "doctor_logs_formats": " (`{command} logs formats` prints the recommended format)",
   "doctor_sandbox_note":"Note: if '{command} start' fails with 'Operation not permitted', a sandbox is blocking local network access, not {name}.",
@@ -263,7 +268,7 @@
     "Step 2. Tell the user, in their language:",
     "  - open {base}/ in their browser: first it asks them to register (theirs to do: never fill it in for them),",
     "    then it shows how to connect their website, step by step;",
-    "  - visitors of a public website cannot reach 127.0.0.1 on this computer: for them, {name} runs on a server (SERVER.md);",
+    "  - visitors of a public website cannot reach 127.0.0.1 on this computer: for them, {name} runs on a server (SERVER.md: {source}/SERVER.md);",
     "  - only if they ask you to connect the website: run  {launcher} setup --print --site  in the website's code folder."
   ],
   "setup_site": [
@@ -275,7 +280,7 @@
     "Local page:   {base}/",
     "Detected:     {framework}  ({folder})"
   ],
-  "setup_site_server_mode": "Server mode:  public listener {listen}, path {prefix}: visitors' browsers reach {name} at {prefix}/ on the site's own domain (SERVER.md)",
+  "setup_site_server_mode": "Server mode:  public listener {listen}, path {prefix}: visitors' browsers reach {name} at {prefix}/ on the site's own domain (SERVER.md: {source}/SERVER.md)",
   "setup_site_settings": [
     "",
     "Step 1. Save the settings (run these):",
@@ -390,18 +395,18 @@
   "setup_site_tell_local": [
     "  - a site running on this computer (dev server at localhost) sends visits to {name} right away;",
     "  - visitors of a public website cannot reach 127.0.0.1 on this computer: for them {name} has to run on a server the",
-    "    website can reach (SERVER.md says how); deploying the site change is theirs;"
+    "    website can reach (SERVER.md says how: {source}/SERVER.md); deploying the site change is theirs;"
   ],
   "setup_site_tell_server": [
     "  - this {name} is in server mode: visitors' browsers reach it at {prefix}/ on the site's own domain, through the load",
-    "    balancer's path rule (SERVER.md); deploying the site change, and giving the site's server the secret, is theirs;"
+    "    balancer's path rule (SERVER.md: {source}/SERVER.md); deploying the site change, and giving the site's server the secret, is theirs;"
   ],
   "setup_site_tell_privacy": ["  - mention session recording in the site's privacy policy;"],
   "setup_site_tell_identify": ["  - if the site has sign-in, {name} can count each signed-in visitor once across browsers and devices. Only if",
                                "    they ask, add  window.cake.identify(<the site's own ID for the visitor>)  where sign-in succeeds and",
                                "    window.cake.reset()  where it signs out. Use an ID that is hard to guess, never an e-mail address or a number",
-                               "    that counts up: the browser sends only a hash of it (PRIVACY.md, \"Counting a signed-in visitor once\")."],
+                               "    that counts up: the browser sends only a hash of it (PRIVACY.md, \"Counting a signed-in visitor once\": {source}/PRIVACY.md)."],
 
-  "site_sentence": "Connect this website to {name}. First, ask the site owner for the website's address and where {name} should run. Also ask for any details that the code doesn't include. Suggest a server that the website can reach. Visitors to a public website can't connect to this computer. This computer only works for a site that runs locally. If {name} runs on a server, follow SERVER.md. Then, in the website's project folder, run `{launcher} setup --print --site` and follow the steps that it prints. Run `{launcher} doctor` last, and report its result and any remaining steps to the site owner.",
+  "site_sentence": "Connect this website to {name}. First, ask the site owner for the website's address and where {name} should run. Also ask for any details that the code doesn't include. Suggest a server that the website can reach. Visitors to a public website can't connect to this computer. This computer only works for a site that runs locally. If {name} runs on a server, follow SERVER.md ({source}/SERVER.md). Then, in the website's project folder, run `{launcher} setup --print --site` and follow the steps that it prints. Run `{launcher} doctor` last, and report its result and any remaining steps to the site owner.",
   "web_not_built": "{name}'s local pages are not built. In its web folder run  npm ci && npm run build  (the pages go to {folder}), or set CAKE_WEB_DIR to a folder that has them."
 }

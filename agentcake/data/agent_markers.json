@@ -1,5 +1,5 @@
 {
-  "_doc": "The marks agent products draw on a page while they work, which cake.js watches so that cake knows when each was there (threshold A5: where a human took over; docs/collect-format.md, records 'marker' and 'markers'). build_js.py puts the 'page' object into cake.js as CFG.markers: how often to look, the shape of an extension's closed-shadow-root host, and per mark either element ids and a CSS selector (the mark is an element of the page's own DOM: it appeared or went away; ids are looked up directly, the selector is matched again only after the page's DOM changed: 'attributes' lists every attribute a selector reads, so that a change of one counts) or spots to hit-test (the mark is drawn inside a closed shadow root, which no selector reaches: document.elementFromPoint at a spot returns the host while the mark covers it; spots are tested only while <body> or <html> has a child of the host's shape). A spot is x, a fraction of the viewport's width, and top or bottom, CSS px from that edge. 'markers' says what each mark is: the product (the id the lists and env_rules.json name it by where the lists have it, else a short name of our own), its kind (legend), the product versions and the date of the evidence, its grade (env_rules.json's legend; only 'measured' has been seen in our own recordings: re-grade a mark once the user's recordings show it), its sources (source_refs), known collisions, and the words a reason uses ({span}, written as 'spans' says, times from the visit's start). 'turn_kinds': the kinds whose spans bound the agent's turn, which the behaviour timeline gives to the agent (agentcake/detect/timeline.py). 'recorder': the mark that the recorder's own check of the indicator (its raw.js 'overlay' items) stands for, so that its recordings are read like cake.js's (env_signals.from_lab). Products redraw their marks with new versions, so this file is updated on its own: edit it, then run python3 -I agentcake/build_js.py. Selectors copied from agent-detector (MIT) and botscent (MIT) are credited in source_refs and THIRD_PARTY.md.",
+  "_doc": "The marks agent products draw on a page while they work, which cake.js watches so that cake knows when each was there (threshold A5: where a human took over; docs/collect-format.md, records 'marker' and 'markers'). tools/build_js.py puts the 'page' object into cake.js as CFG.markers: how often to look, the shape of an extension's closed-shadow-root host, and per mark either element ids and a CSS selector (the mark is an element of the page's own DOM: it appeared or went away; ids are looked up directly, the selector is matched again only after the page's DOM changed: 'attributes' lists every attribute a selector reads, so that a change of one counts) or spots to hit-test (the mark is drawn inside a closed shadow root, which no selector reaches: document.elementFromPoint at a spot returns the host while the mark covers it; spots are tested only while <body> or <html> has a child of the host's shape). A spot is x, a fraction of the viewport's width, and top or bottom, CSS px from that edge. 'markers' says what each mark is: the product (the id the lists and env_rules.json name it by where the lists have it, else a short name of our own), its kind (legend), the product versions and the date of the evidence, its grade (env_rules.json's legend; only 'measured' has been seen in our own recordings: re-grade a mark once the user's recordings show it), its sources (source_refs), known collisions, and the words a reason uses: for a turn kind's mark, the mark as a noun the reason names ('All actions while <text> was visible count as agent actions'), with no time, since the summary says when the agent was active (agentcake/detect/verdict_marks.py); other kinds keep {span}, written as 'spans' says, times from the visit's start. 'turn_kinds': the kinds whose spans bound the agent's turn, which the behaviour timeline gives to the agent (agentcake/detect/timeline.py). 'recorder': the mark that the recorder's own check of the indicator (its raw.js 'overlay' items) stands for, so that its recordings are read like cake.js's (env_signals.from_lab). Products redraw their marks with new versions, so this file is updated on its own: edit it, then run python3 -I tools/build_js.py. Selectors copied from agent-detector (MIT) and botscent (MIT) are credited in source_refs and THIRD_PARTY.md.",
   "legend": {
     "kinds": {
       "indicator": "Shown while the agent works and taken away when it stops: its times bound the agent's turn.",
@@ -11,12 +11,12 @@
   },
   "source_refs": {
     "claude-chrome-1.0.107": "Claude in Chrome 1.0.107 as installed (extension fcoeoabgfenejglbffodgkkbkcdhcgfn), assets/agent-visual-indicator.js, read on 2026-11-13 (not run, not changed)",
-    "lab": "Agent Cake's lab recordings of 2026-11-11 (ours): Claude in Chrome 1.0.106 driven by Claude Code, 4 sessions",
+    "lab": "AgentCake's lab recordings of 2026-11-11 (ours): Claude in Chrome 1.0.106 driven by Claude Code, 4 sessions",
     "agent-detector": "doubleagent-so/agent-detector 0.4.1, commit a523214c3b6740a96c312dd011f8b2310589879a, MIT: src/catalog/fingerprinted.ts (the selectors) and src/catalog/entries.ts (where each comes from)",
     "botscent": "nalinbhardwaj/botscent 1.2.0, commit 7f948003, MIT: src/page/observe.ts (markers) and registry/reasons.json",
     "cheq": "CHEQ, 'The Cyborg Session: reversing and detecting the Claude AI agent Chrome extension', 2026-02-18, updated 2026-05-29 (a detection vendor's research)",
     "browser-use": "browser-use, browser_use/repl/highlight.py, fetched 2026-11-12",
-    "recorder": "The data-collection kit's recorder (not part of Agent Cake), static/raw.js: its `overlay` items, as of 2026-11-13"
+    "recorder": "The data-collection kit's recorder (not part of AgentCake), static/raw.js: its `overlay` items, as of 2026-11-13"
   },
   "spans": {
     "closed": "from {from} to {to}",
@@ -60,8 +60,8 @@
       "evidence": "1.0.107's agent-visual-indicator.js: the 'Claude is working here' tag (#claude-page-tag, data-state working), 47 px high, centred at the top edge or, when the agent's next target is under it, at the bottom edge; pointer-events auto; inside the host's closed shadow root. It is shown while the agent works and removed when it stops; for a screenshot it is made transparent, not removed, so that it stays in elementFromPoint. Lab 2026-11-11 (1.0.106): the host, an attribute-less <div> with display: contents under <body>, on 13 of 13 pages. Not yet in a recording of 1.0.107: re-grade after the hand-off recordings (handoff-cic).",
       "sources": ["claude-chrome-1.0.107", "lab"],
       "collisions": "Another extension that draws a clickable mark at the same spot from an attribute-less display: contents host (none known; untested). While the page is hidden the extension draws nothing, and cake.js does not look.",
-      "text": "Claude in Chrome was active {span}",
-      "detail": "Claude in Chrome's “working” indicator appears on the screen {span}."
+      "text": "Claude in Chrome's working indicator",
+      "detail": "Claude in Chrome shows its “working” indicator on the screen while it works."
     },
     "claude-chrome.waiting": {
       "product": "claude-chrome",
@@ -96,8 +96,8 @@
       "evidence": "botscent's claude.marker.active: these ids are on the page while the agent acts and gone before the human's first click (measured by botscent on 2026-10-02). From 1.0.105 the extension draws them inside its closed shadow root: lab 2026-11-11, 0 of 4 sessions of 1.0.106.",
       "sources": ["botscent", "agent-detector", "cheq", "lab"],
       "collisions": "A site's own element with one of these ids.",
-      "text": "Claude in Chrome was active {span}",
-      "detail": "An indicator from an older version of Claude in Chrome appears on the page {span}."
+      "text": "Claude in Chrome's indicator",
+      "detail": "An older version of Claude in Chrome puts its indicator on the page while it works."
     },
     "claude-chrome.styles": {
       "product": "claude-chrome",
@@ -120,8 +120,8 @@
       "evidence": "agent-detector's catalogue (#pplx-agent-overlay-stop-button, and any id starting with pplx-agent, which the selector covers; it cites Castle's research and the MIT AI Agent Index), which lists the stop button among Comet's traces. Not measured by us.",
       "sources": ["agent-detector"],
       "collisions": "A site's own element whose id starts with pplx-agent.",
-      "text": "Comet's agent was active {span}",
-      "detail": "Comet's agent overlay appears on the page {span}."
+      "text": "Comet's agent indicator",
+      "detail": "Comet shows its agent overlay on the page while its agent works."
     },
     "chatgpt-chrome.badge": {
       "product": "chatgpt-chrome",
@@ -132,8 +132,8 @@
       "evidence": "botscent's chatgpt.badge.active: ChatGPT for Chrome badges the page's icon while it works (71 samples in 17 documents, botscent's measurement). Not measured by us.",
       "sources": ["botscent"],
       "collisions": "None known.",
-      "text": "ChatGPT for Chrome was active {span}",
-      "detail": "The ChatGPT for Chrome activity badge appears on the page's icon {span}."
+      "text": "the ChatGPT for Chrome activity badge",
+      "detail": "ChatGPT for Chrome shows an activity badge on the page's icon while it works."
     },
     "fellou.highlight": {
       "product": "fellou",
@@ -168,8 +168,8 @@
       "evidence": "agent-detector's catalogue, from Stagehand's source (its cursor overlay and its masks).",
       "sources": ["agent-detector"],
       "collisions": "None known.",
-      "text": "Stagehand was active {span}",
-      "detail": "Stagehand's cursor overlay appears on the page {span}."
+      "text": "Stagehand's cursor indicator",
+      "detail": "Stagehand draws its cursor overlay on the page while it works."
     },
     "skyvern.overlay": {
       "product": "skyvern",
@@ -192,8 +192,8 @@
       "evidence": "The recorder's raw.js hit-tests the middle of the viewport 12 px from the top and 12 px and 36 px from the bottom every 250 ms and counts a hit on an attribute-less <div> under <body>: 1.0.107's working tag at either edge (claude-chrome.working) and, 36 px from the bottom, also its Stop button, the tab pill and the 'needs your input' tag at the bottom edge (part of claude-chrome.bottom). Only in the recorder's recordings; cake.js watches the marks of 'page'.",
       "sources": ["recorder", "claude-chrome-1.0.107"],
       "collisions": "The tab pill shows while the tab is shared with Claude, working or not, and the 'needs your input' tag while it waits for the human: at the bottom edge both count as lit here. The recorder flags a hand-off whose human stretch had the indicator lit.",
-      "text": "Claude in Chrome was active {span}",
-      "detail": "The Claude in Chrome indicator appears in the recording {span}."
+      "text": "the Claude in Chrome indicator",
+      "detail": "The recording shows the Claude in Chrome indicator on the screen."
     },
     "skyvern.ids": {
       "product": "skyvern",

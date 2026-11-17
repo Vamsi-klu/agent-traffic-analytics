@@ -1,7 +1,7 @@
 """Settings and data files: every value comes from defaults.json or data/*.json, the user's config.json
 overrides a default, `config get` says where each value comes from, and bad values are refused as in 0.3.4.
 
-    python3 -I -m unittest discover -s tests -v      (from the Agent Cake folder)
+    python3 -I -m unittest discover -s tests -v      (from the AgentCake folder)
 
 "Behaviour follows the default" is shown by changing a default in this process (mock.patch.dict on the table read
 from defaults.json, or on a loaded data file) and watching the code that uses it change. Every test has its own
@@ -46,8 +46,7 @@ class Home(unittest.TestCase):
             return json.load(f)
 
     def post(self, body, public=False, at_s=NOW_S):
-        with mock.patch("agentcake.collect.time") as clock:
-            clock.time.return_value = at_s
+        with mock.patch.object(collect, "clock_ms", return_value=at_s * 1000):
             return collect.collect(Request("/collect", {}, http.client.HTTPMessage(), json.dumps(body).encode()), public)
 
     def session_row(self, sid, columns):

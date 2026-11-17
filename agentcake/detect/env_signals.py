@@ -33,8 +33,8 @@ only, a setting true when it was on for any page view of the visit; the lab's ow
 from __future__ import annotations
 
 from collections import Counter, defaultdict, namedtuple
-from urllib.parse import urlsplit
 
+from agentcake import addresses
 from agentcake.detect import markers
 from agentcake.detect.env_rules import load_rules
 
@@ -273,7 +273,7 @@ def _cake_parts(pv, view, signals, visit, page_requests):
     botd = by_type["botd"][-1] if by_type["botd"] else None
     raw = [record for batch in view for record in batch.get("r") or []]
     url = next((batch.get("u") for batch in view if batch.get("u")), None)
-    return _Parts(path=urlsplit(url).path if url else None, env=env, autos=[auto] if auto else [],
+    return _Parts(path=addresses.path(url), env=env, autos=[auto] if auto else [],
                   botd={k: v for k, v in botd.items() if k not in CAKE_RECORD_KEYS} if botd else None,
                   items=raw, raw_ran=bool(raw), dom_watch=True, botscent=by_type[CAKE_BOTSCENT_RECORD],
                   nav=(page_requests or {}).get(pv),

@@ -1,4 +1,4 @@
-// Agent Cake page script, part: raw input events and page-structure changes, stream "r".
+// AgentCake page script, part: raw input events and page-structure changes, stream "r".
 //
 // Ported from the research lab's raw.js (our research code, 11/11;
 // our own code). It records raw values only; cake judges later. The field names are the lab's, so the lab's

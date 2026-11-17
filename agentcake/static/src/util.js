@@ -1,4 +1,4 @@
-// Agent Cake page script, part: small shared helpers.
+// AgentCake page script, part: small shared helpers.
 //
 // build_js.py concatenates the parts in agentcake/static/src/ into agentcake/static/cake.js, each inside its own
 // function, and gives them in the enclosing scope:

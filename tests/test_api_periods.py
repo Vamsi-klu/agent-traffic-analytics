@@ -1,6 +1,6 @@
 """agentcake/api/periods.py: the date ranges and the wall-clock words, in this computer's timezone.
 
-    python3 -I -m unittest discover -s tests -p test_api_periods.py -v      (from the Agent Cake folder)
+    python3 -I -m unittest discover -s tests -p test_api_periods.py -v      (from the AgentCake folder)
 
 Each test fixes the timezone (America/Los_Angeles, which changes for daylight saving on 2026-11-01) and the clock.
 """

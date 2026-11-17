@@ -1,7 +1,7 @@
 """The environment layer: the rule table agentcake/data/env_rules.json and its evaluator,
 agentcake/detect/env_rules.py.
 
-    python3 -I -m unittest discover -s tests -v      (from the Agent Cake folder)
+    python3 -I -m unittest discover -s tests -v      (from the AgentCake folder)
 
 Every rule has hit and miss cases (tests/fixtures/env_rules/cases.json). The checks on the lab's recorded sessions
 (case T6's environment part) are kept with those recordings, outside the published repository.
@@ -12,6 +12,8 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 from agentcake.detect import env_rules  # noqa: E402
 from agentcake.detect.env_rules import EnvRulesError, evaluate, load_rules, parse_rules  # noqa: E402
+sys.path.insert(0, os.path.join(ROOT, "tests"))
+from verdict_cases import botscent_reasons, hit_fields  # noqa: E402
 
 FIXTURES = os.path.join(ROOT, "tests", "fixtures", "env_rules")
 DELETE = "$delete"  # in a case: remove this key, i.e. the input was not recorded
@@ -191,7 +193,7 @@ class EvaluateTest(unittest.TestCase):
         host = {"tag": "DIV", "nattr": 0, "attrs": [], "open_shadow": 0, "disp": "contents", "parent": "body",
                 "how": "added"}
         page = merge(self.page, {"env": {"window": {"iw": 1280, "ih": 720}}, "dom_add": [host]})
-        hits = [hit.as_dict() for hit in evaluate({"pages": [page]}, self.table).hits]
+        hits = [hit_fields(found) for found in evaluate({"pages": [page]}, self.table).hits]
         json.dumps(hits)
         viewport = next(h for h in hits if h["rule"] == "env.auto.default-viewport")
         self.assertEqual(viewport["value"], {"env.window.iw": 1280, "env.window.ih": 720})
@@ -203,7 +205,7 @@ class EvaluateTest(unittest.TestCase):
         page = merge(self.page, {"env": {"webdriver": True},
                                  "botscent": {"reasons": ["muse.cloud-browser.password-manager"]}})
         hits = evaluate({"pages": [page]}, self.table).hits
-        self.assertEqual(sorted(env_rules.botscent_reasons(hits, self.table)),
+        self.assertEqual(sorted(botscent_reasons(hits, self.table)),
                          ["browser.webdriver-flag", "muse.cloud-browser.password-manager"])
 
 

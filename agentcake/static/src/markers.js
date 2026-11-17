@@ -1,4 +1,4 @@
-// Agent Cake page script, part: the marks agent products draw on the page, and when each was there (threshold A5),
+// AgentCake page script, part: the marks agent products draw on the page, and when each was there (threshold A5),
 // stream "x".
 //
 // Some agent products draw on the page while they work: Claude in Chrome a "working" tag and a Stop button, Comet a

@@ -2,7 +2,7 @@
 
 The synthesis of our research on agent signals: four layers (name, verification, environment, behaviour), signatures
 name the infrastructure but never who acts at a moment, and only a certain name makes a Bot. Its conflict table is
-the specification and tests/test_verdict.py pins it rule by rule.
+the specification and tests/test_verdict.py pins it rule by rule (the browser names: test_verdict_browsers.py).
 
  0  Exclusion. A page requested as a prefetch or prerender (the server half's token carries Sec-Purpose) keeps its
     page half, but its server half is not used; a page prerendered and never shown is left out; a session with no
@@ -11,11 +11,11 @@ the specification and tests/test_verdict.py pins it rule by rule.
     (certain), never who acts at a given moment; a failed check is impersonation: no name, Automated browser.
  3  Bot: a listed program that is not an agent, its name not impersonated, is a Bot (verified or self-reported
     only) and the behaviour model is not run. Guessed patterns never make a Bot.
- 4  Environment: hard automation and spoofing traces are not overturned by behaviour: an Agent in the Automated
-    browser row, never Mixed. Any other hard trace (a product rule, an extension acting on the page) says an agent is
-    here, like a signature: a human may take over. Soft traces count only with company: another trace that is not
-    weak, or the behaviour model judging an agent; alone, human behaviour gives Human and anything else Not sure.
-    Weak traces only go into the reasons.
+ 4  Environment: hard automation and spoofing traces are not overturned by behaviour: an Agent, never Mixed, in its
+    name's row (attribute.py), else the Automated browser row. Any other hard trace (a product rule, an extension acting
+    on the page) says an agent is here, like a signature: a human may take over; a rule naming a browser people also use
+    by hand only names it. Soft traces count only with company: another trace that is not weak, or the behaviour model
+    judging an agent; alone, human behaviour gives Human and anything else Not sure. Weak traces only go in reasons.
  5  Behaviour (the behaviour model through behavior.py): with agent evidence, a long enough human run (verdict.json "mixed")
     makes the session Mixed; without any, Mixed needs long enough runs of both (a hand-off lies between them, and
     the timeline marks it). Behaviour alone judging an agent is "possibly an agent on the visitor's own computer":
@@ -70,7 +70,7 @@ from agentcake import datafiles
 from agentcake.detect import (attribute, behavior, confidence, crawler, lists, model as behavior_model,
                               verdict_identity, verdict_marks, weak)
 from agentcake.detect.verdict_identity import IMPERSONATION, SELF_REPORTED, VERIFIED
-from agentcake.detect.verdict_text import env_reason, reason
+from agentcake.detect.verdict_text import reason
 from agentcake.units import MS_PER_S, PERCENT
 
 SETTINGS_FILE = "data/verdict.json"
@@ -122,10 +122,10 @@ def decide(evidence, settings=None, lists_=None):
     if pages and len(dropped) == len(pages):
         return confidence.annotate(_excluded(reasons + [reason("exclude.all")]), evidence)
     env = evidence.get("env")  # None: the session recorded no environment signals (cake 0.3.x)
-    hits = _usable_hits(env.hits if env else (), dropped, no_server)
     identity = verdict_identity.identify(evidence, lists_, settings)
+    hits = attribute.unexplained(_usable_hits(env.hits if env else (), dropped, no_server), identity)
     case = _Case(identity, hits, evidence, settings, lists_)
-    reasons += list(identity.reasons) + [env_reason(hit) for hit in hits] + case.reasons
+    reasons += list(identity.reasons) + attribute.env_reasons(hits, case.browsers) + case.reasons
     kept = [page.get("t") for index, page in enumerate(pages) if index not in dropped]
     crawler_like = crawler.reason(crawler.patterns(kept, evidence.get("network"), evidence.get("visits") or (),
                                                    settings), settings)
@@ -198,7 +198,8 @@ class _Case:
         self.session_start = next((page.get("t") for page in evidence.get("pages") or [] if page.get("t")), None)
         overruling = settings["overruling_kinds"]
         self.overruling = [h for h in hits if h.strength == HARD and h.kind in overruling]
-        self.present = [h for h in hits if h.strength == HARD and h.kind not in overruling]
+        self.browsers = attribute.browser_rules(hits, lists_)  # they name where the page is open, never who acts
+        self.present = [h for h in hits if h.strength == HARD and h.kind not in overruling and h not in self.browsers]
         self.soft = [h for h in hits if h.strength == SOFT]
         self.reasons, self.traces = [], []
         self.cls, self.row, self.kinds = self._classify()
@@ -234,13 +235,14 @@ class _Case:
         # a soft trace counts with another trace that is not weak (any other rule), or with agent behaviour
         others = {h.rule for h in self.overruling + self.present + self.soft}
         soft_ok = bool(self.soft) and (len(others) > 1 or says_agent)
-        traces = self.traces = self.present + (self.soft if soft_ok else [])
+        traces = self.present + (self.soft if soft_ok else [])
+        self.traces = traces + self.browsers  # what names the agent: a browser's own product rule too
         named = attribute.strong_name(identity, self.present, self.lists)
         if self.overruling or identity.status == IMPERSONATION or (identity.generic and not named):
             return self._automated(named)
         if named or identity.infrastructure or traces:
-            kinds = list(identity.evidence) + [self._trace_kind(h) for h in traces] + ["behavior"] * says_agent
-            row = (named or {}).get("row") or _env_row(traces, self.settings) or AI_ROW
+            kinds = attribute.class_evidence(identity) + [self._trace_kind(h) for h in traces] + ["behavior"] * says_agent
+            row = attribute.row_of(named, identity, self.browsers, self.lists) or _env_row(traces, self.settings) or AI_ROW
             return (MIXED if self.long_runs(HUMAN) else AGENT), row, kinds
         if self.soft:
             self.reasons.append(reason("env.soft-alone"))
@@ -254,10 +256,10 @@ class _Case:
 
     def _automated(self, named):
         """Rule 4's hard automation, an impersonated name or a tool anyone runs: behaviour does not overturn it."""
-        kinds = list(self.identity.evidence) + ["hard_env"] * bool(self.overruling)
+        kinds = attribute.class_evidence(self.identity) + ["hard_env"] * bool(self.overruling)
         if self.identity.generic and not self.identity.evidence:
             kinds.append("declared")
-        row = (named or {}).get("row") or AUTOMATED_ROW
+        row = attribute.row_of(named, self.identity, self.browsers, self.lists) or AUTOMATED_ROW
         if self.verdict == HUMAN:  # only the model's own conclusion is "judged the session human"
             self.reasons.append(reason("behavior.overruled"))
         return AGENT, row, kinds
@@ -357,7 +359,7 @@ def _shares(segments):
 def _layers(case):
     identity, result = case.identity, case.result
     # an impersonated name (never an entry too) is an automation lying about what it is (rules 1 to 3): not a Bot
-    name_state = (identity.entry["category"] if identity.entry
+    name_state = (identity.entry["category"] if identity.entry and not identity.entry.get("browser")
                   else AGENT if identity.impersonating or identity.generic else NO_HIT)
     counted = case.overruling or case.present or (case.soft and case.cls in (AGENT, MIXED))
     environment = {"state": AGENT if counted else (UNSURE if case.soft else NO_HIT)}

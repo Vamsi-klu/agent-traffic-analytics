@@ -1,7 +1,7 @@
 """A small JSON Schema validator for the /api contract in web/src/data/schema/, standard library only.
 
 The Python twin of web/scripts/json-schema.mjs: the same keywords, the same rules, the same "path: problem" lines, so
-the Python tests check Agent Cake's answers exactly as `npm run check:ui` checks the samples. Keywords: type (one name
+the Python tests check AgentCake's answers exactly as `npm run check:ui` checks the samples. Keywords: type (one name
 or a list), enum, const, properties, required, additionalProperties (false or a schema), items, minItems, maxItems,
 minimum, maximum, minLength, pattern, $ref ("#/$defs/X" or "<file>#/$defs/X"), $defs. Annotations ($schema, $id,
 title, description) are ignored. As in JSON Schema, a number keyword only applies to numbers and a string keyword only

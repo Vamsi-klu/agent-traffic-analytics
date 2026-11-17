@@ -129,6 +129,20 @@ class Capture(unittest.TestCase):
                 frames = [r for view in self.runs[name] for r in uploads.records(view, "x", "frames")]
                 self.assertEqual(len(frames), 1)
 
+    def test_the_devtools_probe_runs_in_a_frame_of_its_own_and_sees_playwright(self):
+        # Playwright drives every run with the DevTools protocol's Runtime domain on, which serialises the console
+        # calls of every frame of the page: the logged-error probe, run in a frame no page script touched, sees it.
+        probed = 0
+        for name in self.logs:
+            for view in self.runs[name]:
+                for record in uploads.records(view, "x", "cdp"):
+                    probed += 1
+                    with self.subTest(run=name, page=view["urls"][0]):
+                        leak = record["runtimeEnableLeak"]
+                        self.assertEqual(leak["console"], "frame")
+                        self.assertGreater(leak["prepareStackTraceCount"], 0)
+        self.assertGreater(probed, 0)
+
     def test_pages_kept_open_report_environment_and_detectors(self):
         # The detectors run after load, one idle task each: the humanlike visitor stays on a page long enough.
         for name in (n for n in self.logs if n.startswith("humanlike")):

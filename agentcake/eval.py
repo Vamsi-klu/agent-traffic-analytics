@@ -1,9 +1,9 @@
-"""`agentcake eval`: how well Agent Cake judges sessions with known answers, and the gate of eval/thresholds.json.
+"""`agentcake eval`: how well AgentCake judges sessions with known answers, and the gate of eval/thresholds.json.
 
     agentcake eval [--gate] [--out DIR] [--sources FILE] [--recordings DIR] [--posthog DIR] [--cake-home DIR]
                    [--truth-goal FILE] [--truth-manual FILE] [--truth-recordings FILE] [--thresholds FILE]
                    [--lab FILE] [--lab-signals FILE] [--uploads DIR] [--named FILE] [--selfcollect DIR]
-                   [--truth-selfcollect FILE] [--no-logistic]
+                   [--truth-selfcollect FILE] [--site-home DIR] [--truth-site FILE] [--no-logistic]
 
 Reads every data set it finds (agentcake/evaluation/sources.py: the command line, then the sources file, then the
 files of a checkout), judges each session with agentcake.detect and prints the report; with --out it writes
@@ -30,7 +30,8 @@ OPTIONS = (("--sources", "sources"), ("--recordings", "recordings"), ("--posthog
            ("--cake-home", "cake_home"), ("--truth-goal", "truth_goal"), ("--truth-manual", "truth_manual"),
            ("--truth-recordings", "truth_recordings"), ("--thresholds", "thresholds"), ("--lab", "lab_sessions"),
            ("--lab-signals", "lab_signals"), ("--uploads", "cakejs_uploads"), ("--named", "named_user_agents"),
-           ("--selfcollect", "selfcollect"), ("--truth-selfcollect", "truth_selfcollect"))
+           ("--selfcollect", "selfcollect"), ("--truth-selfcollect", "truth_selfcollect"), ("--site-home", "site_home"),
+           ("--truth-site", "truth_site"))
 REPORT_FILE, DATA_FILE = "eval.md", "eval.json"
 
 

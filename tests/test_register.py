@@ -142,7 +142,8 @@ class Send(unittest.TestCase):
         self.assertEqual(len(receiver.requests), 1)
 
     def test_an_address_that_is_not_one_is_not_sent(self):
-        for url in ("tartini", "ftp://example.com/register", "http://"):
+        """Also one urllib cannot read (an unclosed IPv6 bracket), as a register_url mistyped in config.json can be."""
+        for url in ("tartini", "ftp://example.com/register", "http://", "https://[", "http://[/register"):
             with self.subTest(url=url), self.assertRaises(register.NotSent) as failed:
                 register.send(written(), url)
             self.assertEqual(failed.exception.entry, "register_unreachable")

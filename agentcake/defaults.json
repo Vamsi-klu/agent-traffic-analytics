@@ -37,7 +37,7 @@
   "token_max_age_ms": {"default": 900000, "min": 0, "about": "A server middleware token older than this is stale."},
   "token_max_future_ms": {"default": 60000, "min": 0, "about": "How far ahead of this computer's clock a token's time may be (a site's clock may run ahead)."},
   "log_match_window_s": {"default": 30, "min": 0, "about": "Log import: a page request in your web server's log belongs to the page view whose first upload came from the same address (hashed) and User-Agent at most this many seconds after it."},
-  "log_match_skew_s": {"default": 2, "min": 0, "about": "Log import: how many seconds a page view's first upload may seem to arrive before its page request was logged, for when the web server's clock and Agent Cake's differ a little."},
+  "log_match_skew_s": {"default": 2, "min": 0, "about": "Log import: how many seconds a page view's first upload may seem to arrive before its page request was logged, for when the web server's clock and AgentCake's differ a little."},
 
   "db_timeout_s": {"default": 10, "min": 0, "about": "How long a database write waits for another one to finish."},
   "health_timeout_s": {"default": 2, "min": 0, "about": "How long status and start wait for the running server to answer."},

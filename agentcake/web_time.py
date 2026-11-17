@@ -31,9 +31,8 @@ session (only then are its stored records read).
 """
 import json
 from collections import Counter
-from urllib.parse import urlsplit
 
-from agentcake import streams
+from agentcake import addresses, streams
 from agentcake.datafiles import load
 
 SCRIPT = load("data/cakejs.json")["script"]
@@ -107,10 +106,8 @@ def _path_of(record, url):
 
 
 def _path(url):
-    try:
-        return urlsplit(url).path or ROOT if url else ROOT
-    except ValueError:
-        return ROOT
+    """The path of an address; the root for none, or for one that cannot be read (an upload's u is any text)."""
+    return addresses.path(url) or ROOT
 
 
 def _is_change(stream, record):

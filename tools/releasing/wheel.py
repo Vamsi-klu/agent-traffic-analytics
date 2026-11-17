@@ -12,6 +12,7 @@ import csv
 import hashlib
 import io
 import os
+import pathlib
 
 from tools.releasing import project as project_module
 from tools.releasing import reproducible
@@ -40,20 +41,16 @@ def record(entries, record_name):
     return out.getvalue().encode("utf-8")
 
 
-def read(path):
-    with open(path, "rb") as f:
-        return f.read()
-
-
 def entries(project):
     """Every file of the wheel, (name, bytes, executable) in the order they are written, RECORD last."""
     dist_info = project.dist_info()
-    files = [(name, read(path), executable) for name, path, executable in project.package_files()]
+    files = [(name, pathlib.Path(path).read_bytes(), executable)
+             for name, path, executable in project.package_files()]
     files.append((f"{dist_info}/METADATA", project.metadata().encode("utf-8"), False))
     files.append((f"{dist_info}/WHEEL", WHEEL_FILE.encode("utf-8"), False))
     files.append((f"{dist_info}/entry_points.txt", project.entry_points().encode("utf-8"), False))
     for name in project.license_files():
-        files.append((f"{dist_info}/{LICENSES_FOLDER}/{name}", read(os.path.join(project.root, name)), False))
+        files.append((f"{dist_info}/{LICENSES_FOLDER}/{name}", pathlib.Path(project.root, name).read_bytes(), False))
     record_name = f"{dist_info}/RECORD"
     files.append((record_name, record(files, record_name), False))
     return files

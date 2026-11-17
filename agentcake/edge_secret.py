@@ -1,7 +1,7 @@
 """The server half's shared secret, $CAKE_HOME/srv_secret (from cake 0.3.3).
 
 A site's middleware (edge/) signs each page's token with it, and `agentcake logs import` signs each batch it sends to
-/edge with it (edge_signature.py); this Agent Cake checks both with it. srv_secret() reads it: None when there is none
+/edge with it (edge_signature.py); this AgentCake checks both with it. srv_secret() reads it: None when there is none
 or it is shorter than secret_min_chars (data/sizes.json), and the server half is then off. create_secret() makes one for
 `agentcake secret init`: random (random_bytes.secret), base64url, readable by its owner only, and never over a file that
 is there. ensure_secret() makes it on first use, for a web server log's import on this computer (logs.py), where

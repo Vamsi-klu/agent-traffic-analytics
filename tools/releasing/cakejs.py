@@ -1,4 +1,4 @@
-"""cake.js in the release: the committed build of agentcake/build_js.py, minified with esbuild.
+"""cake.js in the release: the committed build of tools/build_js.py, minified with esbuild.
 
 esbuild (MIT, https://github.com/evanw/esbuild) is pinned in tools/releasing/package.json and package-lock.json and
 installed with `npm ci` in the exported commit; it is used only here, never shipped. Before minifying, build_js.py
@@ -18,7 +18,7 @@ import sys
 from tools.releasing import commands
 from tools.releasing.settings import ReleaseError, read_json
 
-MARKERS = 2  # the runtime value sits between an opening and a closing marker (agentcake/build_js.py)
+MARKERS = 2  # the runtime value sits between an opening and a closing marker (agentcake/assets.py with_runtime)
 
 
 def marker_expression(marker):

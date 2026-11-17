@@ -1,6 +1,6 @@
 """Opening the database: agentcake/store.py's db().
 
-    python3 -I -m unittest discover -s tests -p test_store.py -v      (from the Agent Cake folder)
+    python3 -I -m unittest discover -s tests -p test_store.py -v      (from the AgentCake folder)
 
 db() sets a database up once: a new one, or one an older cake made, gets schema.sql's tables, indexes and triggers
 and the newer columns, in WAL mode, and is marked with PRAGMA user_version = store.SCHEMA_VERSION. A database
@@ -344,6 +344,24 @@ class OpenedAtOnce(unittest.TestCase):
         config.save_user(db_timeout_s=SHORT_TIMEOUT_S)
         with self.assertRaisesRegex(sqlite3.OperationalError, LOCKED):
             store.db()
+
+    def test_a_set_up_that_fails_closes_the_connection_it_opened(self):
+        """db() gives its caller no connection when the set-up fails, so it closes the one it opened itself rather
+        than leave it to the garbage collector (which warns: ResourceWarning, unclosed database)."""
+        self.holding_the_write_lock()  # never let go of
+        config.save_user(db_timeout_s=SHORT_TIMEOUT_S)
+        opened, connect = [], sqlite3.connect
+
+        def keeping(*args, **kwargs):
+            opened.append(connect(*args, **kwargs))
+            return opened[-1]
+
+        with mock.patch.object(store.sqlite3, "connect", keeping), \
+                self.assertRaisesRegex(sqlite3.OperationalError, LOCKED):
+            store.db()
+        self.assertEqual(len(opened), 1)
+        with self.assertRaisesRegex(sqlite3.ProgrammingError, "closed"):
+            opened[0].execute("SELECT 1")
 
 
 if __name__ == "__main__":

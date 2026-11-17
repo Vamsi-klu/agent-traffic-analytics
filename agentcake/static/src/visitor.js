@@ -1,4 +1,4 @@
-// Agent Cake page script, part: the visitor id, which AgentCake counts visitors by, and the identify hash kept with it.
+// AgentCake page script, part: the visitor id, which AgentCake counts visitors by, and the identify hash kept with it.
 //
 // As PostHog does (posthog-js's posthog-core.ts: an anonymous id persisted with 'localStorage+cookie' for
 // cookie_expiration 365 days, renewed whenever it is written; posthog-js, MIT), the browser keeps a random id, made

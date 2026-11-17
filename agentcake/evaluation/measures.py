@@ -49,17 +49,22 @@ def _a1(source, rows):
 
 
 def _a2(rows, settings):
+    """A2 over judged sessions, as its statistic says: too little data is left out (A8 counts it) and each line says
+    how many it left out."""
     groups = set(settings["lab"]["a2_groups"])
     lab = [r for r in rows.get("lab", []) if r["group"] in groups]
     store = [r for r in rows.get("store", []) if r["truth"].get("class") == "agent"
              and (r["truth"].get("case") == "T3" or r["group"] in groups)]
-    posthog = [r for r in rows.get("posthog", []) if r["group"] == settings["posthog"]["agent_group"]
-               and r["class"] not in NOT_JUDGED]
-    out = [_ratio("A2", source, sum(1 for r in items if r["class"] in AGENTLIKE), len(items),
-                  "local agent sessions judged agent or mixed")
-           for source, items in (("lab", lab), ("store", store), ("posthog", posthog))]
+    posthog = [r for r in rows.get("posthog", []) if r["group"] == settings["posthog"]["agent_group"]]
+    out = [_judged_ratio(source, items) for source, items in (("lab", lab), ("store", store), ("posthog", posthog))]
     return (out + _a2_recorded(rows.get(RECORDED, []), settings["recorded"]["a2_labels"])
             + _a2_self_collected(rows.get(SELFCOLLECT, [])))
+
+
+def _judged_ratio(source, agents):
+    judged = [r for r in agents if r["class"] not in NOT_JUDGED]
+    return _ratio("A2", source, sum(1 for r in judged if r["class"] in AGENTLIKE), len(judged),
+                  "local agent sessions judged agent or mixed", details={"not_judged": len(agents) - len(judged)})
 
 
 def _a2_recorded(rows, a2_labels):

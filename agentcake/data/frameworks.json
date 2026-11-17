@@ -9,7 +9,7 @@
       "detect": {"paths": ["wp-config.php", "wp-config-sample.php", "wp-content/themes"]},
       "script": "plugin",
       "middleware": {
-        "name": "the Agent Cake plugin",
+        "name": "the AgentCake plugin",
         "edge": "wordpress",
         "plugin": "wordpress/agentcake",
         "paths": ["wp-content/plugins/agentcake/agentcake.php"],

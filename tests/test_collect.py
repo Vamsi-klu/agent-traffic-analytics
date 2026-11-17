@@ -1,6 +1,6 @@
 """POST /collect: agentcake/collect.py with collect_store.py, upload.py and site_origin.py.
 
-    python3 -I -m unittest discover -s tests -p test_collect.py -v      (from the Agent Cake folder)
+    python3 -I -m unittest discover -s tests -p test_collect.py -v      (from the AgentCake folder)
 
 Each test posts uploads to the collect view in its own CAKE_HOME. A batch goes into its streams (rrweb, raw input,
 signals) with its page view; a batch sent twice is stored once (s, pv, seq); a cake 0.3.4 batch is still stored; an
@@ -201,20 +201,20 @@ class Token(CollectCase):
 
 
 class Clock:
-    """collect's time module, a second further on each upload."""
+    """collect's clock, a second further on each upload."""
 
     def __init__(self, start_ms):
         self.ms = start_ms
 
-    def time(self):
+    def __call__(self):
         self.ms += MS_PER_S
-        return self.ms / MS_PER_S
+        return self.ms
 
 
 class Judged(CollectCase):
     def test_the_session_is_judged_from_its_chunks_and_the_replay_reads_them(self):
         sent = [batch(seq=n, e=5, r=0, x=0) for n in range(4)]
-        with mock.patch.object(collect, "time", Clock(T0)):
+        with mock.patch.object(collect, "clock_ms", Clock(T0)):
             for body in sent:
                 self.post(body)
         events = [e for body in sent for e in body["e"]]

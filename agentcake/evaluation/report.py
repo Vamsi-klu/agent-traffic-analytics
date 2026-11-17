@@ -39,12 +39,16 @@ def _number(value, unit=None):
 
 
 def _measurement(m, unit):
-    """One data set's value: a ratio as a percentage with its count, a statistic with its sample size."""
-    if not m["n"]:
-        return f"{m['source']}: no samples"
-    if "count" in m:
-        return f"{m['source']}: {_number(m['value'], unit)} ({m['count']}/{m['n']})"
+    """One data set's value: a ratio as a percentage with its count and how many sessions it left out unjudged (too
+    little data, or no visit), so that a smaller denominator never reads as a better result; a statistic with its
+    sample size."""
     details = m.get("details") or {}
+    left_out = f"{details['not_judged']} left out (too little data or no visit)" if details.get("not_judged") else ""
+    if not m["n"]:
+        return f"{m['source']}: no samples" + (f" ({left_out})" if left_out else "")
+    if "count" in m:
+        tail = f"; {left_out}" if left_out else ""
+        return f"{m['source']}: {_number(m['value'], unit)} ({m['count']}/{m['n']}{tail})"
     value, extra = _number(m["value"]), ""
     if "every_handoff" in details:
         value = OVER_THE_LIMIT if m["value"] is None else value
@@ -66,7 +70,8 @@ def markdown_gate(verdicts):
         unmeasured = [source for source in v["missing"] if source not in {m["source"] for m in v["gated"]}]
         if unmeasured and v["status"] != "elsewhere":
             gated += f"; no data from: {', '.join(unmeasured)}"
-        reference = "; ".join(_measurement(m, v["unit"]) for m in v["reference"] if m["n"]) or DASH
+        reference = "; ".join(_measurement(m, v["unit"]) for m in v["reference"]
+                              if m["n"] or (m.get("details") or {}).get("not_judged")) or DASH
         where = v["measured_by"] if v["status"] == "elsewhere" else v["statistic"]
         lines.append(f"| {v['id']} | {v['goal']} | {STATUS[v['status']]} | {gated} | {reference} | {where} |")
         lines += _beside_handoffs(v)
@@ -175,6 +180,24 @@ def _scoreboard(board, limit_s):
         lines.append(f"| {source} | {s['scored']} | {_number(s['accuracy_decided']['median'])} | "
                      f"{_number(s['share_error_pp']['median'])} | {s['handoffs_true']} / {s['handoffs_missed']} / "
                      f"{_number(s['handoffs_within_limit'], 'share')} | {_number(s['handoff_error_s']['median'])} |")
+    return lines + [""] + _held_out_cells(board.get("held_out") or {})
+
+
+def _held_out_cells(held_out):
+    """The held-out data sets' cells (scoreboard.py: a website's own sessions, counted nowhere else)."""
+    if not held_out:
+        return []
+    lines = ["Held out: a website's own sessions, labelled afterwards; counted only here (no pooled rate, precision, "
+             "site count, calibration or threshold reads them).", "",
+             "| held out: data set / product or group | answer | sessions | evaluable | behaviour: agent | "
+             "four layers: Agent or Mixed |", "|---|---|---|---|---|---|"]
+    for source, cells in held_out.items():
+        for c in cells["agents"]:
+            lines.append(f"| {source} / {c['product']} | agent | {c['sessions']} | {_rate(c['evaluable'])} | "
+                         f"{_rate(c['recall'])} | {_rate(c['four_layers'])} |")
+        for c in cells["humans"]:
+            lines.append(f"| {source} / {c['group']} | human | {c['sessions']} | {_rate(c['evaluable'])} | "
+                         f"{_rate(c['false_positives'], 'high')} | {_rate(c['four_layers'], 'high')} |")
     return lines + [""]
 
 

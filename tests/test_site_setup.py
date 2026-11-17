@@ -1,6 +1,6 @@
 """`agentcake setup --print --site`: agentcake/site_setup.py, what a coding agent follows to connect a website.
 
-    python3 -I -m unittest discover -s tests -p test_site_setup.py -v      (from the Agent Cake folder)
+    python3 -I -m unittest discover -s tests -p test_site_setup.py -v      (from the AgentCake folder)
 
 For each framework it names the files to change and the line to add: every page of a static site, the Next.js layout,
 the templates with </head> of a server framework; then how to mount the server half's middleware from this
@@ -145,7 +145,7 @@ class Frameworks(SetupSite):
 
 
 class ServerMode(SetupSite):
-    """public_listen + path_prefix: visitors reach Agent Cake at /cake on the site's own domain."""
+    """public_listen + path_prefix: visitors reach AgentCake at /cake on the site's own domain."""
 
     def setUp(self):
         super().setUp()

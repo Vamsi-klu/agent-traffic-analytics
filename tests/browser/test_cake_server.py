@@ -65,6 +65,7 @@ class CakeServesCakeJs(unittest.TestCase):
     def tearDownClass(cls):
         if getattr(cls, "site", None):
             cls.site.shutdown()
+            cls.site.server_close()
         cls.server.terminate()
         cls.server.wait(5)
         shutil.rmtree(cls.home, ignore_errors=True)
@@ -88,7 +89,7 @@ class CakeServesCakeJs(unittest.TestCase):
             con.close()
 
     def test_cake_js_is_the_built_script_with_the_site_key(self):
-        self.assertIn("Agent Cake page script (cake.js)", self.script)
+        self.assertIn("AgentCake page script (cake.js)", self.script)
         # with the page script's two settings as a fresh installation has them: hook_dom off, nothing hidden
         self.assertIn('/*cake:runtime*/{"hide_selectors":"","hook_dom":false,"site_key":"%s"}/*cake:runtime*/' % SITE_KEY,
                       self.script)

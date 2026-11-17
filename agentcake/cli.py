@@ -7,6 +7,7 @@ Used by bin/agentcake (and the 0.3.x entry points bin/cake and cake.py), by `pyt
 Every command is a Python process of its own, so each imports its module when it runs: importing them
 all up front made every command, --version too, load the server, the judging and the storage first.
 """
+import importlib.util
 import json
 import os
 import sys
@@ -17,6 +18,16 @@ from agentcake.units import PERCENT
 from agentcake.wording import raw, text
 
 EXIT_USAGE = 2  # protocol: exit status of a command-line usage error (POSIX utilities, argparse)
+HELP_FLAGS = ("-h", "--help")
+# The options of the commands whose words main() reads itself, as the help lists them: any other word, or an option
+# without its value, stops the command before it starts, stops, migrates or pings anything. WITH_VALUE options take the
+# word after them.
+OPTIONS = {"serve": (), "_serve": (), "start": (), "stop": (), "status": (), "snippet": (), "sentence": (), "ping": (),
+           "migrate": ("--dry-run",), "setup": ("--print", "--site", "--dir"), "doctor": ("--dir", "--url")}
+WITH_VALUE = ("--dir", "--url")
+# The commands that read their own words, each with its usage line in data/copy.en.json (eval has its own parser).
+USAGES = {"secret": "secret_usage", "config": "config_usage", "lists": "lists_usage", "logs": "logs_usage",
+          "delete": "delete_usage"}
 
 
 def help_text():
@@ -96,6 +107,21 @@ def lists_command(args):
     print(text("lists_usage")); return EXIT_USAGE
 
 
+def stray_option(words, allowed):
+    """The first word that is not an option in allowed, as (word, False), or a WITH_VALUE option with nothing after
+    it, as (option, True); None when words hold only allowed options, each WITH_VALUE one with its value."""
+    rest = list(words)
+    while rest:
+        word = rest.pop(0)
+        if word not in allowed:
+            return word, False
+        if word in WITH_VALUE:
+            if not rest:
+                return word, True
+            rest.pop(0)
+    return None
+
+
 def option_value(words, flag):
     """The word after flag (`--dir DIR`, `--url URL`), or None when flag is not there or nothing follows it."""
     at = words.index(flag) + 1 if flag in words else len(words)
@@ -109,6 +135,13 @@ def main(argv=None):
     cmd, args = a[0], a[1:]
     if cmd == "--version":
         print(text("version", version=__version__)); return 0
+    if (cmd in OPTIONS or cmd in USAGES) and any(word in HELP_FLAGS for word in args):
+        print(text(USAGES[cmd]) if cmd in USAGES else help_text()); return 0
+    stray = stray_option(args, OPTIONS[cmd]) if cmd in OPTIONS else None
+    if stray:
+        word, needs_value = stray
+        print(text("option_needs_value" if needs_value else "option_unknown", subcommand=cmd, word=word))
+        return EXIT_USAGE
     if cmd in ("_serve", "serve"):
         from agentcake.server import serve
         serve(); return 0
@@ -152,7 +185,9 @@ def main(argv=None):
         return config_command(args)
     if cmd == "lists":
         return lists_command(args)
-    if cmd == "eval":  # the evaluation code is the biggest of all
+    if cmd == "eval":  # the evaluation code is the biggest of all, and only a checkout has it (a release leaves it out)
+        if importlib.util.find_spec("agentcake.eval") is None:
+            print(text("eval_from_checkout"), file=sys.stderr); return EXIT_USAGE
         from agentcake import eval as eval_command
         return eval_command.main(args)
     if cmd == "logs":

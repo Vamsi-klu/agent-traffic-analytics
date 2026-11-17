@@ -1,4 +1,4 @@
-// Agent Cake page script, part: running the detectors after the page has loaded, a little at a time.
+// AgentCake page script, part: running the detectors after the page has loaded, a little at a time.
 //
 // A site that adds cake.js must not get slower. So only what has to see the page from its first moment runs when
 // cake.js starts (the input listeners, the replay's first snapshot); every detector waits for the page's load event

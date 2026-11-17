@@ -5,6 +5,7 @@ import { RotateCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import type { ApiState } from "@/data/api"
+import { WORDS } from "@/lib/words"
 import { Crumb } from "./crumb"
 
 /** Quiet on purpose: it fades in only when loading takes a moment, so a quick answer never flashes it (shown at once
@@ -12,9 +13,14 @@ import { Crumb } from "./crumb"
 export function PageLoading({ what }: { what: string }) {
   return (
     <div role="status" className="flex animate-in items-center justify-center gap-3 py-10 text-sm text-muted-foreground fade-in fill-mode-both delay-300">
-      <Crumb pose="look" className="w-16" label="Loading illustration" />Loading {what}…
+      <Crumb pose="look" className="w-16" label={WORDS.crumb.loading} />Loading {what}…
     </div>
   )
+}
+
+/** "Try again", after something couldn't load: a page's data or a replay. */
+export function RetryButton({ onClick }: { onClick: () => void }) {
+  return <Button variant="outline" size="sm" onClick={onClick}><RotateCw aria-hidden />Try again</Button>
 }
 
 /** What happened and what to do: the message comes from the API (or says cake can't be reached). */
@@ -22,10 +28,10 @@ export function PageError({ title, message, onRetry }: { title: string; message:
   return (
     <Card variant="sunk" role="alert">
       <CardContent className="flex flex-col items-center gap-3 py-6 text-center">
-        <Crumb pose="oops" className="w-32" label="Error illustration" />
+        <Crumb pose="oops" className="w-32" label={WORDS.crumb.error} />
         <h2 className="text-lg font-semibold">{title}</h2>
         <p className="text-sm text-muted-foreground">{message}</p>
-        {onRetry && <Button variant="outline" size="sm" onClick={onRetry}><RotateCw aria-hidden />Try again</Button>}
+        {onRetry && <RetryButton onClick={onRetry} />}
       </CardContent>
     </Card>
   )

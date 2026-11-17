@@ -1,7 +1,7 @@
 """GET /api/session/<id> and …/replay?chunk=<n> (agentcake/api/session.py with reasons.py, actions.py,
 replay.py and server_half.py) on the fixed test library.
 
-    python3 -I -m unittest discover -s tests -p test_api_session.py -v      (from the Agent Cake folder)
+    python3 -I -m unittest discover -s tests -p test_api_session.py -v      (from the AgentCake folder)
 
 Every session of the library answers the contract, its four layers in order, its timeline and actions inside its
 length. Its replay chunks, read one by one, give back the session's whole rrweb stream, each event once and in its
@@ -80,6 +80,20 @@ class Words(unittest.TestCase):
         story = session_api.Story(epoch, runs, "Claude in Chrome", [], handoffs)
         self.assertEqual(session_api.verdict_summary("agent", "human_agent", "mixed", [], story),
                          "Claude in Chrome was active from 0:08 to 0:40. A human took over at 0:49.")
+
+    def test_active_is_the_actors_first_to_last_action_as_every_action_lists_them(self):
+        """One time for the agent on the page: its first action to its last (the times Every action shows), not its
+        run's edges, which its input can start sooner (a pointer move before the first click); the hand-off at the new
+        actor's first action."""
+        epoch = 1_794_608_433_697
+        runs = [(epoch + 18_900, epoch + 58_799, "agent"), (epoch + 96_848, epoch + 210_035, "human")]
+        handoffs = [{"t": epoch + 97_313, "from": "agent", "to": "human", "after": epoch + 58_799}]
+        acts = [actions_api.Action(epoch + 19_432, "click", "#q", "pv", "agent"),
+                actions_api.Action(epoch + 57_100, "click", "#add", "pv", "agent"),
+                actions_api.Action(epoch + 97_313, "click", "body", "pv", "human")]
+        story = session_api.Story(epoch, runs, "Claude in Chrome", [], handoffs, acts)
+        self.assertEqual(session_api.verdict_summary("agent", "human_agent", "mixed", [], story),
+                         "Claude in Chrome was active from 0:19 to 0:57. A human took over at 1:37.")
 
     def test_three_layers_are_listed_in_one_sentence(self):
         layers = [{"layer": name, "state": "agent", "percent": percent}

@@ -1,6 +1,6 @@
 name: Wrong classification
 description: A session was judged Human, Agent or Bot, and it was something else.
-labels: ["wrong verdict"]
+labels: ["wrong classification"]
 body:
   - type: markdown
     attributes:
@@ -67,7 +67,7 @@ body:
     attributes:
       label: AgentCake version
       description: What `agentcake --version` prints.
-      placeholder: agentcake 0.4.2
+      placeholder: agentcake 0.5.0
     validations:
       required: true
   - type: dropdown

@@ -1,5 +1,5 @@
 // The walks the sample replays are recorded from: what each sample session in src/data/fixtures/ does in the
-// test site's shop (tests/site, the demo shop until 0.4.0), and when. scripts/replay-fixtures.mjs runs them in Chromium against a scratch Agent Cake and keeps the
+// test site's shop (tests/site, the demo shop until 0.4.0), and when. scripts/replay-fixtures.mjs runs them in Chromium against a scratch AgentCake and keeps the
 // rrweb events its cake.js recorded. Times are milliseconds from the moment the first page is asked for (the
 // session's ms 0); each walk ends, and its tab closes, at its sample's duration.
 //
@@ -34,7 +34,7 @@ const bezier = (p0, p1, p2, p3, t) => {
 }
 
 /** What a walk can do on its page, timed from t0 (epoch ms of its ms 0). actions: what it did, for the sample's
- *  "Every action" list (never what was typed). */
+ *  "All actions" list (never what was typed). */
 export function walker(page, t0, seed) {
   const rng = seeded(seed)
   let mouse = { x: 0, y: 0 } // where Playwright's pointer starts

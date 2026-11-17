@@ -18,7 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import type { DateRange, PathRow, WebDimension, WebRow, WebTable } from "@/data/types"
-import { percent } from "@/lib/format"
+import { NO_VALUE, percent } from "@/lib/format"
 import { PRODUCT_NAME } from "@/lib/product"
 import { WORDS } from "@/lib/words"
 import { CardEmpty, Hint, InfoTip } from "./bits"
@@ -26,7 +26,6 @@ import { VERDICTS } from "./verdict"
 
 const W = WORDS.web
 const PLACE: WebDimension[] = ["country", "region", "city"]
-const NONE = "—" // sessions without any visitor ID (recorded before visitors were counted)
 const LOCALE = "en" // the interface is English only (DESIGN.md §2)
 const regionNames = new Intl.DisplayNames([LOCALE], { type: "region" })
 const languageNames = new Intl.DisplayNames([LOCALE], { type: "language" })
@@ -56,7 +55,7 @@ export function counted(row: Counted, kind: Kind): [number, number | null, numbe
 /** What the hover over a row says: each of its numbers, split into Agent and Human. */
 function split(row: Counted) {
   const both = (agent: number | null, human: number | null) =>
-    [`${agent ?? NONE} ${VERDICTS.agent.label}`, `${human ?? NONE} ${VERDICTS.human.label}`] as const
+    [`${agent ?? NO_VALUE} ${VERDICTS.agent.label}`, `${human ?? NO_VALUE} ${VERDICTS.human.label}`] as const
   return [W.split(WORDS.sessionsGroup, ...both(row.agent, row.human)), W.split(WORDS.visitorsGroup, ...both(row.agent_visitors, row.human_visitors)),
     W.split(WORDS.pageViewsGroup, ...both(row.agent_page_views, row.human_page_views))]
 }
@@ -64,7 +63,7 @@ function split(row: Counted) {
 /** One table (see the file's head): icon before its title; column names its rows, which come most sessions first;
  *  label: what a row's first cell shows, for the kind of sessions picked; controls: what sits before the toggle (a
  *  breakdown's Select); empty: what it says when it has no rows. */
-export function StatsTable<R extends Counted>({ title, icon: Icon, help, column, rows, rowKey, label, shown, controls, empty }: {
+export function StatsTable<R extends Counted>({ title, icon, help, column, rows, rowKey, label, shown, controls, empty }: {
   title: string; icon: LucideIcon; help: string; column: string; rows: R[]; rowKey: (row: R) => string; label: (row: R, kind: Kind) => ReactNode; shown: number
   controls?: ReactNode; empty: string
 }) {
@@ -78,7 +77,7 @@ export function StatsTable<R extends Counted>({ title, icon: Icon, help, column,
     <section aria-label={title}>
       <Card>
         <CardHeader className="flex flex-wrap items-center justify-between gap-2">
-          <CardTitle className="flex items-center gap-2"><Icon className="size-5" aria-hidden />{title}<InfoTip label={title} lines={[help, WORDS.about.agentShare]} /></CardTitle>
+          <CardTitle icon={icon}>{title}<InfoTip label={title} lines={[help, WORDS.about.agentShare]} /></CardTitle>
           <div className="flex flex-wrap items-center gap-2">
             {controls}
             <ToggleGroup type="single" value={kind} onValueChange={(value) => value && setKind(value as Kind)} aria-label={`${title}: ${W.kind}`}>
@@ -104,7 +103,7 @@ export function StatsTable<R extends Counted>({ title, icon: Icon, help, column,
                       <TableRow>
                         <TableCell className="min-w-32 whitespace-normal wrap-anywhere">{label(row, kind)}</TableCell>
                         <TableCell className="text-right font-bold">{sessions}</TableCell>
-                        <TableCell className="text-right">{visitors ?? NONE}</TableCell>
+                        <TableCell className="text-right">{visitors ?? NO_VALUE}</TableCell>
                         <TableCell className="text-right">{views}</TableCell>
                         {kind === "all" && <TableCell className="text-right font-bold">{`${percent(row.agent, row.agent + row.human)}%`}</TableCell>}
                       </TableRow>

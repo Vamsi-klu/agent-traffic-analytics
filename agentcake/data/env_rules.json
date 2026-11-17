@@ -1,5 +1,5 @@
 {
-  "$comment": "Agent Cake's environment layer: each rule reads one trace of automation, of a named agent product, of a cloud machine or of an extension acting on the page. agentcake/detect/env_rules.py evaluates `match` (grammar in its docstring) against the signals env_signals.py builds; a hit carries id, layer, kind, half, strength, grade and the value that matched. `scope`: page = on each page view, landing = the first page view only, session = the session as a whole. `botscent`: the botscent page-half reasons a rule stands for, so the two can be compared on recorded sessions. `names`: the agent product or automation tool a rule names; `suggests`: a name a rule hints at without proving it. `enabled`: the default; the user's config can switch any rule. `setting`: on a rule that is off by default, the page-script setting that turns it on: the rule runs on a visit recorded with that setting on, as the visit's page records say (signals.script_settings names the page record fields that say how the site owner had set cake.js). `date`: when the evidence was taken; product rules follow one product's build and must be re-checked when it changes. Rule definitions and collision notes taken from botscent 1.2.0 and BotD 2.0.0 (both MIT) are credited in source_refs and THIRD_PARTY.md.",
+  "$comment": "AgentCake's environment layer: each rule reads one trace of automation, of a named agent product, of a cloud machine or of an extension acting on the page. agentcake/detect/env_rules.py evaluates `match` (grammar in its docstring) against the signals env_signals.py builds; a hit carries id, layer, kind, half, strength, grade and the value that matched. `scope`: page = on each page view, landing = the first page view only, session = the session as a whole. `botscent`: the botscent page-half reasons a rule stands for, so the two can be compared on recorded sessions. `names`: the agent product or automation tool a rule names; `suggests`: a name a rule hints at without proving it. `enabled`: the default; the user's config can switch any rule. `setting`: on a rule that is off by default, the page-script setting that turns it on: the rule runs on a visit recorded with that setting on, as the visit's page records say (signals.script_settings names the page record fields that say how the site owner had set cake.js). `date`: when the evidence was taken; product rules follow one product's build and must be re-checked when it changes. Rule definitions and collision notes taken from botscent 1.2.0 and BotD 2.0.0 (both MIT) are credited in source_refs and THIRD_PARTY.md.",
   "version": 1,
   "updated": "2026-11-15",
   "legend": {
@@ -31,9 +31,9 @@
     "botscent": "nalinbhardwaj/botscent 1.2.0, commit 7f948003, MIT: registry/reasons.json, registry/page.json, src/page/rules.ts",
     "BotD": "fingerprintjs/BotD 2.0.0 (npm build botd.esm.js; repository commit 193c471a), MIT: its detectors",
     "rebrowser": "rebrowser/rebrowser-bot-detector commit 55fa59b, README test descriptions; package.json says MIT but the repository has no LICENSE file, so only its published detection ideas are used, none of its code",
-    "audit": "Agent Cake's signal audit of 2026-11-12 (119 signals, ids sig-NNN; ours)",
-    "lab": "Agent Cake's lab recordings of 2026-11-09 and 2026-11-11 (ours: env.js, raw.js, bs.js and the lab server's request log)", "runs": "Agent Cake's own runs of agent products and of automation made to look human, on its test shop, 2026-11-13 and 2026-11-14 (ours; measured with agentcake eval)",
-    "agent_markers": "Agent Cake's table of agent products' marks, agentcake/data/agent_markers.json (ours; its own source_refs say where each mark comes from), read by env_signals into each page's markers"
+    "audit": "AgentCake's signal audit of 2026-11-12 (119 signals, ids sig-NNN; ours)",
+    "lab": "AgentCake's lab recordings of 2026-11-09 and 2026-11-11 (ours: env.js, raw.js, bs.js and the lab server's request log)", "runs": "AgentCake's own runs of agent products and of automation made to look human, on its test shop, 2026-11-13 and 2026-11-14 (ours; measured with agentcake eval)",
+    "agent_markers": "AgentCake's table of agent products' marks, agentcake/data/agent_markers.json (ours; its own source_refs say where each mark comes from), read by env_signals into each page's markers"
   },
   "signals": {
     "network_headers": ["user-agent", "sec-ch-ua", "accept-language", "sec-fetch-site", "sec-fetch-mode", "sec-fetch-user", "sec-fetch-dest"],
@@ -119,16 +119,19 @@
       "id": "env.auto.cdp-runtime-leak", "layer": "env", "kind": "automation", "half": "page", "scope": "page", "strength": "soft", "enabled": true,
       "title": "The page shows signs of a debugging connection. Automation tools and open DevTools can cause this.",
       "detail": "The browser serializes console arguments, which happens when a DevTools-protocol client has Runtime enabled.",
-      "match": {"any": [
-        {"path": "auto.runtimeEnableLeak.prepareStackTraceCount", "gt": 0},
-        {"path": "auto.runtimeEnableLeak.stackLookupCount", "gt": 0},
-        {"all": [{"path": "env.uaData", "exists": true}, {"path": "auto.runtimeEnableLeak.nameGetterCount", "divide_by": "auto.runtimeEnableLeak.rounds", "gt": 1.5}]}
+      "match": {"all": [
+        {"any": [{"path": "auto.runtimeEnableLeak.console", "eq": "frame"}, {"path": "auto.runtimeEnableLeak.console", "exists": false}]},
+        {"any": [
+          {"path": "auto.runtimeEnableLeak.prepareStackTraceCount", "gt": 0},
+          {"path": "auto.runtimeEnableLeak.stackLookupCount", "gt": 0},
+          {"all": [{"path": "env.uaData", "exists": true}, {"path": "auto.runtimeEnableLeak.nameGetterCount", "divide_by": "auto.runtimeEnableLeak.rounds", "gt": 1.5}]}
+        ]}
       ]},
       "report": ["auto.runtimeEnableLeak.prepareStackTraceCount", "auto.runtimeEnableLeak.nameGetterCount", "auto.runtimeEnableLeak.rounds"],
-      "grade": "measured", "date": "2026-11-11",
-      "evidence": "Lab 2026-11-11: 22 of 22 Playwright sessions; 0 of 4 Claude in Chrome. Lab 2026-11-09: every Playwright and Puppeteer visit including the stealth (V08) and connect-over-CDP (V18) ones; 0 of 3 humans; 0 of 4 Claude in Chrome.",
+      "grade": "measured", "date": "2026-11-16",
+      "evidence": "Lab 2026-11-11: 22 of 22 Playwright sessions; 0 of 4 Claude in Chrome. Lab 2026-11-09: every Playwright and Puppeteer visit including the stealth (V08) and connect-over-CDP (V18) ones; 0 of 3 humans; 0 of 4 Claude in Chrome. Lab 2026-11-16 (Chrome for Testing 1228; Playwright 1.64.1 as the protocol client): with a console recorder on the page (rrweb 2.0.0-alpha.18's console plugin, or a minimal one), the page's own console counted 3 formattings in 3 rounds with no protocol client at all; a frame of the probe's own counted 0, and 3 with Playwright, as the page's console did without a recorder. Since 2026-11-16 cake.js probes in such a frame (console frame) and only those counts are read; a record without console (an earlier cake.js) is read as before.",
       "sources": ["rebrowser:runtimeEnableLeak", "audit:sig-044", "lab"],
-      "collisions": "Open DevTools trigger it too (rebrowser's README), and so can a logging library or an extension that inspects console calls: a developer browsing with DevTools open matches."
+      "collisions": "Open DevTools trigger it too (rebrowser's README): a developer browsing with DevTools open matches. A site's own console recorder (rrweb's console plugin, analytics and error trackers) wraps the page's console and read like a protocol client on every visit to that site (tartini.ai 2026-11-16: the same counts on every session, the user's own included); cake.js has probed in a frame of its own since 2026-11-16, which no page script reaches, but a record without console (an earlier cake.js) may still carry such counts."
     },
     {
       "id": "env.auto.ipc-flooding-off", "layer": "env", "kind": "automation", "half": "page", "scope": "page", "strength": "hard", "enabled": true,

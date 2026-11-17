@@ -1,11 +1,11 @@
 """`agentcake doctor` opening a page of the user's website: agentcake/doctor_live.py.
 
-    python3 -I -m unittest discover -s tests -p test_doctor_live.py -v      (from the Agent Cake folder)
+    python3 -I -m unittest discover -s tests -p test_doctor_live.py -v      (from the AgentCake folder)
 
-The website here is a WSGI app on a free port of 127.0.0.1, run by wsgiref, behind Agent Cake's own Python middleware
+The website here is a WSGI app on a free port of 127.0.0.1, run by wsgiref, behind AgentCake's own Python middleware
 (edge/python/cake_edge.py, the file a Flask or Django site copies) holding this scratch CAKE_HOME's secret. doctor asks
 for the page the way a browser opens it and reads what came back: the page loads cake.js with this site key; the
-response carries a token this Agent Cake's secret signed, in its time window; the token holds the Sec-Fetch values and
+response carries a token this AgentCake's secret signed, in its time window; the token holds the Sec-Fetch values and
 the signature headers doctor sent. A middleware that is not mounted, a token signed with another secret or with a clock
 far off, a proxy in front of the site that drops headers, a page without cake.js: each fails its own line and says why.
 """
@@ -38,7 +38,7 @@ from cake_server import AGENTCAKE, POLL_S, free_port  # noqa: E402
 from site_fixtures import make_site, page  # noqa: E402
 
 SITE_KEY = "ck_doctorpage"
-OTHER_SECRET = "another Agent Cake's secret, long enough to sign with"
+OTHER_SECRET = "another AgentCake's secret, long enough to sign with"
 HOUR_MS = 3600 * MS_PER_S
 SECRET_ENV = "CAKE_SERVER_TIMING_SECRET"
 SOCKET_READ = 4096  # bytes: more than doctor's request
@@ -230,7 +230,7 @@ class StaticSite(PageChecks):
             code = doctor.doctor(folder, url)
         self.assertIn(f"[SKIP] {wording.text('doctor_live_token')}: ", out.getvalue())
         self.assertNotIn(f"[FAIL] {wording.text('doctor_live_token')}", out.getvalue())
-        self.assertEqual(code, 1)  # no Agent Cake runs in this test: its own lines fail
+        self.assertEqual(code, 1)  # no AgentCake runs in this test: its own lines fail
 
 
 if __name__ == "__main__":

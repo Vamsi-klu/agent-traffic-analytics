@@ -11,16 +11,12 @@ the wheel and the release folder carry them; the bootstrap unpacks only the pack
 import hashlib
 import json
 import os
+import pathlib
 
 from tools.releasing import reproducible
 from tools.releasing.settings import ReleaseError, file_name, modes
 
 MAIN = "__main__.py"  # protocol: the module Python runs in a zip it is given
-
-
-def read(path):
-    with open(path, "rb") as f:
-        return f.read()
 
 
 def content_hash(files):
@@ -43,11 +39,12 @@ def fill(template, values):
 
 def entries(project, settings):
     """(name, bytes, executable) of every file of the .pyz: __main__.py, the license files, then the package."""
-    licenses = [(name, read(os.path.join(project.root, name)), False) for name in project.license_files()]
-    files = [(name, read(path), executable) for name, path, executable in project.package_files()]
+    licenses = [(name, pathlib.Path(project.root, name).read_bytes(), False) for name in project.license_files()]
+    files = [(name, pathlib.Path(path).read_bytes(), executable)
+             for name, path, executable in project.package_files()]
     chars = settings["pyz"]["build_hash_chars"]
     build_id = f"{project.version}-{content_hash(files)[:chars]}"
-    template = read(os.path.join(project.root, settings["pyz"]["bootstrap"])).decode("utf-8")
+    template = pathlib.Path(project.root, settings["pyz"]["bootstrap"]).read_bytes().decode("utf-8")
     main = fill(template, {"build": build_id, "unpack_folder": settings["pyz"]["unpack_folder"],
                            "from_zip": settings["pyz"]["from_zip"]})
     return [(MAIN, main.encode("utf-8"), False)] + licenses + files

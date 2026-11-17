@@ -1,4 +1,4 @@
-"""The release folder, agentcake-<version>.tar.gz: Agent Cake ready to run, and what a server install needs.
+"""The release folder, agentcake-<version>.tar.gz: AgentCake ready to run, and what a server install needs.
 
 One folder, agentcake-<version>/, holding what pyproject.toml's [tool.flit.sdist] names (bin/agentcake, the 0.3.x
 entry points, INSTALL.md, SERVER.md, deploy/cake.service, Dockerfile, .dockerignore, ...), the package as the release
@@ -10,6 +10,7 @@ include pattern is a file or a folder (all of it), relative to the project; excl
 """
 import glob
 import os
+import pathlib
 import posixpath
 
 from tools.releasing import reproducible
@@ -62,20 +63,17 @@ def folders_of(names):
     return sorted(found)
 
 
-def read(path):
-    with open(path, "rb") as f:
-        return f.read()
-
-
 def entries(project, settings, wheel_path):
     """(name, bytes or None for a folder, executable) of the release folder, in the order they are written."""
     top = project.sdist_base()
-    files = {name: (read(path), executable) for name, path, executable in project.package_files()}
+    files = {name: (pathlib.Path(path).read_bytes(), executable)
+             for name, path, executable in project.package_files()}
     for name in chosen_files(project, settings):
         path = os.path.join(project.root, name)
-        files[name] = (read(path), is_executable(path))
+        files[name] = (pathlib.Path(path).read_bytes(), is_executable(path))
     files[PKG_INFO] = (project.metadata().encode("utf-8"), False)
-    files[f"{settings['archive']['wheel_folder']}/{os.path.basename(wheel_path)}"] = (read(wheel_path), False)
+    wheel_name = f"{settings['archive']['wheel_folder']}/{os.path.basename(wheel_path)}"
+    files[wheel_name] = (pathlib.Path(wheel_path).read_bytes(), False)
     out = [(top, None, True)] + [(f"{top}/{folder}", None, True) for folder in folders_of(files)]
     out += [(f"{top}/{name}", data, executable) for name, (data, executable) in sorted(files.items())]
     return out

@@ -9,10 +9,11 @@
 //   queued     window.cake.push(['identify', id]) before cake.js has loaded
 //   consent    data-consent="required": identify() before Accept stores and sends nothing; after Accept it does
 import { createRequire } from 'node:module'
-import { existsSync, readFileSync } from 'node:fs'
+import { readFileSync } from 'node:fs'
 import { appendFile, mkdir, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { executablePath } from './chromium.mjs'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 const repo = path.resolve(here, '..', '..')
@@ -28,10 +29,7 @@ const SEND_MS = CAKEJS.batch.interval_min_ms + 1500 // a timer batch has gone, a
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
 function launch() {
-  const app = 'chrome-mac-x64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing'
-  const guess = path.join(process.env.HOME, 'Library/Caches/ms-playwright/chromium-1228', app)
-  const executablePath = process.env.CAKE_CHROME || (existsSync(guess) ? guess : undefined)
-  return chromium.launch({ executablePath })
+  return chromium.launch({ executablePath: executablePath() })
 }
 
 /** A new profile whose every request is written to requests.ndjson. */

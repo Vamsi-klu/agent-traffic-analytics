@@ -2,15 +2,16 @@
 
     locate(options, settings) -> {key: path or None}
     load(where, settings) -> {"lab", "lab_signals", "uploads", "recordings", "recorded", "selfcollect", "posthog",
-                              "store", "named", "public_humans", "notes"}
+                              "store", "site", "named", "public_humans", "notes"}
 
 A location comes from, in this order: the command line; the sources file (--sources, default eval/sources.json
 of a checkout, which git ignores; eval/sources.example.json lists the keys, and "out_dir" names the local PostHog
 dataset); for the files a checkout carries, data/eval.json "files" next to the package. Relative paths are read
 from the current folder, like any command's. Data that only lives on one computer (the recorder's folder, the
-PostHog dataset, a CAKE_HOME, the folder of the recorder copy our own runs used) is never guessed: without a
-location it is skipped and the report says so. The
-CAKE_HOME of truth_goal.jsonl's sessions defaults to the current one (CAKE_HOME, else ~/.cake).
+PostHog dataset, a CAKE_HOME, the folder of the recorder copy our own runs used, a website's data folder) is never
+guessed: without a location it is skipped and the report says so. The
+CAKE_HOME of truth_goal.jsonl's sessions defaults to the current one (CAKE_HOME, else ~/.cake); a site's copy
+(site_home, the sessions truth_site lists) has no default.
 """
 import json
 import os
@@ -20,7 +21,7 @@ from agentcake.evaluation import datasets, store
 
 KEYS = ("thresholds", "named_user_agents", "truth_manual", "truth_goal", "truth_recordings", "lab_sessions",
         "lab_signals", "cakejs_uploads", "recordings", "posthog", "cake_home", "motion_attestation", "public_humans",
-        "selfcollect", "truth_selfcollect")
+        "selfcollect", "truth_selfcollect", "site_home", "truth_site")
 CHECKOUT = os.path.dirname(paths.PACKAGE_DIR)
 SOURCES_FILE = "sources"
 ALIASES = {"out_dir": "posthog"}  # the research tools' key for the same folder
@@ -71,14 +72,35 @@ def load(where, settings):
     else:
         notes["posthog"] = "not given (--posthog: the local PostHog dataset, out_dir in eval/sources.json)"
     data["public_humans"] = _public_humans(where, notes)
-    truth = datasets.jsonl(where["truth_goal"])
-    data["store"] = store.labelled(truth, settings, where["cake_home"]) if truth else []
-    if not truth:
-        notes["store"] = "no session listed yet in eval/truth_goal.jsonl for cases T3, T5, T6, T8, and T22"
-    elif not data["store"]:
-        notes["store"] = "none of the listed sessions is in the CAKE_HOME given (--cake-home)"
+    data["store"] = _labelled(where["truth_goal"], where["cake_home"], settings, notes, "store",
+                              ("no session listed yet in eval/truth_goal.jsonl for cases T3, T5, T6, T8, and T22",
+                               "none of the listed sessions is in the CAKE_HOME given (--cake-home)"))
+    data["site"] = _site(where, settings, notes)
     data["notes"] = notes
     return data
+
+
+def _site(where, settings, notes):
+    """A website's own sessions, labelled afterwards: a copy of its data folder (site_home) read through its list
+    (truth_site) as store reads truth_goal.jsonl. Held out: the tables report it on its own and nothing is fitted,
+    calibrated or gated on it (tables.py, data/eval.json "scoreboard.held_out_sources")."""
+    home = where["site_home"]
+    if not (home and os.path.isdir(home)):
+        notes["site"] = "not given (--site-home: a copy of a website's data folder, with its list --truth-site)"
+        return []
+    return _labelled(where["truth_site"], home, settings, notes, "site",
+                     ("no session listed yet in the site's list (--truth-site)",
+                      "none of the listed sessions is in the site's data folder given (--site-home)"))
+
+
+def _labelled(truth_file, home, settings, notes, key, why_none):
+    """The sessions a list names in a data folder (store.labelled), with a note under key when there are none: the first
+    of why_none when the list names none, the second when the folder holds none of them."""
+    truth = datasets.jsonl(truth_file)
+    found = store.labelled(truth, settings, home) if truth else []
+    if not found:
+        notes[key] = why_none[0] if not truth else why_none[1]
+    return found
 
 
 def _self_collected(where, settings, notes):

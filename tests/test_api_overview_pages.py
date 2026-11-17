@@ -1,6 +1,6 @@
 """agentcake/api/overview.py's numbers about pages, on a scratch database: page views and pages per session.
 
-    python3 -I -m unittest discover -s tests -p test_api_overview_pages.py -v      (from the Agent Cake folder)
+    python3 -I -m unittest discover -s tests -p test_api_overview_pages.py -v      (from the AgentCake folder)
 
 A page view is what PostHog counts as one: each page load and each new path a single-page app shows (a new query string
 alone is none), in sessions of every kind; these sessions were recorded without the page script's path records, so they

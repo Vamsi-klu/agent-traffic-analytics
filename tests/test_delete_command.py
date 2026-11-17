@@ -1,6 +1,6 @@
 """`agentcake delete` and POST /api/delete: agentcake/delete_command.py, api/deletion.py, routes.py.
 
-    python3 -I -m unittest discover -s tests -p test_delete_command.py -v      (from the Agent Cake folder)
+    python3 -I -m unittest discover -s tests -p test_delete_command.py -v      (from the AgentCake folder)
 
 The command deletes in its own process when no cake runs on the data folder, and asks the running cake otherwise (a
 real `agentcake serve` here, whose output goes to cake.log as `agentcake start` sets it up); --session and --visitor

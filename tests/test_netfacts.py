@@ -1,6 +1,6 @@
 """Network facts of every upload request: agentcake/netfacts.py, and its salt (ip_salt.py) through collect.
 
-    python3 -I -m unittest discover -s tests -p test_netfacts.py -v      (from the Agent Cake folder)
+    python3 -I -m unittest discover -s tests -p test_netfacts.py -v      (from the AgentCake folder)
 
 Each upload request keeps its User-Agent, Accept-Language, the three low-entropy sec-ch-ua headers, Sec-Fetch-*,
 Origin and the Web Bot Auth headers as sent, every header name in order, and where it came from; cookies,

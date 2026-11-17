@@ -1,7 +1,7 @@
 """paths.launcher(): the command setup, doctor and the pages tell people to run has to run; and
 paths.web_folder(): where the compiled local pages are.
 
-    python3 -I -m unittest discover -s tests -p test_paths.py -v      (from the Agent Cake folder)
+    python3 -I -m unittest discover -s tests -p test_paths.py -v      (from the AgentCake folder)
 
 From a release folder or a checkout it is bin/agentcake by its full path. From the .pyz it is this Python and the .pyz
 (the release's bootstrap unpacks the package under $CAKE_HOME/pyz/<version>-<n>/ and runs it in the same process, where `agentcake` may be

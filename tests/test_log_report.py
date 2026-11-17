@@ -1,6 +1,6 @@
 """The report of the last log import: agentcake/log_report.py. doctor's line on it: test_doctor_logs.py.
 
-    python3 -I -m unittest discover -s tests -p test_log_report.py -v      (from the Agent Cake folder)
+    python3 -I -m unittest discover -s tests -p test_log_report.py -v      (from the AgentCake folder)
 
 Each /edge request adds its counts to the report of its import run (a new run starts new counts) and keeps the
 fields the run's log format lacks or leaves empty. stored_report() reads it from cake.db without writing: None

@@ -1,4 +1,4 @@
-"""Whole-session models printed beside Agent Cake's own, never used to judge.
+"""Whole-session models printed beside AgentCake's own, never used to judge.
 
     flags(events, raw_input, env, settings) -> {method: True (agent) | False | None (cannot tell)}
     table(rows, settings) -> {group: {method: {"n", "agent"}}}     how many sessions of each group each one flags
@@ -17,7 +17,7 @@ methods:
 
 Ported from our own code with the same arithmetic: our research code's
 compare_models.py (choudhary, superline, lab_rules_hmm; 2026-11-11). The logistic regression of that script trained
-on public human data (CaptchaSolve30k, PSAI), which never enters Agent Cake: tables.py trains it here only on
+on public human data (CaptchaSolve30k, PSAI), which never enters AgentCake: tables.py trains it here only on
 clean recordings, when there are some. Settings: data/eval.json "baselines".
 """
 import math
@@ -27,7 +27,6 @@ from agentcake.detect import features, model, segment, timeline
 from agentcake.evaluation import logistic
 from agentcake.units import MS_PER_S
 
-METHODS = ("cake", "rules_hmm", "choudhary", "superline", "logistic")
 MOVE, CLICK, KEYDOWN = "mousemove", "click", "keydown"
 SCROLLS = ("scroll", "wheel")
 

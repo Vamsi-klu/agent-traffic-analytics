@@ -1,6 +1,6 @@
 """`doctor`, the line about the web server's log import: logs_checks().
 
-No line before the first `agentcake logs import` reached this Agent Cake: most installs never use it. Afterwards one
+No line before the first `agentcake logs import` reached this AgentCake: most installs never use it. Afterwards one
 line on the last import, whose report log_report.py keeps in cake.db (read here without writing): the log format, when
 it ran, how many page requests it sent and how many matched a visit, then each recommended header (data/logs.json
 "recommended") the format lacks or leaves empty on every page request, by name.

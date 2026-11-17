@@ -32,16 +32,6 @@ CHROME = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KH
 UPTIMEROBOT = "Mozilla/5.0+(compatible; UptimeRobot/2.0; http://www.uptimerobot.com/)"
 
 
-class FixedTime:
-    """collect's time module at a given moment."""
-
-    def __init__(self, ms):
-        self.ms = ms
-
-    def time(self):
-        return self.ms / S
-
-
 def refuse(*args, **kwargs):
     raise AssertionError("judging tried to use the network")
 
@@ -83,7 +73,7 @@ class JudgingCase(unittest.TestCase):
                 headers[name] = value
         raw = json.dumps(body, separators=(",", ":")).encode()
         raw = gzip.compress(raw) if len(raw) >= GZIP_FROM else raw
-        with mock.patch.object(collect, "time", FixedTime(at_ms)):
+        with mock.patch.object(collect, "clock_ms", return_value=at_ms):
             answer = collect.from_local(Request("/collect", {}, headers, raw))
         self.assertEqual(answer.status, 204, answer.body)
 

@@ -1,6 +1,6 @@
 """Signals for the environment rules: agentcake/detect/env_signals.py turns recordings into one dict.
 
-    python3 -I -m unittest discover -s tests -v      (from the Agent Cake folder)
+    python3 -I -m unittest discover -s tests -v      (from the AgentCake folder)
 
 cake.js's upload format version 1 (docs/collect-format.md): batches built from the document's tables become the same
 signals as the lab's reports, and the rules read them. The research lab's format: small hand-written reports pin down
@@ -201,6 +201,12 @@ def automated_visit():
 
 
 class CakeFormatTest(unittest.TestCase):
+    def test_an_address_that_cannot_be_read_is_a_page_with_no_path(self):
+        """Anyone can send collect an address urlsplit refuses (an unclosed IPv6 bracket); the session is still
+        judged, its page without a path, instead of failing every judging round."""
+        signals = env_signals.from_cake([batch("pv1", 0, 1000, url="https://[")])
+        self.assertEqual([page["path"] for page in signals["pages"]], [None])
+
     def test_the_documents_example_batch(self):
         example = {"v": 1, "k": "9f3c", "s": VISIT, "pv": "c2a8", "seq": 0, "t": 1794518371369.5,
                    "u": "https://shop.example.com/demo", "why": "snapshot", "st": "c1.e30.x", "ua": UA, "wd": False,

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "register-payload.schema.json",
   "title": "RegistrationPayload",
-  "description": "The body of POST /api/register (Content-Type: application/json): the registration exactly as the card's \"See what is sent\" shows it, JSON.stringify(payload, null, 2) with the keys in this order and company only when given. cake sends that text on unchanged; a body in any other form is answered 400.",
+  "description": "The body of POST /api/register (Content-Type: application/json): the registration exactly as the card's \"View registration data\" shows it, JSON.stringify(payload, null, 2) with the keys in this order and company only when given. cake sends that text on unchanged; a body in any other form is answered 400.",
   "type": "object",
   "additionalProperties": false,
   "required": ["email", "product_updates", "consent_version"],

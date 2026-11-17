@@ -10,7 +10,7 @@ import { TAXONOMY, UNNAMED } from "@/lib/taxonomy"
 import { cn } from "@/lib/utils"
 import { AgentAvatar } from "./avatar"
 import { Hint } from "./bits"
-import type { SegKind } from "./timeline"
+import { segClass, type SegKind } from "./timeline"
 
 /** What a badge can show: a verdict, or Unknown for a stretch, an action or a layer that couldn't tell. */
 type Look = Verdict | "unknown"
@@ -36,6 +36,15 @@ const dot: Record<Look, string> = {
   bot: "bg-unsure",
 }
 
+/** The round dot at the start of a category badge: its icon on the category's solid colour. */
+function BadgeDot({ icon: Icon, className }: { icon: LucideIcon; className: string }) {
+  return (
+    <span className={cn("inline-flex size-4.5 items-center justify-center rounded-full text-card", className)}>
+      <Icon className="size-3!" aria-hidden />
+    </span>
+  )
+}
+
 /** How sure cake is of a verdict, after its word: bold, on the highlighter (the session page's verdict and layers). */
 function Percent({ value }: { value?: number | null }) {
   if (value === undefined || value === null) return null
@@ -46,12 +55,10 @@ function Percent({ value }: { value?: number | null }) {
  *  cake is of it. */
 export function VerdictBadge({ verdict, percent, className }: { verdict: Look | Actor; percent?: number | null; className?: string }) {
   const v = lookOf(verdict)
-  const { label, icon: Icon } = VERDICTS[v]
+  const { label, icon } = VERDICTS[v]
   return (
     <Badge variant={v} data-category={v} className={cn("pl-0.5", className)}>
-      <span className={cn("inline-flex size-4.5 items-center justify-center rounded-full text-card", dot[v])}>
-        <Icon className="size-3!" aria-hidden />
-      </span>
+      <BadgeDot icon={icon} className={dot[v]} />
       {label}<Percent value={percent} />
     </Badge>
   )
@@ -64,13 +71,10 @@ export const TURNS_ICON: Record<AgentTurns, LucideIcon> = { agent_only: Bot, hum
  *  human, half agent dot (its hand-offs are on the timeline); its sentence on hover and on focus. */
 export function TurnsBadge({ turns, percent, className }: { turns: AgentTurns; percent?: number | null; className?: string }) {
   const { label, about } = TAXONOMY.turns[turns]
-  const Icon = TURNS_ICON[turns]
   return (
     <Hint text={about} focusable>
       <Badge variant="agent" data-category={turns} className={cn("pl-0.5", className)}>
-        <span className={cn("inline-flex size-4.5 items-center justify-center rounded-full text-card", turns === "agent_only" ? dot.agent : "pattern-mixed-solid")}>
-          <Icon className="size-3!" aria-hidden />
-        </span>
+        <BadgeDot icon={TURNS_ICON[turns]} className={turns === "agent_only" ? dot.agent : "pattern-mixed-solid"} />
         {label}<Percent value={percent} />
       </Badge>
     </Hint>
@@ -107,7 +111,7 @@ export function UnnamedTag({ className }: { className?: string }) {
 
 /** Small square colour key, used in legends and next to KPI labels. */
 export function Swatch({ kind, className }: { kind: SegKind | "mixed"; className?: string }) {
-  const cls = kind === "h" ? "bg-human" : kind === "a" ? "bg-agent" : kind === "mixed" ? "pattern-mixed-solid" : "pattern-dots"
+  const cls = kind === "mixed" ? "pattern-mixed-solid" : segClass[kind]
   return <span aria-hidden className={cn("inline-block size-3 shrink-0 rounded-sm border-2 border-line", cls, className)} />
 }
 

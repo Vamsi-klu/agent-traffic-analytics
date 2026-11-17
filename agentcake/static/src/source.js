@@ -1,4 +1,4 @@
-// Agent Cake page script, part: where a page view came from, and the browser's language and time zone.
+// AgentCake page script, part: where a page view came from, and the browser's language and time zone.
 //
 // The fields PostHog's web analytics groups sessions by (posthog-js's packages/browser-common/src/utils/
 // event-utils.ts; posthog-js, MIT), sent with each page record and with the record that begins a new session:

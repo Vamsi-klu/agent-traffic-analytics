@@ -1,6 +1,6 @@
 """`agentcake doctor`, the line about the web server's log import: agentcake/doctor_logs.py.
 
-    python3 -I -m unittest discover -s tests -p test_doctor_logs.py -v      (from the Agent Cake folder)
+    python3 -I -m unittest discover -s tests -p test_doctor_logs.py -v      (from the AgentCake folder)
 
 No line before the first import. Then one line on the last import (log_report.py's report in cake.db): PASS when the
 log has every recommended header; WARN naming each header the log format lacks or leaves empty on every page request,

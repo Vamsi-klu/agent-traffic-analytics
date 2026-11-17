@@ -8,7 +8,7 @@ only. They hold pointer positions, touch samples, key hold and gap times and scr
 identity, no address and no identifier of a person.
 
 Used by `tests/test_motion_attestation.py` through `tests/motion_attestation.py` as
-regression data: Agent Cake's behaviour layer must not call any of these people an agent.
+regression data: AgentCake's behaviour layer must not call any of these people an agent.
 
 | File | What it holds |
 |---|---|

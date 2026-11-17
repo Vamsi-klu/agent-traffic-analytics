@@ -1,4 +1,4 @@
-// Agent Cake page script, part: the asynchronous environment probes of a page view, stream "x".
+// AgentCake page script, part: the asynchronous environment probes of a page view, stream "x".
 //
 // The research lab's asynchronous checks (env.js, 11/11), in our own code: the worker-consistency and
 // native-tampering ideas come from rebrowser-bot-detector (no code of it is used, see automation.js). Added: the

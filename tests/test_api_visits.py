@@ -1,6 +1,6 @@
 """agentcake/api/visits.py: which sessions the pages show, and each one as the lists show it.
 
-    python3 -I -m unittest discover -s tests -p test_api_visits.py -v      (from the Agent Cake folder)
+    python3 -I -m unittest discover -s tests -p test_api_visits.py -v      (from the AgentCake folder)
 
 Sessions are written into a scratch database the way judging.py and collect leave them. Self-checks, other sites'
 uploads and prefetches never count. The session categories (the verdict with an Agent session's split, and the agent's name

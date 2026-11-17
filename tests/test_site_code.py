@@ -1,6 +1,6 @@
 """Reading a website's code folder: agentcake/site_code.py.
 
-    python3 -I -m unittest discover -s tests -p test_site_code.py -v      (from the Agent Cake folder)
+    python3 -I -m unittest discover -s tests -p test_site_code.py -v      (from the AgentCake folder)
 
 Each test site (tests/site_fixtures.py) is recognised as its framework; the files that must carry the cake.js line are
 the ones setup names (every page of a static site, the Next.js layout, every template with </head>); the server

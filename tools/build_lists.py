@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Refresh the lists that ship with Agent Cake, as PostHog's refresh_bot_ip_ranges.py does for its own.
+"""Refresh the lists that ship with AgentCake, as PostHog's refresh_bot_ip_ranges.py does for its own.
 
     python3 -I tools/build_lists.py        (from the cake folder; needs the internet)
 

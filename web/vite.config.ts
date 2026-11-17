@@ -19,9 +19,15 @@ function fixtureApiForDev(): Plugin {
   }
 }
 
-/** The product's name, from Agent Cake's own data file, the one place it is written: the pages read it as
+/** The product's name, from AgentCake's own data file, the one place it is written: the pages read it as
  *  import.meta.env.VITE_PRODUCT_NAME (src/lib/product.ts) and index.html as %VITE_PRODUCT_NAME% (the browser title). */
 const product = JSON.parse(readFileSync(path.resolve(__dirname, "../agentcake/data/product.json"), "utf8"))
+/** The repository at this version's tag, where the documents a page names are (SERVER.md): product.json's "source" with
+ *  the version of agentcake/__init__.py, as agentcake/wording.py fills it for the command line. The pages read it as
+ *  import.meta.env.VITE_SOURCE (src/lib/product.ts); a page only links to it and loads nothing from it. */
+const version = /^__version__ = "([^"]+)"/m.exec(readFileSync(path.resolve(__dirname, "../agentcake/__init__.py"), "utf8"))?.[1]
+if (!version) throw new Error("agentcake/__init__.py has no __version__")
+const source = product.source.replace("{version}", version)
 /** The names of the session categories and a sentence on each, from the one file the API's words
  *  use too (agentcake/data/judging.en.json): the pages read them as import.meta.env.VITE_TAXONOMY (src/lib/taxonomy.ts). */
 const judging = JSON.parse(readFileSync(path.resolve(__dirname, "../agentcake/data/judging.en.json"), "utf8"))
@@ -33,7 +39,11 @@ const taxonomy = JSON.parse(JSON.stringify(Object.fromEntries(TAXONOMY_KEYS.map(
 // The build also writes the bundled packages' licence notices into dist/ (scripts/notices.mjs, settings in notices.json).
 export default defineConfig({
   base: "./",
-  define: { "import.meta.env.VITE_PRODUCT_NAME": JSON.stringify(product.name), "import.meta.env.VITE_TAXONOMY": JSON.stringify(taxonomy) },
+  define: {
+    "import.meta.env.VITE_PRODUCT_NAME": JSON.stringify(product.name),
+    "import.meta.env.VITE_SOURCE": JSON.stringify(source),
+    "import.meta.env.VITE_TAXONOMY": JSON.stringify(taxonomy),
+  },
   plugins: [react(), tailwindcss(), fixtureApiForDev(), thirdPartyNotices({ root: __dirname, settingsFile: path.resolve(__dirname, "notices.json") })],
   resolve: { alias: { "@": path.resolve(__dirname, "./src") } },
   build: {

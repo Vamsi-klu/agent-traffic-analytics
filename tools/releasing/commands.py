@@ -1,4 +1,4 @@
-"""Running the build's commands (npm, esbuild, Agent Cake's own build_js.py) for a release.
+"""Running the build's commands (npm, esbuild, AgentCake's own build_js.py) for a release.
 
 run() shows a command's output as it comes and turns a missing program or a failure into a ReleaseError that says
 what is needed. output() is for a command whose output is the result (esbuild reading cake.js on stdin).

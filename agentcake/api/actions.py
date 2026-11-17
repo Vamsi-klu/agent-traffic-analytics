@@ -1,7 +1,7 @@
 """'Every action' of a session (the session page lists it): the pages opened and what the visitor did, never what was typed.
 
 An action is a page opened (cake.js's page record, kept per page view; the rrweb Meta event of a cake 0.3.x recording)
-or one of the visitor's own actions in the raw stream, as data/actions.json defines them for the whole of Agent Cake
+or one of the visitor's own actions in the raw stream, as data/actions.json defines them for the whole of AgentCake
 (detect/visitor_actions.py: a click, a key or typed input, a wheel, a scroll the visitor's own input caused; a page
 that scrolls itself makes none). Keys and typing on the same target and page, each closer than action_merge_ms to the
 one before, are one action, typing when they typed ("Type in #email"), else keys ("Press a key on #search": cake.js

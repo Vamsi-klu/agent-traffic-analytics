@@ -1,6 +1,6 @@
 """A session's rrweb replay for cake 0.3.4's judge and replay page: agentcake/session_replay.py.
 
-    python3 -I -m unittest discover -s tests -p test_session_replay.py -v      (from the Agent Cake folder)
+    python3 -I -m unittest discover -s tests -p test_session_replay.py -v      (from the AgentCake folder)
 
 Since 0.4.0 collect keeps rrweb events in chunks; a cake 0.3.4 database still has replay rows, which `agentcake
 migrate` copies into chunks and keeps. Every event is read once, in time order: chunks only, rows only, rows and

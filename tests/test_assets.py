@@ -1,6 +1,6 @@
 """The compiled local pages, served by agentcake/assets.py.
 
-    python3 -I -m unittest discover -s tests -p test_assets.py -v      (from the Agent Cake folder)
+    python3 -I -m unittest discover -s tests -p test_assets.py -v      (from the AgentCake folder)
 
 / is the build's index.html, asked for again each time; the other files of the build are served by their suffix, the
 content-named ones under assets/ kept by the browser, and the favicon at /favicon.ico, where browsers ask for it. A path outside the build, or a suffix cake does not serve, is

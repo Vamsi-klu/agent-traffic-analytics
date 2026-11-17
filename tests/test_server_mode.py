@@ -1,6 +1,6 @@
 """Server mode as SERVER.md describes it, on this computer: case T8 without Docker or a load balancer.
 
-    python3 -I -m unittest discover -s tests -v      (from the Agent Cake folder)
+    python3 -I -m unittest discover -s tests -v      (from the AgentCake folder)
 
 A real `agentcake serve` (cake_server.CakeServer) with its local page and its public listener on two free ports. The
 test plays the load balancer by sending its headers itself. It checks what SERVER.md promises: every local page path
@@ -23,8 +23,8 @@ TESTS = os.path.dirname(os.path.abspath(__file__))
 sys.path[:0] = [os.path.dirname(TESTS), TESTS]
 from agentcake import edge_api, netfacts, routes, streams  # noqa: E402  (needs the path above)
 from agentcake.detect import lists  # noqa: E402
-from cake_server import (PREFIX, SERVER_MD, SITE_KEY, CakeServer, documented_public_routes, free_port,  # noqa: E402
-                         http, read, run_cli)
+from cake_server import (PREFIX, SERVER_MD, SITE_KEY, START_TIMEOUT_S, CakeServer, documented_public_routes,  # noqa: E402
+                         free_port, http, read, run_cli)
 
 CONNECT_TIMEOUT_S = 1
 FORWARDING_HEADERS = ("X-Forwarded-For", "Forwarded", "X-Real-IP")  # what a client can write anything into
@@ -59,10 +59,19 @@ def visit(session_id):
 
 
 def load_balancer_headers(address):
-    """The headers a load balancer adds in front of Agent Cake (data/lb_headers.json), with made-up values."""
+    """The headers a load balancer adds in front of AgentCake (data/lb_headers.json), with made-up values."""
     names = netfacts.lb_headers()
     return {names["ip"]: address, names["region"]: "US", names["ja4"]: "t13d1516h2_8daaf6152771_d8a2da3f94cd",
             names["proto"]: "HTTP/2", "Content-Type": "text/plain"}
+
+
+def status_of_raw_request(port, request_line):
+    """The status a listener on 127.0.0.1:port answers a request line with, or None when it closes the connection
+    without an answer."""
+    with socket.create_connection(("127.0.0.1", port), timeout=START_TIMEOUT_S) as s:
+        s.sendall(f"{request_line}\r\nHost: 127.0.0.1:{port}\r\nContent-Length: 0\r\n\r\n".encode("latin-1"))
+        first = s.makefile("rb").readline().decode("latin-1")
+    return int(first.split()[1]) if first else None
 
 
 class PublicListener(unittest.TestCase):
@@ -180,6 +189,35 @@ class LoadBalancerHeaders(unittest.TestCase):
         for output in self.outputs:
             self.assertIn("public listener", output)
             self.assertNotIn(self.address, output)
+
+
+class UnreadableRequestTarget(unittest.TestCase):
+    """Anyone can send a request target urllib cannot read (an unclosed IPv6 bracket: GET http://[ HTTP/1.1). Both
+    listeners answer it 400, as they answer any request line they cannot read, and the server writes no traceback."""
+
+    UNREADABLE = "http://["
+
+    @classmethod
+    def setUpClass(cls):
+        cls.server = CakeServer(trust_lb=False)
+        cls.statuses = {(listener, method): status_of_raw_request(port, f"{method} {cls.UNREADABLE} HTTP/1.1")
+                        for listener, port in (("local", cls.server.local_port), ("public", cls.server.public_port))
+                        for method in ("GET", "POST", "OPTIONS")}
+        cls.health = (http(cls.server.local + "/api/health")[0], http(cls.server.public + "/healthz")[0])
+        cls.output = cls.server.stop()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.server.remove()
+
+    def test_both_listeners_answer_400(self):
+        self.assertEqual(self.statuses, {key: 400 for key in self.statuses})
+
+    def test_the_listeners_go_on_answering(self):
+        self.assertEqual(self.health, (200, 200))
+
+    def test_the_server_writes_no_traceback(self):
+        self.assertNotIn("Traceback", self.output)
 
 
 if __name__ == "__main__":

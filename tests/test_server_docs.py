@@ -1,6 +1,6 @@
 """SERVER.md, deploy/cake.service, Dockerfile and .dockerignore against the code.
 
-    python3 -I -m unittest discover -s tests -v      (from the Agent Cake folder)
+    python3 -I -m unittest discover -s tests -v      (from the AgentCake folder)
 
 Every `agentcake` command in SERVER.md's code blocks runs in a scratch CAKE_HOME, every setting it names exists, and
 the public paths, load balancer headers, data folder files and Python version it states are the code's. The unit
@@ -52,7 +52,7 @@ def code_block_lines(markdown):
 
 
 def agentcake_commands(markdown):
-    """The arguments of every Agent Cake command in the code blocks: `agentcake …`, `python3 -I -m agentcake …` or
+    """The arguments of every AgentCake command in the code blocks: `agentcake …`, `python3 -I -m agentcake …` or
     `…/agentcake/__main__.py …`, up to a pipe, `&&`, `;`, a comment, or the quote that ends a command for ssh."""
     commands = []
     for line in code_block_lines(markdown):

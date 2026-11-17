@@ -119,25 +119,26 @@ class KeptFacts(unittest.TestCase):
         self.assertEqual(verdict_text.words(kept, replay_start)[0], "The human took over from the agent at 0:47.")
         self.assertEqual(verdict_text.words(kept)[0], "The human took over from the agent at 0:39.")
 
-    def test_an_indicators_span_says_its_moments_on_the_replays_clock(self):
-        kept = verdict_text.reason("behavior.indicator", "page", [T_EPOCH + 16_500, T_EPOCH + 33_200],
-                                   marker="comet.overlay", from_ms=8_000, to_ms=24_700)
-        self.assertEqual(verdict_text.words(kept, T_EPOCH)[0], verdict_text.words(
-            dict(kept, facts=dict(kept["facts"], from_ms=16_500, to_ms=33_200)))[0])
-        self.assertIn(markers.words("comet.overlay", 16_500, 33_200), verdict_text.words(kept, T_EPOCH)[0])
-        still_on = verdict_text.reason("behavior.indicator", "page", [T_EPOCH + 16_500, None], marker="comet.overlay",
-                                       from_ms=8_000, to_ms=None)
-        self.assertIn(markers.words("comet.overlay", 16_500, None), verdict_text.words(still_on, T_EPOCH)[0])
+    def test_an_indicators_reason_names_it_and_gives_no_time(self):
+        """The summary alone says when the agent was active; the indicator's span stays in the reason's value."""
+        for to in (T_EPOCH + 33_200, None):
+            kept = verdict_text.reason("behavior.indicator", "page", [T_EPOCH + 16_500, to], marker="comet.overlay",
+                                       from_ms=8_000, to_ms=None if to is None else 24_700)
+            text, detail = verdict_text.words(kept, T_EPOCH)
+            self.assertEqual((text, detail), verdict_text.words(kept))
+            self.assertEqual(text, "All actions while Comet's agent indicator was visible count as agent actions.")
+            self.assertNotRegex(text + detail, r"\d:\d\d")
+            self.assertEqual(kept["value"], [T_EPOCH + 16_500, to])
 
-    def test_an_indicators_tail_says_until_when_on_the_replays_clock(self):
+    def test_an_indicators_tail_names_it_and_gives_no_time(self):
         kept = verdict_text.reason("behavior.indicator-tail", "page", [T_EPOCH + 16_500, T_EPOCH + 33_200,
                                                                       T_EPOCH + 28_300],
                                    marker="claude-chrome.working", from_ms=8_000, to_ms=24_700, until_ms=19_800)
-        on_replay, from_visit = verdict_text.words(kept, T_EPOCH)[0], verdict_text.words(kept)[0]
-        self.assertIn(markers.words("claude-chrome.working", 16_500, 33_200), on_replay)
-        self.assertRegex(on_replay, r"\b0:28\b")
-        self.assertIn(markers.words("claude-chrome.working", 8_000, 24_700), from_visit)
-        self.assertRegex(from_visit, r"\b0:19\b")
+        text, detail = verdict_text.words(kept, T_EPOCH)
+        self.assertEqual((text, detail), verdict_text.words(kept))
+        self.assertEqual(text, "Actions while Claude in Chrome's working indicator was visible count as agent actions "
+                               "until the agent stopped.")
+        self.assertNotRegex(text + detail, r"\d:\d\d")
 
     def test_an_environment_hit_is_worded_by_its_rule_whatever_it_was_kept_with(self):
         rule = env_rules.load_rules().rule("env.auto.webdriver")

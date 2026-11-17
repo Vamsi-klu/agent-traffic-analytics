@@ -1,7 +1,7 @@
 """The three code checks: tools/check_hardcode.py, check_size.py and check_imports.py each find what they are
 for and skip what they must skip, and the repository itself passes all three.
 
-    python3 -I -m unittest discover -s tests -v      (from the Agent Cake folder)
+    python3 -I -m unittest discover -s tests -v      (from the AgentCake folder)
 
 Each check runs as people run it, as a script, on a scratch folder holding the case.
 """
@@ -16,9 +16,9 @@ MAX_LINES = _SIZE["max_lines"]
 SIZE_EXEMPT = [rel if os.path.splitext(rel)[1] else rel + "/tool.py" for rel in _SIZE["exempt"]]
 
 
-def run_tool(script, *args):
+def run_tool(script, *args, stderr=False):
     out = subprocess.run([sys.executable, "-I", os.path.join(TOOLS, script), *args], capture_output=True, text=True)
-    return out.returncode, out.stdout
+    return (out.returncode, out.stdout, out.stderr) if stderr else (out.returncode, out.stdout)
 
 
 def write(root, rel, text):
@@ -161,6 +161,28 @@ class CheckImports(ScratchFolder):
         code, out = run_tool("check_imports.py", os.path.join(self.root, "tools"))
         self.assertEqual(code, 1)
         self.assertIn("tools/blockers/check.py:1: imports adblock", out)
+
+
+class CommandLine(ScratchFolder):
+    """Each check reads its command line as any command does: --help prints how to run it, and a folder that is not
+    there stops it with a usage error instead of passing on nothing (or a traceback)."""
+
+    CHECKS = ("check_hardcode.py", "check_size.py", "check_imports.py")
+
+    def test_help_prints_the_usage(self):
+        for script in self.CHECKS:
+            with self.subTest(script=script):
+                code, out, err = run_tool(script, "--help", stderr=True)
+                self.assertEqual((code, err), (0, ""))
+                self.assertTrue(out.startswith("usage: "), out)
+
+    def test_a_folder_that_is_not_there_is_a_usage_error(self):
+        missing = os.path.join(self.root, "no-such-folder")
+        for script in self.CHECKS:
+            with self.subTest(script=script):
+                code, out, err = run_tool(script, missing, stderr=True)
+                self.assertEqual((code, out), (2, ""))
+                self.assertIn("is not a folder", err)
 
 
 if __name__ == "__main__":

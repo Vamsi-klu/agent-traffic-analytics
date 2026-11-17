@@ -1,5 +1,5 @@
 """The signature on POST /edge: what `agentcake logs import` signs each batch
-with (logs.py) and what Agent Cake checks before it reads one (edge_api.py), one implementation for both ends.
+with (logs.py) and what AgentCake checks before it reads one (edge_api.py), one implementation for both ends.
 
 The header HEADER holds <prefix>.<time in ms>.<base64url HMAC-SHA256 of "<prefix>.<time>." followed by the body>,
 keyed with the server half's secret (edge_secret.py); the header's name and the prefix are in data/logs.json "edge".

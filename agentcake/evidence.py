@@ -26,12 +26,12 @@ visit has one page view (None), and its server half is the session's first srv r
 it to).
 """
 import json
-import time
 
 from agentcake import session_replay, streams, visit_batches
 from agentcake.config import load_cfg
 from agentcake.datafiles import load
 from agentcake.detect import env_rules, env_signals, httpsig, markers, verdict_identity, weak, webbotauth
+from agentcake.storage_config import now_ms as clock_ms
 from agentcake.units import MS_PER_S
 
 HEADERS = load("data/edge.json")["headers"]
@@ -70,7 +70,7 @@ def session_evidence(con, session_id, c=None, now_s=None):
                                     RRWEB_TIME)
     evidence = {"mode": SERVER_MODE if c.get("public_listen") else LOCAL_MODE, "pages": pages,
                 "user_agents": claims["user_agents"], "platform": claims["platform"],
-                "signatures": _signatures(facts, halves, now_s if now_s is not None else time.time()),
+                "signatures": _signatures(facts, halves, now_s if now_s is not None else clock_ms() / MS_PER_S),
                 "network": _network(facts), "rdns": None, "env": env_rules.evaluate(signals),
                 "marks": markers.turn_spans(signals),
                 "touch": _touch(signals), "visits": _visits(con, session_id, facts),

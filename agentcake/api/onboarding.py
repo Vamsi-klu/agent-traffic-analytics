@@ -3,7 +3,6 @@
 
     sentence          the one sentence for a coding agent, in English, as the page shows it and `agentcake sentence`
                       prints it (copy.en.json site_sentence), with this installation's launcher, ~ for the home folder
-                      (copy.zh.json keeps its Chinese translation, which the Chinese README quotes)
     terminal, server  the commands of the Terminal and On a server tabs, one per line, placeholders only (api.en.json)
     example           made-up sessions and a timeline the page shows as "example data" until real visits arrive
                       (data/example.json); nothing in the database

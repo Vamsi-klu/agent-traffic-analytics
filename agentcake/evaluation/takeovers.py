@@ -6,7 +6,7 @@
     summary(rows, view, limit_s) -> {"sessions", "accuracy", "share_error", "handoff", ..., "mixed_found", "in_mixed"}
 
 Two views of the same session. model: the behaviour model's timeline, who did each action (the model's own numbers). verdict:
-what Agent Cake shows, the four-layer class deciding it (verdict._segments): an Agent's or a Human's decided actions
+what AgentCake shows, the four-layer class deciding it (verdict._segments): an Agent's or a Human's decided actions
 are all that actor's, a Mixed session keeps each action's own who, and only a Mixed session has hand-offs. The gate
 judges the verdict view; the model view is printed beside it.
 
@@ -58,19 +58,13 @@ def verdict_who(model_who, cls):
 
 def splice_rows(agents, humans, raw_input, limit_s, params=None):
     """agents, humans: [(name, events)]; each agent with each human by each pattern of data/splice.json."""
-    params = params or splice.load_params()
     rows = []
-    for agent_name, agent_events in agents:
-        for human_name, human_events in humans:
-            for pattern_name, pattern in params["patterns"].items():
-                spliced = splice.build(agent_events, human_events, pattern, params)
-                if spliced is None:
-                    continue
-                truth = spliced["truth"]
-                built = evidence_builder.behaviour_only(spliced["events"], raw_input)
-                rows.append({"agent": agent_name, "human": human_name, "pattern": pattern_name,
-                             **session_row(built, lambda t, truth=truth: splice.who_at(truth, t),
-                                           splice.boundaries(truth), limit_s)})
+    for agent, human, pattern, spliced in splice.each(agents, humans, params or splice.load_params()):
+        truth = spliced["truth"]
+        built = evidence_builder.behaviour_only(spliced["events"], raw_input)
+        rows.append({"agent": agent, "human": human, "pattern": pattern,
+                     **session_row(built, lambda t, truth=truth: splice.who_at(truth, t), splice.boundaries(truth),
+                                   limit_s)})
     return rows
 
 

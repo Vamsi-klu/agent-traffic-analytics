@@ -20,10 +20,13 @@
 //  hover text (DESIGN.md §6, §11; scripts/hover-text.mjs): no title= hover box (a heading component's title prop
 //                                excepted) and no SVG <title> in pages and components; TooltipContent and
 //                                ChartTooltipContent take no className outside src/components/ui.
+//  Tailwind (scripts/tailwind-sources.mjs): the files Tailwind reads for class names are the pages' code only (src,
+//                                .ts and .tsx), so no script, test, sample answer or text adds a rule to the CSS that ships.
 import { readFileSync, readdirSync, statSync } from "node:fs"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 import { hoverTextProblems } from "./hover-text.mjs"
+import { notPageCode, tailwindFiles } from "./tailwind-sources.mjs"
 
 const web = path.join(path.dirname(fileURLToPath(import.meta.url)), "..")
 const repo = path.join(web, "..")
@@ -154,7 +157,13 @@ for (const [f, names] of [[path.join(web, "src/index.css"), known]]) {
   for (const m of s.matchAll(/var\((--[\w-]+)/g)) if (!names.has(m[1]) && !m[1].startsWith("--tw-")) err(f, s, m.index, `unknown token ${m[1]}`)
 }
 
+// the files Tailwind reads for class names: the pages' code only (src/index.css: source(none) and its @source)
+const tailwindRead = await tailwindFiles(path.join(web, "src/index.css"), web)
+for (const f of notPageCode(tailwindRead, path.join(web, "src"))) {
+  errors.push(`${rel(f)}  Tailwind reads it for class names: only the pages' code (src, .ts and .tsx) may add rules to the CSS that ships (the @source in src/index.css)`)
+}
+
 if (errors.length) { console.log(`check:ui FAIL (${errors.length})`); for (const e of errors) console.log("  " + e); process.exit(1) }
-console.log(`check:ui OK · ${Object.keys(light).length} tokens (${Object.keys(dark).length} with dark values) match DESIGN.md · pages use components and tokens only · hover text only in the theme tooltip`)
+console.log(`check:ui OK · ${Object.keys(light).length} tokens (${Object.keys(dark).length} with dark values) match DESIGN.md · pages use components and tokens only · hover text only in the theme tooltip · Tailwind reads the pages' code only (${tailwindRead.length} files)`)
 console.log(`  ${avatarTokens.length} avatar colours vs the verdict colours: ${avatarReport.join(" · ")}`)
 console.log(`  Crumb (outline and limbs on the page, face on the white body: each >= 3:1): ${crumbReport.join(" · ")}`)

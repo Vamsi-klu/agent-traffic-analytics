@@ -23,7 +23,6 @@ from agentcake.storage_config import SETTINGS
 from agentcake import streams
 
 BLANK_PAGE = "about:blank"  # protocol: the address of a page that names none (WHATWG URL)
-EVENT_FIELDS = ("type", "timestamp", "data")  # protocol: an rrweb event (web/src/data/schema/replay.schema.json)
 
 
 def windows(con, session_id):

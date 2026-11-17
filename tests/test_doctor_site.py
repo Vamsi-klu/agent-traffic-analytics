@@ -1,6 +1,6 @@
 """`agentcake doctor --dir <site>`, the lines about the website's files: agentcake/doctor_site.py.
 
-    python3 -I -m unittest discover -s tests -p test_doctor_site.py -v      (from the Agent Cake folder)
+    python3 -I -m unittest discover -s tests -p test_doctor_site.py -v      (from the AgentCake folder)
 
 On test copies of a static site, an Express, a Next.js and a Flask site (tests/site_fixtures.py), connected the way
 setup --print --site says, every website line passes. With the cake.js line deleted from one file, or the
@@ -161,7 +161,7 @@ class ServerMode(Site):
 
 
 def run_doctor(folder=None, url=None):
-    """doctor's printed lines and its exit code (no Agent Cake runs: the first lines fail, the site's are read)."""
+    """doctor's printed lines and its exit code (no AgentCake runs: the first lines fail, the site's are read)."""
     out = io.StringIO()
     with contextlib.redirect_stdout(out):
         code = doctor.doctor(folder, url)

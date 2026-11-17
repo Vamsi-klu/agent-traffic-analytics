@@ -2,7 +2,7 @@
   "name": "agentcake-release-tools",
   "private": true,
   "version": "0.0.0",
-  "description": "Tools tools/release.py installs with npm ci and uses only to build a release of Agent Cake: esbuild minifies cake.js. Never shipped.",
+  "description": "Tools tools/release.py installs with npm ci and uses only to build a release of AgentCake: esbuild minifies cake.js. Never shipped.",
   "devDependencies": {
     "esbuild": "0.28.2"
   }

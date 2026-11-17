@@ -1,6 +1,6 @@
 """Agent products' marks on the page and when each was there (threshold A5): agentcake/detect/markers.py.
 
-    python3 -I -m unittest discover -s tests -p test_markers.py -v      (from the Agent Cake folder)
+    python3 -I -m unittest discover -s tests -p test_markers.py -v      (from the AgentCake folder)
 
 The mark table (agentcake/data/agent_markers.json) is checked when it is loaded; cake.js gets its page part; a page
 view's `marker` records become spans (when each mark was there), and a span reads as a reason's words. cake.js's
@@ -18,12 +18,13 @@ import unittest
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, HERE)
-from agentcake import build_js, collect, config, evidence, store, visit_batches  # noqa: E402
+from agentcake import collect, config, evidence, store, visit_batches  # noqa: E402
 from agentcake.detect import env_signals, markers  # noqa: E402
 from agentcake.responses import Request  # noqa: E402
+from tools import build_js  # noqa: E402
 
 TABLE = markers.load_table()
-WORKING, COMET = "claude-chrome.working", "comet.overlay"
+WORKING, COMET, WAITING = "claude-chrome.working", "comet.overlay", "claude-chrome.waiting"
 START_MS = 1794518371000.0  # when the visit began (epoch ms)
 KEY = "ck_markers_test"
 
@@ -47,6 +48,18 @@ def at(seconds):
 
 
 class Table(unittest.TestCase):
+    def test_a_marks_reason_says_when_the_mark_was_shown_not_that_the_agent_was_active(self):
+        """The session page's summary says when the agent was active from its actions (api.en.json summary.acted);
+        a mark's reason gives the mark's own time, which runs on after the last action, so it never says it in the
+        summary's words: one page would give two times for the same words."""
+        with open(os.path.join(HERE, "agentcake", "data", "api.en.json"), encoding="utf-8") as f:
+            acted = json.load(f)["summary"]["acted"]
+        summary_words = acted.split("{who}", 1)[1].split("{start}", 1)[0]  # " was active from "
+        span = TABLE.spans["closed"].format(**{"from": "0:28", "to": "1:19"})
+        for marker, meta in raw_table()["markers"].items():
+            with self.subTest(marker):
+                self.assertNotIn(summary_words, " " + meta["text"].format(span=span))
+
     def test_the_shipped_table_loads(self):
         self.assertEqual(set(TABLE.markers), {m["id"] for m in TABLE.page["markers"]} | set(TABLE.recorder.values()))
         self.assertIn(WORKING, TABLE.markers)
@@ -78,7 +91,10 @@ class Table(unittest.TestCase):
         self.broken(lambda data: data["markers"][WORKING].update(sources=["a blog"]))
 
     def test_a_text_without_its_span_is_refused(self):
-        self.broken(lambda data: data["markers"][WORKING].update(text="Claude in Chrome was here"))
+        self.broken(lambda data: data["markers"][WAITING].update(text="Claude in Chrome was waiting"))
+
+    def test_a_turn_kinds_mark_with_a_time_is_refused(self):
+        self.broken(lambda data: data["markers"][WORKING].update(text="Claude in Chrome was active {span}"))
 
     def test_a_selector_reading_an_attribute_the_watch_does_not_follow_is_refused(self):
         # cake.js matches selectors again only on changes of page.attributes: an attribute missing there would be missed
@@ -198,14 +214,21 @@ class TurnSpans(unittest.TestCase):
 
 class Describe(unittest.TestCase):
     def test_a_span_reads_with_times_from_the_visits_start(self):
-        span = {"marker": WORKING, "from": at(42), "to": at(75)}
+        span = {"marker": WAITING, "from": at(42), "to": at(75)}
         self.assertEqual(markers.describe(span, START_MS),
-                         "Claude in Chrome was active from 0:42 to 1:15")
-        self.assertEqual(markers.words(WORKING, 42000, 75000, "detail"), "Claude in Chrome's “working” indicator appears on the screen from 0:42 to 1:15.")
+                         "Claude in Chrome was waiting for human input from 0:42 to 1:15")
+        self.assertEqual(markers.words(WAITING, 42000, 75000, "detail"),
+                         "Claude in Chrome's waiting indicator appears on the screen from 0:42 to 1:15.")
 
     def test_a_span_without_an_end_says_from_when(self):
-        span = {"marker": COMET, "from": at(42.9), "to": None}
-        self.assertEqual(markers.describe(span, START_MS), "Comet's agent was active from 0:42 onward")
+        span = {"marker": WAITING, "from": at(42.9), "to": None}
+        self.assertEqual(markers.describe(span, START_MS), "Claude in Chrome was waiting for human input from 0:42 onward")
+
+    def test_a_turn_kinds_mark_is_named_without_its_times(self):
+        """The reason names the indicator and gives no time: the summary says when the agent was active."""
+        self.assertEqual(markers.words(WORKING, 42000, 75000), "Claude in Chrome's working indicator")
+        self.assertEqual(markers.words(WORKING, 42000, None, "detail"),
+                         "Claude in Chrome shows its “working” indicator on the screen while it works.")
 
     def test_the_clock_writes_a_moment_as_the_player_does(self):
         """m:ss under an hour and h:mm:ss past it, whole seconds rounded down (web/src/lib/format.ts clock)."""
