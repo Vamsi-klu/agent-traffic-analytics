@@ -311,7 +311,9 @@ Also, every time: look at light, dark and 485 wide (`npm run shots`); copy follo
 
 rrweb-player 2.0.0-alpha.18 (MIT) is not an npm dependency: cake ships it in `agentcake/static/` (THIRD_PARTY.md) and the replay page loads it from there at run time (§6.4).
 
-Indirect dependencies (378 packages in node_modules in all) all have permissive licenses: MIT 320, ISC 27, Apache-2.0 9, BSD 11 and others; of these, lightningcss (MPL-2.0, used by Tailwind's compiler), caniuse-lite (CC-BY-4.0, browser data) and graceful-fs / isexe / minimatch (BlueOak-1.0.0) are used only at build time and never reach `dist/`.
+Indirect dependencies (379 packages in node_modules in all) all have permissive licenses: MIT 320, ISC 27, Apache-2.0 9, BSD 11 and others; of these, lightningcss (MPL-2.0, used by Tailwind's compiler), caniuse-lite (CC-BY-4.0, browser data) and graceful-fs / isexe / minimatch / @isaacs/nonrecursive-glob-match (BlueOak-1.0.0) are used only at build time and never reach `dist/`.
+
+`web/package.json` sets one indirect version in `overrides`: minimatch 11.0.4 for `@ts-morph/common`, which the shadcn CLI uses through ts-morph. `@ts-morph/common` 0.27 asks for minimatch ^10, and minimatch before 11.0.1 has a denial of service (GHSA-g3hv-75wg-m249); the only minimatch call it makes, `minimatch(path, pattern)`, works the same in 11. Remove the override once shadcn depends on a ts-morph whose `@ts-morph/common` asks for minimatch 11.0.1 or newer.
 
 `npm run build` writes the notices of everything that reaches `dist/` (code, styles, fonts) into `dist/THIRD_PARTY_NOTICES.txt` (`scripts/notices.mjs`, settings in `notices.json`), which every release carries. The build stops when a bundled package ships no licence file: copy its licence from its repository into `notices.json` "texts".
 
