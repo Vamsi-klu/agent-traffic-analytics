@@ -87,7 +87,7 @@ class IdentifiedVisitors(WebCase):
         self.visit("human", BROWSERS[0], person("user-1"), ago_ms=3 * DAY_MS)
         self.visit("human", BROWSERS[0])
         self.visit("human", BROWSERS[1], person("user-1"))
-        visitors = self.get("today")["visitors"]
+        visitors = self.get("24h")["visitors"]
         self.assertEqual((visitors["all"], visitors["human"]), (1, 1))
 
     def test_kinds_count_the_same_visitor_and_may_add_up_to_more_than_all(self):

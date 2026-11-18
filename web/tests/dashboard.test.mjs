@@ -5,7 +5,8 @@
 // named, however many), Trends and the four tables (their own file), each as wide as the cards above; Reference last
 // (three verdicts, Agent's two kinds inside Agent, which visits are counted under it), no Disk section and no coverage
 // note but the disk budget's warnings, the top block before the first Agent session, and the dashboard while only the
-// demo shop's sessions are listed. Usage: node --test tests/
+// demo shop's sessions are listed. The date ranges: Last 24 hours first, Last 7 days by default (an old link's Today
+// too), and what the Agent block compares each one with. Usage: node --test tests/
 import assert from "node:assert/strict"
 import { readFileSync } from "node:fs"
 import { after, before, test } from "node:test"
@@ -31,13 +32,14 @@ const DEMO_ONLY = { ...setup, recorded: { sessions: 1, site: 0, agent: 0 } }
 const NO_AGENTS = { ...overview, counts: { ...overview.counts, agent: 0, agent_only: 0, human_agent: 0 }, latest_agent: [], agents_seen: [] }
 
 /** setupAnswer: /api/setup's answer, by default one with the website's sessions recorded (with nothing recorded the
- *  dashboard is the onboarding); webAnswer: /api/web's, by default the sample. */
-async function open({ answer, webAnswer, setupAnswer = RECORDED, width } = {}) {
+ *  dashboard is the onboarding); webAnswer: /api/web's, by default the sample; query: the dashboard's address after
+ *  its path ("?range=24h"). */
+async function open({ answer, webAnswer, setupAnswer = RECORDED, width, query = "" } = {}) {
   const tab = await openTab(app, { width })
   if (answer) await tab.page.route("**/api/overview**", (route) => route.fulfill({ json: answer }))
   if (webAnswer) await tab.page.route("**/api/web**", (route) => route.fulfill({ json: webAnswer }))
   await tab.page.route("**/api/setup", (route) => route.fulfill({ json: setupAnswer }))
-  await tab.page.goto(app.url("#/dashboard"))
+  await tab.page.goto(app.url(`#/dashboard${query}`))
   if (setupAnswer.recorded.sessions > 0) await tab.page.getByRole("region", { name: WORDS.totals }).waitFor({ timeout: WAIT_MS })
   return tab
 }
@@ -291,7 +293,7 @@ test("each chart takes a whole row, wide and at 485, and says when it has nothin
     } finally { await tab.close() }
   }
   const none = { sessions: 0, visitors: 0, page_views: 0, active_ms: null, pages_per_session: null }
-  const noDays = { ...web, agents: [], trends: { ...web.trends, points: web.trends.points.map((p) => ({ label: p.label, human: none, agent: none })) } }
+  const noDays = { ...web, agents: [], trends: { ...web.trends, points: web.trends.points.map((p) => ({ key: p.key, label: p.label, human: none, agent: none })) } }
   const tab = await open({ answer: NO_AGENTS, webAnswer: noDays })
   try {
     const main = tab.page.locator("main")
@@ -403,18 +405,52 @@ test("every full-width block lines up: the Agent block, the number cards, the tw
   }
 })
 
-test("All time is the last date range, and it shows no comparison with last week", async () => {
-  const tab = await open({ answer: { ...overview, agent_last_week: null } })
+test("Last 24 hours is the first date range and All time the last, which shows no comparison", async () => {
+  const tab = await open({ answer: { ...overview, agent_earlier: null } })
   try {
     await tab.page.getByRole("combobox", { name: "Date range" }).click()
-    assert.deepEqual(await tab.page.getByRole("option").allInnerTexts(), ["Today", "Last 7 days", "Last 30 days", "All time"])
+    assert.deepEqual(await tab.page.getByRole("option").allInnerTexts(), ["Last 24 hours", "Last 7 days", "Last 30 days", "All time"])
     await tab.page.keyboard.press("Escape")
-    assert.equal(await tab.page.locator('[aria-labelledby="spot-title"]').getByText(/compared to last week/).count(), 0, "no 0 shown either")
+    assert.equal(await tab.page.locator('[aria-labelledby="spot-title"]').getByText(/prior/).count(), 0, "no 0 shown either")
   } finally { await tab.close() }
-  const week = await open()
+  const all = await open({ answer: { ...overview, agent_earlier: null }, query: "?range=all" })
   try {
-    assert.equal(await week.page.locator('[aria-labelledby="spot-title"]').getByText(/compared to last week/).count(), 1)
-  } finally { await week.close() }
+    assert.equal(await all.page.locator('[aria-labelledby="spot-title"]').getByText(/prior/).count(), 0)
+  } finally { await all.close() }
+})
+
+test("the Agent block compares every range with its previous period in PostHog's words: the change, and vs. N prior", async () => {
+  const delta = overview.counts.agent - overview.agent_earlier
+  assert.ok(delta !== 0, "the sample has a change to show")
+  for (const query of ["?range=24h", "", "?range=7d", "?range=30d"]) {
+    const tab = await open({ query })
+    try {
+      const block = tab.page.locator('[aria-labelledby="spot-title"]')
+      const badge = block.locator('[data-slot="badge"]').filter({ hasText: /^\s*[+−]\d+\s*$/ })
+      assert.equal((await badge.innerText()).trim(), `${delta < 0 ? "−" : "+"}${Math.abs(delta)}`, query || "the default range")
+      assert.equal(await block.getByText(`vs. ${overview.agent_earlier} prior`, { exact: true }).count(), 1, query || "the default range")
+    } finally { await tab.close() }
+  }
+})
+
+test("a note under Trends names the time zone of its days and hours", async () => {
+  for (const zone of [web.time_zone, "UTC+05:45"]) {
+    const tab = await open({ webAnswer: { ...web, time_zone: zone } })
+    try {
+      const card = tab.page.locator('[data-slot="card"]').filter({ has: tab.page.getByText(WORDS.trends, { exact: true }) }).first()
+      assert.equal(await card.getByText(`Times in ${zone}`, { exact: true }).count(), 1, zone)
+    } finally { await tab.close() }
+  }
+})
+
+test("an old link to Today opens the default range, Last 7 days, and asks for it", async () => {
+  const tab = await open({ query: "?range=today" })
+  try {
+    assert.equal((await tab.page.getByRole("combobox", { name: "Date range" }).innerText()).trim(), "Last 7 days")
+    const asked = tab.requests.map((u) => new URL(u)).filter((u) => ["/api/overview", "/api/web"].includes(u.pathname))
+    assert.ok(asked.length >= 2 && asked.every((u) => u.searchParams.get("range") === "7d"), asked.map(String).join(" "))
+    assert.ok((await tab.page.locator('[aria-labelledby="spot-title"]').innerText()).includes(`vs. ${overview.agent_earlier} prior`))
+  } finally { await tab.close() }
 })
 
 test("Reference lists the session categories, the three verdicts with Agent's two kinds inside Agent, and says which visits are counted", async () => {

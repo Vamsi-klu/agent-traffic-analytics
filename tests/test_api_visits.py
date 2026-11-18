@@ -24,6 +24,7 @@ from agentcake.api import visits  # noqa: E402
 
 T0 = 1_794_500_000_000
 NOW = T0 + 3_600_000
+MACHINE = None  # the times in words follow this computer's timezone (periods.py)
 DETAIL = {"display_name": None, "category": None, "operator": None}
 
 
@@ -49,7 +50,7 @@ class Visits(unittest.TestCase):
                              [(sid, *run) for run in runs])
 
     def listed(self, scope=None):
-        rows, _ = visits.page(self.con, scope or visits.Scope(), 50, NOW)
+        rows, _ = visits.page(self.con, scope or visits.Scope(), 50, NOW, MACHINE)
         return {row["id"]: row for row in rows}
 
 
@@ -213,10 +214,10 @@ class PagesAndOrder(Visits):
         for n in range(5):
             self.put(f"s{n}", start=T0 + n * 1000, verdict_class="human")
         self.put("tie", start=T0 + 3000, verdict_class="human")
-        first, keys = visits.page(self.con, visits.Scope(), 3, NOW)
+        first, keys = visits.page(self.con, visits.Scope(), 3, NOW, MACHINE)
         self.assertEqual([row["id"] for row in first], ["s4", "tie", "s3"])
         self.put("newer", start=T0 + 9000, verdict_class="human")  # arrives between the two pages
-        second, _ = visits.page(self.con, visits.Scope().before(keys[-1]), 3, NOW)
+        second, _ = visits.page(self.con, visits.Scope().before(keys[-1]), 3, NOW, MACHINE)
         self.assertEqual([row["id"] for row in second], ["s2", "s1", "s0"])
 
 

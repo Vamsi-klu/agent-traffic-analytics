@@ -11,12 +11,13 @@ import os
 import shutil
 import sys
 import tempfile
+import time
 import unittest
 from unittest import mock
 
 TESTS = os.path.dirname(os.path.abspath(__file__))
 sys.path[:0] = [os.path.dirname(TESTS), TESTS]
-from agentcake import doctor_lines, doctor_logs, log_report, store, wording  # noqa: E402
+from agentcake import config, doctor_lines, doctor_logs, log_report, store, wording  # noqa: E402
 from cake_server import free_port  # noqa: E402
 from test_doctor_machine import run_doctor  # noqa: E402
 
@@ -55,6 +56,18 @@ class LogsLine(unittest.TestCase):
         self.assertEqual((name, verdict), (wording.text("doctor_logs"), True))
         self.assertIn("nginx-agentcake", info)
         self.assertIn("2026-11-12", info)
+
+    def test_the_import_time_is_in_agentcakes_timezone_and_says_which(self):
+        self.imported()
+        for computer, setting, when in (("UTC", "", "2026-11-12 16:13 UTC"),
+                                        ("America/Los_Angeles", "", "2026-11-12 08:13 PST"),
+                                        ("UTC", "Asia/Tokyo", "2026-11-13 01:13 JST")):
+            config.save_user(timezone=setting)
+            with mock.patch.dict(os.environ, {"TZ": computer}):
+                time.tzset()
+                [(_, _, info)] = doctor_logs.logs_checks()
+            time.tzset()
+            self.assertIn(f"last import {when}:", info, (computer, setting))
 
     def test_each_header_the_format_lacks_or_leaves_empty_is_named_in_a_warning(self):
         self.imported("combined", missing=COMBINED_LACKS[:-1], empty=["accept-language"])

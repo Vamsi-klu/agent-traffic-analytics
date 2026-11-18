@@ -1,6 +1,6 @@
 # Installing AgentCake: instructions for an AI coding assistant
 
-You are installing **AgentCake 0.5.0** for the user. AgentCake does AI agent traffic analytics for a website: for
+You are installing **AgentCake 0.5.1** for the user. AgentCake does AI agent traffic analytics for a website: for
 each visit it shows whether a human, an AI agent or a bot was acting, and when a human and an agent took turns, with
 the replay and the reasons. It runs only on this computer (macOS or Linux): one program and one small database in
 `~/.cake`, and a **local page** at `http://127.0.0.1:7878/`. The first time the user opens it, it asks them to register,
@@ -19,7 +19,7 @@ How to work:
 
 ## Step 1. Choose how to install
 
-If you are already in AgentCake's own folder (its source, or the unpacked release folder `agentcake-0.5.0/`), skip
+If you are already in AgentCake's own folder (its source, or the unpacked release folder `agentcake-0.5.1/`), skip
 to step 4: the command is that folder's `bin/agentcake`, by its full path (it needs `python3` 3.11 or newer).
 
 Otherwise, look for uv:
@@ -43,23 +43,23 @@ start again at step 1:
 
 ## Step 2. Download the release and check it
 
-The release page is https://github.com/tartini-ai/agent-traffic-analytics/releases/tag/v0.5.0
+The release page is https://github.com/tartini-ai/agent-traffic-analytics/releases/tag/v0.5.1
 If the user gave you another release page for this version, download the same files from there. First the checksums:
 
 ```sh
-curl -fsSLO https://github.com/tartini-ai/agent-traffic-analytics/releases/download/v0.5.0/SHA256SUMS
+curl -fsSLO https://github.com/tartini-ai/agent-traffic-analytics/releases/download/v0.5.1/SHA256SUMS
 ```
 
 Route A, the wheel:
 
 ```sh
-curl -fsSLO https://github.com/tartini-ai/agent-traffic-analytics/releases/download/v0.5.0/agentcake-0.5.0-py3-none-any.whl
+curl -fsSLO https://github.com/tartini-ai/agent-traffic-analytics/releases/download/v0.5.1/agentcake-0.5.1-py3-none-any.whl
 ```
 
 Route B, the one-file version:
 
 ```sh
-curl -fsSLO https://github.com/tartini-ai/agent-traffic-analytics/releases/download/v0.5.0/agentcake.pyz
+curl -fsSLO https://github.com/tartini-ai/agent-traffic-analytics/releases/download/v0.5.1/agentcake.pyz
 ```
 
 Then check what you downloaded:
@@ -83,7 +83,7 @@ do not install or run it: tell the user the download does not match the release.
 Route A:
 
 ```sh
-uv tool install --python 3.14 ./agentcake-0.5.0-py3-none-any.whl
+uv tool install --python 3.14 ./agentcake-0.5.1-py3-none-any.whl
 ```
 
 uv installs the `agentcake` command in its own folder for tools, and downloads Python 3.14 if this computer has none
@@ -104,7 +104,7 @@ example `python3 /Users/<name>/agentcake/agentcake.pyz`. Leave the file where it
 **From here on, `agentcake` in a command stands for that full command.** Write it out in full every time, also where
 AgentCake's own messages say just `agentcake`.
 
-**Check:** `agentcake --version` prints `agentcake 0.5.0`.
+**Check:** `agentcake --version` prints `agentcake 0.5.1`.
 
 ## Step 4. Start AgentCake
 
@@ -113,7 +113,7 @@ agentcake start
 ```
 
 It runs AgentCake in the background on 127.0.0.1 (port 7878) and prints the local page's address. If it says
-AgentCake is already running, run `agentcake status`: its `"version"` should be `0.5.0`. An older version is an
+AgentCake is already running, run `agentcake status`: its `"version"` should be `0.5.1`. An older version is an
 earlier install using the same data folder: **ASK** the user before you stop it with `agentcake stop`, then start
 again. Its visits stay, and this version reads them.
 

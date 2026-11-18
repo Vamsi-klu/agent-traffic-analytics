@@ -11,12 +11,13 @@ in words, and every answer that is not 2xx is {"error": "<a sentence the page ca
     session.py      GET /api/session/<id>                                     one session: verdict, timeline, reasons
                     GET /api/session/<id>/replay?chunk=<n>                    one chunk of its replay (replay.py)
     settings.py     GET and POST /api/settings
+    timezones.py    GET /api/timezones                                        the time zones the settings page lists
     onboarding.py   GET /api/setup                                            the home page's ways to connect
     registration.py GET and POST /api/register                                the registration card
     health.py       GET /api/health (doctor, status), GET /healthz (the public listener's health check)
     visits.py       which sessions count, the filters, and each session as the lists show it
     reasons.py, actions.py, replay.py, server_half.py    the parts of one session's answer
     coverage.py     the dashboard's words on what counts as a bot
-    periods.py      the date ranges, and wall-clock times in words
+    periods.py      the date ranges, and wall-clock times in words, in AgentCake's timezone (agentcake/timezone.py)
     answers.py      JSON answers, error bodies, and who may ask
 """

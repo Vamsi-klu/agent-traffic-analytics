@@ -3,7 +3,7 @@
 // frontend/src/Api.js (MIT): one small fetch wrapper that turns the server's error body into an error. No code copied.
 import { useEffect, useState, type DependencyList } from "react"
 import { PRODUCT_NAME } from "@/lib/product"
-import type { Overview, OverviewQuery, Registration, ReplayChunk, SessionDetail, SessionsPage, SessionsQuery, Settings, SettingsUpdate, Setup, WebAnalytics, WebQuery } from "./types"
+import type { Overview, OverviewQuery, Registration, ReplayChunk, SessionDetail, SessionsPage, SessionsQuery, Settings, SettingsUpdate, Setup, Timezones, WebAnalytics, WebQuery } from "./types"
 
 /** Relative to the page, like the built assets (vite base "./"), so the pages work under any path. */
 const BASE = "api/"
@@ -62,6 +62,7 @@ export const api = {
   saveSettings: (update: SettingsUpdate) =>
     request<Settings>("settings", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(update) }),
   setup: (signal?: AbortSignal) => request<Setup>("setup", { signal }),
+  timezones: (signal?: AbortSignal) => request<Timezones>("timezones", { signal }),
   /** "Delete all data" on the settings page, after its Dialog: every session and its replay (POST /api/delete). */
   deleteEverything: () =>
     request<unknown>("delete", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ all: true }) }),

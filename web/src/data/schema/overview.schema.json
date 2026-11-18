@@ -5,10 +5,10 @@
   "description": "GET /api/overview?range= : the dashboard.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["counts", "agent_last_week", "agents_seen", "page_views", "pages_per_session", "latest_agent", "storage", "coverage"],
+  "required": ["counts", "agent_earlier", "agents_seen", "page_views", "pages_per_session", "latest_agent", "storage", "coverage"],
   "properties": {
     "counts": { "$ref": "common.schema.json#/$defs/SessionCounts" },
-    "agent_last_week": { "description": "Agent sessions in the same range a week earlier; null for all time, which has no earlier range.", "type": ["integer", "null"], "minimum": 0 },
+    "agent_earlier": { "description": "Agent sessions of the range's previous period, PostHog's: as long as the range runs to the end of its current hour or day, right before it (25 hours, 8 days, 31 days); null for all time, which has no earlier range.", "type": ["integer", "null"], "minimum": 0 },
     "agents_seen": {
       "type": "array",
       "items": {

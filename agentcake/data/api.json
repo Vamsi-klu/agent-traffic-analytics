@@ -3,8 +3,9 @@
 
   "page_size": 20,
   "latest_agent": 3,
-  "range_days": {"today": 1, "7d": 7, "30d": 30},
-  "compare_days": 7,
+  "$ranges": "The date ranges of the dashboard and the session list (agentcake/api/periods.py), PostHog's, in menu order. range_hours: from the start of the hour that many hours ago, in AgentCake's timezone (PostHog's -24h): the Trends chart's first hour is a whole one. range_days: from midnight that many days ago (PostHog's -7d and -30d), so today is one more of their days. The Agent block compares each with its previous period, as PostHog's web analytics does: as long as the range runs to the end of its current hour or day, right before it.",
+  "range_hours": {"24h": 24},
+  "range_days": {"7d": 7, "30d": 30},
   "weekday_label_days": 7,
   "receiving_days": 7,
   "max_actions": 2000,

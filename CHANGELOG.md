@@ -3,6 +3,46 @@
 Every release of AgentCake, newest first. Each release's files and their `SHA256SUMS` are on
 [GitHub Releases](https://github.com/tartini-ai/agent-traffic-analytics/releases).
 
+## 0.5.1
+
+Last 24 hours replaces Today, dates and times follow a time zone you can choose, and the date ranges and their
+comparison work as PostHog's web analytics does.
+
+### Dashboard
+
+- **Last 24 hours replaces Today** in the date filter of the dashboard and the session list. Today counted from
+  midnight in the server's time zone: on a server set to UTC it started over late in the afternoon in California, and
+  showed 0 until new sessions came. Last 24 hours runs from the start of the hour 24 hours ago to now. Last 7 days is
+  still the default, and a link to the old Today range opens on it.
+- **Time zone**: a new setting, in Settings or `agentcake config set timezone America/Los_Angeles`, for every date and
+  time on the dashboard and in Session replay: where a day starts, the hours and days of Trends, and words such as
+  Today 21:12. By default AgentCake follows the time zone of the computer or server it runs on, as before. A note under
+  Trends names the time zone in use ("Times in PST").
+- **Last 7 days and Last 30 days** start at midnight 7 and 30 days ago, as PostHog's do, so they hold 8 and 31 days,
+  today's included. Their numbers can be larger than before.
+- **Agent sessions** compares each range with its previous period, as long as the range and right before it, as
+  PostHog does: the change, and the previous count ("+12", "vs. 30 prior"). It compared with a week earlier before.
+- **Trends** shows Last 24 hours by hour, from the hour 24 hours ago to the current one, each hour with its date
+  ("Nov 15, 23:00"). All time is by day now, as the last 7 and 30 days are; a range that crosses a new year names the
+  year in its days ("Nov 3, 2025"). Its time axis names the hours or days at an even step: every 3 hours for Last 24
+  hours, every day for Last 7 days, every 3 days for Last 30 days, and each month for All time ("Nov 2026"). On a
+  narrow screen, where the labels would touch, the step doubles, and All time names quarters or years. Hovering still
+  shows each hour or day.
+
+### Command line
+
+- `agentcake doctor` writes the time of the last log import in AgentCake's time zone, and names it.
+
+### Local API
+
+- `range=24h` takes the place of `range=today` on `/api/overview`, `/api/web` and `/api/sessions`, which now answer
+  `range=today` with 400, as for any unknown range.
+- `/api/overview`'s `agent_last_week` is `agent_earlier`: the Agent sessions of the range's previous period.
+- `/api/web` says the time zone of its days and hours (`time_zone`), `/api/settings` reads and saves `timezone`, and
+  `/api/timezones` lists the time zones that Settings offers.
+- `/api/web`'s `trends` gives each point's hour or day as `key`, and how often the time axis names one as `every` (a
+  number of points, or `month`).
+
 ## 0.5.0
 
 The first public release: the repository is public, and the release's wheel is on PyPI. The browsers built into AI

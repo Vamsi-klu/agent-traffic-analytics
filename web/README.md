@@ -41,13 +41,14 @@ if it doesn't (`src/components/cake/page-state.tsx`). The contract has three par
 
 | Endpoint | Answer | Schema |
 |---|---|---|
-| `GET /api/overview?range=today\|7d\|30d` | `Overview`: counts, the human + agent top block, the agents seen, page views and pages per session, the latest Agent sessions, disk use, the coverage table's wording | `overview` |
-| `GET /api/web?range=today\|7d\|30d\|all` | `WebAnalytics`: visitors and page views (all and by verdict), active time spent (all and by verdict), the Trends chart's five metrics for Human and Agent by hour, day or month, the same five for each agent (Top agents), the Paths table, and the Sources, Devices and Geography tables (a row per value of each breakdown) | `web` |
+| `GET /api/overview?range=24h\|7d\|30d\|all` | `Overview`: counts, the human + agent top block, the agents seen, page views and pages per session, the latest Agent sessions, disk use, the coverage table's wording | `overview` |
+| `GET /api/web?range=24h\|7d\|30d\|all` | `WebAnalytics`: visitors and page views (all and by verdict), active time spent (all and by verdict), the Trends chart's five metrics for Human and Agent by hour or day, and the time zone they're in, the same five for each agent (Top agents), the Paths table, and the Sources, Devices and Geography tables (a row per value of each breakdown) | `web` |
 | `GET /api/sessions?verdict=&agent=&range=&cursor=` | `SessionsPage`: counts per group, the names of the two kinds of agent, agent names, one page of sessions (newest first), `next` cursor | `sessions` |
 | `GET /api/session/<id>` | `SessionDetail`: the session, title, summary, timeline, the pages in the order they opened, four reason layers, actions, replay (chunks, the session's clock `epoch_ms`, `handoff_lead_ms`, why it is `missing`), server half; 404 if unknown | `session` |
 | `GET /api/session/<id>/replay?chunk=<n>` | `ReplayChunk`: the rrweb events of chunk n (one per 10 s, as listed in the session); the replay page asks for a chunk only when it needs it | `replay` |
 | `GET /api/settings` | `Settings` | `settings` |
 | `POST /api/settings` (JSON, only the fields to change) | the whole `Settings`; 400 with an error body for a bad value | `settings-update` (body) |
+| `GET /api/timezones` | `Timezones`: the time zones Settings lists, UTC first, each with its offset from UTC now | `timezones` |
 | `POST /api/delete` (JSON: `{"all": true}`) | every session deleted, as `agentcake delete` deletes one: the settings page's "Delete all data", after its Dialog | — |
 | `GET /api/setup` | `Setup`: the sentence for a coding agent (EN / 中文), commands, example preview, how many sessions are recorded (the home page is the dashboard from the first one on) | `setup` |
 | `GET /api/register` | `Registration`: whether this data folder has registered (until it has, every page shows the registration card), what it sent and when, the checks the card makes, where to ask for deletion | `register` |

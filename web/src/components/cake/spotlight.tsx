@@ -18,13 +18,14 @@ function Eyebrow() {
   return <span className="flex items-center gap-2 text-sm font-extrabold text-agent-foreground"><CrumbHead className="size-7" />{WORDS.agentSessions}</span>
 }
 
-/** The top of /api/overview: Agent counts, the change since last week, each agent by name with its avatar (Unnamed
- *  together, with the one grey avatar), and the newest three. Agent only and Human + agent aren't split here: the main
- *  dashboard counts Human and Agent; the session list's filter and the categories block name the two kinds. */
+/** The top of /api/overview: Agent counts, the change from the range's previous period and its count, as PostHog's web
+ *  analytics writes them ("+12", "vs. 30 prior"), each agent by name with its avatar (Unnamed together, with the one
+ *  grey avatar), and the newest three. Agent only and Human + agent aren't split here: the main dashboard counts Human
+ *  and Agent; the session list's filter and the categories block name the two kinds. */
 export function Spotlight({ overview }: { overview: Overview }) {
-  const { counts, latest_agent: latest } = overview
+  const { counts, latest_agent: latest, agent_earlier: prior } = overview
   // all time has no earlier range: no comparison at all, rather than a made-up 0
-  const delta = overview.agent_last_week === null ? null : counts.agent - overview.agent_last_week
+  const delta = prior === null ? null : counts.agent - prior
   const Trend = delta !== null && delta < 0 ? TrendingDown : TrendingUp
   return (
     <Card variant="highlight" aria-labelledby="spot-title">
@@ -33,7 +34,12 @@ export function Spotlight({ overview }: { overview: Overview }) {
           <Eyebrow />
           <div className="flex flex-wrap items-end gap-3">
             <span className="font-heading text-6xl leading-none font-semibold">{counts.agent}</span>
-            {delta !== null && <Badge variant="tag" className="mb-1"><Trend aria-hidden />{delta < 0 ? "−" : "+"}{Math.abs(delta)} compared to last week</Badge>}
+            {delta !== null && prior !== null && (
+              <span className="mb-1 flex items-center gap-2">
+                <Badge variant="tag"><Trend aria-hidden />{delta < 0 ? "−" : "+"}{Math.abs(delta)}</Badge>
+                <span className="text-sm text-muted-foreground">{WORDS.vsPrior(prior)}</span>
+              </span>
+            )}
           </div>
           <div className="flex items-center gap-2"><h3 id="spot-title" className="text-lg font-semibold">{WORDS.actedForHuman}</h3><InfoTip label={WORDS.agentSessions} lines={WORDS.about.agents} /></div>
           <ul aria-label={WORDS.agentsByName} className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">

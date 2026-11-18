@@ -57,7 +57,13 @@ class Asking(unittest.TestCase):
 
     def test_a_value_that_is_not_a_choice_names_the_choices(self):
         said = self.error(Client().get("/api/overview", range="year"), 400)
-        self.assertEqual(said, "range must be one of the following values: today, 7d, 30d, all.")
+        self.assertEqual(said, "range must be one of the following values: 24h, 7d, 30d, all.")
+
+    def test_today_is_no_range_any_more(self):
+        """An old bookmark's range=today: the pages open on their default range instead, the API refuses it."""
+        for path in ("/api/overview", "/api/web", "/api/sessions"):
+            said = self.error(Client().get(path, range="today"), 400)
+            self.assertEqual(said, "range must be one of the following values: 24h, 7d, 30d, all.", path)
 
     def test_an_address_no_view_answers_is_a_json_404(self):
         self.assertIn("/api/nothing", self.error(Client().get("/api/nothing"), 404))

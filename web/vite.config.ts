@@ -35,6 +35,12 @@ const TAXONOMY_KEYS = ["title", "counted", "verdicts", "unsure", "evidence", "tu
 /** {name} in these words is the product's name, filled in here as the API fills in its own words. */
 const taxonomy = JSON.parse(JSON.stringify(Object.fromEntries(TAXONOMY_KEYS.map((key) => [key, judging[key]]))).replaceAll("{name}", product.name))
 
+/** The month names and "{month} {year}" the Trends chart's time axis writes months with ("Nov 2026"), from the words the
+ *  API writes its days and hours with (agentcake/data/api.en.json "when"): the pages read them as
+ *  import.meta.env.VITE_MONTHS (src/components/cake/trends-chart.tsx). */
+const when = JSON.parse(readFileSync(path.resolve(__dirname, "../agentcake/data/api.en.json"), "utf8")).when
+const months = { months: when.months, monthYear: when.month_year }
+
 // Built to dist/ as static files; cake (Python) serves them and a JSON API. Relative base so it works under any path.
 // The build also writes the bundled packages' licence notices into dist/ (scripts/notices.mjs, settings in notices.json).
 export default defineConfig({
@@ -43,6 +49,7 @@ export default defineConfig({
     "import.meta.env.VITE_PRODUCT_NAME": JSON.stringify(product.name),
     "import.meta.env.VITE_SOURCE": JSON.stringify(source),
     "import.meta.env.VITE_TAXONOMY": JSON.stringify(taxonomy),
+    "import.meta.env.VITE_MONTHS": JSON.stringify(months),
   },
   plugins: [react(), tailwindcss(), fixtureApiForDev(), thirdPartyNotices({ root: __dirname, settingsFile: path.resolve(__dirname, "notices.json") })],
   resolve: { alias: { "@": path.resolve(__dirname, "./src") } },

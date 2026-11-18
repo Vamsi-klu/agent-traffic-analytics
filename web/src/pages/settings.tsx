@@ -20,6 +20,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { BudgetWarning, Columns, CopyBlock, DocumentLink, PageHeader, SettingRow, Status, StorageUse } from "@/components/cake/bits"
 import { Loaded } from "@/components/cake/page-state"
 import { LAYERS } from "@/components/cake/reasons"
+import { TimezonePicker, type ZoneChoice } from "@/components/cake/timezone-picker"
 import { api, asApiError, useApi } from "@/data/api"
 import type { Connection, LayerId, Registration, Settings, SettingsUpdate } from "@/data/types"
 import { NO_VALUE, PERCENT, bytes, mbToBytes, percent } from "@/lib/format"
@@ -44,11 +45,11 @@ const LAYER_WORDS: Record<LayerId, string> = {
 }
 
 export function SettingsPage() {
-  const data = useApi((signal) => Promise.all([api.settings(signal), api.registration(signal)]), [])
+  const data = useApi((signal) => Promise.all([api.settings(signal), api.registration(signal), api.timezones(signal)]), [])
   return (
     <div className="flex flex-col gap-5">
       <PageHeader title="Settings" lead={`All settings and data are stored on the server or computer where ${PRODUCT_NAME} runs.`} />
-      <Loaded state={data} what="settings">{([s, r]) => <SettingsForm initial={s} registration={r} />}</Loaded>
+      <Loaded state={data} what="settings">{([s, r, t]) => <SettingsForm initial={s} registration={r} zones={t.zones} />}</Loaded>
     </div>
   )
 }
@@ -63,7 +64,7 @@ function readable(selectors: string) {
   }
 }
 
-function SettingsForm({ initial, registration }: { initial: Settings; registration: Registration }) {
+function SettingsForm({ initial, registration, zones }: { initial: Settings; registration: Registration; zones: ZoneChoice[] }) {
   const [s, setS] = useState(initial)
   const [error, setError] = useState<string | null>(null)
   const [domain, setDomain] = useState(initial.site_domain)
@@ -101,6 +102,10 @@ function SettingsForm({ initial, registration }: { initial: Settings; registrati
             <SettingRow title="Site key" desc="The public site key is included in each page's source code and sent with every visit." control={<code className="font-mono text-sm">{s.site_key ?? NO_VALUE}</code>} />
             <p className="text-sm">{WORDS.scriptWhere}</p>
             <CopyBlock text={s.script_tag} />
+            <Label htmlFor="time-zone">{WORDS.timeZone}</Label>
+            <TimezonePicker id="time-zone" zones={zones} value={s.timezone} onPick={(name) => void save({ timezone: name })}
+              follow={WORDS.followMachine(s.route === "server" ? "This server" : "This computer", s.timezone_machine.name, s.timezone_machine.short)} />
+            <p className="text-xs text-muted-foreground">{WORDS.timeZoneAbout}</p>
           </CardContent>
         </Card>
         <Card>

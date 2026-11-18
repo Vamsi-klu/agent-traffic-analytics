@@ -35,10 +35,11 @@ import { AVATAR_SHAPES, AgentAvatar, AgentTag } from "@/components/cake/avatar"
 import { BotHelp, Taxonomy } from "@/components/cake/coverage"
 import { TopAgentsChart } from "@/components/cake/top-agents"
 import { TrendsChart } from "@/components/cake/trends-chart"
+import { TimezonePicker } from "@/components/cake/timezone-picker"
 import { PathsTable, TABLE_ICONS, WebStatsTable } from "@/components/cake/web-stats"
 import { RegisterCard } from "@/components/cake/register-card"
 import { UNREACHABLE, api, useApi } from "@/data/api"
-import type { LayerReasons, Overview, Registration, ServerHalf, SessionPage, SessionSummary, WebAnalytics } from "@/data/types"
+import type { LayerReasons, Overview, Registration, ServerHalf, SessionPage, SessionSummary, Timezones, WebAnalytics } from "@/data/types"
 import { NO_VALUE, mbToBytes } from "@/lib/format"
 import type { ReplayState } from "@/lib/use-replay"
 import { PRODUCT_NAME } from "@/lib/product"
@@ -95,17 +96,17 @@ function stillReplay(address: string, status: ReplayState["status"]): ReplayStat
 }
 
 export function ComponentsPage() {
-  const data = useApi((signal) => Promise.all([api.overview({}, signal), api.registration(signal), api.sessions({}, signal), api.web({}, signal)]), [])
+  const data = useApi((signal) => Promise.all([api.overview({}, signal), api.registration(signal), api.sessions({}, signal), api.web({}, signal), api.timezones(signal)]), [])
   return (
     <div className="flex flex-col gap-6">
       <PageHeader title="Components" lead={<>This page shows every component and variant that {PRODUCT_NAME} uses. Add new styles as variants here and in <DocumentLink path="DESIGN.md" />.</>} />
-      <Loaded state={data} what="the component overview">{([overview, registration, sessions, web]) => <Overview overview={overview} registration={registration} sessions={sessions.results} web={web} />}</Loaded>
+      <Loaded state={data} what="the component overview">{([overview, registration, sessions, web, timezones]) => <Overview overview={overview} registration={registration} sessions={sessions.results} web={web} zones={timezones.zones} />}</Loaded>
     </div>
   )
 }
 
-function Overview({ overview: o, registration, sessions, web }: {
-  overview: Overview; registration: Registration; sessions: SessionSummary[]; web: WebAnalytics
+function Overview({ overview: o, registration, sessions, web, zones }: {
+  overview: Overview; registration: Registration; sessions: SessionSummary[]; web: WebAnalytics; zones: Timezones["zones"]
 }) {
   const rows = ROW_LOOKS.flatMap((look) => sessions.find(look) ?? [])
   const human = sessions.find((s) => s.verdict === "human")
@@ -219,6 +220,12 @@ function Overview({ overview: o, registration, sessions, web }: {
         <ToggleGroup type="single" variant="outline" defaultValue="30"><ToggleGroupItem value="all">Keep everything</ToggleGroupItem><ToggleGroupItem value="30">30 days</ToggleGroupItem></ToggleGroup>
         <Select defaultValue="any"><SelectTrigger aria-label="Agent"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="any">Any agent</SelectItem><SelectItem value="cic">Claude in Chrome</SelectItem></SelectContent></Select>
       </Block>
+      <Block name="Popover · TimezonePicker" use={[
+          `The time zone picker in Settings looks like the other menus. Select it to search the list, and then select a time zone. The first choice follows the computer or server that ${PRODUCT_NAME} runs on.`,
+          "Each time zone shows its offset from UTC. Dates and times on the dashboard and in Session replay use the time zone that you select.",
+        ]} code="Popover · Input · selectTriggerClass · /api/settings timezone · /api/timezones">
+        <div className="w-72"><TimezonePicker zones={zones} value="" follow={WORDS.followMachine("This computer", "America/Los_Angeles", "PST")} onPick={() => undefined} /></div>
+      </Block>
       <Block name="ToggleGroup item · outline / agent / human / bot" use="In the session list's filter, All comes first, followed by each classification in its badge colors. Unselected items use the badge's light background and text color. When you select an item, its background changes to the badge's text color.">
         {(["all", "agent", "human", "bot"] as const).map((picked) => (
           <ToggleGroup key={picked} type="single" value={picked} aria-label={`Classification filter, ${picked === "all" ? WORDS.web.all : VERDICTS[picked].label} selected`}>
@@ -272,10 +279,10 @@ function Overview({ overview: o, registration, sessions, web }: {
         <div className="w-full"><TopAgentsChart agents={web.agents} /></div>
       </Block>
       <Block name="TrendsChart (shadcn Chart + recharts)" use={[
-          "Trends shows one line for Human sessions and one for Agent sessions, by hour, day, or month.",
-          "The chart has a legend and a tooltip. Show as table lists the same numbers.",
+          "Trends shows one line for Human sessions and one for Agent sessions, by hour or by day.",
+          "The chart has a legend and a tooltip. Show as table lists the same numbers. The note under the chart names the time zone of its days and hours.",
         ]} code="MetricPicker · chart-1 (Human) · chart-2 (Agent) · /api/web">
-        <div className="w-full"><TrendsChart trends={web.trends} /></div>
+        <div className="w-full"><TrendsChart trends={web.trends} timeZone={web.time_zone} /></div>
       </Block>
       <Block name="CopyBlock · OrSeparator" use="Select Copy to copy a command or the sentence for a coding agent. Placeholders appear instead of real values.">
         <div className="flex w-full max-w-xl flex-col gap-3"><CopyBlock text="agentcake setup --print --site" /><OrSeparator /></div>

@@ -23,7 +23,9 @@ export type WebTable = { dimension: WebDimension; rows: WebRow[] }[]
 export type TrendNumbers = { sessions: number; visitors: number | null; page_views: number; active_ms: number | null; pages_per_session: number | null }
 /** One agent's Agent sessions in the range, counted as TrendNumbers are (name null: the ones no name fits, Unnamed). */
 export type AgentNumbers = TrendNumbers & { name: string | null }
-export type TrendInterval = "hour" | "day" | "month"
+export type TrendInterval = "hour" | "day"
+/** Which points the time axis names: every Nth from the first, or each month's first day and the first point. */
+export type TrendEvery = number | "month"
 /** Average active time (time less the time the page was hidden) and time of a session, ms; null without sessions. */
 export type ActiveTime = { active_ms: number; total_ms: number } | null
 /** One path: the sessions that viewed it, their visitor ids and their page views of it, in all, Agent and Human. */
@@ -40,9 +42,9 @@ export type WebAnalytics = {
   page_views: { all: number; agent: number; human: number; bot: number }
   /** Active time spent, averaged over all sessions, the Agent, the Human and the Bot ones. */
   active_time: { all: ActiveTime; agent: ActiveTime; human: ActiveTime; bot: ActiveTime }
-  /** The Trends chart: each hour (today), day (7 and 30 days) or month (all time) of the range, the Agent and the
+  /** The Trends chart: each hour (the last 24 hours) or day (7 and 30 days, all time) of the range, the Agent and the
    *  Human sessions that began in it. */
-  trends: { interval: TrendInterval; points: { label: string; agent: TrendNumbers; human: TrendNumbers }[] }
+  trends: { interval: TrendInterval; every: TrendEvery; points: { key: string; label: string; agent: TrendNumbers; human: TrendNumbers }[] }
   /** Top agents: the range's Agent sessions (never a bot) by agent name, most sessions first. */
   agents: AgentNumbers[]
   /** The Path table (Human and Agent sessions), most sessions first. */
@@ -52,4 +54,6 @@ export type WebAnalytics = {
   shown: number
   /** Whether the load balancer gives a session's country, region and city (a server with trust_lb). */
   place: boolean
+  /** What the Trends chart's note calls the time zone its days and hours are in: "PST", "UTC", "UTC+05:45". */
+  time_zone: string
 }

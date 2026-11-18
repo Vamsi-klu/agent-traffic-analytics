@@ -54,7 +54,19 @@ export const WORDS = {
   layerServerOnly: "Server only",
   trends: "Trends",
   metric: "Metric",
-  intervals: { hour: "Hour", day: "Day", month: "Month" },
+  intervals: { hour: "Hour", day: "Day" },
+  /** The note under Trends: the time zone its days and hours are in, as /api/web names it ("PST", "UTC+05:45"). */
+  timesIn: (zone: string) => `Times in ${zone}`,
+  /** The Agent block's comparison, PostHog's words for its previous period: as long as the range, right before it. */
+  vsPrior: (n: number) => `vs. ${n} prior`,
+  timeZone: "Time zone",
+  timeZoneAbout: "Dates and times on the dashboard and in Session replay use this time zone.",
+  /** The time zone choice that follows the computer or server AgentCake runs on: its IANA name and its abbreviation
+   *  ("This computer's time zone (America/Los_Angeles, PST)"), the abbreviation alone when nothing names it. */
+  followMachine: (where: string, name: string | null, short: string) =>
+    `${where}'s time zone (${name && name !== short ? `${name}, ${short}` : short})`,
+  searchTimeZones: "Search time zones",
+  noTimeZoneMatches: "No time zone matches your search.",
   showAsTable: "Show as table",
   hideTable: "Hide table",
   toAgent: "Hand-off to agent",
@@ -133,4 +145,5 @@ export const metricName = (unit: string) => unit.charAt(0).toUpperCase() + unit.
 export const sessionCount = (n: number) => `${n} ${n === 1 ? WORDS.session : WORDS.sessions}`
 
 /** The date filter's choices, in menu order. */
-export const RANGES: Record<DateRange, string> = { today: "Today", "7d": "Last 7 days", "30d": "Last 30 days", all: "All time" }
+export const RANGES: Record<DateRange, string> = { "24h": "Last 24 hours", "7d": "Last 7 days", "30d": "Last 30 days", all: "All time" }
+

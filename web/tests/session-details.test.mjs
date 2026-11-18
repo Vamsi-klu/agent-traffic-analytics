@@ -1,7 +1,7 @@
 // The dashboard's Trends and four tables under Deep dive in Chromium, against the built app and the sample /api/overview,
 // /api/web and /api/setup. Trends: the metric picked in its Select (Sessions first, the five main metrics), one line for
 // Human and one for Agent, an interval without sessions counted as 0 but without an average, Clarity's words only where
-// Clarity defines the metric, by the hour for Today. The four tables, one component (Paths, Sources, Devices,
+// Clarity defines the metric, by the hour for Last 24 hours. The four tables, one component (Paths, Sources, Devices,
 // Geography): the title in the card, a breakdown's Select and All / Agent / Human; each row's sessions (bold), visitors
 // and page views of the sessions picked, most first, and with All the Agent sessions' share (bold); a row's hover splits
 // each number into Agent and Human; ten rows, then Show all; a value opens its sessions; only the table scrolls at 485.
@@ -75,7 +75,7 @@ test("Trends has no information icon beside its metric, which its total card exp
 })
 
 test("Trends counts an interval without sessions as 0 but gives it no average; its table says so", async () => {
-  const points = web.trends.points.map((p, i) => (i === 1 ? { label: p.label, agent: NONE, human: NONE } : p))
+  const points = web.trends.points.map((p, i) => (i === 1 ? { key: p.key, label: p.label, agent: NONE, human: NONE } : p))
   const [first] = points
   assert.ok(first.human.active_ms && first.agent.active_ms, "the sample's first day has both")
   const tab = await open({ webAnswer: { ...web, trends: { ...web.trends, points } } })
@@ -97,14 +97,16 @@ test("Trends counts an interval without sessions as 0 but gives it no average; i
   } finally { await tab.close() }
 })
 
-test("Today's Trends come by the hour", async () => {
-  const hours = ["00:00", "01:00", "02:00"].map((label, i) => ({ label, agent: { ...NONE, sessions: i }, human: { ...NONE, sessions: i + 1 } }))
-  const tab = await open({ webAnswer: { ...web, trends: { interval: "hour", points: hours } } })
+test("Last 24 hours' Trends come by the hour, each with its day", async () => {
+  const labels = ["Nov 11, 22:00", "Nov 11, 23:00", "Nov 12, 00:00", "Nov 12, 22:00"]
+  const keys = ["2026-11-11 22", "2026-11-11 23", "2026-11-12 00", "2026-11-12 22"]
+  const hours = labels.map((label, i) => ({ key: keys[i], label, agent: { ...NONE, sessions: i }, human: { ...NONE, sessions: i + 1 } }))
+  const tab = await open({ webAnswer: { ...web, trends: { interval: "hour", every: 3, points: hours } } })
   try {
     const card = trendsCard(tab.page)
     await card.getByRole("button", { name: WORDS.showAsTable }).click()
     assert.equal((await card.locator("thead th").first().innerText()).trim(), WORDS.intervals.hour)
-    assert.deepEqual((await cellTexts(card.locator("tbody tr"))).map((row) => row[0]), ["00:00", "01:00", "02:00"])
+    assert.deepEqual((await cellTexts(card.locator("tbody tr"))).map((row) => row[0]), labels)
   } finally { await tab.close() }
 })
 
@@ -235,6 +237,81 @@ test("a breakdown's Not set and No referrer rows are two rows of their own", asy
     assert.deepEqual((await cellTexts(region.locator("tbody tr"))).map((cells) => cells[0]).sort(), [WORDS.web.direct, WORDS.web.notSet].sort())
     assert.deepEqual(warnings, [], "each row has a React key of its own")
   } finally { await tab.close() }
+})
+
+/** n points from `first` (ms), a step apart, keyed and labelled as /api/web gives them (hours: "Nov 15, 07:00"; days:
+ *  "Nov 15", with the year when they cross a new year). */
+function trendPoints(n, first, hourly) {
+  const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+  const pad = (v) => String(v).padStart(2, "0")
+  const times = Array.from({ length: n }, (_, i) => new Date(first + i * (hourly ? 3_600_000 : 86_400_000)))
+  const years = new Set(times.map((t) => t.getUTCFullYear())).size > 1
+  return times.map((t, i) => {
+    const day = `${t.getUTCFullYear()}-${pad(t.getUTCMonth() + 1)}-${pad(t.getUTCDate())}`, name = `${MONTHS[t.getUTCMonth()]} ${t.getUTCDate()}`
+    return { key: hourly ? `${day} ${pad(t.getUTCHours())}` : day,
+      label: hourly ? `${name}, ${pad(t.getUTCHours())}:00` : `${name}${years ? `, ${t.getUTCFullYear()}` : ""}`,
+      agent: { ...NONE, sessions: i % 5 }, human: { ...NONE, sessions: (i * 7) % 11 } }
+  })
+}
+
+/** The time axis's labels as drawn, left to right: their texts and boxes. */
+const axisLabels = (card) => card.locator(".recharts-xAxis-tick-labels .recharts-cartesian-axis-tick-value").evaluateAll((els) => els
+  .map((el) => { const box = el.getBoundingClientRect(); return { text: el.textContent.trim(), left: box.left, right: box.right } })
+  .sort((a, b) => a.left - b.left))
+
+test("the time axis names every third hour, every day, every third day or each month, doubling the step where they'd touch", async () => {
+  const hours = trendPoints(25, Date.UTC(2026, 10, 15, 7), true), week = trendPoints(8, Date.UTC(2026, 10, 9))
+  const month = trendPoints(31, Date.UTC(2026, 9, 17)), all = trendPoints(32, Date.UTC(2026, 9, 16))
+  const pick = (points, step) => points.filter((_, i) => i % step === 0).map((p) => p.label)
+  const cases = [
+    // at 485 five labels such as "Nov 15, 07:00" (about 77 px each) need more than the plot's width: every 12 hours
+    ["Last 24 hours", { interval: "hour", every: 3, points: hours }, pick(hours, 3), pick(hours, 12)],
+    ["Last 7 days", { interval: "day", every: 1, points: week }, pick(week, 1), pick(week, 1)],
+    ["Last 30 days", { interval: "day", every: 3, points: month }, pick(month, 3), pick(month, 6)],
+    ["All time", { interval: "day", every: "month", points: all }, ["Oct 2026", "Nov 2026"], ["Oct 2026", "Nov 2026"]],
+    ["the same days as Last 30 days", { interval: "day", every: 3, points: all }, pick(all, 3), pick(all, 6)],
+  ]
+  for (const [width, at] of [[1280, 2], [485, 3]]) {
+    const tab = await open({ width, webAnswer: { ...web, trends: { interval: "day", every: 1, points: week } } })
+    try {
+      for (const c of cases) {
+        await tab.page.route("**/api/web**", (route) => route.fulfill({ json: { ...web, trends: c[1] } }))
+        await tab.page.reload()
+        const card = trendsCard(tab.page)
+        await card.scrollIntoViewIfNeeded()
+        await card.locator(".recharts-xAxis-tick-labels .recharts-cartesian-axis-tick-value").first().waitFor({ timeout: WAIT_MS })
+        const labels = await axisLabels(card)
+        assert.deepEqual(labels.map((l) => l.text), c[at], `${c[0]} at ${width}`)
+        const chart = await card.locator('[data-slot="chart"]').boundingBox()
+        assert.ok(labels.at(-1).right <= chart.x + chart.width, `${c[0]} at ${width}: ${labels.at(-1).text} is cut off at the right`)
+        for (let i = 1; i < labels.length; i += 1) assert.ok(labels[i].left > labels[i - 1].right, `${c[0]} at ${width}: ${labels[i - 1].text} and ${labels[i].text} touch`)
+      }
+    } finally { await tab.close() }
+  }
+})
+
+test("All time over 400 days names months, or quarters on a narrow screen, and the hover still names each day", async () => {
+  const points = trendPoints(400, Date.UTC(2025, 9, 14))
+  for (const [width, names] of [[1280, ["Nov 2025", "Dec 2025", "Jan 2026", "Feb 2026", "Mar 2026", "Apr 2026", "May 2026", "Jun 2026",
+    "Jul 2026", "Aug 2026", "Sep 2026", "Oct 2026", "Nov 2026"]], [485, ["Oct 2025", "Jan 2026", "Apr 2026", "Jul 2026", "Oct 2026"]]]) {
+    const tab = await open({ width, webAnswer: { ...web, trends: { interval: "day", every: "month", points } } })
+    try {
+      const card = trendsCard(tab.page)
+      await card.scrollIntoViewIfNeeded()
+      await card.locator(".recharts-xAxis-tick-labels .recharts-cartesian-axis-tick-value").first().waitFor({ timeout: WAIT_MS })
+      assert.deepEqual((await axisLabels(card)).map((l) => l.text), names, `${width}`)
+      const surface = await card.locator(".recharts-surface").first().boundingBox()
+      for (const share of [0.25, 0.5, 0.75]) {
+        await tab.page.mouse.move(surface.x + surface.width * share, surface.y + surface.height / 2)
+        const box = card.locator(".recharts-tooltip-wrapper > div").first()
+        await box.waitFor({ state: "visible", timeout: WAIT_MS })
+        const [label, ...said] = (await box.innerText()).split("\n").map((t) => t.trim()).filter(Boolean)
+        const day = points.find((p) => p.label === label)
+        assert.ok(day, `${width}: the hover names one day: ${label}`)
+        assert.ok(said.includes(String(day.human.sessions)) && said.includes(String(day.agent.sessions)), `${width}: ${label}'s numbers: ${said}`)
+      }
+    } finally { await tab.close() }
+  }
 })
 
 test("Trends' hover writes each value as its table does: active time in minutes, pages per session with one decimal", async () => {

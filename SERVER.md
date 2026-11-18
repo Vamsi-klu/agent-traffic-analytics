@@ -165,6 +165,10 @@ gcloud compute ssh <vm> --zone=<zone> --tunnel-through-iap -- -N -L 7878:127.0.0
 If 7878 is taken on your computer, pick another port on your side: `-L 7979:127.0.0.1:7878`, then
 http://127.0.0.1:7979/. With Docker, this works on the host's network only (`--network host`, below).
 
+Its dates and times are in AgentCake's time zone: by default the server's own, which is often UTC, and the Trends chart
+names it ("Times in UTC"). To see your own, choose it under Time zone in Settings, or run
+`agentcake config set timezone America/Los_Angeles` with your IANA time zone name.
+
 ## Firewall
 
 | Port | Who may connect | Google Cloud |
@@ -297,6 +301,7 @@ Restart after changing a setting: `sudo systemctl restart cake`, or `docker rest
 | `auto_free` | `true`, the default | free space in the budget: when less than 10% of it is left, delete session replays, oldest first, across all session types |
 | `disk_min_free_mb` | `10240`, the default | keep this much of the disk free: below it new replays aren't stored and none is deleted, until there is room (see Disk budget) |
 | `retention_days` | `0`, the default | 0 keeps everything; 30 or 90 deletes whole sessions older than that |
+| `timezone` | `America/Los_Angeles`, say | the IANA time zone of the dashboard's dates and times; empty, the default, follows the server's own |
 | `public_max_body_bytes` | `1000000`, the default | the largest POST the public listener reads |
 | `max_events_per_session` | `200000`, the default | the records a session keeps at most in each stream (replay, raw input, signals); later ones are counted, not kept |
 | `public_judge_interval_ms` | `15000`, the default | how often a session is judged at most while it sends |

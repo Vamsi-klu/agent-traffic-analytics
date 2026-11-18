@@ -34,7 +34,7 @@ from collections import namedtuple
 from http import HTTPStatus
 from urllib.parse import unquote
 
-from agentcake import judging
+from agentcake import judging, timezone
 from agentcake.api import actions, answers, pages, periods, reasons, replay, server_half, visits
 from agentcake.config import load_cfg
 from agentcake.detect import markers, verdict_text
@@ -57,7 +57,8 @@ def detail(session_id):
     judging.on_open(session_id)
     con = visits.connect()
     try:
-        found, _ = visits.page(con, visits.Scope().where("s.id = ?", session_id), 1, periods.now_ms())
+        found, _ = visits.page(con, visits.Scope().where("s.id = ?", session_id), 1, periods.now_ms(),
+                               timezone.chosen(load_cfg()))
         if not found:
             return answers.error(HTTPStatus.NOT_FOUND, "no_session")
         body = _detail(con, session_id, found[0])

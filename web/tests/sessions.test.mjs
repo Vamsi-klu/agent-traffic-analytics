@@ -1,7 +1,8 @@
 // The session list (Session replay) in Chromium, against the built app and the sample list: the verdict chips are All
 // (picked by default), Agent, Human and Bot, each verdict in its badge's colours by one rule; Agent rows stand out and
 // bot rows are muted, under Agent the split (Agent only, Human + agent) combines with the agent's name (a link to one
-// name shows that agent), the count names one session in the singular, and the agent and date filters reach the API.
+// name shows that agent), the count names one session in the singular, and the agent and date filters reach the API
+// (an old link's Today opens the default range, Last 7 days).
 // Usage: node --test tests/
 import assert from "node:assert/strict"
 import { readFileSync } from "node:fs"
@@ -221,17 +222,27 @@ test("the agent and date filters reach /api/sessions and narrow the rows; there 
     await tab.page.waitForFunction(() => document.querySelectorAll('a[href^="#/sessions/"]').length === 1)
     assert.deepEqual(await ids(tab.page), list.results.filter((s) => s.agent === "Muse").map((s) => s.id))
     // The list already has one row, so wait for the request itself: on a busy machine it can come after the URL changes.
-    const askedToday = tab.page.waitForRequest((r) => {
+    const askedLastDay = tab.page.waitForRequest((r) => {
       const u = new URL(r.url())
-      return u.pathname === "/api/sessions" && u.searchParams.get("agent") === "Muse" && u.searchParams.get("range") === "today"
+      return u.pathname === "/api/sessions" && u.searchParams.get("agent") === "Muse" && u.searchParams.get("range") === "24h"
     }, { timeout: WAIT_MS })
     await tab.page.getByRole("combobox", { name: "Date range" }).click()
-    await tab.page.getByRole("option", { name: "Today" }).click()
-    await tab.page.waitForURL(/range=today/)
-    await askedToday
+    assert.deepEqual(await tab.page.getByRole("option").allInnerTexts(), ["Last 24 hours", "Last 7 days", "Last 30 days", "All time"])
+    await tab.page.getByRole("option", { name: "Last 24 hours" }).click()
+    await tab.page.waitForURL(/range=24h/)
+    await askedLastDay
     await tab.page.waitForFunction(() => document.querySelectorAll('a[href^="#/sessions/"]').length === 1)
-    assert.ok(sessionsAsked(tab.requests).some((q) => q.agent === "Muse" && q.range === "today"))
+    assert.ok(sessionsAsked(tab.requests).some((q) => q.agent === "Muse" && q.range === "24h"))
     assert.equal(await tab.page.getByRole("combobox", { name: "Source" }).count(), 0)
+  } finally { await tab.close() }
+})
+
+test("an old link to Today opens the session list on the default range, Last 7 days", async () => {
+  const tab = await open("?range=today")
+  try {
+    assert.equal((await tab.page.getByRole("combobox", { name: "Date range" }).innerText()).trim(), "Last 7 days")
+    const asked = sessionsAsked(tab.requests)
+    assert.ok(asked.length > 0 && asked.every((q) => q.range === "7d"), JSON.stringify(asked))
   } finally { await tab.close() }
 })
 

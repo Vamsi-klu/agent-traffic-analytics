@@ -28,7 +28,7 @@ export type AgentTurns = "agent_only" | "human_agent"
  *  the name it gives or the product's own traces. Behavior alone never names an agent. */
 export type Certainty = "verified" | "likely"
 /** The date filter of the dashboard and the session list; all: every session, from the first. */
-export type DateRange = "today" | "7d" | "30d" | "all"
+export type DateRange = "24h" | "7d" | "30d" | "all"
 
 /** Share of a session's actions each actor took, in whole percents that add up to 100 (all 0 when the behavior model
  *  did not run, as for bots). */
@@ -90,9 +90,10 @@ export type Coverage = {
 
 export type Overview = {
   counts: SessionCounts
-  /** Agent sessions over the same range a week earlier, for "+12 vs last week"; null for all time, which has no earlier
-   *  range (the comparison isn't shown). */
-  agent_last_week: number | null
+  /** Agent sessions of the range's previous period, PostHog's: as long as the range runs to the end of its current
+   *  hour or day, right before it (25 hours, 8 days, 31 days), for "+12" and "vs. 30 prior"; null for all time, which
+   *  has no earlier range (the comparison isn't shown). */
+  agent_earlier: number | null
   agents_seen: AgentCount[]
   /** How many times a page opened in the range's sessions (each page view, and each new address a single-page app shows
    *  in one): all of them, and by the session's verdict, which add up to all. */
@@ -289,6 +290,10 @@ export type Settings = {
    *  recorded, on top of cake.js's own private elements. */
   hook_dom: boolean
   hide_selectors: string
+  /** The IANA time zone days and times are written in ("America/Los_Angeles"); "" follows this computer's. */
+  timezone: string
+  /** This computer's time zone: its IANA name (null when nothing names one) and what the pages call it now ("PST"). */
+  timezone_machine: { name: string | null; short: string }
   database: { path: string; sessions: number }
 }
 
@@ -300,7 +305,13 @@ export type SettingsUpdate = {
   site_domain?: string
   hook_dom?: boolean
   hide_selectors?: string
+  timezone?: string
 }
+
+// ---------------------------------------------------------------- GET /api/timezones
+
+/** The time zones the settings page lists: UTC, then IANA's zones, each labelled with its offset from UTC now. */
+export type Timezones = { zones: { name: string; label: string }[] }
 
 // ---------------------------------------------------------------- GET /api/setup
 
@@ -369,7 +380,7 @@ export type ReplaysStopped = "disk" | "budget" | null
 
 // ---------------------------------------------------------------- GET /api/web?range= (./web-types.ts)
 
-export type { ActiveTime, AgentNumbers, PathRow, TrendInterval, TrendNumbers, WebAnalytics, WebDimension, WebQuery, WebRow, WebTable } from "./web-types"
+export type { ActiveTime, AgentNumbers, PathRow, TrendEvery, TrendInterval, TrendNumbers, WebAnalytics, WebDimension, WebQuery, WebRow, WebTable } from "./web-types"
 
 // ---------------------------------------------------------------- errors
 
