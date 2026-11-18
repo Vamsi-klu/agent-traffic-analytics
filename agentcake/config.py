@@ -1,8 +1,8 @@
 """Settings: agentcake/defaults.json, then the user's $CAKE_HOME/config.json, then $CAKE_PORT.
 
-defaults.json lists every setting once: its default, how a typed value is checked (choices, min, max, pattern) and
-what it is for ("about"), the way PostHog 1.0's posthog/settings.py gives each setting a default that the environment
-can override. config.json holds only what the user set (cake 0.3.x wrote every value there; such files keep
+defaults.json lists every setting once: its default, how a typed value is checked (choices, min, max, pattern, or
+zone: a name the timezone database knows) and what it is for ("about"), the way PostHog 1.0's posthog/settings.py
+gives each setting a default that the environment can override. config.json holds only what the user set (cake 0.3.x wrote every value there; such files keep
 working). load_cfg() merges the three; sources() says where each value came from; coerce(key, text) turns what was
 typed into a checked value or raises ValueError naming what is allowed; base_url() is the local page's address.
 A setting marked "retired" no longer does anything: it keeps its default for the code that still reads it, and
@@ -117,4 +117,9 @@ def coerce(k, v):
     empty_allowed = spec["default"] == ""  # an empty public_listen or path_prefix turns server mode off
     if "pattern" in spec and (v or not empty_allowed) and not re.fullmatch(spec["pattern"], v):
         raise _invalid(k, "invalid_pattern")
+    if spec.get("zone") and v:
+        # imported to check a time zone only: every command, --version too, reads the settings (tests/test_cli.py)
+        from agentcake import timezone
+        if not timezone.known(v):  # never a path or SQL: only a name zoneinfo lists
+            raise _invalid(k, "invalid_pattern")
     return v

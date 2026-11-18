@@ -1,6 +1,6 @@
 {
   "counts": { "all": 150, "human": 81, "agent": 47, "bot": 22, "agent_only": 38, "human_agent": 9, "thin": 10 },
-  "agent_last_week": 35,
+  "agent_earlier": 35,
   "agents_seen": [
     { "name": "Claude in Chrome", "sessions": 17 },
     { "name": null, "sessions": 9 },

@@ -19,24 +19,28 @@ GET answers Settings (web/src/data/types.ts):
                    stops (auto_free_target_ratio), which the page's description of auto_free states; disk() is these
                    with budget_mb and auto_free, which the dashboard's warnings read too
     hook_dom, hide_selectors    the two settings of the page script, which /cake.js carries (assets.runtime_values)
+    timezone       the IANA time zone days and times are written in (timezone.py), "" to follow this computer's;
+                   timezone_machine is this computer's: its IANA name (null when nothing names one) and what the pages
+                   call it now ("PST"); the settings page lists the zones from /api/timezones
     database       where the database is (~ for the home folder) and how many sessions count (visits.py)
 POST takes JSON from this computer's own pages (answers.json_object, answers.local_only) with only the fields to
-change (SettingsUpdate): retention_days, budget_mb, auto_free, site_domain, hook_dom and hide_selectors, each of its
-JSON type, checked as `agentcake config set` checks it (config.coerce: site_domain loses a scheme and slashes, a
-selector list is one line without braces), budget_mb also one of the listed choices; they are saved to config.json.
+change (SettingsUpdate): retention_days, budget_mb, auto_free, site_domain, hook_dom, hide_selectors and timezone,
+each of its JSON type, checked as `agentcake config set` checks it (config.coerce: site_domain loses a scheme and
+slashes, a selector list is one line without braces, a time zone is a name the timezone database knows), budget_mb
+also one of the listed choices; they are saved to config.json.
 Anything else is a 400 naming the field, and nothing is saved. The answer is the whole Settings.
 """
 import datetime
 from http import HTTPStatus
 
-from agentcake import config, paths, site_setup
+from agentcake import config, paths, site_setup, timezone
 from agentcake.api import answers, periods, sources, visits
 from agentcake.detect import lists
 from agentcake.space import space_status
 from agentcake.units import MS_PER_S, PERCENT
 
 SAVED = {"retention_days": int, "budget_mb": int, "auto_free": bool, "site_domain": str, "hook_dom": bool,
-         "hide_selectors": str}
+         "hide_selectors": str, "timezone": str}
 KIND_NAMES = {bool: "boolean", int: "integer", str: "string"}  # how api.en.json "kinds" names a JSON type
 
 
@@ -75,6 +79,8 @@ def current():
             "storage": {key: storage[key] for key in ("used_bytes", "warn_at_pct", "days_left", "disk", "replays_stopped",
                                                       "free_to_pct")},
             "hook_dom": bool(c["hook_dom"]), "hide_selectors": c["hide_selectors"],
+            "timezone": c["timezone"] if timezone.chosen(c) else "",
+            "timezone_machine": {"name": timezone.machine_name(), "short": timezone.short(None, now)},
             "database": {"path": paths.tilde(paths.db_file()), "sessions": sessions}}
 
 

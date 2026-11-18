@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "timezones.schema.json",
+  "title": "Timezones",
+  "description": "GET /api/timezones : the time zones the settings page lists, UTC first, each labelled with its offset from UTC now.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "zones"
+  ],
+  "properties": {
+    "zones": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "label"
+        ],
+        "properties": {
+          "name": {
+            "$ref": "common.schema.json#/$defs/Text"
+          },
+          "label": {
+            "$ref": "common.schema.json#/$defs/Text"
+          }
+        }
+      }
+    }
+  }
+}

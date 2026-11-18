@@ -5,7 +5,7 @@
   "description": "GET /api/web?range= : the dashboard's visitors and page views (all, and by verdict), active time spent, the Trends chart's series, Top agents, the Path table and the Sources, Devices and Geography tables (the tables count the range's Human and Agent sessions, not bots).",
   "type": "object",
   "additionalProperties": false,
-  "required": ["visitors", "page_views", "active_time", "trends", "agents", "paths", "tables", "shown", "place"],
+  "required": ["visitors", "page_views", "active_time", "trends", "agents", "paths", "tables", "shown", "place", "time_zone"],
   "properties": {
     "visitors": {
       "description": "Distinct visitors: all of the range's sessions, and those with an Agent, a Human or a Bot session (a visitor can be in several, so they don't add up to all); null when none has a visitor id. A session counts as the identify hash it carried, else the hash its visitor id was first sent with, else its visitor id (window.cake.identify()).",
@@ -45,19 +45,21 @@
       }
     },
     "trends": {
-      "description": "The Trends chart: the Agent and the Human sessions of each local hour (today), day (7 and 30 days) or month (all time) of the range, from its first to the current one, counted as the cards count them.",
+      "description": "The Trends chart: the Agent and the Human sessions of each local hour (the last 24 hours) or day (7 and 30 days, all time) of the range, from its first to the current one, counted as the cards count them.",
       "type": "object",
       "additionalProperties": false,
-      "required": ["interval", "points"],
+      "required": ["interval", "every", "points"],
       "properties": {
-        "interval": { "enum": ["hour", "day", "month"] },
+        "interval": { "enum": ["hour", "day"] },
+        "every": { "description": "Which points the time axis names: every Nth from the first, or each month's first day and the first point.", "type": ["integer", "string"], "minimum": 1, "pattern": "^month$" },
         "points": {
           "type": "array",
           "items": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["label", "agent", "human"],
+            "required": ["key", "label", "agent", "human"],
             "properties": {
+              "key": { "description": "The hour or day of the point, in AgentCake's time zone: 2026-11-15 07, 2026-11-15.", "$ref": "common.schema.json#/$defs/Text" },
               "label": { "$ref": "common.schema.json#/$defs/Text" },
               "agent": { "$ref": "#/$defs/TrendNumbers" },
               "human": { "$ref": "#/$defs/TrendNumbers" }
@@ -87,7 +89,8 @@
       }
     },
     "shown": { "description": "How many rows a table shows before Show all.", "type": "integer", "minimum": 1 },
-    "place": { "description": "Whether the load balancer gives sessions their country, region and city (server mode with trust_lb).", "type": "boolean" }
+    "place": { "description": "Whether the load balancer gives sessions their country, region and city (server mode with trust_lb).", "type": "boolean" },
+    "time_zone": { "description": "What the Trends chart's note calls the time zone its days and hours are in: an abbreviation (PST, UTC) or an offset (UTC+05:45).", "$ref": "common.schema.json#/$defs/Text" }
   },
   "$defs": {
     "Visitors": { "description": "Distinct visitors (visitor ids, merged by the identify hash they were sent with); null when none of the sessions counted has a visitor id.", "type": ["integer", "null"], "minimum": 0 },

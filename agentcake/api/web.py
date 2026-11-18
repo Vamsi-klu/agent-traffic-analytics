@@ -1,4 +1,4 @@
-"""GET /api/web?range=today|7d|30d|all: the dashboard's web analytics: how many visitors, and the
+"""GET /api/web?range=24h|7d|30d|all: the dashboard's web analytics: how many visitors, and the
 Sources, Devices and Geography tables, the way PostHog's web analytics shows them (Visitors = uniq(person_id) in
 products/web_analytics/backend/hogql_queries/web_overview.py; one row per breakdown value with its visitors and views
 in stats_table.py).
@@ -37,14 +37,20 @@ the range (visits.py):
     active_time {"all" | "agent" | "human" | "bot": {"active_ms", "total_ms"} or null}: Microsoft Clarity's Active
                time spent, the average of the sessions' time less the time their page was hidden (web_time.active),
                and their average time; all of the range's sessions, and its Agent, Human and Bot ones; null without
-    trends     {"interval", "points"}: the Trends chart, by the interval PostHog's web analytics graphs the range by
-               (frontend/src/lib/utils/dateFilters.ts dateMapping: Today by hour, the last 7 and 30 days by day, All
-               time by month; data/web_analytics.json trend_interval); points: each local hour, day or month from the
-               range's first (All time: the first session's) to the current one (periods.buckets), {"label", "agent",
+    time_zone  what the Trends chart's note calls the timezone its days and hours are in, AgentCake's
+               (timezone.short): "PST", "UTC", "UTC+05:45"
+    trends     {"interval", "every", "points"}: the Trends chart, by hour for the last 24 hours and by day for the last 7
+               and 30 days, as PostHog's web analytics graphs them (frontend/src/lib/utils/dateFilters.ts dateMapping),
+               and by day for All time too, which PostHog graphs by month (data/web_analytics.json trend_interval);
+               points: each hour or day from the range's first (All time: the first session's) to the current one
+               (periods.buckets: the last 24 hours have 25, the hour 24 hours ago and the current one among them),
+               in AgentCake's timezone, {"key", "label", "agent",
                "human"}: of the Agent and of the Human sessions that began in it (bots are left out, as on the
                dashboard's charts), {"sessions", "visitors", "page_views", "active_ms", "pages_per_session"}: as the
                cards count them, visitors as above (0 without sessions, null when none has a visitor id), active_ms
-               the average active time (null without a time), pages_per_session page views / sessions (null without)
+               the average active time (null without a time), pages_per_session page views / sessions (null without);
+               key is the hour or day ("2026-11-15 07", "2026-11-15") the page finds weekdays and months by; every
+               is which points the time axis names (data/web_analytics.json trend_every: every Nth, or "month")
     agents     Top agents: the range's Agent sessions (Agent only and Human + agent; never a bot) by agent name (null:
                the ones no name fits, Unnamed), most sessions first, then the name (as /api/overview's agents_seen):
                {"name", "sessions", "visitors", "page_views", "active_ms", "pages_per_session"}, each counted as the
@@ -61,7 +67,7 @@ the range (visits.py):
 """
 from collections import defaultdict
 
-from agentcake import config, judging, store, web_props, web_time
+from agentcake import config, judging, store, timezone, web_props, web_time
 from agentcake.api import answers, periods, visits, web_dimensions
 from agentcake.api.visits import AGENT, AGENT_VERDICT, VERDICT
 from agentcake.datafiles import load
@@ -80,8 +86,9 @@ def settings():
 def view(request):
     range_key = answers.choice(request, "range", periods.range_keys())
     judging.catch_up()
-    now = periods.now_ms()
-    start = periods.window(range_key, now)[0]
+    c = config.load_cfg()
+    now, zone = periods.now_ms(), timezone.chosen(c)
+    start = periods.window(range_key, now, zone)[0]
     scope = visits.Scope().between(start)
     con = visits.connect()
     try:
@@ -90,12 +97,12 @@ def view(request):
         paths = _paths(con, scope)
     finally:
         con.close()
-    c = config.load_cfg()
     place = bool(c.get("public_listen") and c.get("trust_lb"))
     counted = [session for session in sessions if session["verdict"] in COUNTED]
     return answers.ok({"visitors": visitors(sessions), "page_views": page_views(sessions),
                        "active_time": active_time(sessions),
-                       "trends": trends(sessions, range_key, start, now), "agents": agents(sessions),
+                       "trends": trends(sessions, range_key, start, now, zone), "time_zone": timezone.short(zone, now),
+                       "agents": agents(sessions),
                        "paths": path_rows(paths, sessions), "tables": tables(counted, place),
                        "shown": settings()["rows_shown"], "place": place})
 
@@ -182,17 +189,17 @@ def active_time(sessions):
             **{group: _average_time([s for s in sessions if s["verdict"] == group]) for group in TIME_GROUPS}}
 
 
-def trends(sessions, range_key, start, now):
+def trends(sessions, range_key, start, now, zone):
     interval = settings()["trend_interval"][range_key or periods.ALL_TIME]
     if start is None:
         start = min((s["start_ms"] for s in sessions), default=now)
     by_key = defaultdict(list)
     for session in sessions:
-        by_key[periods.interval_key(interval, session["start_ms"])].append(session)
-    return {"interval": interval,
-            "points": [{"label": label, **{group: _trend_numbers([s for s in by_key[key] if s["verdict"] == group])
-                                           for group in COUNTED}}
-                       for key, label in periods.buckets(interval, start, now)]}
+        by_key[periods.interval_key(interval, session["start_ms"], zone)].append(session)
+    return {"interval": interval, "every": settings()["trend_every"][range_key or periods.ALL_TIME],
+            "points": [{"key": key, "label": label,
+                        **{group: _trend_numbers([s for s in by_key[key] if s["verdict"] == group]) for group in COUNTED}}
+                       for key, label in periods.buckets(interval, start, now, zone)]}
 
 
 def _trend_numbers(sessions):

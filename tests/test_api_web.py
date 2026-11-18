@@ -8,8 +8,8 @@ with sessions of two kinds counts in both); sessions without one are counted as 
 tables leave bots out (Total = Agent + Human): each row holds the sessions (Agent, Human), visitors (all, Agent, Human)
 and page views of one value, most sessions first. Without a load balancer the place
 dimensions have no "not set" row (the dashboard says they come only on a server). A row's key opens its sessions.
-The Trends chart counts the Agent and the Human sessions by the hour (today), day (7 and 30 days) or month (all time)
-they began in, as the cards count them; Top agents counts each agent's Agent sessions the same way, by its name (the
+The Trends chart counts the Agent and the Human sessions by the hour (the last 24 hours) or by the day (7 and 30 days,
+all time) they began in, as the cards count them; Top agents counts each agent's Agent sessions the same way, by its name (the
 ones no name fits together), and never a bot.
 """
 import json
@@ -201,37 +201,54 @@ class Answers(WebCase):
         return {TABS[0]: (2026, 11, 14, 9, 10, 0), TABS[1]: (2026, 11, 14, 13, 5, 0), TABS[2]: (2026, 11, 14, 13, 20, 0),
                 TABS[3]: yesterday, TABS[4]: (2026, 11, 14, 13, 30, 0)}
 
-    def test_trends_count_today_by_hour(self):
-        trends = self.trends("today", self.local(2026, 11, 14, 15, 30, 0), self.starts())
-        self.assertEqual(trends["interval"], "hour")
+    def test_trends_count_the_last_24_hours_by_hour_from_the_hour_24_hours_ago(self):
+        trends = self.trends("24h", self.local(2026, 11, 14, 15, 30, 0), self.starts(yesterday=(2026, 11, 13, 15, 10, 0)))
+        self.assertEqual((trends["interval"], trends["every"]), ("hour", 3), "the axis names every third hour")
+        self.assertEqual((trends["points"][0]["key"], trends["points"][-1]["key"]), ("2026-11-13 15", "2026-11-14 15"))
         points = {point["label"]: point for point in trends["points"]}
-        self.assertEqual(list(points), [f"{hour:02d}:00" for hour in range(16)])
+        self.assertEqual(list(points), [f"Nov 13, {hour:02d}:00" for hour in range(15, 24)] +
+                         [f"Nov 14, {hour:02d}:00" for hour in range(16)])
         none = {"sessions": 0, "visitors": 0, "page_views": 0, "active_ms": None, "pages_per_session": None}
-        self.assertEqual((points["09:00"]["human"], points["09:00"]["agent"]),
+        self.assertEqual((points["Nov 14, 09:00"]["human"], points["Nov 14, 09:00"]["agent"]),
                          ({"sessions": 1, "visitors": 1, "page_views": 2, "active_ms": 60_001, "pages_per_session": 2},
                           none))
-        self.assertEqual((points["13:00"]["human"]["sessions"], points["13:00"]["agent"]["sessions"]), (1, 1),
+        self.assertEqual((points["Nov 14, 13:00"]["human"]["sessions"], points["Nov 14, 13:00"]["agent"]["sessions"]),
+                         (1, 1),
                          "the Bot session isn't counted")
-        self.assertEqual(points["15:00"]["human"], none)
+        self.assertEqual(points["Nov 13, 15:00"]["human"]["sessions"], 1, "the first hour is a whole one, 24h20m ago too")
+        self.assertEqual(points["Nov 14, 15:00"]["human"], none)
+
+    def test_the_last_24_hours_leave_out_what_began_before_the_hour_24_hours_ago(self):
+        trends = self.trends("24h", self.local(2026, 11, 14, 15, 30, 0), self.starts(yesterday=(2026, 11, 13, 14, 59, 0)))
+        self.assertEqual(sum(point["human"]["sessions"] for point in trends["points"]), 2)
 
     def test_trends_count_each_day_of_a_week_and_visitors_as_the_cards_do(self):
         trends = self.trends("7d", self.local(2026, 11, 14, 15, 30, 0), self.starts())
-        self.assertEqual((trends["interval"], len(trends["points"])), ("day", 7))
+        self.assertEqual((trends["interval"], len(trends["points"]), trends["every"]), ("day", 8, 1))
+        self.assertEqual(trends["points"][-1]["key"], "2026-11-14")
         yesterday, today = trends["points"][-2:]
         self.assertEqual((today["human"]["sessions"], today["human"]["visitors"], today["human"]["page_views"]), (2, 1, 3),
                          "one visitor's two sessions")
         self.assertEqual((yesterday["human"]["sessions"], yesterday["human"]["visitors"]), (1, None),
                          "sessions, but none with a visitor id")
 
-    def test_trends_count_all_time_by_month_from_the_first_sessions(self):
+    def test_trends_count_all_time_by_day_from_the_first_sessions_day(self):
         trends = self.trends("all", self.local(2026, 11, 14, 15, 30, 0), self.starts(yesterday=(2026, 9, 20, 10, 0, 0)))
-        self.assertEqual(trends["interval"], "month")
-        self.assertEqual([(p["label"], p["human"]["sessions"]) for p in trends["points"]],
-                         [("Sep 2026", 1), ("Oct 2026", 0), ("Nov 2026", 2)])
+        self.assertEqual((trends["interval"], trends["every"]), ("day", "month"), "the axis names the months")
+        points = [(p["label"], p["human"]["sessions"]) for p in trends["points"]]
+        self.assertEqual((len(points), points[0], points[1], points[-1]),
+                         (56, ("Sep 20", 1), ("Sep 21", 0), ("Nov 14", 2)))
+
+    def test_all_time_over_a_new_year_names_the_years(self):
+        trends = self.trends("all", self.local(2026, 11, 14, 15, 30, 0), self.starts(yesterday=(2025, 10, 1, 10, 0, 0)))
+        labels = [p["label"] for p in trends["points"]]
+        self.assertEqual((len(labels), labels[0], labels[-1]), (410, "Oct 1, 2025", "Nov 14, 2026"))
+        self.assertEqual(len(set(labels)), len(labels), "Nov 1 comes twice in 410 days, each with its year")
 
     def test_trends_add_up_to_the_cards(self):
         now = self.local(2026, 11, 14, 15, 30, 0)
         trends = self.trends("30d", now, self.starts())
+        self.assertEqual((len(trends["points"]), trends["every"]), (31, 3), "every third day: both ends")
         with mock.patch.object(periods, "now_ms", return_value=now):
             body = Client().get("/api/web", range="30d").body
         for group in ("agent", "human"):

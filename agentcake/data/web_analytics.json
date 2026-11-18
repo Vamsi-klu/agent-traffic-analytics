@@ -1,12 +1,18 @@
 {
-  "about": "The dashboard's web analytics (agentcake/api/web.py): rows_max, how many of its top rows by all, by Agent and by Human sessions a table (Paths, and each dimension of Sources, Devices and Geography) returns, together; rows_shown, how many the dashboard shows before Show all (PostHog's tables show 10); fill_sessions, how many sessions recorded before cake.js sent their source one request fills in from what was kept of them (web_props.fill): the rest wait for the next request. trend_interval: the interval the Trends chart counts each range by, PostHog's web analytics' default for it (frontend/src/lib/utils/dateFilters.ts dateMapping: Today by hour, the last 7 and 30 days by day, All time by month).",
+  "about": "The dashboard's web analytics (agentcake/api/web.py): rows_max, how many of its top rows by all, by Agent and by Human sessions a table (Paths, and each dimension of Sources, Devices and Geography) returns, together; rows_shown, how many the dashboard shows before Show all (PostHog's tables show 10); fill_sessions, how many sessions recorded before cake.js sent their source one request fills in from what was kept of them (web_props.fill): the rest wait for the next request. trend_interval: the interval the Trends chart counts each range by: PostHog's web analytics' default for Last 24 hours (by hour) and the last 7 and 30 days (by day) (frontend/src/lib/utils/dateFilters.ts dateMapping); and All time by day too (PostHog's default for All time is by month). trend_every: which points the chart's time axis names, as PostHog's names them: every Nth point from the first (the last 24 hours every 3 hours, the last 7 days every day, the last 30 days every 3 days: both ends named), or month: each month's first day and the first point, by month (All time); where labels would touch, the page doubles the step (months become quarters, then years).",
   "rows_max": 100,
   "rows_shown": 10,
   "fill_sessions": 2000,
   "trend_interval": {
-    "today": "hour",
+    "24h": "hour",
     "7d": "day",
     "30d": "day",
+    "all": "day"
+  },
+  "trend_every": {
+    "24h": 3,
+    "7d": 1,
+    "30d": 3,
     "all": "month"
   }
 }

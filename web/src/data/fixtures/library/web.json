@@ -26,9 +26,11 @@
   },
   "trends": {
     "interval": "day",
+    "every": 1,
     "points": [
       {
-        "label": "Fri",
+        "key": "2026-11-05",
+        "label": "Nov 5",
         "agent": {
           "sessions": 0,
           "visitors": 0,
@@ -45,7 +47,8 @@
         }
       },
       {
-        "label": "Sat",
+        "key": "2026-11-06",
+        "label": "Nov 6",
         "agent": {
           "sessions": 0,
           "visitors": 0,
@@ -62,7 +65,8 @@
         }
       },
       {
-        "label": "Sun",
+        "key": "2026-11-07",
+        "label": "Nov 7",
         "agent": {
           "sessions": 0,
           "visitors": 0,
@@ -79,7 +83,8 @@
         }
       },
       {
-        "label": "Mon",
+        "key": "2026-11-08",
+        "label": "Nov 8",
         "agent": {
           "sessions": 0,
           "visitors": 0,
@@ -96,7 +101,26 @@
         }
       },
       {
-        "label": "Tue",
+        "key": "2026-11-09",
+        "label": "Nov 9",
+        "agent": {
+          "sessions": 0,
+          "visitors": 0,
+          "page_views": 0,
+          "active_ms": null,
+          "pages_per_session": null
+        },
+        "human": {
+          "sessions": 0,
+          "visitors": 0,
+          "page_views": 0,
+          "active_ms": null,
+          "pages_per_session": null
+        }
+      },
+      {
+        "key": "2026-11-10",
+        "label": "Nov 10",
         "agent": {
           "sessions": 26,
           "visitors": null,
@@ -113,7 +137,8 @@
         }
       },
       {
-        "label": "Wed",
+        "key": "2026-11-11",
+        "label": "Nov 11",
         "agent": {
           "sessions": 0,
           "visitors": 0,
@@ -130,7 +155,8 @@
         }
       },
       {
-        "label": "Thu",
+        "key": "2026-11-12",
+        "label": "Nov 12",
         "agent": {
           "sessions": 2,
           "visitors": null,
@@ -148,6 +174,7 @@
       }
     ]
   },
+  "time_zone": "UTC",
   "agents": [
     {
       "name": null,

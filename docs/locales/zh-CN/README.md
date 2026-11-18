@@ -77,8 +77,8 @@ HUMAN Security 发现，[来自 AI agent 和 agentic 浏览器的流量同比增
 在一个新的空文件夹中打开 Claude Code、Codex 或其他 coding agent，然后粘贴以下说明:
 
 ```text
-请使用 curl 或 GitHub CLI 安装 AgentCake 0.5.0。按照
-https://raw.githubusercontent.com/tartini-ai/agent-traffic-analytics/v0.5.0/INSTALL.md
+请使用 curl 或 GitHub CLI 安装 AgentCake 0.5.1。按照
+https://raw.githubusercontent.com/tartini-ai/agent-traffic-analytics/v0.5.1/INSTALL.md
 中的步骤操作。完成后，说明要打开的本地页面和连接网站的步骤。
 ```
 

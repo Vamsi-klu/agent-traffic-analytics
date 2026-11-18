@@ -1,10 +1,11 @@
-"""GET /api/overview?range=today|7d|30d: the dashboard (the dashboard page draws it).
+"""GET /api/overview?range=24h|7d|30d|all: the dashboard (the dashboard page draws it).
 
 First the sessions with data newer than their verdict are judged (judging.catch_up, as the 0.3.4 dashboard did); then,
 over the sessions that count (visits.py) in the range (no range: every session):
     counts                  SessionCounts
-    agent_last_week         Agent sessions in the same range data/api.json compare_days earlier; null for all time,
-                            which has no earlier range
+    agent_earlier           Agent sessions of the range's previous period, PostHog's (periods.earlier): as long as
+                            the range runs to the end of its current hour or day, right before it (25 hours, 8 days,
+                            31 days); null for all time, which has no earlier range
     agents_seen             sessions per agent name, Agent sessions only; name null: the agents no name fits (Unnamed)
     page_views              the range's page views as PostHog counts $pageview (web_time.py: each page load and each
                             new path within it, not a new query string alone); all of them, and by the session's
@@ -17,7 +18,7 @@ over the sessions that count (visits.py) in the range (no range: every session):
                             and the disk under it with why new replays are stopped, if they are
     coverage                what counts as a bot, the Bot number's "?" (coverage.py)
 """
-from agentcake import config, judging
+from agentcake import config, judging, timezone
 from agentcake.api import answers, coverage, periods, settings, visits, web
 from agentcake.api.visits import AGENT_VERDICT, VERDICT
 
@@ -28,17 +29,18 @@ ALL = "all"
 def view(request):
     range_key = answers.choice(request, "range", periods.range_keys())
     judging.catch_up()
-    numbers, now = answers.numbers(), periods.now_ms()
-    start, _ = periods.window(range_key, now)
+    numbers, now, zone = answers.numbers(), periods.now_ms(), timezone.chosen(config.load_cfg())
+    start, _ = periods.window(range_key, now, zone)
+    before = periods.earlier(range_key, now, zone)
     everywhere = visits.Scope()
     scope = everywhere.between(start)
     con = visits.connect()
     try:
-        latest_agent, _ = visits.page(con, scope.group(AGENT_VERDICT), numbers["latest_agent"], now)
-        week_before = everywhere.between(*periods.earlier(start, now, numbers["compare_days"]))
+        latest_agent, _ = visits.page(con, scope.group(AGENT_VERDICT), numbers["latest_agent"], now, zone)
         counts, views = visits.counts(con, scope), page_views(con, scope)
+        agent_earlier = None if before is None else visits.counts(con, everywhere.between(*before))[AGENT_VERDICT]
         body = {"counts": counts,
-                "agent_last_week": None if start is None else visits.counts(con, week_before)[AGENT_VERDICT],
+                "agent_earlier": agent_earlier,
                 "agents_seen": [{"name": name, "sessions": n} for name, n in visits.agents(con, scope)],
                 "page_views": views,
                 "pages_per_session": pages_per_session(views, counts),

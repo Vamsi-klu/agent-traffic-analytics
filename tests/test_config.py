@@ -113,7 +113,8 @@ class BadValues(Home):
     def test_refused(self):
         for key, value in (("retention_days", "7"), ("budget_mb", "10"), ("path_prefix", "/ca ke"),
                            ("public_listen", "anywhere"), ("site_key", "bad"), ("site_key", ""), ("port", "x"),
-                           ("token_max_age_ms", "soon"), ("budget_warn_ratio", "1.5"), ("start_poll_s", "-1")):
+                           ("token_max_age_ms", "soon"), ("budget_warn_ratio", "1.5"), ("start_poll_s", "-1"),
+                           ("timezone", "Mars/Olympus"), ("timezone", "../../etc/passwd"), ("timezone", "PST")):
             with self.subTest(key=key, value=value), self.assertRaises(ValueError):
                 config.coerce(key, value)
 
@@ -123,6 +124,8 @@ class BadValues(Home):
         self.assertEqual(config.coerce("path_prefix", "/"), "")
         self.assertEqual(config.coerce("public_listen", ""), "")
         self.assertIs(config.coerce("trust_lb", "on"), True)
+        self.assertEqual(config.coerce("timezone", " America/Los_Angeles "), "America/Los_Angeles")
+        self.assertEqual(config.coerce("timezone", ""), "", "empty: follow this computer's timezone")
 
     def test_config_set_refuses_and_keeps_the_file(self):
         self.write_user({"retention_days": 30})

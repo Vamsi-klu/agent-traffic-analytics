@@ -75,6 +75,7 @@ export function fixtureApi({ set } = {}) {
           return send(200, settings)
         }
         case "GET setup": return send(200, answer("setup"))
+        case "GET timezones": return send(200, read("timezones"))
         case "GET register": return send(200, answer("register"))
         case "GET health": return send(200, read("health"))
         default: return send(404, { error: `No such address: ${req.method} ${url.pathname}` })
@@ -109,6 +110,7 @@ function changeSettings(current, update) {
   if (problems.length) return { error: `Can't save these settings: ${problems.join("; ")}` }
   if ("retention_days" in update && !current.retention_choices.includes(update.retention_days)) return { error: `retention_days must be one of ${current.retention_choices.join(", ")}` }
   if ("budget_mb" in update && !current.budget_choices_mb.includes(update.budget_mb)) return { error: `budget_mb must be one of ${current.budget_choices_mb.join(", ")}` }
+  if (update.timezone && !read("timezones").zones.some((zone) => zone.name === update.timezone)) return { error: `timezone must be an IANA time zone name, such as America/Los_Angeles or UTC, or empty` }
   const site_domain = "site_domain" in update ? update.site_domain.replace(/^https?:\/\//, "").replace(/\/+$/, "") : current.site_domain
   return { settings: { ...current, ...update, site_domain } }
 }

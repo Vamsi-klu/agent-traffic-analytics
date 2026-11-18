@@ -140,6 +140,7 @@
     "site_key": "Start site_key with ck_, followed by 3 to 40 letters, digits, or underscores.",
     "site_domain": "Enter a domain name for site_domain, such as shop.example.com, with or without a port.",
     "hide_selectors": "For hide_selectors, enter up to 1,000 characters on one line. Don't include { or }.",
+    "timezone": "Enter an IANA time zone name for timezone, such as America/Los_Angeles or UTC. An empty value follows this computer's time zone.",
     "mask_inputs": "The page script always masks visitor input. The mask_inputs setting is no longer available. For more information, see agentcake/data/privacy.json."
   },
   "python_too_old": "{name} needs Python {python} or newer, and this is Python {version} ({executable}). Install a newer Python 3 (3.14 or newer also keeps replays smaller) and run {command} with it.",
@@ -191,7 +192,7 @@
   "doctor_logs_missing": "; not in the log format: {fields}",
   "doctor_logs_empty": "; empty on every page request: {fields}",
   "doctor_logs_no_address": "; no line can match: the uploads carry no visitor address (turn on trust_lb behind your load balancer, SERVER.md: {source}/SERVER.md)",
-  "doctor_logs_time": "%Y-%m-%d %H:%M UTC",
+  "doctor_logs_time": "%Y-%m-%d %H:%M {zone}",
   "doctor_logs_formats": " (`{command} logs formats` prints the recommended format)",
   "doctor_sandbox_note":"Note: if '{command} start' fails with 'Operation not permitted', a sandbox is blocking local network access, not {name}.",
   "doctor_all_passed": "All checks passed. Open {base}/",

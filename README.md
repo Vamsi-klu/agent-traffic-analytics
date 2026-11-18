@@ -6,9 +6,9 @@
 
 [![Releases: download](https://img.shields.io/badge/Releases-download-ff5c8a?style=flat)](https://github.com/tartini-ai/agent-traffic-analytics/releases)
 [![Issues: report a bug](https://img.shields.io/badge/Issues-report%20a%20bug-ff5c8a?style=flat)](https://github.com/tartini-ai/agent-traffic-analytics/issues)
-[![License: MIT](https://img.shields.io/badge/License-MIT-ff5c8a?style=flat)](https://github.com/tartini-ai/agent-traffic-analytics/blob/v0.5.0/LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-ff5c8a?style=flat)](https://github.com/tartini-ai/agent-traffic-analytics/blob/v0.5.1/LICENSE)
 
-**English** · [简体中文](https://github.com/tartini-ai/agent-traffic-analytics/blob/v0.5.0/docs/locales/zh-CN/README.md)
+**English** · [简体中文](https://github.com/tartini-ai/agent-traffic-analytics/blob/v0.5.1/docs/locales/zh-CN/README.md)
 
 </div>
 
@@ -88,7 +88,7 @@ Here's what AgentCake can help you understand:
 Open Claude Code, Codex or another coding agent in a new, empty folder and paste these instructions:
 
 ```text
-Install AgentCake 0.5.0 by following the guide at https://raw.githubusercontent.com/tartini-ai/agent-traffic-analytics/v0.5.0/INSTALL.md step by step.
+Install AgentCake 0.5.1 by following the guide at https://raw.githubusercontent.com/tartini-ai/agent-traffic-analytics/v0.5.1/INSTALL.md step by step.
 Use curl or the GitHub CLI to download the guide.
 Finally, print the address of the AgentCake local page and the steps to connect a website.
 ```
@@ -99,7 +99,7 @@ checks that the installation works.
 Next, open http://127.0.0.1:7878/ and register your installation. The page guides you through connecting your website.
 
 AgentCake runs on macOS and Linux and requires uv or Python 3.11 or later. To install manually, follow the steps in
-[`INSTALL.md`](https://github.com/tartini-ai/agent-traffic-analytics/blob/v0.5.0/INSTALL.md).
+[`INSTALL.md`](https://github.com/tartini-ai/agent-traffic-analytics/blob/v0.5.1/INSTALL.md).
 
 ## How it decides
 
@@ -116,7 +116,7 @@ AgentCake's test data includes 1,118 agent sessions from our own recordings and 
 make mistakes, and we're continuing to improve the model's performance.
 
 For details on how each number is counted, see the
-[evaluation report](https://github.com/tartini-ai/agent-traffic-analytics/blob/v0.5.0/eval/README.md).
+[evaluation report](https://github.com/tartini-ai/agent-traffic-analytics/blob/v0.5.1/eval/README.md).
 
 ## Your data stays yours
 
@@ -132,9 +132,9 @@ after the visitor's last visit. AgentCake keeps only the domain of the referring
 AgentCake sends your registration details only once, when you select **Register and continue**. AgentCake records visits
 whether or not you register.
 
-For details about how AgentCake handles data, see [`PRIVACY.md`](https://github.com/tartini-ai/agent-traffic-analytics/blob/v0.5.0/PRIVACY.md).
+For details about how AgentCake handles data, see [`PRIVACY.md`](https://github.com/tartini-ai/agent-traffic-analytics/blob/v0.5.1/PRIVACY.md).
 To inform your visitors, you can use the template in
-[`docs/privacy-notice-template.md`](https://github.com/tartini-ai/agent-traffic-analytics/blob/v0.5.0/docs/privacy-notice-template.md).
+[`docs/privacy-notice-template.md`](https://github.com/tartini-ai/agent-traffic-analytics/blob/v0.5.1/docs/privacy-notice-template.md).
 
 ## Connect your website
 
@@ -148,11 +148,11 @@ You can also complete these steps manually.
 
 For a public website, run AgentCake on a server with Docker or systemd. Open the dashboard through an SSH tunnel to keep
 it private. For step-by-step instructions, see
-[`SERVER.md`](https://github.com/tartini-ai/agent-traffic-analytics/blob/v0.5.0/SERVER.md).
+[`SERVER.md`](https://github.com/tartini-ai/agent-traffic-analytics/blob/v0.5.1/SERVER.md).
 
 ## Help and contributing
 
-For answers to common questions, see [`docs/FAQ.md`](https://github.com/tartini-ai/agent-traffic-analytics/blob/v0.5.0/docs/FAQ.md).
+For answers to common questions, see [`docs/FAQ.md`](https://github.com/tartini-ai/agent-traffic-analytics/blob/v0.5.1/docs/FAQ.md).
 If AgentCake misclassifies a session or doesn't recognize an agent, open an
 [issue](https://github.com/tartini-ai/agent-traffic-analytics/issues/new?template=wrong_verdict.yml).
 Describe what happened without including any visitor data.
@@ -161,19 +161,19 @@ The rules and the model's parameters are JSON files in `agentcake/data/`. When y
 `agentcake eval` results from before and after your change. A pull request is merged only if it does not increase the
 number of humans classified as agents.
 
-For contribution guidelines, see [`CONTRIBUTING.md`](https://github.com/tartini-ai/agent-traffic-analytics/blob/v0.5.0/CONTRIBUTING.md).
-For coding agent instructions, see [`AGENTS.md`](https://github.com/tartini-ai/agent-traffic-analytics/blob/v0.5.0/AGENTS.md).
+For contribution guidelines, see [`CONTRIBUTING.md`](https://github.com/tartini-ai/agent-traffic-analytics/blob/v0.5.1/CONTRIBUTING.md).
+For coding agent instructions, see [`AGENTS.md`](https://github.com/tartini-ai/agent-traffic-analytics/blob/v0.5.1/AGENTS.md).
 
 To report a security vulnerability, email [admin@tartini.ai](mailto:admin@tartini.ai) instead of opening an issue. For
-more information, see [`SECURITY.md`](https://github.com/tartini-ai/agent-traffic-analytics/blob/v0.5.0/SECURITY.md).
+more information, see [`SECURITY.md`](https://github.com/tartini-ai/agent-traffic-analytics/blob/v0.5.1/SECURITY.md).
 
 ## License
 
 AgentCake is released under the MIT License, copyright Tartini AI. For the full license, see
-[`LICENSE`](https://github.com/tartini-ai/agent-traffic-analytics/blob/v0.5.0/LICENSE).
+[`LICENSE`](https://github.com/tartini-ai/agent-traffic-analytics/blob/v0.5.1/LICENSE).
 
 Third-party components bundled with AgentCake retain their respective licenses. For the list, see
-[`THIRD_PARTY.md`](https://github.com/tartini-ai/agent-traffic-analytics/blob/v0.5.0/THIRD_PARTY.md).
+[`THIRD_PARTY.md`](https://github.com/tartini-ai/agent-traffic-analytics/blob/v0.5.1/THIRD_PARTY.md).
 
 <sub>AgentCake is an independent product and isn't affiliated with the developers of the agents and tools it names.
 Those developers don't endorse or sponsor AgentCake. All trademarks belong to their owners.</sub>

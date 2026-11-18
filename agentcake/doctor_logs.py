@@ -2,7 +2,7 @@
 
 No line before the first `agentcake logs import` reached this AgentCake: most installs never use it. Afterwards one
 line on the last import, whose report log_report.py keeps in cake.db (read here without writing): the log format, when
-it ran, how many page requests it sent and how many matched a visit, then each recommended header (data/logs.json
+it ran (in AgentCake's timezone, which the line names: timezone.py), how many page requests it sent and how many matched a visit, then each recommended header (data/logs.json
 "recommended") the format lacks or leaves empty on every page request, by name.
 - PASS: the log has every recommended header.
 - WARN: some header is missing or always empty. The import works, but the server half has less to say: no Sec-Fetch-*
@@ -10,9 +10,10 @@ it ran, how many page requests it sent and how many matched a visit, then each r
 - FAIL: no line can match, because the uploads carry no visitor's address (trust_lb is off, or the uploads do not
   come through the load balancer that gives it), so log_match has nothing to compare a line's address with.
 """
-import time
+import datetime
 
-from agentcake import log_report
+from agentcake import log_report, timezone
+from agentcake.config import load_cfg
 from agentcake.doctor_lines import WARN
 from agentcake.units import MS_PER_S
 from agentcake.wording import text
@@ -25,7 +26,9 @@ def logs_checks():
 
 
 def logs_line(report):
-    when = time.strftime(text("doctor_logs_time"), time.gmtime(report["last_ms"] / MS_PER_S))
+    zone = timezone.chosen(load_cfg())
+    clock = datetime.datetime.fromtimestamp(report["last_ms"] / MS_PER_S, zone)
+    when = clock.strftime(text("doctor_logs_time", zone=timezone.short(zone, report["last_ms"])))
     info = text("doctor_logs_info", format=report["format"], when=when, records=report["records"],
                 matched=report["matched"])
     if report["missing"]:

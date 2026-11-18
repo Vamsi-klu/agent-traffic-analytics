@@ -19,7 +19,7 @@ and the recommended fields its log lacks or leaves empty; None before the first.
 """
 import json
 
-from agentcake import log_report
+from agentcake import log_report, timezone
 from agentcake.api import answers, periods
 from agentcake.datafiles import load
 from agentcake.doctor_live import display
@@ -32,7 +32,7 @@ FETCH = "sf"  # protocol: the token's Sec-Fetch fields (edge_token.request_facts
 
 
 def sources(con, c, now_ms):
-    numbers = answers.numbers()
+    numbers, zone = answers.numbers(), timezone.chosen(c)
     since = now_ms - numbers["receiving_days"] * MS_PER_DAY
     site_ms = con.execute("SELECT MAX(end_ms) FROM sessions WHERE is_test = 0 AND origin = 'site'").fetchone()[0]
     token_ms = con.execute("SELECT MAX(r.recv_ms) FROM srv r JOIN sessions s ON s.id = r.session_id "
@@ -43,9 +43,9 @@ def sources(con, c, now_ms):
     seen = {"site": site_ms, "server_half": half_ms}
     set_up = {"site": bool(c.get("site_domain") or c.get("site_dir")), "server_half": server_mode and bool(srv_secret())}
     return {"sources": {name: _state(ms, set_up[name], since) for name, ms in seen.items()},
-            "last_seen": {name: None if ms is None else periods.when(ms, now_ms) for name, ms in seen.items()},
+            "last_seen": {name: None if ms is None else periods.when(ms, now_ms, zone) for name, ms in seen.items()},
             "route": SERVER if server_mode else THIS_COMPUTER,
-            "server_half": {"missing": _missing(con, numbers["settings"]), "logs": _logs(logs, now_ms)}}
+            "server_half": {"missing": _missing(con, numbers["settings"]), "logs": _logs(logs, now_ms, zone)}}
 
 
 def _state(last_ms, set_up, since):
@@ -65,9 +65,9 @@ def _missing(con, settings):
             if fetched and not any(values.get(field) for values in fetched)]
 
 
-def _logs(report, now_ms):
+def _logs(report, now_ms, zone):
     if not report:
         return None
-    return {"last": periods.when(report["last_ms"], now_ms), "format": report["format"],
+    return {"last": periods.when(report["last_ms"], now_ms, zone), "format": report["format"],
             "missing": [display(name) for name in report.get("missing") or []],
             "empty": [display(name) for name in report.get("empty") or []]}

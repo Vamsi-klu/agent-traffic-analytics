@@ -29,7 +29,8 @@ cake_certainty(verdict, detail).
     Scope()                            the WHERE of a query over `sessions s`, built with between(), group(), agent(),
                                        from_site(), before(); every scope starts from the sessions that count
     total(con, scope)                  how many sessions a scope holds
-    page(con, scope, limit, now)       ([SessionSummary], [(start_ms, id)]): newest first
+    page(con, scope, limit, now, zone) ([SessionSummary], [(start_ms, id)]): newest first, times in AgentCake's
+                                       timezone (periods.py)
     counts(con, scope)                 SessionCounts
     agents(con, scope)                 [(agent, sessions)] of the Agent sessions, most first; agent None: Unnamed
     first_event(con, session_id)       when the session's first recorded event happened (events' clock), or None
@@ -165,10 +166,10 @@ class Scope:
         return self.where("(s.start_ms < ? OR (s.start_ms = ? AND s.id < ?))", start_ms, start_ms, session_id)
 
 
-def page(con, scope, limit, now):
+def page(con, scope, limit, now, zone):
     rows = [Row._make(row) for row in con.execute(f"SELECT {COLUMNS} FROM sessions s WHERE {scope.sql()} ORDER BY "
                                                    "s.start_ms DESC, s.id DESC LIMIT ?", scope.args + (limit,))]
-    return _summaries(con, rows, now), [(row.start_ms, row.id) for row in rows]
+    return _summaries(con, rows, now, zone), [(row.start_ms, row.id) for row in rows]
 
 
 def counts(con, scope):
@@ -245,7 +246,7 @@ def whole_percents(values):
     return whole
 
 
-def _summaries(con, rows, now):
+def _summaries(con, rows, now, zone):
     from agentcake.api import actions  # it reads this module's helpers: imported when first needed
     runs = _runs(con, [row.id for row in rows])
     pages = _addresses(con, [row.id for row in rows])
@@ -253,7 +254,7 @@ def _summaries(con, rows, now):
     for row in rows:
         length = recording_length(row.epoch, (row.last_action, row.replay_end, row.segments_end))
         summary = {"id": row.id, "verdict": row.verdict, "evidence": row.evidence, "agent_turns": row.turns,
-                   "agent": row.agent, "certainty": row.certainty, "when": periods.when(row.start_ms, now),
+                   "agent": row.agent, "certainty": row.certainty, "when": periods.when(row.start_ms, now, zone),
                    "duration_ms": length, "pages": page_count(pages.get(row.id, {})),
                    "share": actions.session_share(con, row.id, row.verdict, row.turns, runs.get(row.id, []))}
         if runs.get(row.id):

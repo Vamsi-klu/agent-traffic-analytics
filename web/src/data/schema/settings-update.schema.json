@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "settings-update.schema.json",
   "title": "SettingsUpdate",
-  "description": "The body of POST /api/settings (Content-Type: application/json): only the fields to change. retention_days and budget_mb must be one of the choices GET /api/settings lists; site_domain loses a scheme and slashes and must be a domain (with a port if any); hide_selectors is one line without braces; anything else is answered 400 with an error body.",
+  "description": "The body of POST /api/settings (Content-Type: application/json): only the fields to change. retention_days and budget_mb must be one of the choices GET /api/settings lists; site_domain loses a scheme and slashes and must be a domain (with a port if any); hide_selectors is one line without braces; timezone is an IANA name the timezone database knows, or empty to follow this computer's; anything else is answered 400 with an error body.",
   "type": "object",
   "additionalProperties": false,
   "properties": {
@@ -11,6 +11,7 @@
     "auto_free": { "type": "boolean" },
     "site_domain": { "type": "string" },
     "hook_dom": { "type": "boolean" },
-    "hide_selectors": { "type": "string" }
+    "hide_selectors": { "type": "string" },
+    "timezone": { "type": "string" }
   }
 }

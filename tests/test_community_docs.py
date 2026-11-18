@@ -6,7 +6,8 @@ What GitHub shows beside README (SECURITY.md, CONTRIBUTING.md, CODE_OF_CONDUCT.m
 template in .github/), the release notes (CHANGELOG.md), the file a coding agent reads first (llms.txt, in
 llmstxt.org's format) and the questions page (docs/FAQ.md) are checked so that they stay true as AgentCake changes:
 one address for private reports, README's; every `agentcake` command they show is one the command line lists; every
-link to a file of the repository exists, llms.txt's at this release's tag; CHANGELOG's newest entry is this version;
+link to a file of the repository exists, llms.txt's at this release's tag; CHANGELOG's newest entry is this version
+(or the next one's, marked unreleased, on top of it);
 every question on the FAQ page is a heading that ends with "?"; each issue form has GitHub's required keys and warns
 against pasting visitors' data; the social preview is the size GitHub asks for. No published document (README and its
 translation included) offers as an agent AgentCake recognizes a product it only watches the marks of: no list entry
@@ -81,6 +82,11 @@ def png_size(path):
     return struct.unpack(">II", head[16:24])
 
 
+def version_parts(version):
+    """A version's numbers, to compare two versions: "0.5.10" is later than "0.5.9"."""
+    return tuple(int(part) for part in version.split("."))
+
+
 class CommunityDocuments(unittest.TestCase):
     """The files a visitor of the repository's page reads after README say the same as README and the release."""
 
@@ -138,8 +144,13 @@ class CommunityDocuments(unittest.TestCase):
             self.assertTrue(os.path.isfile(os.path.join(ROOT, url[len(raw):])), url)
 
     def test_changelog_starts_with_this_version(self):
-        newest = re.search(r"^## (\S+)", read(CHANGELOG_MD), re.M)
-        self.assertEqual(newest.group(1), self.version)
+        """The newest entry is this version's; the next version's may come first while it isn't released, marked
+        "(unreleased)", which it loses when the version changes to it."""
+        (newest, unreleased), *older = re.findall(r"^## (\S+)( \(unreleased\))?$", read(CHANGELOG_MD), re.M)
+        if unreleased:
+            self.assertGreater(version_parts(newest), version_parts(self.version), f"{newest} is released already")
+            newest = older[0][0]
+        self.assertEqual(newest, self.version)
 
     def test_every_question_on_the_faq_page_is_a_heading(self):
         questions = re.findall(r"^## (.+)$", read(FAQ_MD), re.M)

@@ -47,6 +47,35 @@ async function open(answer = settings) {
 
 const text = (page) => page.locator("main").innerText()
 
+
+test("the time zone: the first choice follows this computer, typing finds a zone, and picking one posts it alone", async () => {
+  const tab = await open()
+  try {
+    const picker = tab.page.getByRole("button", { name: WORDS.timeZone })
+    const here = WORDS.followMachine(settings.route === "server" ? "This server" : "This computer", settings.timezone_machine.name, settings.timezone_machine.short)
+    assert.equal((await picker.innerText()).trim(), here)
+    const search = tab.page.getByRole("combobox", { name: WORDS.searchTimeZones })
+    await picker.click()
+    assert.equal((await tab.page.getByRole("option").first().innerText()).trim(), here, "the first choice, picked")
+    await search.fill("shang")
+    assert.deepEqual(await tab.page.getByRole("option").allInnerTexts(), ["Asia / Shanghai (UTC+08:00)"])
+    await tab.page.getByRole("option", { name: "Asia / Shanghai (UTC+08:00)" }).click()
+    await picker.filter({ hasText: "Shanghai" }).waitFor({ timeout: WAIT_MS })
+    await picker.click()
+    await search.fill("los ang")
+    await tab.page.keyboard.press("Enter")
+    await picker.filter({ hasText: "Los Angeles" }).waitFor({ timeout: WAIT_MS })
+    await picker.click()
+    await tab.page.getByRole("option").first().click()
+    await picker.filter({ hasText: here }).waitFor({ timeout: WAIT_MS })
+    assert.deepEqual(tab.posts, [{ timezone: "Asia/Shanghai" }, { timezone: "America/Los_Angeles" }, { timezone: "" }])
+    await picker.click()
+    await search.fill("Mars")
+    assert.equal(await tab.page.getByRole("option").count(), 0)
+    assert.equal(await tab.page.getByText(WORDS.noTimeZoneMatches).count(), 1)
+  } finally { await tab.close() }
+})
+
 test("every item shows what /api/settings and /api/register say", async () => {
   const tab = await open()
   try {

@@ -17,7 +17,7 @@ local listener has these routes (routes.py), like POST /api/delete.
 import threading
 from http import HTTPStatus
 
-from agentcake import register, store
+from agentcake import register, store, timezone
 from agentcake.api import answers, periods
 from agentcake.config import load_cfg
 
@@ -69,6 +69,7 @@ def _send(body):
 def current(con):
     rules, sent = register.rules(), register.kept(con)
     return {"registered": sent is not None,
-            "sent": {"body": sent["body"], "when": periods.when(sent["sent_ms"], periods.now_ms())} if sent else None,
+            "sent": {"body": sent["body"], "when": periods.when(sent["sent_ms"], periods.now_ms(),
+                                                                timezone.chosen(load_cfg()))} if sent else None,
             "email_pattern": rules["email_pattern"], "email_max_chars": rules["email_max_chars"],
             "company_max_chars": rules["company_max_chars"], "delete_contact": rules["delete_contact"]}

@@ -17,7 +17,7 @@ import base64
 import binascii
 from http import HTTPStatus
 
-from agentcake import judging
+from agentcake import config, judging, timezone
 from agentcake.api import answers, periods, visits, web_dimensions
 
 CURSOR_SEPARATOR = ":"
@@ -34,15 +34,15 @@ def view(request):
     dimension = answers.choice(request, "dimension", tuple(web_dimensions.EXPRESSIONS))
     after = read_cursor(answers.text_param(request, "cursor"))
     judging.catch_up()
-    now, size = periods.now_ms(), answers.numbers()["page_size"]
-    scope = visits.Scope().between(periods.window(range_key, now)[0])
+    now, size, zone = periods.now_ms(), answers.numbers()["page_size"], timezone.chosen(config.load_cfg())
+    scope = visits.Scope().between(periods.window(range_key, now, zone)[0])
     if dimension:
         scope = web_dimensions.where(scope, dimension, answers.given_param(request, "key"))
     listed = scope.agent(agent)
     rows = listed.group(verdict).group(turns).group(evidence)
     con = visits.connect()
     try:
-        results, keys = visits.page(con, rows.before(after) if after else rows, size + 1, now)
+        results, keys = visits.page(con, rows.before(after) if after else rows, size + 1, now, zone)
         body = {"counts": visits.counts(con, listed), "total": visits.total(con, rows),
                 "agent_names": [name for name, _ in visits.agents(con, scope) if name], "results": results[:size],
                 "next": cursor(keys[size - 1]) if len(results) > size else None, "page_size": size}

@@ -5,7 +5,7 @@
   "description": "GET /api/settings, and the answer to POST /api/settings : everything the settings page shows.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["site_domain", "site_key", "script_tag", "sources", "last_seen", "route", "server_half", "refresh_ms", "lists", "retention_days", "retention_choices", "budget_mb", "budget_choices_mb", "auto_free", "storage", "hook_dom", "hide_selectors", "database"],
+  "required": ["site_domain", "site_key", "script_tag", "sources", "last_seen", "route", "server_half", "refresh_ms", "lists", "retention_days", "retention_choices", "budget_mb", "budget_choices_mb", "auto_free", "storage", "hook_dom", "hide_selectors", "timezone", "timezone_machine", "database"],
   "properties": {
     "site_domain": { "type": "string" },
     "site_key": { "type": ["string", "null"], "minLength": 1 },
@@ -81,6 +81,17 @@
     },
     "hook_dom": { "type": "boolean" },
     "hide_selectors": { "type": "string" },
+    "timezone": { "description": "The IANA time zone days and times are written in; empty to follow this computer's.", "type": "string" },
+    "timezone_machine": {
+      "description": "This computer's time zone: its IANA name (null when nothing names one) and what the pages call it now (PST, UTC, UTC+05:45).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "short"],
+      "properties": {
+        "name": { "$ref": "common.schema.json#/$defs/NullableText" },
+        "short": { "$ref": "common.schema.json#/$defs/Text" }
+      }
+    },
     "database": {
       "type": "object",
       "additionalProperties": false,
