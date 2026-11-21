@@ -1,6 +1,7 @@
-"""Fetches the sources of the lists and writes a snapshot. This is the only part of AgentCake that goes online,
-and only when a release is built (tools/build_lists.py) or someone runs `agentcake lists update`; never while cake
-runs.
+"""Fetches the sources of the lists and writes a snapshot. With geoip_build.py, this is the part of AgentCake that
+downloads what it judges with: when a release is built (tools/build_lists.py), when someone runs
+`agentcake lists update`, and once a month in the process `agentcake serve` starts for the update while
+lists_auto_update is on (agentcake/updates.py). It fetches only the addresses sources.json names.
 
     build(sources, kinds, fetch, previous, now) -> {file name: JSON object, or a licence file's text}   (fetch is
                                                    injected, so tests stay offline)
@@ -19,10 +20,10 @@ import json
 import os
 import shutil
 import tempfile
-import urllib.error
 import urllib.request
 from collections import namedtuple
 
+from agentcake import downloads
 from agentcake.detect import lists, lists_keys, lists_names, lists_ranges
 
 SCHEMA = 1
@@ -36,21 +37,20 @@ class BuildError(Exception):
 
 
 def http_fetch(settings):
-    """fetch(url, accept=None) -> Response, over HTTPS with the limits of sources.json "fetch"."""
+    """fetch(url, accept=None) -> Response, over HTTPS with the limits of sources.json "fetch"; a redirect only on the
+    same host, and a body cut short is a failed attempt (downloads.py)."""
     def fetch(url, accept=None):
         headers = {"User-Agent": settings["user_agent"], **({"Accept": accept} if accept else {})}
-        attempts = []
-        for _ in range(settings["retries"] + 1):
-            try:
-                with urllib.request.urlopen(urllib.request.Request(url, headers=headers),
-                                            timeout=settings["timeout_s"]) as answer:
-                    body = answer.read(settings["max_bytes"] + 1)
-                    if len(body) > settings["max_bytes"]:
-                        raise BuildError(f"{url}: larger than {settings['max_bytes']} bytes")
-                    return Response(answer.status, {k.lower(): v for k, v in answer.headers.items()}, body)
-            except (urllib.error.URLError, OSError, ValueError) as error:
-                attempts.append(str(error))
-        raise BuildError(f"{url}: {attempts[-1]}")
+
+        def once():
+            request = urllib.request.Request(url, headers=headers)
+            with downloads.urlopen(request, timeout=settings["timeout_s"]) as answer:
+                body = answer.read(settings["max_bytes"] + 1)
+                if len(body) > settings["max_bytes"]:
+                    raise BuildError(f"{url}: larger than {settings['max_bytes']} bytes")
+                downloads.check_whole(answer, len(body))
+                return Response(answer.status, {k.lower(): v for k, v in answer.headers.items()}, body)
+        return downloads.attempts(url, settings["retries"], once, BuildError)
     return fetch
 
 
@@ -176,7 +176,8 @@ def write_snapshot(files, root):
 
 
 def update(fetch=None, now=None, root=None):
-    """`agentcake lists update`: fetch everything into <root>/<date>/, or raise BuildError and change nothing."""
+    """`agentcake lists update` and the monthly update: fetch everything into <root>/<date>/, or raise BuildError and
+    change nothing."""
     sources, kinds = read_recipe()
     root = root or lists.user_root()
     previous = lists.Lists.load(lists.BUNDLED_DIR, root)

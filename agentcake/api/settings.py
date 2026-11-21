@@ -2,14 +2,21 @@
 
 GET answers Settings (web/src/data/types.ts):
     site_domain, site_key   the website's domain (as PostHog 1.0's setup page asked for its app_url) and the key its
-                   page script sends; script_tag is the line a site adds to its pages with that key (site_setup.py:
-                   the local page's address, or path_prefix on the site's own domain in server mode)
+                   page script sends; script_tag is the line a site adds to its pages with that key, from where
+                   visitors' browsers reach AgentCake (site_setup.script_src: public_url and path_prefix on the
+                   subdomain route, path_prefix on the site's own domain in server mode without it, else the local
+                   page's address), as PostHog 1.0's snippet named the address of your own PostHog
     sources, last_seen, route, server_half    where visits come from and when each source last sent something, where
                    the website's visits arrive, which headers the site's server never got and the last log import
                    (sources.py)
     refresh_ms     how often the open page asks again where visits come from (data/api.json settings)
     lists          the date of the agent and network lists in use, how old they are, whether that is past max_age_days (the
-                   lists come with each release) and the command that updates them (detect/lists.py)
+                   lists come with each release, and the monthly update or the command replaces them) and the command
+                   that updates them (detect/lists.py); last_update: when the last update ran, in the pages' words,
+                   whether it succeeded and why not (null before the first), failures: failed runs in a row, failing:
+                   enough of them to warn (updates.py); city_database: whether the update takes in the city database
+                   too, only on a server that reads the visitor's address (geoip.sees_addresses, as doctor says)
+    lists_auto_update   whether `serve` updates the lists, and on a server the city database, once a month
     retention_days, budget_mb, auto_free    the settings of these names (defaults.json, then the user's config.json:
                    the names cake 0.3.4 used); retention_choices from defaults.json, budget_choices_mb from
                    data/api.json, with the budget in use among them when it was set to another value
@@ -24,8 +31,8 @@ GET answers Settings (web/src/data/types.ts):
                    call it now ("PST"); the settings page lists the zones from /api/timezones
     database       where the database is (~ for the home folder) and how many sessions count (visits.py)
 POST takes JSON from this computer's own pages (answers.json_object, answers.local_only) with only the fields to
-change (SettingsUpdate): retention_days, budget_mb, auto_free, site_domain, hook_dom, hide_selectors and timezone,
-each of its JSON type, checked as `agentcake config set` checks it (config.coerce: site_domain loses a scheme and
+change (SettingsUpdate): retention_days, budget_mb, auto_free, site_domain, hook_dom, hide_selectors, timezone and
+lists_auto_update, each of its JSON type, checked as `agentcake config set` checks it (config.coerce: site_domain loses a scheme and
 slashes, a selector list is one line without braces, a time zone is a name the timezone database knows), budget_mb
 also one of the listed choices; they are saved to config.json.
 Anything else is a 400 naming the field, and nothing is saved. The answer is the whole Settings.
@@ -33,14 +40,14 @@ Anything else is a 400 naming the field, and nothing is saved. The answer is the
 import datetime
 from http import HTTPStatus
 
-from agentcake import config, paths, site_setup, timezone
+from agentcake import config, geoip, paths, site_setup, timezone, updates
 from agentcake.api import answers, periods, sources, visits
 from agentcake.detect import lists
 from agentcake.space import space_status
 from agentcake.units import MS_PER_S, PERCENT
 
 SAVED = {"retention_days": int, "budget_mb": int, "auto_free": bool, "site_domain": str, "hook_dom": bool,
-         "hide_selectors": str, "timezone": str}
+         "hide_selectors": str, "timezone": str, updates.SETTING: bool}
 KIND_NAMES = {bool: "boolean", int: "integer", str: "string"}  # how api.en.json "kinds" names a JSON type
 
 
@@ -72,7 +79,7 @@ def current():
                                                     site_key=key or answers.words()["script_key_placeholder"]),
             **where,
             "refresh_ms": numbers["settings"]["refresh_ms"],
-            "lists": _lists(now),
+            "lists": _lists(now, c), updates.SETTING: bool(c[updates.SETTING]),
             "retention_days": int(c["retention_days"]), "retention_choices": list(config.SCHEMA["retention_days"]["choices"]),
             "budget_mb": budget, "budget_choices_mb": sorted(set(numbers["budget_choices_mb"]) | {budget}),
             "auto_free": storage["auto_free"],
@@ -84,11 +91,16 @@ def current():
             "database": {"path": paths.tilde(paths.db_file()), "sessions": sessions}}
 
 
-def _lists(now_ms):
+def _lists(now_ms, c):
     today = datetime.datetime.fromtimestamp(now_ms / MS_PER_S, datetime.timezone.utc).date()
-    status = lists.current().status(today=today)
+    status, updated = lists.current().status(today=today), updates.status(c)
+    last = updated["last"]
+    ran = last and {"when": periods.when(datetime.datetime.fromisoformat(last["at"]).timestamp() * MS_PER_S, now_ms,
+                                         timezone.chosen(c)), "ok": last["ok"], "error": last["error"]}
     return {key: status[key] for key in ("built", "age_days", "max_age_days", "stale")} | {
-        "update_command": answers.words()["lists_update"].format(launcher=paths.tilde(paths.launcher()))}
+        "update_command": answers.words()["lists_update"].format(launcher=paths.tilde(paths.launcher())),
+        "last_update": ran, "failures": updated["failures"], "failing": updated["failing"],
+        "city_database": geoip.sees_addresses(c)}
 
 
 def disk(con, c):

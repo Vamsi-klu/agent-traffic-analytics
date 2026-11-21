@@ -3,6 +3,7 @@
   "$doc": {
     "exclude": "Rule 0: sec_purpose holds the Sec-Purpose tokens of a page request that is not a visit yet (a prefetch, or a prerender, which Chrome sends as 'prefetch;prerender'), listed from the general to the specific: the last one present names the request in the reason. On such a page the server half's facts are not used, and environment hits read from the server half on that page are dropped; a page that was prerendered and never shown is left out altogether.",
     "env_rows": "The Agent row ('ai' = AI in a real browser, 'automated' = Automated browser) an environment rule's kind points to.",
+    "families": "Rule 4's company for the rules of one family (env_rules.json legend.families; agentcake/detect/verdict_soft.py). A family is one kind of evidence however many of its rules hold. It counts with agent behaviour, or with a hit of a rule outside every family whose kind is not one of `kinds` and whose id is not one of `rules`: what the family's own collisions leave too. phone_or_tablet (a computer passing as a phone or tablet): Chrome DevTools' device emulation and user-agent switchers, which people use too, make its rules hold and leave other spoofing traces and the DevTools-protocol leak, so only automation of another kind, a cloud host or an extension counts with it. Rules outside every family count with each other as before.",
     "overruling_kinds": "Kinds whose hard hits behaviour does not overturn (webdriver and a human-looking behaviour is still automation): the session is an Agent, never Mixed, in the row of its name when it has one (a product's, or the browser's the page is open in), else in the Automated browser row. A hard hit of any other kind (a product rule, an extension acting on the page) only says that an agent is here, like a signature: a human may still take over (Mixed).",
     "signature_proxy_components": "Components of a Web Bot Auth signature that a proxy in front of the site may rewrite, or that collect cannot rebuild exactly (the public listener keeps the path below its prefix and the parsed query, not the request line). A signature that does not verify and covers one of them is 'could not verify', not impersonation (the Web Bot Auth draft's warning).",
     "mixed": "A run of the behaviour timeline counts as one side of a Mixed session when it has at least min_actions actions over at least min_span_s seconds (start to last action). min_actions is the behaviour model's own minimum (behavior_model.json); min_span_s keeps out runs no hand can make, such as lab session cic-03's 12 'human' actions in 0.66 s (Claude in Chrome typing).",
@@ -10,6 +11,7 @@
     "crawler": "Crawler-like patterns (weak signals, never a Bot): a datacenter address (a cloud range, not a relay); page loads, or the network's earlier visits, at fixed intervals (at least min_gaps gaps whose coefficient of variation is at most max_cv); and many pages in a row (at least min_pages pages, a median of at most max_median_gap_s seconds apart). At least min_signals of the three write 'looks like a crawler' into the reasons; the class does not change. Chosen, not measured.",
     "attribution": "Naming (agentcake/detect/attribute.py): the certainty of a name by the level it comes from (verified: a signature or a published range; the rdns level is kept for a reverse DNS check, which nothing runs; product_rule; declared: the User-Agent, navigator.platform or Signature-Agent; extension_trace: an extension's own trace; automation_trace: an automation tool's own trace or User-Agent token). not_tools: generic list names that are no tool driving the browser, so they never name an Automated browser, each with why.",
     "weak": "Weak signals (agentcake/detect/weak.py): each only adds a reason, never changes a verdict. same_address: at least min_sessions sessions from one address (its salted hash) within window_s. header_order: when a User-Agent holds browser_token, that browser sends the header named first before the one named before (Chrome sends Host, Connection, ...; curl posing as Chrome sends Host, User-Agent, ...); the first shown header names go into the reason. window_jump: the window's position moved at least min_px between two geo records of the same window size. rhythm: with at least min_steps steps, still_share of them after still_ms of no input at all is the pause of something that looks before it acts (a weak signal). Chosen, not measured. Its script's-pace half (steps right after the previous input) was removed: it fired on humans as often as on agents.",
+    "address_check": "The safety net under the verification layer (agentcake/address_check.py): of the latest `sessions` sessions (not self-checks, not other sites) whose uploads carried a visitor's address within window_s before a session, at least cdn_share in a CDN's published ranges (relay addresses, such as iCloud Private Relay's, are not counted) means the address AgentCake reads is the front door's own (a proxied DNS record, a CDN in front of a same-site path): that session is judged as if it had no address (names self-reported, never impersonation; no address weak signals), and /api/health and the dashboard warn. Fewer sessions with an address say nothing. The latest sessions, not all of the window, so that a fix shows within a few sessions. Chosen from the design (20 sessions, 80%), checked on the platform simulation of 2026-11-18.",
     "confidence": "The confidence each kind of evidence gives: an Agent or a Bot takes the best level among the evidence it rests on, a Mixed session the lower of its agent evidence and the behaviour model, Not sure and Too little data are unsure. levels lists them best first."
   },
   "exclude": {
@@ -21,6 +23,9 @@
     "product": "ai",
     "extension": "ai",
     "cloud_host": "ai"
+  },
+  "families": {
+    "phone_or_tablet": {"kinds": ["spoofing"], "rules": ["env.auto.cdp-runtime-leak"]}
   },
   "overruling_kinds": ["automation", "spoofing"],
   "signature_proxy_components": ["@path", "@target-uri", "@scheme", "@request-target", "@query", "@query-param"],
@@ -57,6 +62,7 @@
     "window_jump": {"min_px": 400},
     "rhythm": {"min_steps": 5, "still_ms": 2000, "still_share": 0.6}
   },
+  "address_check": {"sessions": 20, "cdn_share": 0.8, "window_s": 86400},
   "confidence": {
     "levels": ["certain", "likely", "possible", "unsure"],
     "evidence": {

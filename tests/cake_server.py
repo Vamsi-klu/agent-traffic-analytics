@@ -86,8 +86,11 @@ class CakeServer:
         self.env.pop("CAKE_PORT", None)
         self.local_port, self.public_port = free_port(), free_port()
         self.local, self.public = f"http://127.0.0.1:{self.local_port}", f"http://127.0.0.1:{self.public_port}{PREFIX}"
+        # lists_auto_update off: a test never goes online, and a server without a city database would download one
+        # at its first monthly check, minutes after it starts (agentcake/updates.py)
         settings = (("port", self.local_port), ("public_listen", f"127.0.0.1:{self.public_port}"),
-                    ("path_prefix", PREFIX), ("trust_lb", str(trust_lb).lower()), ("site_key", SITE_KEY))
+                    ("path_prefix", PREFIX), ("trust_lb", str(trust_lb).lower()), ("site_key", SITE_KEY),
+                    ("lists_auto_update", "false"))
         with mock.patch.dict(os.environ, {"CAKE_HOME": self.home}):
             config.save_user(**{key: config.coerce(key, str(value)) for key, value in settings})
         self.process = subprocess.Popen(AGENTCAKE + ["serve"], env=self.env, stdout=subprocess.PIPE,

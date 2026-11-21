@@ -8,7 +8,8 @@ Thank you for helping. Bugs, wrong classifications and ideas go to
 
 - **Open an issue first** for anything larger than a small fix, so that we agree on it before you write it.
 - **AgentCake stays small.** One Python process, one SQLite database, the standard library only at run time, and no
-  telemetry. A change that needs a dependency or a network call while AgentCake runs won't be merged.
+  telemetry. A change that needs a dependency, or a network call while AgentCake runs other than the monthly download
+  of its public lists (`agentcake/updates.py`), won't be merged.
 - **A wrong classification is worth a report on its own.** Say which agent or browser it was and what the session
   page's reasons said; that helps more than a guess at the rule to change.
 
@@ -85,3 +86,5 @@ npm test
 - **Commit messages in English**, saying what changed and why.
 - **Name what it touches** in the description: the detection, the page script, the local pages, the server middleware
   or the documents.
+- **For rule or model changes**, include `agentcake eval` results from before and after the change. Your change must not
+  misclassify more humans as agents.

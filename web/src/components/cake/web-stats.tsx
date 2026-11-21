@@ -1,14 +1,17 @@
-// The dashboard's four tables (DESIGN.md §6.1), one component: Paths, and Sources, Devices and Geography as PostHog's web
-// analytics shows them. Each is a card whose title is the card's own, as the charts' are; on its right, for a breakdown,
-// a Select picks the dimension (Channel, Referring domain, UTM … for Sources), then an All / Agent / Human toggle in the
-// session list's verdict colours picks which sessions count. A row shows three numbers, most important first: its
-// sessions (bold), visitors (distinct visitor IDs) and page views, of the sessions picked (All: Agent and Human
-// together); with All, its Agent sessions' share of them (bold, a number, no bar). Hovering a row shows each number split
-// into Agent and Human. Bots are never counted, as the note under the table says. Rows come by the picked sessions, most
-// first, ten, then "Show all N" in place. A breakdown's value opens the Session replay list of its sessions, as PostHog's
-// "View recordings"; a region or a city reads "Country – name", as PostHog writes it. On a narrow screen the table
-// scrolls sideways inside its card, never the page. Every title has its icon before it, as every card title does, and
-// the header's dropdown and chips are one height. Data comes as props (/api/web, page-side).
+// The dashboard's four tables (DESIGN.md §6.1), one component: Paths, and Sources, Devices and Geography as PostHog's
+// web analytics shows them. Each is a card whose title is the card's own, as the charts' are; on its right, for a
+// breakdown, a Select picks the dimension (Channel, Referring domain, UTM … for Sources), then an All / Agent / Human
+// toggle in the session list's verdict colours picks which sessions count. A row shows three numbers, most important
+// first: its sessions (bold), visitors (distinct visitor IDs) and page views, of the sessions picked (All: Agent and
+// Human together); with All, its Agent sessions' share of them (bold, a number, no bar). Hovering a row shows each
+// number split into Agent and Human. Script bots are never counted, as the note under the table says. Rows come by the
+// picked sessions, most first, ten, then "Show all N" in place. A breakdown's value opens the Session replay list of
+// its sessions, as PostHog's "View recordings"; a region or a city reads "Country – name", and a country's sessions
+// without one "Country – Not set", as PostHog writes them. Country, region and city come from the city database on a
+// server: DB-IP's credit sits under the table while it is in use; a server downloads it by itself, so until then the
+// table shows the rows it has and no hint. On a narrow screen the table scrolls sideways
+// inside its card, never the page. Every title has its icon before it, as every card title does, and the header's
+// dropdown and chips are one height. Data comes as props (/api/web, page-side).
 import { useState, type ReactNode } from "react"
 import { MapPin, MonitorSmartphone, Route, Signpost, type LucideIcon } from "lucide-react"
 import { Link } from "react-router"
@@ -17,16 +20,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
-import type { DateRange, PathRow, WebDimension, WebRow, WebTable } from "@/data/types"
-import { NO_VALUE, percent } from "@/lib/format"
+import type { DateRange, PathRow, Places, WebDimension, WebRow, WebTable } from "@/data/types"
+import { LOCALE, NO_VALUE, integer, percent } from "@/lib/format"
 import { PRODUCT_NAME } from "@/lib/product"
 import { WORDS } from "@/lib/words"
-import { CardEmpty, Hint, InfoTip } from "./bits"
+import { CardEmpty, Hint, InfoTip, SourceCredit, TableNote } from "./bits"
 import { VERDICTS } from "./verdict"
 
 const W = WORDS.web
 const PLACE: WebDimension[] = ["country", "region", "city"]
-const LOCALE = "en" // the interface is English only (DESIGN.md §2)
 const regionNames = new Intl.DisplayNames([LOCALE], { type: "region" })
 const languageNames = new Intl.DisplayNames([LOCALE], { type: "language" })
 
@@ -55,17 +57,18 @@ export function counted(row: Counted, kind: Kind): [number, number | null, numbe
 /** What the hover over a row says: each of its numbers, split into Agent and Human. */
 function split(row: Counted) {
   const both = (agent: number | null, human: number | null) =>
-    [`${agent ?? NO_VALUE} ${VERDICTS.agent.label}`, `${human ?? NO_VALUE} ${VERDICTS.human.label}`] as const
+    [`${agent === null ? NO_VALUE : integer(agent)} ${VERDICTS.agent.label}`, `${human === null ? NO_VALUE : integer(human)} ${VERDICTS.human.label}`] as const
   return [W.split(WORDS.sessionsGroup, ...both(row.agent, row.human)), W.split(WORDS.visitorsGroup, ...both(row.agent_visitors, row.human_visitors)),
     W.split(WORDS.pageViewsGroup, ...both(row.agent_page_views, row.human_page_views))]
 }
 
 /** One table (see the file's head): icon before its title; column names its rows, which come most sessions first;
  *  label: what a row's first cell shows, for the kind of sessions picked; controls: what sits before the toggle (a
- *  breakdown's Select); empty: what it says when it has no rows. */
-export function StatsTable<R extends Counted>({ title, icon, help, column, rows, rowKey, label, shown, controls, empty }: {
+ *  breakdown's Select); empty: what it says when it has no rows; note: a line under the bots sentence (a data source's
+ *  credit). */
+export function StatsTable<R extends Counted>({ title, icon, help, column, rows, rowKey, label, shown, controls, empty, note }: {
   title: string; icon: LucideIcon; help: string; column: string; rows: R[]; rowKey: (row: R) => string; label: (row: R, kind: Kind) => ReactNode; shown: number
-  controls?: ReactNode; empty: string
+  controls?: ReactNode; empty: string; note?: ReactNode
 }) {
   const [kind, setKind] = useState<Kind>("all")
   const [expanded, setExpanded] = useState<string | null>(null) // the column whose rows show all: another breakdown starts at ten again
@@ -73,6 +76,7 @@ export function StatsTable<R extends Counted>({ title, icon, help, column, rows,
   const all = expanded === column
   const visible = all ? ofKind : ofKind.slice(0, shown)
   const none = kind === "all" || rows.length === 0 ? empty : W.noKind(VERDICTS[kind].label)
+  const bots = <TableNote>{W.botsNote}</TableNote>
   return (
     <section aria-label={title}>
       <Card>
@@ -102,9 +106,9 @@ export function StatsTable<R extends Counted>({ title, icon, help, column, rows,
                     <Hint key={rowKey(row)} text={split(row)}>
                       <TableRow>
                         <TableCell className="min-w-32 whitespace-normal wrap-anywhere">{label(row, kind)}</TableCell>
-                        <TableCell className="text-right font-bold">{sessions}</TableCell>
-                        <TableCell className="text-right">{visitors ?? NO_VALUE}</TableCell>
-                        <TableCell className="text-right">{views}</TableCell>
+                        <TableCell className="text-right font-bold">{integer(sessions)}</TableCell>
+                        <TableCell className="text-right">{visitors === null ? NO_VALUE : integer(visitors)}</TableCell>
+                        <TableCell className="text-right">{integer(views)}</TableCell>
                         {kind === "all" && <TableCell className="text-right font-bold">{`${percent(row.agent, row.agent + row.human)}%`}</TableCell>}
                       </TableRow>
                     </Hint>
@@ -115,8 +119,8 @@ export function StatsTable<R extends Counted>({ title, icon, help, column, rows,
           )}
         </CardContent>
         <CardContent className="flex flex-wrap items-baseline justify-between gap-2">
-          <p className="text-xs text-muted-foreground">{W.botsNote}</p>
-          {ofKind.length > shown && <Button variant="link" size="sm" onClick={() => setExpanded(all ? null : column)}>{all ? W.showFewer : W.showAll(ofKind.length)}</Button>}
+          {note ? <div className="flex flex-col gap-1">{bots}{note}</div> : bots}
+          {ofKind.length > shown && <Button variant="link" size="sm" onClick={() => setExpanded(all ? null : column)}>{all ? W.showFewer : W.showAll(integer(ofKind.length))}</Button>}
         </CardContent>
       </Card>
     </section>
@@ -138,9 +142,10 @@ function named(names: Intl.DisplayNames, code: string) {
   }
 }
 
-/** What a row's value reads as: not set, no referrer, a country's or a language's name, a place with its country. */
+/** What a row's value reads as: not set (a country's own, for a region or a city), no referrer, a country's or a
+ *  language's name, a place with its country. */
 export function rowLabel(dimension: WebDimension, row: WebRow) {
-  if (row.value === null) return W.notSet
+  if (row.value === null) return row.country ? `${named(regionNames, row.country)} – ${W.notSet}` : W.notSet
   if (dimension === "referring_domain" && row.value === "") return W.direct
   if (dimension === "country") return named(regionNames, row.value)
   if (dimension === "language") return named(languageNames, row.value)
@@ -156,15 +161,20 @@ export function rowLink(dimension: WebDimension, row: WebRow, range?: DateRange,
   return `/sessions?${q}`
 }
 
-/** Sources, Devices or Geography: a Select picks the dimension, initial the one it opens with (PostHog's: Channel, Device
- *  type, Region), else the first. Country, region and city come only from a load balancer (place): without one their
- *  table says so. icon: TABLE_ICONS' for the table. */
+/** Sources, Devices or Geography: a Select picks the dimension, initial the one it opens with (Channel, Device type,
+ *  Country), else the first. Country, region and city come from the city database on a server (place): on this
+ *  computer their table says they need a server; while the database is in use its credit sits under the table. A
+ *  server downloads the database by itself, once a month, so until it has one the table shows the rows it has and no
+ *  hint (the settings page and doctor say when the last update ran). icon: TABLE_ICONS' for the table. */
 export function WebStatsTable({ title, icon, help, table, shown, place, range, initial }: {
-  title: string; icon: LucideIcon; help: string; table: WebTable; shown: number; place: boolean; range?: DateRange; initial?: WebDimension
+  title: string; icon: LucideIcon; help: string; table: WebTable; shown: number; place: Places; range?: DateRange; initial?: WebDimension
 }) {
   const [dimension, setDimension] = useState<WebDimension>(initial ?? table[0]?.dimension ?? "channel")
   const rows = table.find((d) => d.dimension === dimension)?.rows ?? []
-  const empty = !place && PLACE.includes(dimension) ? W.serverOnly(PRODUCT_NAME) : WORDS.noSessionsInRange
+  const located = PLACE.includes(dimension)
+  const empty = !located || dimension === "country" && place.source !== "none" ? WORDS.noSessionsInRange
+    : place.source === "none" ? W.serverOnly(PRODUCT_NAME) : W.noPlace
+  const note = located && place.attribution ? <SourceCredit credit={place.attribution} /> : undefined
   const controls = (
     <Select value={dimension} onValueChange={(value) => setDimension(value as WebDimension)}>
       <SelectTrigger aria-label={`${title}: ${W.breakdown}`}><SelectValue /></SelectTrigger>
@@ -177,5 +187,5 @@ export function WebStatsTable({ title, icon, help, table, shown, place, range, i
   }
   // a key of its own for Not set (null) and for No referrer (""), which can be rows of one table
   return <StatsTable title={title} icon={icon} help={help} column={W.dimensions[dimension]} rows={rows} rowKey={(row) => JSON.stringify(row.key)} label={link} shown={shown}
-    controls={controls} empty={empty} />
+    controls={controls} empty={empty} note={note} />
 }

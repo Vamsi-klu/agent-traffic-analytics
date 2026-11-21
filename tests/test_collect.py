@@ -21,8 +21,9 @@ from unittest import mock
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, HERE)
+sys.path.insert(0, os.path.join(HERE, "tests"))
 from agentcake import collect, config, edge_secret, edge_token, evidence, store, streams  # noqa: E402
-from agentcake.detect import verdict  # noqa: E402
+from agentcake.detect import lists, verdict, webbotauth  # noqa: E402
 from agentcake.responses import Request  # noqa: E402
 from api_client import Client  # noqa: E402
 from agentcake.units import MS_PER_DAY, MS_PER_S  # noqa: E402
@@ -75,6 +76,66 @@ class CollectCase(unittest.TestCase):
 
     def refusal(self, reason):
         return self.one("SELECT posts, records FROM refusals WHERE reason=?", reason)
+
+
+class WebBotAuth(CollectCase):
+    """A signature's @authority is tried as the request's Host, then as the site's other names: its
+    site_domain with and without www., and the public address of the subdomain route (public_url)."""
+    settings = {"public_listen": "127.0.0.1:9", "path_prefix": "/cake", "site_domain": "shop.example"}
+    BACKEND = "192.0.2.10:8080"  # what nginx's default proxy_set_header Host $proxy_host sends on
+
+    def setUp(self):
+        super().setUp()
+        import test_webbotauth as signing  # the repository's test signer (RFC 8032), keyed for chatgpt.com here
+        self.signing = signing
+        verifier = webbotauth.SessionVerifier({"chatgpt.com": [signing.AGENT.jwk]}, clock=lambda: signing.NOW + 10)
+        patcher = mock.patch.object(collect, "_session_verifier", return_value=verifier)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def outcome(self, signed_for, host=BACKEND, forged=False, sid=SID):
+        pairs = self.signing.sign([("Host", host)], self.signing.AGENT, "sig1",
+                                  ('"@authority"', '"signature-agent";key="sig1"'), "https://chatgpt.com",
+                                  authority=signed_for)
+        if forged:
+            pairs = self.signing.flip_signature_bit(self.signing.request(pairs)).headers
+        headers = http.client.HTTPMessage()
+        for name, value in pairs:
+            headers[name] = value
+        answer = collect.from_public(Request("/collect", {}, headers, json.dumps(batch(sid=sid)).encode()))
+        self.assertEqual(answer.status, 204)
+        return json.loads(self.one("SELECT facts FROM requests WHERE session_id=?", sid)[0])["wba"]["outcome"]
+
+    def test_a_host_replaced_on_the_way_still_verifies_with_the_sites_name(self):
+        self.assertEqual(self.outcome("shop.example"), "verified")
+
+    def test_the_sites_name_with_www_verifies_too(self):
+        self.assertEqual(self.outcome("www.shop.example"), "verified")
+
+    def test_the_public_address_of_the_subdomain_route_verifies(self):
+        self.assertEqual(self.outcome("cake.shop.example"), "invalid", "before public_url is set")
+        config.save_user(public_url="https://cake.shop.example")
+        self.assertEqual(self.outcome("cake.shop.example", sid=SID[::-1]), "verified")
+
+    def test_a_name_that_is_not_the_sites_or_a_forgery_stays_invalid(self):
+        self.assertEqual(self.outcome("elsewhere.example"), "invalid")
+        self.assertEqual(self.outcome("shop.example", forged=True, sid=SID[::-1]), "invalid")
+        self.assertEqual(self.outcome("shop.example", host="shop.example", sid="f" * 32), "verified", "Host as sent")
+
+
+class VerifierKeys(CollectCase):
+    """Signatures are verified with the key directories of the lists in use (keys.json): an update that replaces the
+    lists, the monthly one in this process or `agentcake lists update` in another, reaches the verifier without a
+    restart."""
+
+    def test_the_verifier_is_made_once_and_again_after_an_update_of_the_lists(self):
+        from test_lists import copy_bundled, shifted
+        lists.reload()
+        self.addCleanup(lists.reload)
+        first = collect._session_verifier()
+        self.assertIs(collect._session_verifier(), first)
+        copy_bundled(lists.user_root(), shifted(5))
+        self.assertIsNot(collect._session_verifier(), first)
 
 
 class Streams(CollectCase):
@@ -198,6 +259,22 @@ class Token(CollectCase):
         self.assertIsNone(self.post(batch(st=token)).headers.get("X-Cake-Token"), "a batch sent again is not read again")
         self.assertEqual(self.one("SELECT session_id, path FROM srv WHERE id='tok-7'"), (SID, "/demo"))
         self.assertEqual([r[0] for r in self.con.execute("SELECT token_id FROM batches ORDER BY seq")], ["tok-7"] * 2)
+
+
+class SaltOrder(CollectCase):
+    """A fresh install's first two uploads take their time before they wait for store.LOCK, so the one stamped later
+    can be stored first (6 ms apart in a real run through Caddy). They share one salt: their address hashes match."""
+    settings = {"public_listen": "127.0.0.1:9", "path_prefix": "/cake", "trust_lb": True}
+
+    def test_two_first_uploads_that_reach_the_lock_in_reverse_order_share_one_salt(self):
+        stamps = iter([T0 + 6, T0])  # the later time is stored first
+        with mock.patch.object(collect, "clock_ms", lambda: next(stamps)):
+            for seq in (0, 1):
+                self.assertEqual(self.post(batch(seq=seq), public=True, X_Cake_Client_IP="203.0.113.7").status, 204)
+        rows = [json.loads(facts) for facts, in self.con.execute("SELECT facts FROM requests ORDER BY rowid")]
+        self.assertEqual(len(rows), 2)
+        self.assertEqual({row["ip_hash"] for row in rows}, {rows[0]["ip_hash"]})
+        self.assertEqual({row["net_hash"] for row in rows}, {rows[0]["net_hash"]})
 
 
 class Clock:

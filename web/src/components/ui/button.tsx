@@ -4,22 +4,22 @@ import { cn } from "cn"
 import { Slot } from "radix-ui"
 
 const buttonVariants = cva(
-  "group/button inline-flex shrink-0 items-center justify-center rounded-lg border-2 border-transparent bg-clip-padding text-sm font-extrabold whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  "group/button inline-flex shrink-0 items-center justify-center rounded-lg border-2 border-transparent bg-clip-padding text-sm font-extrabold whitespace-nowrap transition-all minimal:border minimal:font-semibold outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
         // Frosting: framed variants share one outline (border-line) and one hard shadow (shadow-hard-sm); see DESIGN.md §6
         default:
-          "border-line bg-primary text-primary-foreground shadow-hard-sm hover:-translate-x-px hover:-translate-y-px hover:shadow-hard active:translate-x-px active:translate-y-px active:shadow-none",
+          "border-line bg-primary text-primary-foreground shadow-hard-sm hover:-translate-x-px hover:-translate-y-px hover:shadow-hard active:translate-x-px active:translate-y-px active:shadow-none minimal:border-transparent minimal:hover:translate-none minimal:hover:bg-primary/85 minimal:active:translate-none",
         outline:
-          "border-line bg-card text-foreground shadow-hard-sm hover:-translate-x-px hover:-translate-y-px hover:shadow-hard active:translate-x-px active:translate-y-px active:shadow-none aria-expanded:bg-muted",
+          "border-line bg-card text-foreground shadow-hard-sm hover:-translate-x-px hover:-translate-y-px hover:shadow-hard active:translate-x-px active:translate-y-px active:shadow-none aria-expanded:bg-muted minimal:border-input minimal:hover:translate-none minimal:hover:bg-muted minimal:active:translate-none",
         secondary:
-          "border-line bg-secondary text-secondary-foreground shadow-hard-sm hover:-translate-x-px hover:-translate-y-px hover:shadow-hard active:translate-x-px active:translate-y-px active:shadow-none",
+          "border-line bg-secondary text-secondary-foreground shadow-hard-sm hover:-translate-x-px hover:-translate-y-px hover:shadow-hard active:translate-x-px active:translate-y-px active:shadow-none minimal:border-transparent minimal:hover:translate-none minimal:hover:bg-secondary/80 minimal:active:translate-none",
         ghost:
           "hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground",
         destructive:
-          "border-line bg-card text-destructive shadow-hard-sm hover:bg-destructive/10 active:translate-x-px active:translate-y-px active:shadow-none focus-visible:ring-destructive/20",
-        link: "text-foreground underline underline-offset-4 decoration-2 hover:decoration-primary",
+          "border-line bg-card text-destructive shadow-hard-sm hover:bg-destructive/10 active:translate-x-px active:translate-y-px active:shadow-none focus-visible:ring-destructive/20 minimal:border-destructive/40 minimal:active:translate-none",
+        link: "text-foreground underline underline-offset-4 decoration-2 hover:decoration-primary minimal:font-medium minimal:decoration-1 minimal:decoration-input minimal:hover:decoration-foreground",
       },
       size: {
         default:

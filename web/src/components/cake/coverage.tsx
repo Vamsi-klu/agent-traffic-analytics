@@ -1,6 +1,7 @@
-// The session categories at the bottom of the dashboard, quieter than the Agent block (a plain framed Card + Table), and
-// the Bot number's "What counts as a bot" help. The categories' words come from judging.en.json when the pages are built
-// (src/lib/taxonomy.ts), the bot help from /api/overview (coverage); never from the pages. DESIGN.md §16
+// The session categories at the bottom of the dashboard, quieter than the Agent block (a plain framed Card + Table),
+// and the Script bot number's "What counts as a script bot" help. The categories' words come from judging.en.json when
+// the pages are built (src/lib/taxonomy.ts), the bot help from /api/overview (coverage); never from the pages.
+// DESIGN.md §16
 import { CornerDownRight, HelpCircle } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table"
@@ -9,14 +10,15 @@ import { TAXONOMY, TURNS_ORDER, VERDICT_ORDER } from "@/lib/taxonomy"
 import { IconTip } from "./bits"
 import { TurnsBadge, VerdictBadge } from "./verdict"
 
-/** The Bots number's "What counts as a bot" help (coverage.bot of /api/overview): one paragraph, the question first. */
+/** The Script bot number's "What counts as a script bot" help (coverage.bot of /api/overview): one paragraph, the
+ *  question first. */
 export function BotHelp({ bot }: { bot: CoverageText["bot"] }) {
   return <IconTip icon={HelpCircle} label={bot.question} text={<><b>{bot.question}</b> {bot.answer}</>} />
 }
 
-/** The session categories: the three verdicts (Human, which counts what cake can't tell, marked; Agent; Bot), each a row
- *  with its badge and its sentence, centred on each other; Agent only and Human + agent, the two kinds of Agent
- *  session, are rows inside Agent, indented under it. Every badge in one shape; no Unknown. */
+/** The session categories: the three verdicts (Human, which counts what cake can't tell, marked; Agent; Script bot),
+ *  each a row with its badge and its sentence, centred on each other; Agent only and Human + agent, the two kinds of
+ *  Agent session, are rows inside Agent, indented under it. Every badge in one shape; no Unknown. */
 export function Taxonomy() {
   const { verdicts, turns } = TAXONOMY
   return (

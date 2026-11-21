@@ -1,2 +1,3 @@
 {"name": "AgentCake", "command": "agentcake", "python": "3.11",
- "source": "https://github.com/tartini-ai/agent-traffic-analytics/blob/v{version}"}
+ "source": "https://github.com/tartini-ai/agent-traffic-analytics/blob/v{version}",
+ "guide": "https://raw.githubusercontent.com/tartini-ai/agent-traffic-analytics/v{version}/INSTALL.md"}

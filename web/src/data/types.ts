@@ -15,6 +15,8 @@
 
 /** Who acted in a session, one verdict each (DESIGN.md §3.1): a session cake can't tell counts as human, with
  *  evidence "thin" (its reasons say why). */
+import type { Attribution } from "./place-types"
+import type { AddressCheck } from "./health-types"
 import type { WebDimension } from "./web-types"
 
 export type Verdict = "human" | "agent" | "bot"
@@ -104,6 +106,8 @@ export type Overview = {
   /** The disk budget and what cake's data uses of it, whatever the filters: the dashboard warns from its warn_at_pct. */
   storage: Storage
   coverage: Coverage
+  /** On a server, whether the IP address AgentCake reads is a CDN's own: the dashboard warns while it is. */
+  address_check: AddressCheck
 }
 
 /** The settings page's disk numbers in one place (Settings.storage, budget_mb, auto_free): the dashboard warns from
@@ -211,8 +215,10 @@ export type ServerPage = {
    *  (after a 304, or going back), so they have no server half of their own. */
   reuses: number
 }
-/** The network cake.js's uploads came from, as the load balancer saw it (server mode); never the address itself. */
-export type Network = { country: string | null; range: string | null; ja4: string | null; protocol: string | null }
+/** The network cake.js's uploads came from (server mode): the country of its address (the city database's), its
+ *  published range, and what the load balancer saw; never the address itself. attribution: DB-IP's credit, when the
+ *  country is its. */
+export type Network = { country: string | null; range: string | null; ja4: string | null; protocol: string | null; attribution: Attribution | null }
 /** The session page's Server middleware table. */
 export type ServerHalf = {
   /** One row per page request whose token arrived, in time order. */
@@ -258,6 +264,9 @@ export type Route = "this_computer" | "server"
  *  log lacks or leaves empty on every page request. */
 export type LogImport = { last: string; format: string; missing: string[]; empty: string[] }
 
+/** The last update of the lists: when it ran, in the server's words ("Yesterday 03:12"); whether it succeeded; why not. */
+export type LastUpdate = { when: string; ok: boolean; error: string | null }
+
 export type Settings = {
   /** The website's domain, "" until it is set; the key its page script sends (null before AgentCake first started). */
   site_domain: string
@@ -273,9 +282,16 @@ export type Settings = {
   server_half: { missing: string[]; logs: LogImport | null }
   /** How often the open page asks for sources and last_seen again ("connected" within 10 seconds). */
   refresh_ms: number
-  /** The agent and network lists in use (they come with each release): their date, how old they are, whether that is
-   *  past max_age_days, and the command that downloads newer ones. */
-  lists: { built: string; age_days: number; max_age_days: number; stale: boolean; update_command: string }
+  /** The agent and network lists in use (they come with each release, and an update replaces them): their date, how
+   *  old they are, whether that is past max_age_days, and the command that downloads newer ones; the last update
+   *  (monthly or by the command; null before the first), the failed updates in a row and whether that is enough to
+   *  warn; whether the update takes in the city database too (only on a server that reads the visitor's address). */
+  lists: {
+    built: string; age_days: number; max_age_days: number; stale: boolean; update_command: string
+    last_update: LastUpdate | null; failures: number; failing: boolean; city_database: boolean
+  }
+  /** Whether AgentCake downloads the latest lists, and on a server the city database, once a month (on by default). */
+  lists_auto_update: boolean
   /** 0 keeps everything. */
   retention_days: number
   retention_choices: number[]
@@ -306,6 +322,7 @@ export type SettingsUpdate = {
   hook_dom?: boolean
   hide_selectors?: string
   timezone?: string
+  lists_auto_update?: boolean
 }
 
 // ---------------------------------------------------------------- GET /api/timezones
@@ -319,9 +336,12 @@ export type Timezones = { zones: { name: string; label: string }[] }
 export type Setup = {
   /** The one sentence for a coding agent, in English. */
   sentence: string
-  /** Commands for the Terminal and On a server tabs, one per line, placeholders only. */
+  /** Commands for the Terminal tab, one per line, placeholders only. */
   terminal: string
-  server: string
+  /** The On a server tab's three things for the subdomain route, one line each, placeholders only: the commands that
+   *  start AgentCake and Caddy from the release folder, the DNS record for cake.<the site's domain>, and the settings
+   *  that tell AgentCake on the server its address (public_url). */
+  server: { install: string; dns: string; settings: string }
   /** Shown as "Sample data" until real sessions arrive. */
   example: { sessions: SessionSummary[]; timeline: Timeline }
   /** At any time: the sessions the lists show, how many of them the website sent (site: all but those an earlier
@@ -353,30 +373,14 @@ export type Registration = {
  *  unchanged (agentcake/register.py); a body in any other form is a 400. */
 export type RegistrationPayload = { email: string; company?: string; product_updates: boolean; consent_version: string }
 
-// ---------------------------------------------------------------- GET /api/health
-
-/** Read by `agentcake doctor` and the install check (same fields as AgentCake 0.3.4); the pages don't use it. */
-export type Health = {
-  ok: boolean
-  version: string
-  home: string
-  site_key: string | null
-  sessions: number
-  real_sessions: number
-  selfcheck_visits: number
-  space: {
-    used: number; budget: number; pct: number; days_left: number | null; warn: boolean; full: boolean; freed: number; auto_free: boolean
-    disk: Disk
-    replays_stopped: ReplaysStopped
-  }
-}
-
 /** The disk that holds the data: bytes, and whether its free space is below the floor (disk_min_free_mb). */
 export type Disk = { total: number; free: number; min_free: number; low: boolean }
 
 /** Why new replays are not being stored, if they aren't: the disk is below its floor (none is deleted for it); the disk
  *  budget is full and nothing is left to delete. */
 export type ReplaysStopped = "disk" | "budget" | null
+export type { Attribution, PlaceSource, Places } from "./place-types"
+export type { AddressCheck, Health } from "./health-types"
 
 // ---------------------------------------------------------------- GET /api/web?range= (./web-types.ts)
 

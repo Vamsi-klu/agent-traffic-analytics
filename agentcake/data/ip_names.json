@@ -1,0 +1,5 @@
+{
+ "about": "Free DNS services of a third party that answer a name holding an IPv4 address with that address: cake.203-0-113-10.sslip.io resolves to 203.0.113.10 (sslip.io's own page; nip.io is the same service, 'the domains nip.io and sslip.io are interchangeable'). A public_url under one of these domains needs no DNS record: setup --print --site says so in step 5 instead of asking for an A record, and points to SERVER.md's 'Sites without their own domain' for the service's risks. address: the form of the IPv4 address the name must hold right before the domain, after its start, a dot or a dash: four numbers from 0 to 255 without a leading zero, joined all by dots or all by dashes. A name under these domains without one leads nowhere, so step 5 treats it as any other name, and doctor on the server finds where its DNS record leads.",
+ "domains": ["sslip.io", "nip.io"],
+ "address": "(?:^|[.-])(?:(?:25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(?:\\.(?:25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}|(?:25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(?:-(?:25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3})$"
+}

@@ -19,7 +19,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from api_client import Client, contract_problems  # noqa: E402
 from agentcake import config, paths  # noqa: E402
 from agentcake.api import visits  # noqa: E402
-from agentcake.wording import text  # noqa: E402
+from agentcake.wording import product, text  # noqa: E402
 
 T0 = 1_794_500_000_000
 A_YEAR_MS = 365 * 24 * 3_600_000
@@ -39,7 +39,7 @@ class Setup(unittest.TestCase):
 
     def test_the_sentence_in_english_with_this_launcher(self):
         launcher = paths.tilde(paths.launcher())
-        self.assertIn(f"`{launcher} setup --print --site`", self.body["sentence"])
+        self.assertIn(f"`{launcher}`", self.body["sentence"])
         self.assertNotIn(os.path.expanduser("~") + os.sep, self.body["sentence"])
         self.assertEqual(self.body["sentence"], paths.tilde(text("site_sentence", launcher=paths.launcher())))
 
@@ -50,8 +50,19 @@ class Setup(unittest.TestCase):
 
     def test_commands_hold_placeholders_never_this_installations_key(self):
         self.assertIn("<your-site-folder>", self.body["terminal"])
-        self.assertIn("<your-site-key>", self.body["server"])
+        self.assertIn("<your-site-key>", self.body["server"]["settings"])
         self.assertNotIn("ck_onboarding", json.dumps(self.body))
+
+    def test_on_a_server_three_things_the_server_its_dns_record_and_its_settings(self):
+        """The subdomain route: Docker Compose starts AgentCake and Caddy, an A record points cake.<the domain> at the
+        server, and the settings name that address."""
+        server = self.body["server"]
+        self.assertEqual(sorted(server), ["dns", "install", "settings"])
+        self.assertIn("docker compose up -d", server["install"].splitlines())
+        self.assertIn("deploy/Caddyfile", server["install"])
+        self.assertEqual([line.split(":")[0] for line in server["dns"].splitlines()], ["Type", "Name", "Value"])
+        for setting in ("public_url https://cake.<your-domain>", "trust_lb true"):
+            self.assertIn(f"{product()['command']} config set {setting}", server["settings"].splitlines())
 
     def test_the_example_is_made_up_and_says_so(self):
         self.assertTrue(all(row["id"].startswith("example-") for row in self.body["example"]["sessions"]))

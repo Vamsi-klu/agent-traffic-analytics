@@ -10,10 +10,10 @@ Rules: [`../DESIGN.md`](../DESIGN.md). Users never need Node: a release runs `np
     npm run check:ui       # UI rules + DESIGN.md token table + check:schemas
     npm test               # node --test on scripts/*.test.mjs and tests/*.test.mjs: the schema checker, the fixture /api, check:dist,
                            # and the pages in Chromium (tests/: home, dashboard, the session list, the session and replay pages,
-                           # the registration card)
+                           # the registration card, light under a dark system)
     npm run visual         # pixel diff of the component overview + 8 pages against visual/baseline/
     npm run visual:update  # accept the current look as the baseline (commit it with the change)
-    npm run shots -- <dir> # light / dark / 485px screenshots of every page, fails on horizontal scroll
+    npm run shots -- <dir> # 1280px and 485px screenshots of every page, fails on horizontal scroll
     node scripts/replay-fixtures.mjs  # re-records the sample replays in the test site's shop (tests/site; a scratch AgentCake, ~3 min)
     node scripts/favicon.mjs          # redraws public/favicon.ico (Crumb's head) from the built pages; after npm run build
 

@@ -5,7 +5,9 @@ collect endpoint or the site's server half), where it comes from, what is known 
 checked and whether it is on by default. This module loads that table, checks it, and evaluates each rule's `match`
 (written in predicate.py's language) against a session's signals (env_signals.py turns recorded data into signals).
 A rule that is off by default can wait for a page-script setting (`setting`): it runs on the visits cake.js recorded
-with that setting on, as their page records say (signals' script_settings), whatever the setting is now.
+with that setting on, as their page records say (signals' script_settings), whatever the setting is now. Rules of
+one `family` (the legend's families) are one kind of evidence together: the verdict counts them as one
+(verdict_soft.py).
 
     evaluate(signals, table=None, enabled=None) -> EnvResult(hits, unknown, off)
 
@@ -29,7 +31,7 @@ RULES_FILE = os.path.join(paths.PACKAGE_DIR, "data", "env_rules.json")
 SCOPES = ("page", "landing", "session")
 _REQUIRED = ("id", "layer", "kind", "half", "scope", "strength", "enabled", "title", "match", "grade", "date",
              "evidence", "sources", "collisions")
-_OPTIONAL = ("botscent", "names", "suggests", "report", "detail", "setting")
+_OPTIONAL = ("botscent", "names", "suggests", "report", "detail", "setting", "family")
 
 
 class EnvRulesError(ValueError):
@@ -58,6 +60,7 @@ class Rule:
     report: tuple = ()
     detail: str | None = None  # what was seen, in technical words: the reason's second line
     setting: str | None = None  # the page-script setting this rule waits for (see evaluate)
+    family: str | None = None  # the rules that are one kind of evidence with this one (the legend's families)
 
 
 @dataclass(frozen=True)
@@ -89,6 +92,7 @@ class Hit:
     pages: tuple | None = None
     names: str | None = None
     suggests: str | None = None
+    family: str | None = None
 
 
 @dataclass(frozen=True)
@@ -150,7 +154,7 @@ def evaluate(signals, table=None, enabled=None):
         state, value, pages = _run(rule, signals)
         if state:
             hits.append(Hit(rule.id, rule.layer, rule.kind, rule.half, rule.strength, rule.grade, value, pages,
-                            rule.names, rule.suggests))
+                            rule.names, rule.suggests, rule.family))
         elif state is None:
             unknown.append(rule.id)
     return EnvResult(tuple(hits), tuple(unknown), tuple(off))
@@ -173,6 +177,8 @@ def _rule(entry, legend, script_settings):
     if "setting" in entry and (entry["enabled"] or entry["setting"] not in script_settings):
         raise EnvRulesError(f"{rule_id}: setting is for a rule that is off by default, and must be one of "
                             f"signals.script_settings {sorted(script_settings)}")
+    if "family" in entry and entry["family"] not in legend.get("families", {}):
+        raise EnvRulesError(f"{rule_id}: family {entry['family']!r} is not one of {sorted(legend.get('families', {}))}")
     try:
         predicate.validate(entry["match"], rule_id)
     except predicate.PredicateError as err:

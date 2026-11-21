@@ -6,13 +6,16 @@ Sec-Fetch-* headers, a signature's Signature-Agent (the token carries no signatu
 here: collect checks the signatures of cake.js's own requests), and how cake.js's uploads compare with the page
 request: the same network, User-Agent and Accept-Language (null when either side did not say), and how many more page
 views brought the same token again because the browser showed them a stored copy (reuses). network is what the
-load balancer said about cake.js's uploads (server mode with trust_lb; null on this computer). note says why page
-views have no row, when some have none (api.en.json server_half).
+load balancer said about cake.js's uploads and where their address is (server mode with trust_lb; null on this
+computer), with the credit DB-IP asks for when it shows a country of its database (places.attribution). note says
+why page views have no row, when some have none (api.en.json server_half).
 
     table(con, session_id, net_json, epoch, page_views) -> ServerHalf
 """
 import json
 
+from agentcake import config
+from agentcake.api import places
 from agentcake.api.answers import words
 
 FETCH = {"site": "s", "mode": "m", "dest": "d", "user": "u"}  # protocol: the token's Sec-Fetch fields (edge_token)
@@ -43,7 +46,10 @@ def _page(epoch, page_ms, path, body, net_match, ua_match, lang_match, reuses):
 
 def _network(net_json):
     net = json.loads(net_json) if net_json else None
-    return {name: _text(net.get(key)) for name, key in NETWORK.items()} if net else None
+    if not net:
+        return None
+    shown = {name: _text(net.get(key)) for name, key in NETWORK.items()}
+    return dict(shown, attribution=places.attribution(config.load_cfg()) if shown["country"] else None)
 
 
 def _same(match):

@@ -4,17 +4,17 @@ import { cn } from "cn"
 import { Toggle as TogglePrimitive } from "radix-ui"
 
 const toggleVariants = cva(
-  "group/toggle inline-flex items-center justify-center gap-1 rounded-full text-sm font-bold whitespace-nowrap text-muted-foreground transition-all outline-none hover:bg-muted hover:text-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 aria-pressed:bg-foreground aria-pressed:text-background data-[state=on]:bg-foreground data-[state=on]:text-background dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  "group/toggle inline-flex items-center justify-center gap-1 rounded-full text-sm font-bold whitespace-nowrap text-muted-foreground minimal:rounded-md minimal:font-medium minimal:data-[state=on]:font-semibold minimal:aria-pressed:font-semibold transition-all outline-none hover:bg-muted hover:text-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 aria-pressed:bg-foreground aria-pressed:text-background data-[state=on]:bg-foreground data-[state=on]:text-background [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
         default: "bg-transparent",
-        outline: "border-2 border-line bg-card hover:bg-muted",
+        outline: "border-2 border-line bg-card hover:bg-muted minimal:border minimal:border-input minimal:data-[state=on]:border-foreground",
         // Frosting: the session list's verdict filter, each verdict in its badge's colours by one rule (DESIGN.md §6.1):
         // its soft colour and its text colour, and once picked its text colour as the background. All is outline.
-        agent: "border-2 border-line bg-agent-soft text-agent-foreground hover:bg-agent-soft data-[state=on]:bg-agent-foreground data-[state=on]:text-card aria-pressed:bg-agent-foreground aria-pressed:text-card",
-        human: "border-2 border-line bg-human-soft text-human-foreground hover:bg-human-soft data-[state=on]:bg-human-foreground data-[state=on]:text-card aria-pressed:bg-human-foreground aria-pressed:text-card",
-        bot: "border-2 border-line bg-unsure-soft text-unsure-foreground hover:bg-unsure-soft data-[state=on]:bg-unsure-foreground data-[state=on]:text-card aria-pressed:bg-unsure-foreground aria-pressed:text-card",
+        agent: "border-2 border-line bg-agent-soft text-agent-foreground hover:bg-agent-soft data-[state=on]:bg-agent-foreground data-[state=on]:text-card aria-pressed:bg-agent-foreground aria-pressed:text-card minimal:border minimal:border-input minimal:bg-card minimal:data-[state=on]:border-agent-foreground minimal:data-[state=on]:bg-agent-foreground minimal:aria-pressed:bg-agent-foreground",
+        human: "border-2 border-line bg-human-soft text-human-foreground hover:bg-human-soft data-[state=on]:bg-human-foreground data-[state=on]:text-card aria-pressed:bg-human-foreground aria-pressed:text-card minimal:border minimal:border-input minimal:bg-card minimal:data-[state=on]:border-human-foreground minimal:data-[state=on]:bg-human-foreground minimal:aria-pressed:bg-human-foreground",
+        bot: "border-2 border-line bg-unsure-soft text-unsure-foreground hover:bg-unsure-soft data-[state=on]:bg-unsure-foreground data-[state=on]:text-card aria-pressed:bg-unsure-foreground aria-pressed:text-card minimal:border minimal:border-input minimal:bg-card minimal:data-[state=on]:border-unsure-foreground minimal:data-[state=on]:bg-unsure-foreground minimal:aria-pressed:bg-unsure-foreground",
       },
       // Frosting: every size keeps the base's pill, as every dropdown is one (DESIGN.md §6)
       size: {

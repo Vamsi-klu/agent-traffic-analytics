@@ -13,15 +13,18 @@ signature verified with the signer's bundled key (webbotauth.py), the operator's
 (ip_ranges.json "verifies"), or reverse DNS when such a check is given. Impersonation (after Known Agents'
 definition), and so no name: a name that a published range could verify, seen from an address outside it, and a
 signature that does not verify. Never impersonation, only self-reported: a missing, expired or unknown key, a
-signature outside its time window, local mode (every visit is 127.0.0.1), no address, or a name with nothing to
-check it against. A signature that does not verify but covers what a proxy in front of the site may rewrite
-(verdict.json "signature_proxy_components") could not be verified, which is not impersonation either.
+signature outside its time window, local mode (every visit is 127.0.0.1), no address (also an address the address
+check found to be a CDN's: address_check.py), or a name with nothing to check it against. A signature that does not
+verify but covers what a proxy in front of the site may rewrite (verdict.json "signature_proxy_components") could not
+be verified, which is not impersonation either.
 
     identify(evidence, lists_=None, settings=None) -> Identity
     claims_from_signals(signals) -> {"user_agents": {half: [User-Agent]}, "platform"}   from env_signals' dict
 
 Input: the evidence keys "mode", "user_agents", "platform", "signatures", "network" and "rdns" (verdict.py's
-docstring describes them). Output: an Identity; verdict.py lists its reasons and candidates as they are.
+docstring describes them), and "address_check" (address_check.check(): {"sessions", "cdn", "misconfigured"}; when
+misconfigured, evidence.py left network out and the reason says why). Output: an Identity; verdict.py lists its
+reasons and candidates as they are.
 """
 from dataclasses import dataclass, field
 
@@ -277,7 +280,7 @@ def _verify_name(entry, evidence, lists_, found, signed):
         return self_reported
     network = evidence.get("network")
     if network is None:
-        found.add(reason("verify.no-address"))
+        found.add(_no_address(evidence.get("address_check") or {}))
         return self_reported
     if entry["id"] in (network.get("verifies") or []):
         found.add(reason("verify.ip-range", "collector", network["range_id"], range=network["range"],
@@ -294,6 +297,15 @@ def _verify_name(entry, evidence, lists_, found, signed):
     if not signed and not entry.get("browser"):  # which browser the page is open in is no claim to verify
         found.add(reason("verify.no-range", None, entry["id"], name=entry["name"]))
     return _with_range(self_reported, infrastructure)
+
+
+def _no_address(checked):
+    """Why there is no address to check a name against: none was read, or the one read is a CDN's (address_check.py
+    found most of the latest sessions in a CDN's ranges, so the session is judged as if it had none)."""
+    if checked.get("misconfigured"):
+        return reason("verify.address-cdn", "collector", checked["cdn"], cdn=checked["cdn"],
+                      sessions=checked["sessions"])
+    return reason("verify.no-address")
 
 
 def _with_range(result, infrastructure):

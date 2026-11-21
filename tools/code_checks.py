@@ -1,5 +1,5 @@
-"""What the three code checks share (tools/check_hardcode.py, check_size.py and check_imports.py): where the
-repository is, their settings in tools/limits.json and how they read their command line.
+"""What the code checks share (tools/check_hardcode.py, check_size.py, check_imports.py and check_agent_mcp.py): where
+the repository is, their settings in tools/limits.json and how they read their command line.
 
     limits(check)                                   the check's section of tools/limits.json
     folder_argument(argv, doc[, default, what])     the folder the command line names, or default (the repository)
@@ -17,7 +17,8 @@ REPOSITORY = "the repository folder (default: the folder above tools/)"
 
 
 def limits(check):
-    """The check's section of tools/limits.json: "check_size", "check_hardcode" or "check_imports"."""
+    """The check's section of tools/limits.json: "check_size", "check_hardcode", "check_imports" or
+    "check_agent_mcp"."""
     with open(LIMITS, encoding="utf-8") as f:
         return json.load(f)[check]
 

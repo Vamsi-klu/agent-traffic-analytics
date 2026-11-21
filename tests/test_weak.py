@@ -68,6 +68,17 @@ class EachSignal(unittest.TestCase):
         self.assertEqual(ids(dict(QUIET, steps={"n": 2, "still": 1.0})), set())
         self.assertEqual(ids(dict(QUIET, country=None, timezones=["Asia/Tokyo"], languages=["ja-JP"])), set())
 
+    def test_header_order_is_read_only_in_local_mode(self):
+        """On a server every upload passes a front door (a CDN, a load balancer, a reverse proxy) that sends the
+        header names in its own order, with or without trust_lb: the order says nothing about the browser there."""
+        curl_order = [["Host", "shop.example"], ["User-Agent", CHROME], ["Accept", "*/*"]]
+        requests = [{"headers": curl_order, "names": [name.lower() for name, _ in curl_order]}]
+        local = weak.facts({"pages": []}, requests, [])
+        self.assertIn("weak.header-order", ids(dict(QUIET, header_orders=local["header_orders"])))
+        server = weak.facts({"pages": []}, requests, [], local=False)
+        self.assertEqual(server["header_orders"], [])
+        self.assertEqual(server["user_agents"], [CHROME])  # the other facts are read as before
+
     def test_a_browser_that_does_not_claim_chrome_is_not_held_to_its_order(self):
         firefox = "Mozilla/5.0 (Macintosh; Intel Mac OS X 15.5; rv:146.0) Gecko/20100101 Firefox/146.0"
         self.assertEqual(ids(dict(QUIET, user_agents=[firefox], header_orders=LOUD["header_orders"])), set())

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import type { SessionPage } from "@/data/types"
-import { NO_VALUE, clock, duration } from "@/lib/format"
+import { NO_VALUE, clock, duration, integer } from "@/lib/format"
 import { WORDS } from "@/lib/words"
 import { WhoBadge } from "./verdict"
 
@@ -39,7 +39,7 @@ export function SessionPages({ pages, onJump }: { pages: SessionPage[]; onJump?:
             <TableCell className="font-mono whitespace-normal break-all">{p.path}</TableCell>
             <TableCell>{duration(p.duration_ms)}</TableCell>
             <TableCell>{p.who ? <WhoBadge who={p.who} /> : <span className="text-faint-foreground">{NO_VALUE}</span>}</TableCell>
-            <TableCell className="text-right max-md:hidden">{p.actions}</TableCell>
+            <TableCell className="text-right max-md:hidden">{integer(p.actions)}</TableCell>
           </TableRow>
         ))}</TableBody>
       </Table>

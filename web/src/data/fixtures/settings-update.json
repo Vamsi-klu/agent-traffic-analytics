@@ -2,5 +2,6 @@
   "retention_days": 90,
   "site_domain": "shop.example.com",
   "hook_dom": true,
-  "hide_selectors": ".account-email, #address, .card-number"
+  "hide_selectors": ".account-email, #address, .card-number",
+  "lists_auto_update": false
 }

@@ -17,8 +17,10 @@ over the sessions that count (visits.py) in the range (no range: every session):
                             settings page's numbers; the dashboard shows only the warning, from warn_at_pct, as 0.3.4's did),
                             and the disk under it with why new replays are stopped, if they are
     coverage                what counts as a bot, the Bot number's "?" (coverage.py)
+    address_check           on a server, whether the visitor's address it reads is a CDN's own, whatever the filters
+                            (address_check.current): the dashboard warns while it is
 """
-from agentcake import config, judging, timezone
+from agentcake import address_check, config, judging, timezone
 from agentcake.api import answers, coverage, periods, settings, visits, web
 from agentcake.api.visits import AGENT_VERDICT, VERDICT
 
@@ -46,7 +48,8 @@ def view(request):
                 "pages_per_session": pages_per_session(views, counts),
                 "latest_agent": latest_agent,
                 "storage": settings.disk(con, config.load_cfg()),
-                "coverage": coverage.coverage()}
+                "coverage": coverage.coverage(),
+                "address_check": address_check.current(con)}
     finally:
         con.close()
     return answers.ok(body)

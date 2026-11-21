@@ -19,7 +19,9 @@ The page script, `cake.js`, is the one line a site adds. It records:
   Text typed into editable elements (`contenteditable`) is masked the same way. Elements marked `data-cake-private`,
   password fields and payment card fields (`autocomplete="cc-…"`) are not recorded at all: the replay shows an empty
   box of their size. So are the parts of your pages you list on the settings page ("Mask elements",
-  the `hide_selectors` setting, CSS selectors).
+  the `hide_selectors` setting, CSS selectors). All other text on your pages is recorded, including personal details,
+  such as the e-mail address on an account page. To keep this text out of replays, mark its element with
+  `data-cake-private` or add the element to Mask elements.
 - **Raw input events**: where the mouse, pointer or finger was and when, wheel and scroll movements, and whether each
   event came from the device (the browser's `isTrusted`). A key press is kept only as its time and its class (letter,
   digit, space, symbol, delete, enter, tab, modifier, arrow, unidentified, other), never which key. An input is kept only as the
@@ -61,32 +63,72 @@ them; when one does, it records the method, its first argument and the calls tha
   the upload came from your site or from another one (another site's uploads are kept, but left out of the dashboard).
   A visit is one session of one browser tab: after 30 minutes without activity, or after 24 hours, the tab's next
   activity begins a new session, and AgentCake applies the same rules to an older page script that does not.
-- **What the dashboard groups sessions by**: the visitor id and, when the session's uploads carried one, the
-  identify hash; where the session came from (the referring domain, the
-  campaign parameters, the names of the ad-click parameters, and the channel these make, such as Organic Search); the
-  browser, operating system and device type read from the User-Agent; the language and time zone offset; and, on a
-  server with `trust_lb` on, the country, region and city your load balancer gives.
 - **Each upload's header**: when it was made and when it arrived, the page's address at that moment, why it was sent,
   how many records of each kind it held, and what `cake.js` itself had to drop.
-- **Each upload request**: the values of a few of its headers (`User-Agent`, `Accept-Language`, the low-entropy client
-  hints `Sec-CH-UA`, `Sec-CH-UA-Mobile` and `Sec-CH-UA-Platform`, `Origin`, the `Sec-Fetch-*` headers and the Web Bot
-  Auth headers), the names of all its headers in the order they came, and where it came from. Of every other header
-  only the name is kept: never the value of a cookie, a credential, the `Referer` or anything a proxy adds. (The
-  domain of the page the visitor came from is what the page script sends, above; the address is never sent.)
-- **On a server, with `trust_lb` on**: what your load balancer says about the connection: the country, the region and
-  city (when it sends them), the published network range the address belongs to (an AI provider's published agent ranges, for example) and the kind of network
-  (a relay such as iCloud Private Relay, a CDN, a cloud provider), the TLS fingerprint (JA4), the protocol, and the Web
-  Bot Auth signature headers the request carried. And two salted hashes: of the address, and of its /24 (IPv4) or /48
-  (IPv6) network. They are HMACs with a random salt that AgentCake keeps in its database and replaces every
-  `ip_salt_days` (30 by default): within one period they tell whether two uploads came from the same address or
-  network; once the salt is replaced, nothing can match them to an address any more.
 - **Refused uploads**: only how many, per reason.
 - **Classifications**: AgentCake's own conclusions: which stretches of the visit a human or an agent acted in, the
   agent's name and the evidence for it.
 
-The visitor's IP address is never stored. On a server AgentCake uses it for a moment, to look up which published range
-holds it, to hash it with the salt and to compare networks with the server middleware's token, then drops it. Without
-`trust_lb` (on your own computer) the collector does not read it at all.
+The dashboard groups sessions by the following details:
+
+- The visitor ID.
+- The identify hash, if the session has one.
+- The referring domain, campaign parameters, and ad-click parameter names.
+- The channel that these details determine, such as Organic Search.
+- The browser, operating system, and device type from the User-Agent.
+- The language and time zone offset.
+
+The dashboard also groups sessions by the country, region, and city of each visitor's IP address. This location data
+is available only on a server with `trust_lb` turned on. AgentCake finds the location in the server's city database, as
+described below.
+
+For each upload request, AgentCake keeps the following data:
+
+- The values of the `User-Agent`, `Accept-Language`, `Origin`, and `Host` headers.
+- The values of the `Sec-Fetch-*` headers and the Web Bot Auth headers.
+- The values of the low-entropy client hints `Sec-CH-UA`, `Sec-CH-UA-Mobile`, and `Sec-CH-UA-Platform`.
+- The names of all request headers, in their original order.
+- The request's origin.
+
+For all other headers, AgentCake keeps only the header name. AgentCake doesn't store the values of cookies,
+credentials, the `Referer` header, or headers that a proxy adds. For the referring page, the page script sends only
+the domain, as described above.
+
+The `Host` header contains the host name of your site or of AgentCake. This header never contains a visitor's host
+name. When you run `agentcake doctor`, it compares the `Host` value with the host name of its
+test upload.
+
+On a server with `trust_lb` turned on, AgentCake also keeps the following data:
+
+- The country, region, and city of the IP address. AgentCake looks up this location in the server's city database.
+  AgentCake doesn't read location data from request headers.
+- The published IP range that contains the address, such as an AI provider's range for its agents.
+- The kind of network: a relay such as iCloud Private Relay, a CDN, or a cloud provider.
+- Connection details from your load balancer: the TLS fingerprint (JA4) and the protocol.
+- The Web Bot Auth signature headers in the request.
+- A salted hash of the address.
+- A salted hash of the network that contains the address. For IPv4, the network is a /24 block. For IPv6, the network
+  is a /48 block.
+
+Both hashes are HMACs that use a random salt stored in the AgentCake database. By default, AgentCake replaces this
+salt every 30 days. To change this period, use the `ip_salt_days` setting.
+
+During each period, the hashes show whether two uploads came from the same address or network. When the salt changes,
+older hashes can no longer be matched to an address.
+
+The visitor's IP address is never stored. On a server, AgentCake uses the address temporarily for these steps, and then
+discards it:
+
+- AgentCake looks up the address's published range and location.
+- AgentCake hashes the address with the salt.
+- AgentCake uses the server middleware's token to check whether the upload came from the same network as the page
+  request.
+
+The location comes from a city database on the server. This database is DB-IP's IP to City Lite, which is available
+under the CC BY 4.0 license. AgentCake never sends the address to a third party for a lookup.
+
+AgentCake downloads the database on the server once a month. To download it at any other time, run
+`agentcake lists update`. For each upload, AgentCake stores the country, region, and city from the database. The collector reads the address only on a server where `trust_lb` is enabled.
 
 ## The server middleware
 
@@ -103,11 +145,20 @@ could work out the /24 or /48 by trying every network; never the full address.
 
 Optional, for a site without the middleware: `agentcake logs import`, run on the machine that holds your web server's
 access log, reads the log where it lies and sends its page requests to your own AgentCake (on the same machine, or the
-server you name with `--to`), signed with the secret they share. A request that matches no visit is dropped whole. Of
-one that matches a visit, AgentCake keeps what it keeps of an upload: the values of `User-Agent`, `Accept-Language`,
-`Sec-Fetch-*`, `Sec-CH-UA` and the Web Bot Auth headers, the method, the path without its query, the status, which
-published range holds the address and the two salted hashes of the address, and whether a Web Bot Auth signature
-verifies. Never the address, the query, cookies or credentials ([`SERVER.md`](SERVER.md), "Server logs").
+server you name with `--to`), signed with the secret they share. A request that matches no visit is dropped whole.
+When a request matches a visit, AgentCake keeps the following data:
+
+- The values of the `User-Agent`, `Accept-Language`, and `Sec-CH-UA` headers.
+- The values of the `Sec-Fetch-*` headers and the Web Bot Auth headers.
+- The request method and response status.
+- The request path, without the query string.
+- The published IP range that contains the address.
+- The two salted hashes of the address.
+- The result of the Web Bot Auth signature check.
+
+If the server has the city database, AgentCake also keeps the country, region, and city of the address. AgentCake
+never stores the address, the query, cookies, or credentials. For details, see "Server logs" in
+[`SERVER.md`](SERVER.md).
 
 ## What it never records
 
@@ -123,15 +174,40 @@ AgentCake does not collect usage data or telemetry.
 What visitors' browsers send goes only to your own AgentCake: the address `cake.js` was loaded from. No third party
 and no analytics service receives it, the makers of AgentCake included.
 
-AgentCake sends no installation event, no usage data, no update checks and no crash reports, and nothing about your
-site or its visits. Apart from the registration below, sent once when you press "Register and continue", it makes no
-request to the internet while it runs. The local page loads nothing from the internet (its fonts and icons are
-bundled). The lists AgentCake names agents and published networks from come with each release. Only `agentcake lists
-update`, which you run by hand, downloads newer copies, from the public sources listed in
-`agentcake/data/lists/sources.json` (GitHub files and the address and key lists the operators publish); it sends
-nothing about your site or its visits. `agentcake ping` talks only to your own AgentCake on `127.0.0.1`. So does
-`agentcake doctor`, and once you have saved your own site's address (`site_url`), it also opens that page of your site
-to check AgentCake's page script and token there; the request carries test headers only, nothing about your visits.
+AgentCake doesn't send installation events, usage data, version checks, or crash reports. AgentCake also doesn't send
+any data about your site or its visits.
+
+While it runs, AgentCake connects to the internet only to send the registration below and to download its monthly
+update. `agentcake lists update` and `agentcake doctor` connect to the internet only when you run them, as described
+below. The registration is sent once, when you press "Register and continue".
+
+The local page loads nothing from the internet (its fonts and icons are bundled).
+
+The lists AgentCake names agents and published networks from come with each release. Once a month, AgentCake downloads
+newer copies from the public sources in `agentcake/data/lists/sources.json`. These sources are GitHub files and the
+lists of IP addresses and keys that operators publish. To download the lists at any other time, run
+`agentcake lists update`.
+
+On a server, AgentCake also downloads this month's city database from the DB-IP download link in
+`agentcake/data/geo.json`. A visitor's location is looked up in that file on your server.
+
+These downloads don't send any data about your site, its visits or your installation. To stop the monthly downloads,
+turn off **Automatic updates** in Settings.
+
+`agentcake ping` talks only to your own AgentCake on `127.0.0.1`. So does `agentcake doctor`, and once you have saved
+your own site's address (`site_url`), it also opens that page of your site to check AgentCake's page script and token
+there; the request carries test headers only, nothing about your visits.
+
+On a server, `agentcake doctor` also connects to your AgentCake the same way that visitors' browsers do:
+
+- Subdomain: Doctor looks up the subdomain's DNS record and downloads the page script from it over HTTPS. Doctor then
+  sends an `OPTIONS` request and one test upload to the collect endpoint.
+- Path of your own site: Doctor sends one test upload to `https://<site_domain><path_prefix>/collect`. This request goes
+  through your site's load balancer or CDN.
+
+The test upload contains sample data and doesn't count as a visit. These requests contain no visitor data and go only to
+your AgentCake.
+
 `agentcake logs import` sends your web server's page requests only to your own AgentCake ("Your web server's log",
 above).
 
@@ -246,7 +322,10 @@ server set up as [`SERVER.md`](SERVER.md) says).
 | `backups/` | the copy of `cake.db` that `agentcake migrate` makes before it changes anything (only after a migration) |
 | `srv_secret` | the secret shared with your site's server (only after `agentcake secret init`), readable by its owner only |
 | `cake.log`, `cake.pid` | only when started with `agentcake start`; a service logs to the system's journal instead |
-| `config.json`, `lists/` | settings; lists downloaded by `agentcake lists update` |
+| `config.json` | Settings |
+| `lists/` | This folder holds the lists that AgentCake downloads once a month or when you run `agentcake lists update`. |
+| `geo/` | On a server, this folder holds the IP to City Lite database from DB-IP and its notice file. AgentCake downloads these files once a month or when you run `agentcake lists update`. The database contains only IP address ranges and their locations. |
+| `updates.json`, `updates.lock` | `updates.json` records when the lists and the city database were last updated, whether the update succeeded, and any error. `updates.lock` prevents two updates from running at the same time. |
 
 Everything is kept until you delete it. You can choose to delete visits older than 30 or 90 days (`retention_days`).
 When less than 10% of the disk budget (`budget_mb`) is left and `auto_free` is on (the default), AgentCake deletes
@@ -268,8 +347,8 @@ agentcake delete --session <id> --dry-run   # first see what would go
 
 A visit is one session: both names reach the same rows. Give either several times to delete several visits. It works
 while AgentCake runs, with no need to stop it: the command asks the running AgentCake, on `127.0.0.1` only, to do
-the deleting. On a server, run it as the service does (`SERVER.md`): with systemd through the alias it gives, with
-Docker as `docker exec agentcake python3 -I -m agentcake delete --session <id>`.
+the deleting. On a server, use the `agentcake` alias for your setup option, as described in `SERVER.md`. With Docker
+Compose, run `docker compose exec agentcake python3 -I -m agentcake delete --session <id>` in the release folder.
 
 What goes:
 

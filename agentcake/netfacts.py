@@ -3,18 +3,20 @@
 Per request (the requests table, written by collect_store; the environment layer's env_signals.from_cake reads
 "headers" and "ip_class", the verdict the lists.match_ip() fields):
     client_address(headers, c, public) -> address or None   only on the public listener with trust_lb, and only from
-                                                             the load balancer's header (data/lb_headers.json)
-    look_up(address) -> lists.match_ip() result or None     published agent or bot range; relay, CDN, cloud
+                                                             the load balancer's header (data/lb_headers.json) or,
+                                                             with proxy_hops, X-Forwarded-For counted from the right
+    look_up(address) -> lists.match_ip() result or None     published agent or bot range; relay, CDN, cloud; and the
+                                                             country, region and city of the city database
+                                                             (geoip.place), when it has them
     request_facts(headers, origin, lb, found) -> facts      the header values data/netfacts.json keeps, as sent and
                                                              cut (data/sizes.json); every header name in order; where
-                                                             the upload came from; the load balancer's country, region,
-                                                             city, JA4 and protocol; the address's network and its
-                                                             class
+                                                             the upload came from; the load balancer's JA4 and
+                                                             protocol; the address's network, its class and its place
     address_hashes(salt, address) -> {ip_hash, net_hash}    the address and its /24 or /48, hashed with the salt of
                                                              ip_salt.py: all that is kept of the address itself
 Per session (0.3.3, sessions.net, which the session page shows with the server half, api/server_half.py):
-net_facts(headers, c) -> (facts, address): country, region, city, published range, TLS JA4, protocol, the Web Bot Auth
-headers. The
+net_facts(headers, c) -> (facts, address): country, region and city (the city database's: no header a client
+could write gives a place), published range, TLS JA4, protocol, the Web Bot Auth headers. The
 address is returned only so collect can compare networks with the server half and hash it; it is never stored.
 ip_prefix() and network_key() compute the day-scoped network key a site's middleware (edge/) signs into its tokens.
 """
@@ -23,6 +25,7 @@ import hmac
 import ipaddress
 import time
 
+from agentcake import geoip
 from agentcake.datafiles import load, sizes
 from agentcake.detect import lists
 from agentcake.units import MS_PER_S
@@ -37,6 +40,7 @@ IPV4, IPV6 = 4, 6  # protocol: IP versions
 IPV4_PREFIX, IPV6_PREFIX, IPV6_PREFIX_GROUPS, NETWORK_KEY_HEX_DIGITS = 24, 48, 3, 16  # protocol: network key format
 IPV6_GROUP_BYTES = 2  # protocol: an IPv6 address is written in groups of 2 bytes
 SIGNATURE_HEADERS = ("Signature", "Signature-Input", "Signature-Agent")  # RFC 9421, as Web Bot Auth uses it
+FORWARDED_FOR = "X-Forwarded-For"  # protocol: the de facto header proxies add the client's address to (proxy_hops)
 
 
 def lb_headers():
@@ -86,23 +90,51 @@ def network_key(secret, ip, now_ms):
 
 
 def client_address(headers, c, public):
-    """The visitor's address as the load balancer's header gives it, or None. Only on the public listener with
-    trust_lb: no other header (X-Forwarded-For, Forwarded, X-Real-IP) ever counts, and on the local listener every
-    visit comes from this computer."""
+    """The visitor's address as your front door gives it, or None. Only on the public listener with trust_lb (on the
+    local listener every visit comes from this computer): with proxy_hops 0, the load balancer's own header
+    (data/lb_headers.json "ip"); with proxy_hops N, the N-th entry of X-Forwarded-For from the right.
+    No other header (Forwarded, X-Real-IP) ever counts."""
     if not public or not c.get("trust_lb"):
         return None
+    hops = c.get("proxy_hops") or 0
+    if hops:
+        return _forwarded_for(headers, hops)
     return (headers.get(lb_headers()["ip"]) or "").strip() or None
 
 
+def _forwarded_for(headers, hops):
+    """The address the first of your `hops` proxies added to X-Forwarded-For, or None. Each proxy adds the address it
+    was reached from at the right, so that is the hops-th entry from the right, over every line of the header in
+    order; what is left of it came with the request and can be anything (PostHog 1.0's capture.py takes the
+    leftmost, and checks no crawler against it). Fewer entries than proxies gives None, never another entry. A port
+    some proxies write after the address (203.0.113.7:51234, [2001:db8::7]:443) is dropped."""
+    lines = headers.get_all(FORWARDED_FOR) if hasattr(headers, "get_all") else [headers.get(FORWARDED_FOR)]
+    entries = [entry.strip() for line in lines or () if line for entry in line.split(",")]
+    if len(entries) < hops:
+        return None
+    entry = entries[-hops]
+    if entry.startswith("["):
+        entry = entry[1:].partition("]")[0]
+    elif entry.count(":") == 1:
+        entry = entry.partition(":")[0]
+    try:
+        return str(ipaddress.ip_address(entry))
+    except ValueError:
+        return None
+
+
 def look_up(address):
-    """lists.match_ip() of the address; None for no address, text that is not one, or lists that cannot be read
-    (`agentcake lists` and doctor say why; collecting goes on without them)."""
+    """lists.match_ip() of the address, with the country, region and city the city database gives it when it gives
+    one (geoip.place: the weak signals compare the country with the browser's time zone and languages); None for no
+    address, text that is not one, or lists that cannot be read (`agentcake lists` and doctor say why; collecting goes
+    on without them)."""
     if not address:
         return None
     try:
-        return lists.current().match_ip(address)
+        found = lists.current().match_ip(address)
     except lists.ListsError:
         return None
+    return dict(found, **(geoip.place(address) or {})) if found is not None else None
 
 
 def network_class(found):
@@ -153,23 +185,24 @@ def _value_cap(name):
 
 
 def _load_balancer(headers, cap):
+    """What the load balancer says about the connection itself: the TLS JA4 fingerprint and the protocol. The place
+    is never read from a header: the city database gives it (geoip.py)."""
     names = lb_headers()
-    return {"country": (headers.get(names["region"]) or "")[:cap["country"]] or None,
-            "subdivision": (headers.get(names["subdivision"]) or "")[:cap["subdivision"]] or None,
-            "city": (headers.get(names["city"]) or "")[:cap["city"]] or None,
-            "ja4": (headers.get(names["ja4"]) or "")[:cap["ja4"]] or None,
+    return {"ja4": (headers.get(names["ja4"]) or "")[:cap["ja4"]] or None,
             "proto": (headers.get(names["proto"]) or "")[:cap["proto"]] or None}
 
 
 def net_facts(headers, c):
-    """sessions.net (0.3.3): what the load balancer says about the visitor's connection, with the published range of
-    the address. Only on the public listener (the caller's choice) with trust_lb. The address is returned for the
-    caller to compare networks with the server half and to hash; it is not in the facts and never stored."""
+    """sessions.net (0.3.3): where the visitor's address is (the city database), what the load balancer says about
+    the connection, and the published range of the address. Only on the public listener (the caller's choice) with
+    trust_lb. The address is returned for the caller to compare networks with the server half and to hash; it is not
+    in the facts and never stored."""
     if not c.get("trust_lb"):
         return None, None
     ip, cap = client_address(headers, c, public=True), sizes()["max_chars"]
     pr = published_range(ip) if ip else None
-    facts = dict(_load_balancer(headers, cap), range=pr[0] if pr else None, range_kind=pr[1] if pr else None,
+    facts = dict((geoip.place(ip) if ip else None) or {}, **_load_balancer(headers, cap), range=pr[0] if pr else None,
+                 range_kind=pr[1] if pr else None,
                  # Web Bot Auth on cake.js's own request (does an agent sign the page's fetches too?), kept as sent, cut
                  sig={k: (headers.get(k) or "")[:cap["signature_header"]] or None for k in SIGNATURE_HEADERS},
                  ranges_built=ranges()["built"])

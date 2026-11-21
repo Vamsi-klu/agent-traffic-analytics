@@ -3,6 +3,8 @@ script first, as a page would, then sends one upload of an empty page view of th
 0.4.0 the visit went to the demo shop).
 
 http_get(url, timeout) -> (status or None, text) is the small GET that ping and doctor use against the local server.
+selfcheck_upload(c, site) -> (session id, body) is that upload, of a page of site (an origin such as
+http://127.0.0.1:7878); doctor sends one through the public address in server mode (doctor_public.py).
 """
 import json
 import secrets
@@ -23,13 +25,19 @@ def http_get(url, timeout):
         return None, str(e)
 
 
+def selfcheck_upload(c, site):
+    """(session id, body) of one self-check upload: an empty page view of site's front page, marked as a test."""
+    session_id = "selfcheck" + secrets.token_hex(sizes()["random_bytes"]["selfcheck_id"])
+    return session_id, json.dumps({"k": c["site_key"], "s": session_id, "u": site + "/?cake=selfcheck",
+                                   "ua": f"{product()['command']}-selfcheck/{__version__}", "test": True,
+                                   "e": []}).encode()
+
+
 def ping():
     """One self-check visit, marked as a test (it never counts as a real session)."""
     c = ensure_cfg(); b = base_url(c)
     st, _ = http_get(b + SCRIPT_PATH, c["http_timeout_s"])
-    body = json.dumps({"k": c["site_key"], "s": "selfcheck" + secrets.token_hex(sizes()["random_bytes"]["selfcheck_id"]),
-                       "u": b + "/?cake=selfcheck", "ua": f"{product()['command']}-selfcheck/{__version__}",
-                       "test": True, "e": []}).encode()
+    _, body = selfcheck_upload(c, b)
     try:
         with urllib.request.urlopen(urllib.request.Request(b + "/collect", data=body, method="POST"), timeout=c["http_timeout_s"]):
             pass

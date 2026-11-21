@@ -1,9 +1,8 @@
-"""Files sent to browsers: the page script cake.js, the rrweb recorder and player from static/, and the
-compiled local pages.
+"""Files sent to browsers: the page script cake.js, the replay player from static/, and the compiled local pages.
 
-cake.js is built from static/src/ by the repository's tools/build_js.py and committed as static/cake.js; it is served
-with this installation's runtime values filled in between its two runtime markers (with_runtime). The recorder stays
-at /rrweb-record.min.js for pages that still have a 0.3.x cake.js cached (the new cake.js has rrweb inside).
+cake.js is built by the repository's tools/build_js.py from the parts data/cakejs.json lists (static/src/ and rrweb's
+recorder) and committed as static/cake.js; it is served with this installation's runtime values filled in between its
+two runtime markers (with_runtime), gzipped for a browser that accepts gzip and with an ETag (script_response.py).
 
 The local pages are the web/ app compiled to static files (paths.web_folder, like PostHog 1.0's frontend build that
 Django serves): / is its index.html, and the pages route by the URL's # part, so no other path needs it; any other
@@ -16,7 +15,7 @@ import pathlib
 from http import HTTPStatus
 from urllib.parse import unquote
 
-from agentcake import config, paths
+from agentcake import config, paths, script_response
 from agentcake.datafiles import load, read
 from agentcake.responses import CSS, JS, TEXT, Response, not_found
 from agentcake.wording import text
@@ -33,7 +32,7 @@ def runtime_values(c):
 
 def cake_js(request):
     """/cake.js and /c.js, on both listeners."""
-    return Response(HTTPStatus.OK, served_script(runtime_values(config.load_cfg())), JS)
+    return script_response.answer(request, served_script(runtime_values(config.load_cfg())).encode())
 
 
 def served_script(values):
@@ -53,16 +52,11 @@ def with_runtime(script, values, marker=None):
 
 
 def static_file(request):
-    """/rrweb-record.min.js and /static/<file> on the local listener (only the file name of the path is used)."""
+    """/static/<file> on the local listener, for the replay player's files (only the file name of the path is used)."""
     f = os.path.join(paths.STATIC_DIR, os.path.basename(request.path))
     if os.path.isfile(f):
         return Response(HTTPStatus.OK, pathlib.Path(f).read_bytes(), CSS if f.endswith(".css") else JS)
     return not_found()
-
-
-def recorder(request):
-    """/rrweb-record.min.js on the public listener."""
-    return Response(HTTPStatus.OK, pathlib.Path(paths.STATIC_DIR, "rrweb-record.min.js").read_bytes(), JS)
 
 
 def local_pages(request):

@@ -8,7 +8,8 @@ same bytes (with the same Python, its zlib, and Node: release.json "toolchain"):
   server unpacks it (SERVER.md).
 - agentcake.pyz: the same package as one file that Python runs: `python3 agentcake.pyz <command>` (pyz_main.py).
 - agentcake-<version>.tar.gz: the release folder, bin/agentcake and the package, with what a server install needs
-  (SERVER.md, deploy/cake.service, Dockerfile, .dockerignore and the wheel); it is also a source distribution.
+  (SERVER.md, deploy/cake.service, deploy/Caddyfile, docker-compose.yml, Dockerfile, .dockerignore and the wheel); it
+  is also a source distribution.
 - SHA256SUMS: their hashes, for `shasum -a 256 -c SHA256SUMS`.
 
 The modules, in the order build.py runs them:
@@ -16,10 +17,13 @@ The modules, in the order build.py runs them:
 - settings.py: release.json, and the error every step raises;
 - source.py: the commit, its time (every file in the release carries it) and a clean copy of it to build in;
 - bundled_lists.py: the lists that ship with AgentCake: refreshed online before a release, checked at build;
+- caddyfile.py: deploy/Caddyfile's trusted proxies, Cloudflare's ranges from those lists: written at refresh, checked
+  at build;
 - readme.py: README's pictures, on main in the repository, named at the release's tag in what the release ships;
 - webapp.py: `npm ci && npm run build` of web/, copied into the package;
 - notices.py: the third-party notices that build writes into the pages, checked once they are in the package;
-- middleware.py: the sites' middleware, edge/, copied into the package;
+- middleware.py: the sites' middleware, edge/, copied into the package, its WordPress plugin naming the version being
+  released;
 - cakejs.py: cake.js minified with esbuild;
 - commands.py: running npm, esbuild and build_js.py;
 - project.py: the version, the metadata from pyproject.toml, and which files are the package;

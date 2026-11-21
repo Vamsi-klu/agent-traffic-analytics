@@ -103,6 +103,8 @@
       "text": "In local mode, names are self-reported and aren't verified.", "detail": "In local mode, all visits come from 127.0.0.1, so names can't be checked against IP address ranges."},
     "verify.no-address": {"layer": "verify", "grade": "source", "tone": "none",
       "text": "Names are self-reported because the visitor's IP address wasn't available.", "detail": "Without the IP address, the visit can't be checked against published IP address ranges."},
+    "verify.address-cdn": {"layer": "verify", "grade": "inferred", "tone": "none",
+      "text": "{product} couldn't verify names by IP address, so names are marked as self-reported.", "detail": "{product} checked the last {sessions} sessions with an address. {cdn} of these sessions came from published CDN IP ranges. This usually means that a CDN or proxy in front of {product} hides each visitor's address."},
 
     "env.automated": {"layer": "environment", "grade": "inferred", "tone": "agent",
       "text": "The browser shows signs of automation but doesn't show which tool. This can be an AI tool working for a human or a script.", "detail": "Automation markers are present, but none of them identifies the tool."},

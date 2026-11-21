@@ -61,14 +61,18 @@ the range (visits.py):
                their page views of it, in all, Agent and Human; most sessions first, then visitors, page views, the
                path; the top rows_max of each kind, together, as the tables
     shown      how many rows a table shows before "Show all"
-    place      whether the load balancer gives sessions their country, region and city (server mode with trust_lb);
-               without it those three dimensions show only what sessions recorded on a server brought, no "not set"
-               row: the dashboard says they come only on a server
+    place      where the country, region and city come from (places.answer: the city database on a server):
+               {"source", "attribution"}. Country has a Not set row wherever there is a source of
+               places (source "database", or "missing": a server whose city database is not downloaded yet, whose
+               sessions are then all Not set, and which downloads it at its first monthly check); with source "none" (on this
+               computer) the three show only what sessions recorded on a server brought, and the dashboard says they
+               come only on a server. Region and City never count a session without a country (PostHog breaks them
+               down by country): a country's sessions without a region or a city are that country's own Not set row
 """
 from collections import defaultdict
 
-from agentcake import config, judging, store, timezone, web_props, web_time
-from agentcake.api import answers, periods, visits, web_dimensions
+from agentcake import config, geoip, judging, store, timezone, web_props, web_time
+from agentcake.api import answers, periods, places, visits, web_dimensions
 from agentcake.api.visits import AGENT, AGENT_VERDICT, VERDICT
 from agentcake.datafiles import load
 
@@ -97,13 +101,13 @@ def view(request):
         paths = _paths(con, scope)
     finally:
         con.close()
-    place = bool(c.get("public_listen") and c.get("trust_lb"))
+    place = places.answer(c)
     counted = [session for session in sessions if session["verdict"] in COUNTED]
     return answers.ok({"visitors": visitors(sessions), "page_views": page_views(sessions),
                        "active_time": active_time(sessions),
                        "trends": trends(sessions, range_key, start, now, zone), "time_zone": timezone.short(zone, now),
                        "agents": agents(sessions),
-                       "paths": path_rows(paths, sessions), "tables": tables(counted, place),
+                       "paths": path_rows(paths, sessions), "tables": tables(counted, place["source"]),
                        "shown": settings()["rows_shown"], "place": place})
 
 
@@ -241,22 +245,29 @@ def path_rows(paths, sessions):
     return _tops(out)
 
 
-def tables(sessions, place):
-    return {table: [{"dimension": dimension, "rows": rows(sessions, dimension, place)}
+def tables(sessions, source):
+    return {table: [{"dimension": dimension, "rows": rows(sessions, dimension, source)}
                     for dimension in dimensions]
             for table, dimensions in web_dimensions.TABLES.items()}
 
 
-def rows(sessions, dimension, place=True):
-    """The rows of one dimension (see the module docstring); without the load balancer's facts, a place dimension
-    keeps only the rows sessions recorded on a server brought (none on this computer)."""
+def rows(sessions, dimension, source=geoip.DATABASE):
+    """The rows of one dimension (see the module docstring); source: geoip.source's, where the places come from."""
     groups = defaultdict(list)
     for session in sessions:
         groups[session[dimension]].append(session)
     found = [{"key": key, **web_dimensions.label(dimension, key), **_counted(group, lambda session: session["page_views"])}
-             for key, group in groups.items() if place or key is not None or dimension not in web_dimensions.PLACE]
+             for key, group in groups.items() if _shown(dimension, key, source)]
     found.sort(key=lambda row: (*_rank(row), row["value"] is None, row["value"] or ""))
     return _tops(found)
+
+
+def _shown(dimension, key, source):
+    """Whether a row of sessions without a value (key None) is shown: Not set, except for a place where it cannot be
+    known (no source of places) and for a region or a city without a country, which neither table counts."""
+    if key is not None or dimension not in web_dimensions.PLACE:
+        return True
+    return dimension not in web_dimensions.PER_COUNTRY and source != geoip.NONE
 
 
 def _counted(group, views):

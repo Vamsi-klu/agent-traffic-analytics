@@ -6,7 +6,8 @@ prefetch) is a 404. SessionDetail:
     session    the session as the lists show it (visits.page)
     title      who acted, in one line (api.en.json "title"): "A human, then Claude in Chrome, then the human again"
                from a Human + agent session's runs (unsure runs skipped), else "A human", the agent's name ("An
-               unnamed agent" when no name fits), or for a Human session on thin evidence why it is thin
+               unnamed agent" when no name fits), or for a Human session on thin evidence why it is thin (too few
+               actions, a phone or tablet whatever its number of actions, or evidence that can't tell)
     percent    how sure cake is of the verdict, 1 to 99 (detect/confidence.py, calibrated: Human that a human acted,
                a Human session on thin evidence too, Agent that an agent did, Bot by how its name was checked); None
                for a session judged before verdicts kept it. It is the page's one word on how sure the verdict is: the
@@ -43,6 +44,7 @@ from agentcake.detect import timeline as behavior_timeline
 PREFIX = "/api/session/"
 REPLAY_SUFFIX = "/replay"
 HUMAN_AGENT, UNSURE, HUMAN, BOT, THIN = "human_agent", "unsure", "human", "bot", "thin"
+TOO_LITTLE, TOUCH = "too_little_data", "touch"  # verdict.py's class, and detect/model.py's reason for a phone or tablet
 
 
 @answers.view
@@ -88,7 +90,8 @@ def _detail(con, session_id, summary):
     layers = reasons.layers(layers_json, reasons_json, epoch, turns == HUMAN_AGENT, verdict)
     story = Story(epoch, runs if verdict != BOT else [], summary["agent"], layers, judged, found)
     return {"session": dict(summary, duration_ms=length, pages=len(listed), share=actions.share(found)),
-            "title": title(verdict, turns, verdict_class, summary["agent"], runs, evidence, judged),
+            "title": title(verdict, turns, verdict_class, summary["agent"], runs, evidence, judged,
+                           why=_behavior_why(layers_json)),
             "summary": verdict_summary(verdict, turns or evidence, detail.get("judging"), kept, story),
             "percent": detail.get("percent"),
             "timeline": {"duration_ms": length, "segments": visits.relative(runs, epoch, length),
@@ -101,22 +104,32 @@ def _detail(con, session_id, summary):
             "server": server_half.table(con, session_id, net, epoch, summary["pages"])}
 
 
-def title(verdict, turns, verdict_class, agent, runs, evidence=None, handoffs=None):
+def title(verdict, turns, verdict_class, agent, runs, evidence=None, handoffs=None, why=None):
     """Who acted, in one line; turns: an Agent session's split (visits.TURNS), agent: its name or None (Unnamed),
     evidence: thin for a Human session cake could not tell, whose title says why; handoffs: the judge's own, when it
-    kept them (told())."""
+    kept them (told()); why: why the behavior layer judged nothing (_behavior_why()), which tells a phone or tablet,
+    whatever its number of actions, from too few actions."""
     words = answers.words()["title"]
     if turns == HUMAN_AGENT:
         order = [turn["who"] for turn in told(runs, handoffs)]
         if order:
             return _turns(order, agent, words)
     if evidence:
-        return words["too_little_data"] if verdict_class == "too_little_data" else words["unsure"]
+        if verdict_class != TOO_LITTLE:
+            return words["unsure"]
+        return words[TOUCH] if why == TOUCH else words[TOO_LITTLE]
     if verdict == HUMAN:
         return words["human"]
     if agent:
         return words["agent"].format(agent=agent)
     return words["unnamed"] if turns else words["unsure"]
+
+
+def _behavior_why(layers_json):
+    """Why the verdict's behavior layer judged nothing (verdict.py's layers: "touch", "few_actions", ...), None when it
+    judged or the verdict kept no layers."""
+    kept = json.loads(layers_json) if layers_json else {}
+    return (kept.get("behavior") or {}).get("why")
 
 
 def _turns(order, agent, words):

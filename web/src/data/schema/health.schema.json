@@ -5,7 +5,7 @@
   "description": "GET /api/health : read by `agentcake doctor` and the install check (the same fields as AgentCake 0.3.4); the pages don't use it.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["ok", "version", "home", "site_key", "sessions", "real_sessions", "selfcheck_visits", "space"],
+  "required": ["ok", "version", "home", "site_key", "sessions", "real_sessions", "selfcheck_visits", "space", "address_check", "places", "updates"],
   "properties": {
     "ok": { "type": "boolean" },
     "version": { "$ref": "common.schema.json#/$defs/Text" },
@@ -14,6 +14,7 @@
     "sessions": { "$ref": "common.schema.json#/$defs/Count" },
     "real_sessions": { "$ref": "common.schema.json#/$defs/Count" },
     "selfcheck_visits": { "$ref": "common.schema.json#/$defs/Count" },
+    "address_check": { "$ref": "common.schema.json#/$defs/AddressCheck" },
     "space": {
       "type": "object",
       "additionalProperties": false,
@@ -29,6 +30,59 @@
         "auto_free": { "type": "boolean" },
         "disk": { "$ref": "common.schema.json#/$defs/Disk" },
         "replays_stopped": { "$ref": "common.schema.json#/$defs/ReplaysStopped" }
+      }
+    },
+    "places": {
+      "description": "Where visitors' places come from (common Places) and the command that downloads the city database, with the city database in use: its month, how many months old it is, whether that is stale, when it was downloaded and its folder; null without one, or only errors when its folder holds one that can't be read.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source", "update_command", "attribution", "database"],
+      "properties": {
+        "source": { "$ref": "common.schema.json#/$defs/PlaceSource" },
+        "update_command": { "$ref": "common.schema.json#/$defs/Text" },
+        "attribution": { "$ref": "common.schema.json#/$defs/Attribution" },
+        "database": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "properties": {
+            "month": { "$ref": "common.schema.json#/$defs/Text" },
+            "months_old": { "type": "integer" },
+            "stale": { "type": "boolean" },
+            "built_at": { "$ref": "common.schema.json#/$defs/Text" },
+            "folder": { "$ref": "common.schema.json#/$defs/Text" },
+            "errors": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/Text" } }
+          }
+        }
+      }
+    },
+    "updates": {
+      "description": "The update of the lists and, on a server, the city database: whether it runs once a month (lists_auto_update), the last run (monthly or by the command; null before the first), the failed runs in a row and whether that is enough to warn.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["auto", "last", "failures", "failing"],
+      "properties": {
+        "auto": { "type": "boolean" },
+        "last": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "required": ["at", "how", "ok", "error", "parts"],
+          "properties": {
+            "at": { "$ref": "common.schema.json#/$defs/Text" },
+            "how": { "enum": ["auto", "manual"] },
+            "ok": { "type": "boolean" },
+            "error": { "type": ["string", "null"] },
+            "parts": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "lists": { "enum": ["updated", "failed"] },
+                "places": { "enum": ["updated", "current", "skipped", "failed"] }
+              }
+            }
+          }
+        },
+        "failures": { "$ref": "common.schema.json#/$defs/Count" },
+        "failing": { "type": "boolean" }
       }
     }
   }

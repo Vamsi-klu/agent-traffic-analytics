@@ -10,7 +10,10 @@
     "logs": { "last": "Today 06:00", "format": "nginx", "missing": ["Accept-Language"], "empty": [] }
   },
   "refresh_ms": 5000,
-  "lists": { "built": "2026-11-12", "age_days": 1, "max_age_days": 30, "stale": false, "update_command": "agentcake lists update" },
+  "lists": { "built": "2026-11-12", "age_days": 1, "max_age_days": 30, "stale": false, "update_command": "agentcake lists update",
+             "last_update": { "when": "Yesterday 03:12", "ok": true, "error": null }, "failures": 0, "failing": false,
+             "city_database": true },
+  "lists_auto_update": true,
   "retention_days": 0,
   "retention_choices": [0, 90, 30],
   "budget_mb": 10240,

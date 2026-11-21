@@ -15,9 +15,25 @@ saw on the session's page ("Server middleware").
 - No dependencies. Node 20 or newer, and the Next.js edge runtime.
 - It does nothing until it has a secret.
 - It sets no cookie, stores nothing and makes no network request.
-- It is not published to npm. It comes with AgentCake, in the edge folder of the installed package
-  (`agentcake/edge/`; a checkout has it at `edge/`): `npm install <edge folder>/node`. `agentcake setup --print --site`
-  prints the full path.
+- It is not published to npm. You can find it in the `agentcake/edge/` folder of the installed AgentCake package. In a
+  checkout of the AgentCake repository, you can find it in the `edge/` folder. `agentcake setup --print --site` prints
+  the full path.
+
+## Add it to your site
+
+In your site's folder, create a folder named `agentcake-edge` next to `package.json`. Copy the contents of the `node`
+folder in the edge folder into `agentcake-edge`. Then install the copy with your package manager. With npm, run these
+commands:
+
+```sh
+mkdir agentcake-edge
+cp -R <edge folder>/node/. agentcake-edge/
+npm install ./agentcake-edge
+```
+
+This command adds `"@agentcake/edge": "file:agentcake-edge"` to the dependencies in your `package.json`. Add the
+`agentcake-edge` folder to your site's Git repository. After you update AgentCake, replace the `agentcake-edge` folder
+with a new copy. When you copy from a checkout of the repository, skip its `test` and `scripts` folders.
 
 ## The secret
 
@@ -64,7 +80,7 @@ import { cakeNext } from "@agentcake/edge/next"
 
 const cake = cakeNext({ clientIp: (request) => request.headers.get("x-real-ip") })
 
-export async function middleware(request: NextRequest) {
+export default async function middleware(request: NextRequest) {
   return cake(request, NextResponse.next())
 }
 
@@ -177,6 +193,8 @@ await verifyToken(secret, token) // { result: "ok" | "stale" | "bad", payload }
 ```
 
 ## Tests
+
+To run the tests, open a checkout of the AgentCake repository and run this command in the `edge/node` folder:
 
 ```sh
 node --test test/*.test.js

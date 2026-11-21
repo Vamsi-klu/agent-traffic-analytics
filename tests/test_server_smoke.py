@@ -6,7 +6,7 @@ Moved from our own research code (smoke_server_mode.py). One server
 runs in a scratch CAKE_HOME on two free ports, set up through the command line the way SERVER.md says. The test plays
 the load balancer (it sets the X-Cake-* headers a load balancer sets) and tartini.ai's web server (it signs
 Server-Timing tokens in the c1 format of cake-server-timing.js). Checks: the public listener serves only the script,
-the recorder, collect and the health check under /cake; the local page stays on 127.0.0.1; a token is accepted once,
+collect and the health check under /cake; the local page stays on 127.0.0.1; a token is accepted once,
 and replayed, stale or forged tokens are refused; the visitor's address is looked up and never stored.
 """
 import base64, hashlib, hmac, json, os, shutil, sqlite3, subprocess, sys, tempfile, time, unittest, urllib.error, urllib.request
@@ -21,7 +21,7 @@ RANGES = os.path.join(ROOT, "agentcake", "data", "lists", "ip_ranges.json")
 SITE_KEY = "ck_tartini"
 PREFIX = "/cake"
 START_TIMEOUT_S = 10
-# Everything that is not the script, the recorder, collect or the health check below the prefix: all 404 publicly.
+# Everything that is not the script, collect or the health check below the prefix: all 404 publicly.
 NOT_SERVED = ("/cake/", "/cake/api/sessions", "/cake/api/settings", "/cake/api/session/x", "/cake/assets/x.js", "/cake/api/health",
               "/cake/demo", "/", "/settings", "/cake.js", "/cakex/cake.js")
 
@@ -56,8 +56,10 @@ class ServerMode(unittest.TestCase):
         cls.env.pop("CAKE_PORT", None)
         local, public = free_port(), free_port()
         cls.P, cls.L = f"http://127.0.0.1:{public}", f"http://127.0.0.1:{local}"
+        # lists_auto_update off: a test never goes online (a server without a city database downloads one minutes
+        # after it starts, agentcake/updates.py)
         for key, value in (("port", local), ("public_listen", f"127.0.0.1:{public}"), ("path_prefix", PREFIX),
-                           ("trust_lb", "true"), ("site_key", SITE_KEY)):
+                           ("trust_lb", "true"), ("site_key", SITE_KEY), ("lists_auto_update", "false")):
             cls.cli("config", "set", key, str(value))
         cls.bad_prefix = cls.cli("config", "set", "path_prefix", "/ca ke")
         cls.cli("secret", "init")
@@ -155,11 +157,19 @@ class ServerMode(unittest.TestCase):
         self.assertIn(b"serverTiming", js)
         self.assertRegex(js, rb"window\.cake\s*=\s*\{\s*stop\b")  # window.cake.stop(), formatted or minified
 
-    def test_public_serves_the_recorder_under_the_prefix(self):
-        self.assertEqual(req(self.P + "/cake/rrweb-record.min.js")[0], 200)
+    def test_neither_listener_serves_the_recorder_as_a_file_of_its_own(self):
+        """The page script has the session recorder inside."""
+        self.assertEqual(req(self.P + "/cake/rrweb-record.min.js")[0], 404)
+        self.assertEqual(req(self.L + "/rrweb-record.min.js")[0], 404)
 
-    def test_public_sends_no_cors_header(self):
-        self.assertNotIn("Access-Control-Allow-Origin", req(self.P + "/cake/cake.js")[1])
+    def test_public_collect_answers_cors_to_a_page_on_another_origin_and_nothing_else_does(self):
+        """The subdomain route: pages on https://www.example.com send to https://cake.example.com."""
+        page = {"Origin": "https://www.example.com"}
+        st, h, _ = req(self.P + "/cake/collect", b"{}", dict(page, **{"Content-Type": "text/plain"}), "POST")
+        self.assertEqual((h.get("Access-Control-Allow-Origin"), h.get("Vary")), (page["Origin"], "Origin"))
+        st, h, _ = req(self.P + "/cake/collect", None, dict(page, **{"Access-Control-Request-Method": "POST"}), "OPTIONS")
+        self.assertEqual((st, h.get("Access-Control-Allow-Origin")), (204, page["Origin"]))
+        self.assertNotIn("Access-Control-Allow-Origin", req(self.P + "/cake/cake.js", headers=page)[1])
 
     def test_local_page_stays_on_127_0_0_1(self):
         self.assertEqual(req(self.L + "/")[0], 200)

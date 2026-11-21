@@ -89,7 +89,7 @@ export function MiniTimeline({ human = 0, agent = 0, unsure = 0, segs, spans, la
   human?: number; agent?: number; unsure?: number; segs?: Seg[]; spans?: Span[]; label?: string; size?: "sm" | "lg"; className?: string
 }) {
   const label = given ?? `${segName.h} ${human}%, ${segName.a} ${agent}%, ${segName.u} ${unsure}%`
-  const frame = cn("w-full min-w-20 overflow-hidden rounded-full border-2 border-line bg-card", size === "lg" ? "h-7" : "h-3.5", className)
+  const frame = cn("w-full min-w-20 overflow-hidden rounded-full border-2 border-line bg-card minimal:border-0 minimal:bg-secondary", size === "lg" ? "h-7 minimal:h-3" : "h-3.5 minimal:h-2", className)
   if (spans) {
     return (
       <div role="img" aria-label={label} className={cn("relative", frame)}>
@@ -149,7 +149,7 @@ export function SessionTimeline({ spans, handoffs, playhead, ticks, seek }: {
     <div>
       <div className={cn("relative", handoffs.some((h) => h.row) ? "pt-14" : "pt-7")}>
         <div ref={bar} {...control} data-timeline-bar=""
-          className={cn("relative h-9 touch-none overflow-hidden rounded-xl border-2 border-line bg-card", seek && "cursor-pointer outline-none focus-visible:ring-3 focus-visible:ring-ring/50")}>
+          className={cn("relative h-9 touch-none overflow-hidden rounded-xl border-2 border-line bg-card minimal:border-0 minimal:bg-secondary", seek && "cursor-pointer outline-none focus-visible:ring-3 focus-visible:ring-ring/50")}>
           {spans.map((s, i) => (
             <div key={i} data-segment={s.kind}
               className={cn("absolute inset-y-0", segClass[s.kind], i > 0 && "border-l-2 border-card")} style={{ left: `${s.left}%`, width: `${s.width}%` }} />
@@ -158,8 +158,8 @@ export function SessionTimeline({ spans, handoffs, playhead, ticks, seek }: {
         </div>
         <div aria-hidden className="pointer-events-none absolute inset-x-0.5 top-0 -bottom-1">
           {handoffs.map((h) => (
-            <span key={`${h.at}-${h.label}`} data-handoff="" className={cn("absolute bottom-0 border-l-3 border-dashed border-foreground", h.row ? "top-7" : "top-0")} style={{ left: `${h.at}%` }}>
-              <b className={cn("absolute top-0 z-10 rounded-full", h.at > 70 ? "-translate-x-full" : h.at < 30 ? "-translate-x-2" : "-translate-x-1/2", " border-2 border-line bg-highlight px-2 text-xs font-extrabold whitespace-nowrap text-highlight-foreground")}>{h.label}</b>
+            <span key={`${h.at}-${h.label}`} data-handoff="" className={cn("absolute bottom-0 border-l-3 border-dashed border-foreground minimal:border-l-2", h.row ? "top-7" : "top-0")} style={{ left: `${h.at}%` }}>
+              <b className={cn("absolute top-0 z-10 rounded-full", h.at > 70 ? "-translate-x-full" : h.at < 30 ? "-translate-x-2" : "-translate-x-1/2", " border-2 border-line bg-highlight px-2 text-xs font-extrabold whitespace-nowrap text-highlight-foreground minimal:border-0 minimal:font-semibold")}>{h.label}</b>
             </span>
           ))}
         </div>

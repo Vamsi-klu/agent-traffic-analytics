@@ -79,7 +79,7 @@ def hit(rule_id, pages=(0,), value=True):
     rule = env_rules.load_rules().rule(rule_id)
     held = None if rule.scope == "session" else tuple(pages)
     return env_rules.Hit(rule.id, rule.layer, rule.kind, rule.half, rule.strength, rule.grade, value, held,
-                         rule.names, rule.suggests)
+                         rule.names, rule.suggests, rule.family)
 
 
 def env(*hits):

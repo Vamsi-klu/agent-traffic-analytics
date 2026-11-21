@@ -54,11 +54,7 @@ class Requests(unittest.TestCase):
 
     def test_the_listed_names_are_routes_of_the_public_listener(self):
         public = {r.path for r in routes.PUBLIC}
-        self.assertLessEqual(set(CONF["legacy"]) | set(CONF["not_from_browsers"]), public)
-
-    def test_only_the_old_recorder_is_legacy(self):
-        legacy = {r["url"].rsplit("/", 1)[1] for r in self.reqs if r["legacy"]}
-        self.assertEqual(legacy, {p.lstrip("/") for p in CONF["legacy"]})
+        self.assertLessEqual(set(CONF["not_from_browsers"]), public)
 
     def test_the_prefix_is_the_one_server_md_sets(self):
         folder = tempfile.mkdtemp(prefix="agentcake-blockers-")
@@ -112,23 +108,17 @@ class Judge(unittest.TestCase):
         self.addCleanup(shutil.rmtree, folder, True)
         path = os.path.join(folder, "easyprivacy.txt")
         with open(path, "w", encoding="utf-8") as f:
-            f.write("! EasyPrivacy\n/beacon.js\n/rrweb-record.min.js\n/api/collect|\n")
+            f.write("! EasyPrivacy\n/beacon.js\n/api/collect|\n")
         self.lists = [{"blocker": "uBlock Origin", "name": "EasyPrivacy", "path": path}]
 
-    def request(self, path, legacy=False):
-        return {"label": path, "url": "https://example.com/cake" + path, "legacy": legacy}
+    def request(self, path):
+        return {"label": path, "url": "https://example.com/cake" + path}
 
-    def test_a_blocked_current_request_fails_and_says_where_the_rule_is(self):
-        reqs = [self.request("/collect")]
-        rows, failing = check.judge(reqs, [{"uBlock Origin": blocked("/api/collect|")}], self.lists)
-        self.assertEqual(len(failing), 1)
-        self.assertEqual(rows[0]["verdicts"]["uBlock Origin"]["written_at"], ["EasyPrivacy line 4"])
-
-    def test_the_old_recorder_being_blocked_is_expected(self):
-        reqs = [self.request("/rrweb-record.min.js", legacy=True), self.request("/cake.js")]
-        rows, failing = check.judge(reqs, [{"uBlock Origin": blocked("/rrweb-record.min.js")},
-                                           {"uBlock Origin": PASSES}], self.lists)
-        self.assertEqual(failing, [])
+    def test_a_blocked_request_fails_and_says_where_the_rule_is(self):
+        reqs = [self.request("/collect"), self.request("/cake.js")]
+        rows, failing = check.judge(reqs, [{"uBlock Origin": blocked("/api/collect|")}, {"uBlock Origin": PASSES}],
+                                    self.lists)
+        self.assertEqual([req["label"] for req, _, _ in failing], ["/collect"])
         self.assertEqual(rows[0]["verdicts"]["uBlock Origin"]["written_at"], ["EasyPrivacy line 3"])
 
     def test_nothing_blocked_passes(self):

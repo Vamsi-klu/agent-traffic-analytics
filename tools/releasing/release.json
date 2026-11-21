@@ -27,6 +27,13 @@
     "refresh": ["tools/build_lists.py", "tools/build_timezones.py"],
     "data_folder": "agentcake/data"
   },
+  "caddyfile": {
+    "$comment": "deploy/Caddyfile trusts Cloudflare's proxies, so the visitor's address comes from CF-Connecting-IP on a subdomain someone sets to Proxied. `release.py refresh` writes the ranges of the lists' range_id entry into the file's one line that starts with directive; `release.py build` refuses a commit whose line names other ranges (caddyfile.py).",
+    "file": "deploy/Caddyfile",
+    "ranges_file": "agentcake/data/lists/ip_ranges.json",
+    "range_id": "cloudflare",
+    "directive": ["trusted_proxies", "static"]
+  },
   "web": {
     "$comment": "The local pages: built in the exported commit's web folder (npm ci runs no install script of any package: none is needed, and npm 10 and 11 then install alike) and copied into the package, under the folder agentcake/data/web.json names (settings_key), where agentcake.paths.web_folder() looks first.",
     "folder": "web",
@@ -46,7 +53,12 @@
     "folder": "edge",
     "skip": ["node/test", "node/scripts", "php/tests"],
     "settings_file": "agentcake/data/site_files.json",
-    "settings_key": ["edge_folder"]
+    "settings_key": ["edge_folder"],
+    "plugin": {
+      "$comment": "The WordPress plugin's main file, relative to edge/, and the header field WordPress shows as its version under Plugins. It names the version being released, changed with agentcake/__init__.py's (RELEASE_CHECKLIST step 1); the build refuses a commit whose plugin names another (middleware.py).",
+      "file": "wordpress/agentcake/agentcake.php",
+      "version_field": "Version"
+    }
   },
   "cakejs": {
     "$comment": "cake.js is minified with esbuild, pinned in tools/releasing/package.json and package-lock.json and used only here. The target is the syntax cake.js's sources already need (optional chaining), so esbuild rewrites no syntax and adds none newer. The runtime slot stands in for cake.js's runtime marker while esbuild runs (a comment inside an expression is not kept).",
@@ -60,12 +72,12 @@
     "runtime_slot": "__agentcake_runtime__"
   },
   "package_files": {
-    "$comment": "Never shipped, wherever they are in the package. skip_paths: files of the package that only a checkout uses, as patterns of their path (fnmatch, * also matches /): cake.js's sources, which build_js.py joins into static/cake.js (the release ships that file minified, with the licences of its vendored parts in its comments; the licence files stay, since rrweb's also covers the recorder and player files next to cake.js), and the evaluation, `agentcake eval` with its settings (eval.json, splice.json), which needs the checkout's eval/ and its data sets (an installed AgentCake says so, cli.py).",
+    "$comment": "Never shipped, wherever they are in the package. skip_paths: files of the package that only a checkout uses, as patterns of their path (fnmatch, * also matches /): cake.js's sources, which build_js.py joins into static/cake.js (static/src/ and rrweb's recorder next to cake.js; the release ships that file minified, with the licences of its vendored parts in its comments; the licence files stay, since rrweb's also covers the player files next to cake.js), and the evaluation, `agentcake eval` with its settings (eval.json, splice.json), which needs the checkout's eval/ and its data sets (an installed AgentCake says so, cli.py).",
     "skip_dirs": ["__pycache__", "node_modules", ".git"],
     "skip_suffixes": [".pyc", ".pyo"],
     "skip_names": [".DS_Store"],
-    "skip_paths": ["agentcake/static/src/*.js", "agentcake/eval.py", "agentcake/evaluation/*", "agentcake/data/eval.json",
-                   "agentcake/data/splice.json"]
+    "skip_paths": ["agentcake/static/src/*.js", "agentcake/static/rrweb-record.min.js", "agentcake/eval.py",
+                   "agentcake/evaluation/*", "agentcake/data/eval.json", "agentcake/data/splice.json"]
   },
   "scan": {
     "$comment": "scan.py looks for this computer's paths and the git user's name and email in every file of a release; a value shorter than min_chars (a home folder like /root, a short user name) is skipped, since it could turn up by chance in minified code.",

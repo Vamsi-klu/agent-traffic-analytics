@@ -1,7 +1,7 @@
 {
-  "$comment": "The dashboard's words that come with /api/overview (coverage.py): what counts as a bot, the Bot number's \"?\". The names of the categories are judging.en.json's (the dashboard's categories block). English only; visitors are Human or Agent; no comparison with any other product.",
+  "$comment": "The dashboard's words that come with /api/overview (coverage.py): what counts as a script bot, the Script bot number's \"?\". The names of the categories are judging.en.json's (the dashboard's categories block). English only; visitors are Human or Agent; no comparison with any other product.",
   "bot": {
-    "question": "What counts as a bot?",
-    "answer": "A bot is a program that identifies itself and is known to run without a human. Examples include search engines, monitors, and link previews. Visitors that only appear automated count as Agent sessions."
+    "question": "What counts as a script bot?",
+    "answer": "Script bots are programs on the bot list that run the page script, such as search engines and monitors. Bots that don't run JavaScript aren't recorded. Visitors that only appear automated count as Agent sessions."
   }
 }

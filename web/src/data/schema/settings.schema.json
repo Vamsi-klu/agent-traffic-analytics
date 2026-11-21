@@ -5,7 +5,7 @@
   "description": "GET /api/settings, and the answer to POST /api/settings : everything the settings page shows.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["site_domain", "site_key", "script_tag", "sources", "last_seen", "route", "server_half", "refresh_ms", "lists", "retention_days", "retention_choices", "budget_mb", "budget_choices_mb", "auto_free", "storage", "hook_dom", "hide_selectors", "timezone", "timezone_machine", "database"],
+  "required": ["site_domain", "site_key", "script_tag", "sources", "last_seen", "route", "server_half", "refresh_ms", "lists", "lists_auto_update", "retention_days", "retention_choices", "budget_mb", "budget_choices_mb", "auto_free", "storage", "hook_dom", "hide_selectors", "timezone", "timezone_machine", "database"],
   "properties": {
     "site_domain": { "type": "string" },
     "site_key": { "type": ["string", "null"], "minLength": 1 },
@@ -52,15 +52,30 @@
     "lists": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["built", "age_days", "max_age_days", "stale", "update_command"],
+      "required": ["built", "age_days", "max_age_days", "stale", "update_command", "last_update", "failures", "failing", "city_database"],
       "properties": {
         "built": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
         "age_days": { "type": "integer" },
         "max_age_days": { "$ref": "common.schema.json#/$defs/Count" },
         "stale": { "type": "boolean" },
-        "update_command": { "$ref": "common.schema.json#/$defs/Text" }
+        "update_command": { "$ref": "common.schema.json#/$defs/Text" },
+        "last_update": {
+          "description": "The last update of the lists (and on a server the city database), monthly or by the command: when it ran, in the server's words; whether it succeeded; the error when it didn't. null before the first.",
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "required": ["when", "ok", "error"],
+          "properties": {
+            "when": { "$ref": "common.schema.json#/$defs/Text" },
+            "ok": { "type": "boolean" },
+            "error": { "type": ["string", "null"] }
+          }
+        },
+        "failures": { "description": "Failed updates in a row.", "$ref": "common.schema.json#/$defs/Count" },
+        "failing": { "description": "Enough failed updates in a row to warn.", "type": "boolean" },
+        "city_database": { "description": "Whether the update takes in the city database too: only on a server that reads the visitor's address (public_listen and trust_lb).", "type": "boolean" }
       }
     },
+    "lists_auto_update": { "description": "Whether AgentCake updates the lists, and on a server the city database, once a month.", "type": "boolean" },
     "retention_days": { "$ref": "common.schema.json#/$defs/Count" },
     "retention_choices": { "type": "array", "minItems": 1, "items": { "$ref": "common.schema.json#/$defs/Count" } },
     "budget_mb": { "type": "integer", "minimum": 1 },

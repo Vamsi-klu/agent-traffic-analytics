@@ -14,8 +14,9 @@ the specification and tests/test_verdict.py pins it rule by rule (the browser na
  4  Environment: hard automation and spoofing traces are not overturned by behaviour: an Agent, never Mixed, in its
     name's row (attribute.py), else the Automated browser row. Any other hard trace (a product rule, an extension acting
     on the page) says an agent is here, like a signature: a human may take over; a rule naming a browser people also use
-    by hand only names it. Soft traces count only with company: another trace that is not weak, or the behaviour model
-    judging an agent; alone, human behaviour gives Human and anything else Not sure. Weak traces only go in reasons.
+    by hand only names it. Soft traces count only with company: another trace that is not weak (a family of rules is
+    one kind and needs a trace of another: verdict_soft.py), or the behaviour model judging an agent; alone, human
+    behaviour gives Human and anything else Not sure. Weak traces only go in reasons.
  5  Behaviour (the behaviour model through behavior.py): with agent evidence, a long enough human run (verdict.json "mixed")
     makes the session Mixed; without any, Mixed needs long enough runs of both (a hand-off lies between them, and
     the timeline marks it). Behaviour alone judging an agent is "possibly an agent on the visitor's own computer":
@@ -38,7 +39,7 @@ Evidence, one session, every layer's result already computed (nothing here reads
     user_agents  {"page" | "collector" | "server": [User-Agent]}; platform: navigator.platform
                  (verdict_identity.claims_from_signals() reads both from env_signals' dict)
     signatures   {"collector" | "server": webbotauth.Verification}  (the server half carries Signature-Agent only)
-    network      lists.match_ip() of the visitor's address, None when none was seen; rdns: {"name", "verified"}
+    network      lists.match_ip() of the address, None if none or a CDN's (address_check); rdns: {"name", "verified"}
     env          env_rules.evaluate() of the session's signals; None when it recorded none (cake 0.3.x)
     behavior     behavior.run()'s result, None when it did not run; touch: a phone or tablet
     marks        markers.turn_spans() of the session's signals: when an agent product's indicator said its agent was
@@ -68,7 +69,7 @@ import dataclasses
 
 from agentcake import datafiles
 from agentcake.detect import (attribute, behavior, confidence, crawler, lists, model as behavior_model,
-                              verdict_identity, verdict_marks, weak)
+                              verdict_identity, verdict_marks, verdict_soft, weak)
 from agentcake.detect.verdict_identity import IMPERSONATION, SELF_REPORTED, VERIFIED
 from agentcake.detect.verdict_text import reason
 from agentcake.units import MS_PER_S, PERCENT
@@ -232,9 +233,8 @@ class _Case:
         if _is_bot(identity):
             self.reasons.append(reason("behavior.not-run-bot"))
             return BOT, None, list(identity.evidence)
-        # a soft trace counts with another trace that is not weak (any other rule), or with agent behaviour
-        others = {h.rule for h in self.overruling + self.present + self.soft}
-        soft_ok = bool(self.soft) and (len(others) > 1 or says_agent)
+        # a soft trace counts with another trace that is not weak, or with agent behaviour (verdict_soft.py)
+        soft_ok = verdict_soft.counts(self.soft, self.overruling + self.present, says_agent, self.settings)
         traces = self.present + (self.soft if soft_ok else [])
         self.traces = traces + self.browsers  # what names the agent: a browser's own product rule too
         named = attribute.strong_name(identity, self.present, self.lists)

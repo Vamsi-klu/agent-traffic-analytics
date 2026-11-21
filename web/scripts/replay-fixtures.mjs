@@ -60,7 +60,9 @@ function freePort() {
 async function startCake() {
   const home = mkdtempSync(path.join(os.tmpdir(), "agentcake-replays-")), port = await freePort()
   const env = { ...process.env, CAKE_HOME: home, CAKE_PORT: String(port) }
-  execFileSync(path.join(repo, "bin", "agentcake"), ["secret", "init"], { env, stdio: "ignore" })
+  for (const args of [["config", "set", "lists_auto_update", "false"], ["secret", "init"]]) {  // never goes online (updates.py)
+    execFileSync(path.join(repo, "bin", "agentcake"), args, { env, stdio: "ignore" })
+  }
   const child = spawn(path.join(repo, "bin", "agentcake"), ["serve"], { env, stdio: ["ignore", "pipe", "pipe"] })
   let output = ""
   child.stdout.on("data", (c) => { output += c }); child.stderr.on("data", (c) => { output += c })

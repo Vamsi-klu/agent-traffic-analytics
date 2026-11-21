@@ -1,5 +1,5 @@
 name: Wrong classification
-description: A session was judged Human, Agent or Bot, and it was something else.
+description: Report a session that AgentCake classified incorrectly as Human, Agent, or Script bot.
 labels: ["wrong classification"]
 body:
   - type: markdown
@@ -16,7 +16,7 @@ body:
         - Human, marked limited evidence
         - "Agent: agent only"
         - "Agent: human + agent"
-        - Bot
+        - Script bot
     validations:
       required: true
   - type: dropdown
@@ -27,7 +27,7 @@ body:
         - A human
         - An agent, from start to finish
         - A human and an agent, taking turns
-        - A bot (a crawler, a monitor or a link preview)
+        - A script bot (a crawler, a monitor, or a link preview)
     validations:
       required: true
   - type: input
@@ -67,7 +67,7 @@ body:
     attributes:
       label: AgentCake version
       description: What `agentcake --version` prints.
-      placeholder: agentcake 0.5.1
+      placeholder: agentcake 0.6.0
     validations:
       required: true
   - type: dropdown

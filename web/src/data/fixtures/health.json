@@ -6,6 +6,11 @@
   "sessions": 150,
   "real_sessions": 150,
   "selfcheck_visits": 0,
+  "address_check": { "sessions": 0, "cdn": 0, "misconfigured": false },
   "space": { "used": 3328599654, "budget": 10737418240, "pct": 31.0, "days_left": 120.0, "warn": false, "full": false, "freed": 0, "auto_free": true,
-             "disk": { "total": 494384795648, "free": 171798691840, "min_free": 10737418240, "low": false }, "replays_stopped": null }
+             "disk": { "total": 494384795648, "free": 171798691840, "min_free": 10737418240, "low": false }, "replays_stopped": null },
+  "places": { "source": "missing", "update_command": "agentcake lists update", "attribution": null, "database": null },
+  "updates": { "auto": true, "last": { "at": "2026-11-12T03:12:40+00:00", "how": "auto", "ok": true, "error": null,
+                                      "parts": { "lists": "updated", "places": "updated" } },
+               "failures": 0, "failing": false }
 }

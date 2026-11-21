@@ -167,7 +167,7 @@ class CommandLine(ScratchFolder):
     """Each check reads its command line as any command does: --help prints how to run it, and a folder that is not
     there stops it with a usage error instead of passing on nothing (or a traceback)."""
 
-    CHECKS = ("check_hardcode.py", "check_size.py", "check_imports.py")
+    CHECKS = ("check_hardcode.py", "check_size.py", "check_imports.py", "check_agent_mcp.py")
 
     def test_help_prints_the_usage(self):
         for script in self.CHECKS:

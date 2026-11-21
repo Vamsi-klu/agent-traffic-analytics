@@ -1,8 +1,8 @@
 """The command line: main(argv) runs one command and returns its exit code.
 
-Used by bin/agentcake (and the 0.3.x entry points bin/cake and cake.py), by `python3 -m agentcake`, and by the
-`agentcake` command an installed wheel provides (pyproject.toml). Everything it prints is in data/copy.en.json;
-`config get` lists every setting with its value and where it comes from.
+Used by bin/agentcake, by `python3 -m agentcake`, and by the `agentcake` command an installed wheel provides
+(pyproject.toml). Everything it prints is in data/copy.en.json; `config get` lists every setting with its value and
+where it comes from.
 
 Every command is a Python process of its own, so each imports its module when it runs: importing them
 all up front made every command, --version too, load the server, the judging and the storage first.
@@ -88,22 +88,34 @@ def config_command(args):
 
 
 def lists_command(args):
-    """`lists`: the age and sources of the name and range lists in use. `lists update`: the only command that
-    fetches them, into $CAKE_HOME/lists/<date>/; when anything fails it says what and the lists stay as they were."""
+    """`lists`: the age and sources of the name and range lists in use, and the city database in use ("places").
+    `lists update`: fetches them now, whether or not `serve` updates them once a month (updates.py): the lists into
+    $CAKE_HOME/lists/<date>/, and on an AgentCake that sees visitor addresses the city database into $CAKE_HOME/geo/
+    (geoip_build.py); the run is recorded as the monthly one is. Each part that fails says what, and what it would have
+    replaced stays as it was."""
+    from agentcake import geoip
     from agentcake.detect import lists
 
     sub = (args or [""])[0]
     if sub == "update":
-        # Only this command loads the code that fetches; a running cake never imports it.
-        from agentcake.detect import lists_build
+        from agentcake import updates
 
-        try:
-            folder = lists_build.update()
-        except lists_build.BuildError as error:
-            print(text("lists_not_updated", error=error), file=sys.stderr); return 1
-        print(json.dumps({"updated": paths.tilde(folder), **lists.current().status()}, indent=JSON_INDENT)); return 0
+        record = updates.run(updates.MANUAL)  # waits while the monthly update runs, then runs every part
+        results, details, updated = record["parts"], record["details"], {}
+        if results[updates.LISTS] == updates.FAILED:
+            print(text("lists_not_updated", error=details[updates.LISTS]), file=sys.stderr)
+        else:
+            updated["updated"] = paths.tilde(details[updates.LISTS])
+        places = details[updates.PLACES]
+        if results[updates.PLACES] == updates.FAILED:
+            print(text("places_not_updated", error=places), file=sys.stderr)
+        else:
+            updated["places_update"] = dict(places, **({"updated": paths.tilde(places["updated"])}
+                                                      if "updated" in places else {}))
+        print(json.dumps({**updated, **lists.current().status(), "places": geoip.status()}, indent=JSON_INDENT))
+        return 0 if record["ok"] else 1
     if not sub:
-        print(json.dumps(lists.current().status(), indent=JSON_INDENT)); return 0
+        print(json.dumps({**lists.current().status(), "places": geoip.status()}, indent=JSON_INDENT)); return 0
     print(text("lists_usage")); return EXIT_USAGE
 
 

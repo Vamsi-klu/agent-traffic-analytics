@@ -113,7 +113,7 @@ test("Last 24 hours' Trends come by the hour, each with its day", async () => {
 test("the four tables are one component: the title in the card, a breakdown's Select, All / Agent / Human; no All pages link", async () => {
   const tab = await open()
   try {
-    const opensWith = { [WORDS.paths]: null, [WORDS.web.titles.sources]: "Channel", [WORDS.web.titles.devices]: "Device type", [WORDS.web.titles.geography]: "Region" }
+    const opensWith = { [WORDS.paths]: null, [WORDS.web.titles.sources]: "Channel", [WORDS.web.titles.devices]: "Device type", [WORDS.web.titles.geography]: "Country" }
     for (const title of TABLES) {
       const region = table(tab.page, title)
       assert.equal((await region.locator('[data-slot="card-title"]').innerText()).trim(), title, `${title}: the card's own title`)
@@ -176,6 +176,24 @@ test("hovering a row splits each of its numbers into Agent and Human", async () 
   } finally { await tab.close() }
 })
 
+test("a table writes a count of a thousand or more with a comma between thousands, in its rows and in a row's hover", async () => {
+  const top = { ...web.paths[0], agent: 1200, human: 2000, visitors: 2600, agent_visitors: 1000, human_visitors: 1600, page_views: 4700,
+    agent_page_views: 1500, human_page_views: 3200 }
+  const tab = await open({ webAnswer: { ...web, paths: [top, ...web.paths.slice(1)] } })
+  try {
+    const first = table(tab.page, WORDS.paths).locator("tbody tr").first()
+    await first.waitFor({ timeout: WAIT_MS })
+    assert.deepEqual((await first.locator("td").allInnerTexts()).slice(1, 4), ["3,200", "2,600", "4,700"])
+    await first.hover()
+    const tip = tab.page.getByRole("tooltip").filter({ hasText: "Page views:" })
+    await tip.waitFor({ timeout: WAIT_MS })
+    const text = (await tip.innerText()).replace(/\s+/g, " ")
+    for (const line of ["Sessions: 1,200 Agent, 2,000 Human", "Visitors: 1,000 Agent, 1,600 Human", "Page views: 1,500 Agent, 3,200 Human"]) {
+      assert.ok(text.includes(line), `${line} in ${text}`)
+    }
+  } finally { await tab.close() }
+})
+
 test("ten rows, then Show all N opens the rest in place, and Show fewer closes them", async () => {
   const paths = Array.from({ length: 12 }, (_, i) => ({ path: `/p${i}`, agent: 12 - i, human: i, visitors: 12, agent_visitors: 6, human_visitors: 6,
     page_views: 20, agent_page_views: 10, human_page_views: 10 }))
@@ -190,7 +208,7 @@ test("ten rows, then Show all N opens the rest in place, and Show fewer closes t
   } finally { await tab.close() }
 })
 
-test("a value opens Session replay narrowed to its sessions; a region reads Country – name; without a load balancer the place says it comes only on a server", async () => {
+test("a value opens Session replay narrowed to its sessions; a region reads Country – name, a country's own Not set Country – Not set; DB-IP's credit sits under the places", async () => {
   const tab = await open()
   try {
     const sources = table(tab.page, WORDS.web.titles.sources)
@@ -198,16 +216,47 @@ test("a value opens Session replay narrowed to its sessions; a region reads Coun
     const href = await sources.getByRole("link", { name: WORDS.web.watch(top.value) }).getAttribute("href")
     const query = new URLSearchParams(href.split("?")[1])
     assert.deepEqual([query.get("dimension"), query.get("key"), query.get("label")], ["channel", top.key, top.value])
-    const region = ofKind(web.tables.geography.find((d) => d.dimension === "region").rows, (r) => r.agent + r.human)[0]
     const geography = table(tab.page, WORDS.web.titles.geography)
-    assert.equal((await geography.locator("tbody tr").first().locator("td").first().innerText()).trim(),
-      `${new Intl.DisplayNames(["en"], { type: "region" }).of(region.country)} – ${region.value}`)
+    const credit = geography.getByRole("link", { name: web.place.attribution.text })
+    assert.equal(await credit.getAttribute("href"), web.place.attribution.url, "the credit DB-IP asks for, under Country")
+    await pick(tab.page, geography.getByRole("combobox"), WORDS.web.dimensions.region)
+    const named = (code) => new Intl.DisplayNames(["en"], { type: "region" }).of(code)
+    const rows = ofKind(web.tables.geography.find((d) => d.dimension === "region").rows, (r) => r.agent + r.human)
+    assert.equal((await geography.locator("tbody tr").first().locator("td").first().innerText()).trim(), `${named(rows[0].country)} – ${rows[0].value}`)
+    const unset = rows.find((r) => r.value === null)
+    const label = `${named(unset.country)} – ${WORDS.web.notSet}`
+    const link = new URLSearchParams((await geography.getByRole("link", { name: WORDS.web.watch(label) }).getAttribute("href")).split("?")[1])
+    assert.deepEqual([link.get("dimension"), link.get("key"), link.get("label")], ["region", unset.key, label], "a country's own Not set opens its sessions")
+    assert.equal(await credit.count(), 1, "and under Region")
   } finally { await tab.close() }
-  const noPlace = { ...web, place: false, tables: { ...web.tables, geography: web.tables.geography.map((d) => (["country", "region", "city"].includes(d.dimension) ? { ...d, rows: [] } : d)) } }
-  const local = await open({ webAnswer: noPlace })
+})
+
+test("on this computer the places say they need a server; on a server without the city database the table shows the rows it has, with no hint, no command and no credit", async () => {
+  const empty = web.tables.geography.map((d) => (["country", "region", "city"].includes(d.dimension) ? { ...d, rows: [] } : d))
+  const local = await open({ webAnswer: { ...web, place: { ...web.place, source: "none", attribution: null }, tables: { ...web.tables, geography: empty } } })
   try {
-    assert.match(await table(local.page, WORDS.web.titles.geography).innerText(), /Country, region, and city data is available only when .+ runs on a server\./)
+    const geography = table(local.page, WORDS.web.titles.geography)
+    assert.match(await geography.innerText(), /Country, region, and city data is available only when .+ runs on a server\./)
+    assert.equal(await geography.getByRole("alert").count(), 0)
   } finally { await local.close() }
+  // AgentCake downloads the city database by itself, monthly (the settings page and doctor say how and when): the card
+  // names no command while it is missing
+  const noRegion = web.tables.geography.map((d) => (d.dimension === "region" ? { ...d, rows: [] } : d))
+  const missing = await open({ webAnswer: { ...web, place: { ...web.place, source: "missing", attribution: null }, tables: { ...web.tables, geography: noRegion } } })
+  try {
+    const geography = table(missing.page, WORDS.web.titles.geography)
+    for (const dimension of [WORDS.web.dimensions.country, WORDS.web.dimensions.region]) {
+      if (dimension !== WORDS.web.dimensions.country) await pick(missing.page, geography.getByRole("combobox"), dimension)
+      assert.equal(await geography.locator("tbody tr").count() > 0, dimension === WORDS.web.dimensions.country, `${dimension}: rows, or none`)
+      assert.ok(!(await geography.innerText()).includes(web.place.update_command), `${dimension}: no command`)
+      assert.equal(await geography.locator("code").count(), 0, `${dimension}: nothing set as code`)
+      assert.equal(await geography.locator("p", { hasText: WORDS.web.botsNote }).count(), 1, `${dimension}: the Script bot sentence stays`)
+      assert.equal(await geography.getByRole("alert").count(), 0, `${dimension}: no alert`)
+      assert.equal(await geography.locator("pre").count(), 0, `${dimension}: no command block`)
+      assert.equal(await geography.getByRole("button", { name: "Copy" }).count(), 0, `${dimension}: no Copy button`)
+    }
+    assert.equal(await geography.getByRole("link", { name: web.place.attribution.text }).count(), 0, "no credit without its data")
+  } finally { await missing.close() }
 })
 
 test("with Agent or Human picked, a value opens Session replay narrowed to that kind of its sessions too", async () => {

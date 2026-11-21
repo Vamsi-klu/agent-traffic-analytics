@@ -1,6 +1,5 @@
-"""The command line, the way people run it: start, status, ping, doctor, stop and --version, and the 0.3.x
-entry points (bin/cake, cake.py) that existing installs and older deploy/cake.service files still use. A Python
-older than AgentCake needs gets a sentence saying so from every entry point.
+"""The command line, the way people run it: start, status, ping, doctor, stop and --version. A Python older than
+AgentCake needs gets a sentence saying so from every entry point.
 
     python3 -I -m unittest discover -s tests -v      (from the AgentCake folder)
 
@@ -18,8 +17,6 @@ from cake_server import free_port, pages_stub  # noqa: E402
 
 MAIN_FILE = os.path.join(ROOT, "agentcake", "__main__.py")
 AGENTCAKE = [sys.executable, "-I", MAIN_FILE]  # what bin/agentcake runs
-LEGACY_FILE = os.path.join(ROOT, "cake.py")
-LEGACY = [sys.executable, "-I", LEGACY_FILE]
 VERSION_LINE = f"agentcake {agentcake.__version__}"
 OLD_PYTHON = (3, 10, 4, "final", 0)  # one minor version below the 3.11 that pyproject.toml asks for
 # What every command needs: the command line itself, the settings, the shipped data files, the words and the paths.
@@ -58,7 +55,7 @@ class Sentence(unittest.TestCase):
         self.assertEqual(out.returncode, 0, out.stderr)
         first = wording.text("site_sentence", launcher="LAUNCHER").split("LAUNCHER")[0]
         self.assertTrue(out.stdout.startswith(first), out.stdout[:120])
-        self.assertIn(" setup --print --site`", out.stdout)
+        self.assertIn(wording.product()["guide"], out.stdout)
         self.assertFalse(any("\u4e00" <= ch <= "\u9fff" for ch in out.stdout), "no Chinese")
 
 
@@ -78,10 +75,6 @@ class Version(unittest.TestCase):
 
     def test_bin_agentcake_launcher(self):
         out = run([os.path.join(ROOT, "bin", "agentcake")], self.env, "--version")
-        self.assertEqual((out.returncode, out.stdout.strip()), (0, VERSION_LINE))
-
-    def test_bin_cake_forwards_to_bin_agentcake(self):
-        out = run([os.path.join(ROOT, "bin", "cake")], self.env, "--version")
         self.assertEqual((out.returncode, out.stdout.strip()), (0, VERSION_LINE))
 
 
@@ -117,6 +110,7 @@ class Lifecycle(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.env = scratch_env()
+        run(AGENTCAKE, cls.env, "config", "set", "lists_auto_update", "false")  # a test never goes online (updates.py)
         cls.started = run(AGENTCAKE, cls.env, "start")
 
     @classmethod
@@ -216,18 +210,6 @@ class Arguments(unittest.TestCase):
                                  (2, wording.text("option_needs_value", subcommand=args[0], word=args[-1])))
 
 
-class LegacyEntryPoint(unittest.TestCase):
-    """`python3 cake.py <command>`, the way 0.3.x installs and older deploy/cake.service files start cake."""
-
-    def test_cake_py_starts_reports_and_stops(self):
-        env = scratch_env()
-        self.addCleanup(shutil.rmtree, env["CAKE_HOME"], True)
-        started = run(LEGACY, env, "start")
-        self.addCleanup(run, LEGACY, env, "stop")
-        self.assertEqual(started.returncode, 0, started.stdout)
-        self.assertEqual(json.loads(run(LEGACY, env, "status").stdout)["version"], agentcake.__version__)
-
-
 def run_in_python(version_info, entry, env, *args):
     """entry run as a script, as bin/agentcake runs __main__.py, by a Python that says it is version_info: the
     version is replaced before the entry's first line runs, so whatever the entry imports sees it too."""
@@ -252,9 +234,6 @@ class OlderPython(unittest.TestCase):
 
     def test_bin_agentcake_entry_says_to_upgrade(self):
         self.assert_told_to_upgrade(run_in_python(OLD_PYTHON, MAIN_FILE, self.env, "--version"))
-
-    def test_cake_py_entry_says_to_upgrade(self):
-        self.assert_told_to_upgrade(run_in_python(OLD_PYTHON, LEGACY_FILE, self.env, "doctor"))
 
     def test_the_minimum_version_runs(self):
         minimum = tuple(int(part) for part in wording.product()["python"].split("."))

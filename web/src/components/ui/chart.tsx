@@ -6,9 +6,6 @@ import * as RechartsPrimitive from "recharts"
 import type { TooltipValueType } from "recharts"
 import { tooltipSurface } from "@/components/ui/tooltip"
 
-// Format: { THEME_NAME: CSS_SELECTOR }
-const THEMES = { light: "", dark: ".dark" } as const
-
 const INITIAL_DIMENSION = { width: 320, height: 200 } as const
 type TooltipNameType = number | string
 
@@ -17,10 +14,8 @@ export type ChartConfig = Record<
   {
     label?: React.ReactNode
     icon?: React.ComponentType
-  } & (
-    | { color?: string; theme?: never }
-    | { color?: never; theme: Record<keyof typeof THEMES, string> }
-  )
+    color?: string
+  }
 >
 
 type ChartContextProps = {
@@ -88,7 +83,7 @@ function ChartContainer({
 
 const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
   const colorConfig = Object.entries(config).filter(
-    ([, config]) => config.theme ?? config.color
+    ([, config]) => config.color
   )
 
   if (!colorConfig.length) {
@@ -98,22 +93,13 @@ const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
   return (
     <style
       dangerouslySetInnerHTML={{
-        __html: Object.entries(THEMES)
-          .map(
-            ([theme, prefix]) => `
-${prefix} [data-chart=${id}] {
+        __html: `
+[data-chart=${id}] {
 ${colorConfig
-  .map(([key, itemConfig]) => {
-    const color =
-      itemConfig.theme?.[theme as keyof typeof itemConfig.theme] ??
-      itemConfig.color
-    return color ? `  --color-${key}: ${color};` : null
-  })
+  .map(([key, itemConfig]) => `  --color-${key}: ${itemConfig.color};`)
   .join("\n")}
 }
-`
-          )
-          .join("\n"),
+`,
       }}
     />
   )
@@ -226,7 +212,7 @@ function ChartTooltipContent({
                           className={cn(
                             "shrink-0 rounded-[2px] border-(--color-border) bg-(--color-bg)",
                             {
-                              "size-3 rounded-sm border-2 border-line": indicator === "dot",
+                              "size-3 rounded-sm border-2 border-line minimal:size-2.5 minimal:rounded-full minimal:border-0": indicator === "dot",
                               "w-1": indicator === "line",
                               "w-0 border-[1.5px] border-dashed bg-transparent":
                                 indicator === "dashed",

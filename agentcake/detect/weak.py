@@ -1,14 +1,16 @@
 """Weak signals: patterns agents show but humans show too, so each only adds a reason (layer "weak") and never
 changes a verdict (a guessed pattern never makes a Bot or an Agent).
 
-    facts(signals, requests, raw, settings=None) -> what the signals below read, for verdict.decide's evidence["weak"]
+    facts(signals, requests, raw, settings=None, local=True) -> what the signals below read, for verdict.decide's
+                                                                evidence["weak"]
     reasons(found, settings=None) -> [reason dicts]
 
   timezone-country   the browser's time zone is not one the address's country uses (IANA zone.tab: timezones.json)
   language-country   the browser's languages name regions, none of them the address's country
   same-address       many sessions from one address (its salted hash) within a window
   header-order       a User-Agent that claims a browser, on requests whose header names come in an order that
-                     browser does not send (only requests that reached cake directly: a load balancer reorders them)
+                     browser does not send (local mode only: on a server every upload passes a front door, a CDN,
+                     a load balancer or a reverse proxy, which sends the headers in its own order)
   display-change     the screen's colour depth or size changed within the session (Claude in Chrome's tab
                      reported 30 where its user's own window reported 24)
   window-jump        the window jumped across the screen while keeping its size
@@ -20,7 +22,8 @@ The keyboard and assistive-tool guard is the verdict's own (the reason behavior.
 country comes from the load balancer (server mode); in local mode the first two have nothing to compare. Thresholds
 and the header anchors: agentcake/data/verdict.json "weak".
 
-signals: env_signals' dict; requests: the visit's request facts (oldest first); raw: the raw stream's records.
+signals: env_signals' dict; requests: the visit's request facts (oldest first); raw: the raw stream's records; local:
+the uploads reached this computer's own listener straight from the browser (evidence.py: local mode).
 """
 from agentcake import datafiles
 from agentcake.detect import segment
@@ -31,13 +34,12 @@ SETTINGS_FILE = "data/verdict.json"
 TIMEZONES_FILE = "data/timezones.json"
 LANGUAGE_SEPARATOR, QUALITY_SEPARATOR, SUBTAG_SEPARATOR = ",", ";", "-"  # protocol: Accept-Language (RFC 9110 12.5.4)
 REGION_LENGTH = 2  # protocol: a BCP 47 region subtag of two letters (ISO 3166-1)
-LOAD_BALANCER_FACTS = ("country", "ja4", "proto")  # what netfacts.request_facts adds when a load balancer was there
 MOVE = "move"
 GEO = "geo"
 GEO_SIZE, GEO_POSITION = slice(2, 4), slice(4, 6)  # protocol: cake.js geo record g = [iw, ih, ow, oh, sx, sy, ...]
 
 
-def facts(signals, requests, raw, settings=None):
+def facts(signals, requests, raw, settings=None, local=True):
     """What the weak signals read, from one session's signals, request facts and raw records (see the docstring)."""
     rule = (settings or datafiles.load(SETTINGS_FILE))["weak"]
     envs = [page.get("env") or {} for page in signals.get("pages") or []]
@@ -48,8 +50,7 @@ def facts(signals, requests, raw, settings=None):
                                    + [tag for h in headers for tag in _accepted(h.get("accept-language"))]),
             "user_agents": _distinct(h.get("user-agent") for h in headers),
             # a request whose order is not known (a web server log's page request) has no "names"
-            "header_orders": [fact["names"] for fact in requests
-                              if fact.get("names") and not any(key in fact for key in LOAD_BALANCER_FACTS)],
+            "header_orders": [fact["names"] for fact in requests if fact.get("names")] if local else [],
             "color_depths": _distinct((env.get("screen") or {}).get("cd") for env in envs),
             "screens": _distinct(_size(env.get("screen")) for env in envs),
             "window_jump": _window_jump(raw),

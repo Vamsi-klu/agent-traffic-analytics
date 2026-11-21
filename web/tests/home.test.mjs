@@ -42,7 +42,9 @@ test("with nothing recorded, / is the onboarding: the sentence for an AI agent f
     const headings = async () => (await tab.page.getByRole("heading", { level: 2 }).allInnerTexts()).map((t) => t.replace(/^\d+\s*/, ""))
     assert.deepEqual(await headings(), ["Install with your AI agent", "Wait for the first visit"])
     assert.equal(await tab.page.locator("pre").filter({ hasText: setup.sentence }).count(), 1)
-    assert.match(setup.sentence, /First, ask the site owner for the website's address and where AgentCake should run. Also ask for any details .*Suggest a server that the website can reach/)
+    assert.match(setup.sentence, /^Connect this website to AgentCake\. To get started, download the guide at https:\/\/raw\.githubusercontent\.com\/\S+\/v[\d.]+\/INSTALL\.md with curl or the GitHub CLI\. .*its command is `agentcake`/)
+    assert.ok(setup.sentence.includes("If the download fails, ask for network access."), "an agent without network asks for it, as README's sentence says")
+    assert.ok(await tab.page.getByText("Review its plan, including where AgentCake runs and any costs, and approve it.", { exact: false }).isVisible(), "the owner approves the agent's plan before it connects the website")
     assert.equal(await tab.page.getByRole("radio").count(), 0, "the sentence is in English only: no language to pick")
     assert.equal(await tab.page.getByRole("tab").count(), 0, "the steps wait behind Install manually")
     assert.ok(await tab.page.getByText("No visits yet").isVisible())
@@ -55,6 +57,18 @@ test("with nothing recorded, / is the onboarding: the sentence for an AI agent f
     assert.equal(await tab.page.getByText(/demo shop/i).count(), 0, "no demo shop")
     assert.equal(await tab.page.getByRole("link", { name: "Skip for now" }).count(), 0)
     assert.match(tab.page.url(), /#\/$/)
+  } finally { await tab.close() }
+})
+
+test("the note under the prompt says who does what: with approval the agent creates a server and adds a DNS record, the owner signs in", async () => {
+  const tab = await openTab(app)
+  try {
+    await tab.page.route("**/api/settings", (route) => route.fulfill({ json: { ...settings, route: "this_computer" } }))
+    await tab.page.goto(app.url("#/"))
+    await tab.page.getByRole("heading", { name: "Install with your AI agent", level: 2 }).waitFor({ timeout: WAIT_MS })
+    const note = await tab.page.locator("pre").filter({ hasText: setup.sentence }).locator("xpath=following::p[1]").innerText()
+    for (const fact of [/\bapprov/i, /\bcreates? a server\b/i, /\badds? a DNS record\b/i, /\bsign in\b/i]) assert.match(note, fact)
+    assert.doesNotMatch(note, /guides you through/i)
   } finally { await tab.close() }
 })
 
@@ -94,6 +108,28 @@ test("on this computer, step 2's server tab says in the owner's words why a publ
     const server = tab.page.getByRole("tabpanel", { name: "On a server" })
     assert.equal(await server.locator("p").first().innerText(), "You can't collect data from visitors to your public website if AgentCake is only accessible on your computer. "
       + "To collect their visit data, run AgentCake on a server that can receive data from their browsers, then connect your website to it.")
+  } finally { await tab.close() }
+})
+
+test("on this computer, step 2's server tab names the three things a public website takes: a server, a DNS record and its settings", async () => {
+  const tab = await openTab(app)
+  try {
+    await tab.page.route("**/api/settings", (route) => route.fulfill({ json: { ...settings, route: "this_computer" } }))
+    await tab.page.goto(app.url("#/"))
+    await tab.page.getByRole("heading", { name: "Connect your website", level: 1 }).waitFor({ timeout: WAIT_MS })
+    await manual(tab.page)
+    const server = tab.page.getByRole("tabpanel", { name: "On a server" })
+    assert.deepEqual(await server.getByRole("heading", { level: 3 }).allInnerTexts(), ["A server", "A DNS record", "Settings on the server"])
+    for (const part of ["install", "dns", "settings"]) {
+      assert.equal(await server.locator("pre").filter({ hasText: setup.server[part] }).count(), 1, part)
+    }
+    assert.match(setup.server.install, /docker compose up -d/)
+    assert.match(setup.server.settings, /config set public_url https:\/\/cake\./)
+    const words = await server.innerText()
+    assert.match(words, /Add this record in your DNS provider's settings to point your subdomain to your server/)
+    assert.match(words, /On Cloudflare, set the record to DNS only \(gray cloud\)/)
+    assert.match(words, /Caddy automatically obtains and renews the HTTPS certificate/)
+    assert.equal(await server.getByRole("link", { name: "SERVER.md" }).count(), 1, "the full steps, or systemd")
   } finally { await tab.close() }
 })
 

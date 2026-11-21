@@ -1,9 +1,9 @@
 """The URL tables of the two listeners, like PostHog 1.0's posthog/urls.py: which view answers which path.
 
 LOCAL is the local page on 127.0.0.1: the compiled pages (/ and their files), the JSON API they read (/api),
-cake.js, the rrweb files, collect and /edge (0.4.0 removed the demo shop that was served at /demo). PUBLIC is server
-mode's public listener (paths below path_prefix): only the page script, the recorder, collect, /edge and a health check;
-the local page is never served there. /edge takes a web server's log records signed with the server half's secret
+cake.js, the replay player's files, collect and /edge (0.4.0 removed the demo shop that was served at /demo). PUBLIC is
+server mode's public listener (paths below path_prefix): only the page script, collect, /edge and a health check; the
+local page is never served there. /edge takes a web server's log records signed with the server half's secret
 (edge_api.py) on both. resolve() takes the first route that matches, so the compiled pages' catch-all comes last; no
 match is 404.
 """
@@ -14,7 +14,7 @@ from agentcake.api import (answers, deletion, health, onboarding, overview, regi
                            timezones, web)
 
 Route = namedtuple("Route", "method path view is_prefix")
-COLLECT = "/collect"  # the only path another origin may post to (server.py answers it with CORS)
+COLLECT = "/collect"  # the only path another origin may post to: server.py answers it with CORS on both listeners
 
 
 def path(method, p, view):
@@ -44,7 +44,6 @@ LOCAL = [
     prefix("POST", "/api/", answers.no_route),
     path("GET", "/c.js", assets.cake_js),
     path("GET", "/cake.js", assets.cake_js),
-    path("GET", "/rrweb-record.min.js", assets.static_file),
     prefix("GET", "/static/", assets.static_file),
     path("POST", COLLECT, collect.from_local),
     path("POST", edge_api.ROUTE, edge_api.receive),
@@ -55,7 +54,6 @@ PUBLIC = [
     path("GET", "/healthz", health.healthz),
     path("GET", "/c.js", assets.cake_js),
     path("GET", "/cake.js", assets.cake_js),
-    path("GET", "/rrweb-record.min.js", assets.recorder),
     path("POST", COLLECT, collect.from_public),
     path("POST", edge_api.ROUTE, edge_api.receive),
 ]

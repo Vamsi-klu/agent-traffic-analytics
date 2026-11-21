@@ -4,8 +4,7 @@ requests() reads them from AgentCake's own code, so a new or renamed route is ch
 route of the public listener (agentcake/routes.py PUBLIC) that a browser asks for, under the path SERVER.md tells a site
 to use (`agentcake config set path_prefix …`) on SERVER.md's example site, and the same routes on the local page's
 address from a site on this computer; the upload also with cake.js's gzip query (data/cakejs.json). Routes only servers
-call (blockers.json "not_from_browsers") are left out; routes kept only for old pages ("legacy") are checked and
-reported, but their being blocked is expected.
+call (blockers.json "not_from_browsers") are left out.
 
 lists_of(blocker, catalog) picks a blocker's default lists from its catalog: uBlock Origin's assets.json, Brave's
 list_catalog.json, or a fixed list (AdGuard). Each list is (name, url, applies_to_first_party_in_standard_mode).
@@ -49,7 +48,7 @@ def browser_routes(conf):
 
 
 def requests(conf=None, prefix=None):
-    """Every request to check: {label, url, type, page, legacy}."""
+    """Every request to check: {label, url, type, page}."""
     conf = conf or settings()
     prefix = documented_prefix() if prefix is None else prefix
     gzip = load("data/cakejs.json")["script"]["gzip_query"]
@@ -62,7 +61,7 @@ def requests(conf=None, prefix=None):
             kind = UPLOAD if method == "POST" else SCRIPT
             for query in ("", gzip) if kind == UPLOAD else ("",):
                 out.append({"label": f"{where} {method} {path}{query}", "url": base + path + query, "type": kind,
-                            "page": page, "legacy": path in conf["legacy"]})
+                            "page": page})
     return out
 
 

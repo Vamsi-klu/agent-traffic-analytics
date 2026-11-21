@@ -50,9 +50,16 @@ class Salt(unittest.TestCase):
         self.assertNotEqual(later, first)
         self.assertEqual(ip_salt.current(self.con, T0 + self.period_ms + 1), later)
 
-    def test_a_clock_set_back_before_the_period_began_starts_a_new_salt(self):
+    def test_a_small_step_back_keeps_the_salt(self):
+        """The callers take their time before they wait for store.LOCK, so a time taken first can reach the lock
+        after a later one that started the salt (two first uploads 6 ms apart did): that is no clock set back."""
         first = ip_salt.current(self.con, T0)
-        self.assertNotEqual(ip_salt.current(self.con, T0 - 1), first)
+        self.assertEqual(ip_salt.current(self.con, T0 - 6), first)
+        self.assertEqual(ip_salt.current(self.con, T0 - ip_salt.BACKWARD_TOLERANCE_MS), first)
+
+    def test_a_clock_set_back_beyond_the_tolerance_starts_a_new_salt(self):
+        first = ip_salt.current(self.con, T0)
+        self.assertNotEqual(ip_salt.current(self.con, T0 - ip_salt.BACKWARD_TOLERANCE_MS - 1), first)
 
     def test_a_replaced_salt_is_gone_from_the_database_file_and_its_log(self):
         old = ip_salt.current(self.con, T0)

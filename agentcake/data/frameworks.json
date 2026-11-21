@@ -1,7 +1,19 @@
 {
-  "about": "The website frameworks `setup --print --site` and `doctor` recognise, tried in this order; the first that matches is the site's. detect: any of these paths exists (paths), package.json lists one of these packages (node_deps), a Python dependency file or import names one of these packages (python_deps), or the folder holds a file with one of these endings (suffixes). script: where the cake.js line goes (static: every .html page; next: the layout file; head: every template that has </head>; plugin: the WordPress plugin adds it). app: how the file that makes the app is found (regexes, or file names). middleware: the server half (edge/<edge>/), found in the site's code by a file that matches every one of patterns (or by the paths that exist, for the plugin), with the files that must sit side by side for the frameworks that copy them; copy is the entry of data/copy.en.json that says how to mount it, readme the edge folder's README that says it in full.",
+  "about": "The website frameworks `setup --print --site` and `doctor` recognise, tried in this order; the first that matches is the site's. detect: any of these paths exists (paths), package.json lists one of these packages (node_deps), a Python dependency file or import names one of these packages (python_deps), or the folder holds a file with one of these endings (suffixes), or a file at the top of the folder whose name matches one of these globs names this field, with a value, in its header within its first header_bytes (headers: the way WordPress recognises a theme's style.css and a plugin's main PHP file). script: where the cake.js line goes (static: every .html page; next: the layout file, App Router or Pages Router, with script_copy the entry of data/copy.en.json that says where in it; head: every template that has </head>; plugin: the WordPress plugin adds it). app: how the file that makes the app is found (regexes, or file names). middleware: the server half (edge/<edge>/), found in the site's code by a file that matches every one of patterns (or by the paths that exist, for the plugin; installed_elsewhere: never in this folder, a theme's or a plugin's own, but on the WordPress site that runs it, so only a page opened can show it), with the files that must sit side by side for the frameworks that copy them; folder and package, for the Node middleware: edge/node is copied into the site's code as that folder (never read as the site's code) and installed from it, so package.json's dependencies name package with a relative path to it (one of local_protocols, the way npm, pnpm and Yarn write a local folder), or by workspace_protocol (pnpm's and Yarn's: the package of that name among the site's own, which the copy is when its package.json names it), never a folder of this computer; copy is the entry of data/copy.en.json that says how to mount it, mounting (the Node middleware) the entries of its code by the language of the file it goes in (ts, esm or cjs: languages), readme the edge folder's README that says it in full. Two entries are wordpress: a whole WordPress site, and a folder that holds only one of a site's themes or plugins. languages: how a file's language is told, so that the code setup gives is valid where it is pasted (site_code.py's language()): its ending (typescript_suffixes: ts; module_suffixes: esm; commonjs_suffixes: cjs), else a file of the site by the syntax it already uses (module_statement, an import or export statement: esm; commonjs_call: cjs), else package.json's type (module_type: esm, else cjs); a file not made yet is ts where the site has typescript_config at its top.",
   "secret_env": "CAKE_SERVER_TIMING_SECRET",
+  "header_bytes": 8192,
   "public_address": "https://{domain}{prefix}",
+  "local_protocols": ["file:", "link:", "portal:"],
+  "workspace_protocol": "workspace:",
+  "languages": {
+    "typescript_suffixes": [".ts", ".tsx", ".mts", ".cts"],
+    "module_suffixes": [".mjs"],
+    "commonjs_suffixes": [".cjs"],
+    "module_statement": "^[ \\t]*(?:import(?:\\s+[\\w{*\"']|\\s*[{*\"'])|export(?:\\s|[{*]))",
+    "commonjs_call": "\\brequire\\s*\\(",
+    "module_type": "module",
+    "typescript_config": "tsconfig.json"
+  },
   "python_dependency_files": ["requirements.txt", "requirements-dev.txt", "pyproject.toml", "Pipfile", "setup.py", "setup.cfg"],
   "frameworks": [
     {
@@ -19,30 +31,52 @@
       }
     },
     {
+      "name": "wordpress",
+      "detect": {"headers": {"style.css": "Theme Name", "*.php": "Plugin Name"}},
+      "script": "plugin",
+      "middleware": {
+        "name": "the AgentCake plugin",
+        "edge": "wordpress",
+        "plugin": "wordpress/agentcake",
+        "installed_elsewhere": true,
+        "copy": "setup_site_mw_wordpress",
+        "secret_copy": "setup_site_secret_wordpress",
+        "readme": "wordpress/agentcake/README.md"
+      }
+    },
+    {
       "name": "next-app",
-      "detect": {"paths": ["app/layout.tsx", "app/layout.jsx", "app/layout.js", "src/app/layout.tsx", "src/app/layout.js"]},
+      "detect": {"paths": ["app/layout.tsx", "app/layout.jsx", "app/layout.js", "src/app/layout.tsx", "src/app/layout.jsx", "src/app/layout.js"]},
       "script": "next",
+      "script_copy": "setup_site_next",
       "app": {"files": ["middleware.ts", "middleware.js", "proxy.ts", "proxy.js", "src/middleware.ts", "src/middleware.js", "src/proxy.ts", "src/proxy.js"]},
       "middleware": {
         "name": "cakeNext",
         "edge": "node",
+        "folder": "agentcake-edge",
+        "package": "@agentcake/edge",
         "patterns": ["\\bcakeNext\\s*\\("],
         "suffixes": [".ts", ".js", ".mjs"],
         "copy": "setup_site_mw_next",
+        "mounting": {"ts": "setup_site_code_next_ts", "esm": "setup_site_code_next_js", "cjs": "setup_site_code_next_js"},
         "readme": "node/README.md"
       }
     },
     {
       "name": "next-pages",
-      "detect": {"paths": ["pages/_app.tsx", "pages/_app.js", "src/pages/_app.tsx"]},
+      "detect": {"paths": ["pages/_app.tsx", "pages/_app.jsx", "pages/_app.js", "src/pages/_app.tsx", "src/pages/_app.jsx", "src/pages/_app.js"]},
       "script": "next",
+      "script_copy": "setup_site_next_pages",
       "app": {"files": ["middleware.ts", "middleware.js", "proxy.ts", "proxy.js", "src/middleware.ts", "src/middleware.js", "src/proxy.ts", "src/proxy.js"]},
       "middleware": {
         "name": "cakeNext",
         "edge": "node",
+        "folder": "agentcake-edge",
+        "package": "@agentcake/edge",
         "patterns": ["\\bcakeNext\\s*\\("],
         "suffixes": [".ts", ".js", ".mjs"],
         "copy": "setup_site_mw_next",
+        "mounting": {"ts": "setup_site_code_next_ts", "esm": "setup_site_code_next_js", "cjs": "setup_site_code_next_js"},
         "readme": "node/README.md"
       }
     },
@@ -50,13 +84,16 @@
       "name": "express",
       "detect": {"node_deps": ["express"]},
       "script": "head",
-      "app": {"patterns": ["\\bexpress\\s*\\(\\s*\\)"], "suffixes": [".js", ".mjs", ".cjs", ".ts"]},
+      "app": {"patterns": ["\\bexpress\\s*\\(\\s*\\)"], "suffixes": [".js", ".mjs", ".cjs", ".ts", ".mts", ".cts"]},
       "middleware": {
         "name": "cakeExpress",
         "edge": "node",
+        "folder": "agentcake-edge",
+        "package": "@agentcake/edge",
         "patterns": ["\\bcakeExpress\\s*\\("],
-        "suffixes": [".js", ".mjs", ".cjs", ".ts"],
+        "suffixes": [".js", ".mjs", ".cjs", ".ts", ".mts", ".cts"],
         "copy": "setup_site_mw_express",
+        "mounting": {"ts": "setup_site_code_express_import", "esm": "setup_site_code_express_import", "cjs": "setup_site_code_express_require"},
         "readme": "node/README.md"
       }
     },
@@ -64,13 +101,16 @@
       "name": "hono",
       "detect": {"node_deps": ["hono"]},
       "script": "head",
-      "app": {"patterns": ["\\bnew\\s+Hono\\s*\\("], "suffixes": [".js", ".mjs", ".ts", ".tsx"]},
+      "app": {"patterns": ["\\bnew\\s+Hono\\s*\\("], "suffixes": [".js", ".mjs", ".cjs", ".jsx", ".ts", ".mts", ".cts", ".tsx"]},
       "middleware": {
         "name": "cakeHono",
         "edge": "node",
+        "folder": "agentcake-edge",
+        "package": "@agentcake/edge",
         "patterns": ["\\bcakeHono\\s*\\("],
-        "suffixes": [".js", ".mjs", ".ts", ".tsx"],
+        "suffixes": [".js", ".mjs", ".cjs", ".jsx", ".ts", ".mts", ".cts", ".tsx"],
         "copy": "setup_site_mw_hono",
+        "mounting": {"ts": "setup_site_code_hono_import", "esm": "setup_site_code_hono_import", "cjs": "setup_site_code_hono_require"},
         "readme": "node/README.md"
       }
     },

@@ -15,7 +15,8 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } f
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import type { WebAnalytics } from "@/data/types"
 import { axisTicks, endText, type MonthWords } from "@/lib/axis-ticks"
-import { NO_VALUE } from "@/lib/format"
+import { NO_VALUE, integer } from "@/lib/format"
+import { useStyle } from "@/lib/style"
 import { WORDS } from "@/lib/words"
 import { CardEmpty, InfoTip } from "./bits"
 import { METRICS, MetricPicker, TooltipValue, type Metric } from "./metric-picker"
@@ -52,7 +53,9 @@ export function TrendsChart({ trends, timeZone }: { trends: WebAnalytics["trends
   const chart = useRef<HTMLDivElement>(null)
   const [plotWidth, setPlotWidth] = useState(0)
   const [measure, setMeasure] = useState<((text: string) => number) | null>(null)
-  // the labels' widths in the axis's own font (a canvas measures text as the SVG draws it), again once the fonts are in
+  const style = useStyle()
+  // the labels' widths in the axis's own font (a canvas measures text as the SVG draws it), again once the fonts are in,
+  // and again in the other style's font when the style switch changes it
   useEffect(() => {
     const pen = document.createElement("canvas").getContext("2d")
     if (!chart.current || !pen) return
@@ -63,7 +66,7 @@ export function TrendsChart({ trends, timeZone }: { trends: WebAnalytics["trends
     }
     ready()
     void document.fonts?.ready.then(ready)
-  }, [])
+  }, [style])
   const ticks = useMemo(() => (measure && plotWidth ? axisTicks(trends.points, trends.every, plotWidth, measure, LABEL_GAP_PX, MONTHS) : []),
     [trends, plotWidth, measure])
   const tickText = new Map(ticks.map((tick) => [tick.label, tick.text]))
@@ -94,7 +97,7 @@ export function TrendsChart({ trends, timeZone }: { trends: WebAnalytics["trends
               <XAxis dataKey="label" tickLine={false} axisLine={false} ticks={ticks.map((tick) => tick.label)} interval={0}
                 tickFormatter={(label: string) => tickText.get(label) ?? label} />
               <PlotWidth onWidth={setPlotWidth} />
-              <YAxis width={46} tickLine={false} axisLine={false} unit={unit} allowDecimals={!whole} />
+              <YAxis width={46} tickLine={false} axisLine={false} unit={unit} allowDecimals={!whole} tickFormatter={whole ? integer : undefined} />
               <ChartTooltip content={<ChartTooltipContent formatter={(v, name) => (
                 <><Swatch kind={SWATCH[name as Who]} /><TooltipValue label={config[name as Who].label} shown={cell(typeof v === "number" ? v : null)} /></>
               )} />} />

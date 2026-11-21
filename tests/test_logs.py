@@ -49,8 +49,7 @@ def visit(server, number, ip, ua):
     opened = now_ms() - PAGE_TO_UPLOAD_MS
     body = json.dumps({"v": 1, "k": SITE_KEY, "s": f"logvisit{number}", "pv": f"pv{number}", "seq": 0, "t": now_ms(),
                        "u": f"https://{SITE_HOST}/", "ua": ua, "r": []}).encode()
-    headers = {"Content-Type": "text/plain", "User-Agent": ua, LB["ip"]: ip, LB["region"]: "", LB["ja4"]: "",
-               LB["proto"]: "HTTP/2"}
+    headers = {"Content-Type": "text/plain", "User-Agent": ua, LB["ip"]: ip, LB["ja4"]: "", LB["proto"]: "HTTP/2"}
     status = http(server.public + "/collect", body, headers, "POST")[0]
     if status != 204:
         raise AssertionError(f"the visit was not accepted: {status}")

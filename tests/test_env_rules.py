@@ -6,7 +6,7 @@ agentcake/detect/env_rules.py.
 Every rule has hit and miss cases (tests/fixtures/env_rules/cases.json). The checks on the lab's recorded sessions
 (case T6's environment part) are kept with those recordings, outside the published repository.
 """
-import copy, json, os, re, sys, unittest
+import copy, itertools, json, os, re, sys, unittest
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
@@ -189,6 +189,27 @@ class EvaluateTest(unittest.TestCase):
         self.assertNotIn("env.ext.closed-shadow-host", evaluate({"pages": [bare, self.page]}, self.table).unknown)
         self.assertIn("env.auto.collect-no-accept-language", evaluate({"pages": [self.page]}, self.table).unknown)
 
+    def test_no_accept_language_is_a_hard_trace_only_on_requests_that_arrived_as_the_browser_sent_them(self):
+        """chrome-headless-shell sends no Accept-Language, keeps its User-Agent and sends Sec-Fetch-Mode: the hard
+        rule. A front door that drops the header for every visitor (CloudFront's defaults replace the User-Agent; its
+        UserAgentRefererHeaders policy keeps it but drops the Sec-Fetch headers) only adds a reason."""
+        hard, weak = "env.auto.collect-no-accept-language", "env.auto.collect-no-accept-language-proxy"
+        session = load_cases()["session"]
+        no_language = {"collect": {"headers": {"accept-language": {"present": 0, "values": []}}}}
+        no_fetch_metadata = {"collect": {"headers": {"sec-fetch-mode": {"present": 0, "values": []}}}}
+        cases = {"as sent": ({}, {hard}),
+                 "user agent replaced": ({"collect": {"ua_as_page": False}}, {weak}),
+                 "fetch metadata dropped": (no_fetch_metadata, {weak}),
+                 "page user agent unknown": ({"collect": {"ua_as_page": DELETE}}, set())}
+        for name, (change, expected) in cases.items():
+            with self.subTest(name):
+                signals = merge(merge(session, no_language), change)
+                found = {hit.rule for hit in evaluate(signals, self.table).hits} & {hard, weak}
+                self.assertEqual(found, expected)
+        weak_hit = next(h for h in evaluate(merge(merge(session, no_language), cases["user agent replaced"][0]),
+                                            self.table).hits if h.rule == weak)
+        self.assertEqual((weak_hit.strength, weak_hit.half), ("weak", "collector"))
+
     def test_hits_serialise_to_json_with_their_reason_fields(self):
         host = {"tag": "DIV", "nattr": 0, "attrs": [], "open_shadow": 0, "disp": "contents", "parent": "body",
                 "how": "added"}
@@ -207,6 +228,85 @@ class EvaluateTest(unittest.TestCase):
         hits = evaluate({"pages": [page]}, self.table).hits
         self.assertEqual(sorted(botscent_reasons(hits, self.table)),
                          ["browser.webdriver-flag", "muse.cloud-browser.password-manager"])
+
+
+class PhoneOrTabletTest(unittest.TestCase):
+    """The rules for a computer passing as a phone or tablet (family phone_or_tablet): they read only what cake.js
+    already records, and hold only on a page whose user agent names a phone or tablet, so no desktop page changes."""
+
+    COMPUTER_AGENTS = (
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 "
+        "Safari/537.36",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 "
+        "Safari/537.36",
+        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
+        "Mozilla/5.0 (X11; CrOS x86_64 16181.61.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 "
+        "Safari/537.36",
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 "
+        "Safari/605.1.15",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:146.0) Gecko/20100101 Firefox/146.0")
+    PLATFORMS = ("MacIntel", "Win32", "Linux x86_64", "iPhone", "iPad", "Linux armv81")
+    VENDORS = ("Google Inc.", "Apple Computer, Inc.", "")
+    UA_DATA = (None, {"brands": [], "platform": "iOS", "mobile": True},
+               {"brands": [{"brand": "Google Chrome", "version": "157"}], "platform": "Android", "mobile": True})
+    GPUS = ({"vendor": "Google Inc. (Apple)", "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M2, Unspecified "
+                                                          "Version)"},
+            {"vendor": "Apple Inc.", "renderer": "Apple GPU"}, {"vendor": "Qualcomm", "renderer": "Adreno (TM) 740"})
+    POINTERS = (["fine"], ["coarse"], ["fine", "coarse"])
+    PIXEL_ON_A_MAC = {"env": {"userAgent": "Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 (KHTML, like "
+                                           "Gecko) Chrome/157.0.0.0 Mobile Safari/537.36",
+                              "uaData": {"brands": [], "platform": "Android", "mobile": True}}}
+
+    def setUp(self):
+        self.table = load_rules()
+        self.page = load_cases()["page"]
+
+    def family(self):
+        return [rule for rule in self.table.rules if rule.family == "phone_or_tablet"]
+
+    def test_the_family_holds_three_soft_page_rules_of_one_kind(self):
+        self.assertEqual(sorted(rule.id for rule in self.family()),
+                         ["env.spoof.android-ua-apple-gpu", "env.spoof.ios-ua-chromium-engine",
+                          "env.spoof.phone-ua-desktop-platform"])
+        for rule in self.family():
+            with self.subTest(rule=rule.id):
+                self.assertEqual((rule.strength, rule.kind, rule.scope, rule.half, rule.enabled),
+                                 ("soft", "spoofing", "page", "page", True))
+        self.assertEqual({rule.family for rule in self.table.rules} - {None}, set(self.table.legend["families"]))
+
+    def test_no_family_rule_holds_on_a_page_whose_user_agent_names_a_computer(self):
+        family = {rule.id for rule in self.family()}
+        for agent, platform, vendor, ua_data, gpu, pointer in itertools.product(
+                self.COMPUTER_AGENTS, self.PLATFORMS, self.VENDORS, self.UA_DATA, self.GPUS, self.POINTERS):
+            page = merge(self.page, {"env": {"userAgent": agent, "platform": platform, "vendor": vendor,
+                                             "uaData": ua_data, "webgl": gpu, "anyPointer": pointer,
+                                             "maxTouchPoints": 5 if "coarse" in pointer else 0}})
+            held = family & {found.rule for found in evaluate({"pages": [page]}, self.table).hits}
+            if held:
+                self.fail(f"{sorted(held)} held on {agent} with platform {platform}, vendor {vendor!r}")
+
+    def test_hits_carry_their_rule_family(self):
+        page = merge(self.page, merge(self.PIXEL_ON_A_MAC, {"env": {"windowChrome": "undefined"}}))
+        families = {found.rule: found.family for found in evaluate({"pages": [page]}, self.table).hits}
+        self.assertEqual(families, {"env.spoof.phone-ua-desktop-platform": "phone_or_tablet",
+                                    "env.spoof.android-ua-apple-gpu": "phone_or_tablet",
+                                    "env.auto.chrome-object-missing": None})
+
+    def test_a_family_the_legend_does_not_name_is_rejected(self):
+        good = raw_table()
+        with self.assertRaisesRegex(EnvRulesError, "family"):
+            parse_rules(merge(good, {"rules": [dict(good["rules"][0], family="no_such_family")]}))
+
+    def test_an_ipad_in_desktop_mode_is_no_worker_mismatch(self):
+        ipad = merge(self.page, {"env": {"userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+                                                      "AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 "
+                                                      "Safari/605.1.15",
+                                         "uaData": None, "maxTouchPoints": 5, "anyPointer": ["coarse"]},
+                                 "auto": {"workerConsistency": {"differs": ["platform"],
+                                                                "worker": {"platform": "iPad"}}}})
+        self.assertNotIn("env.spoof.worker-mismatch", {found.rule for found in evaluate({"pages": [ipad]}).hits})
+        a_mac = merge(ipad, {"env": {"maxTouchPoints": 0}})
+        self.assertIn("env.spoof.worker-mismatch", {found.rule for found in evaluate({"pages": [a_mac]}).hits})
 
 
 if __name__ == "__main__":

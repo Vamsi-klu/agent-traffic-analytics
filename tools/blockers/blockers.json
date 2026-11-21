@@ -1,5 +1,5 @@
 {
-  "about": "What tools/blockers/check.py and live.py check against: the default filter lists of the content blockers most visitors run, read from each blocker's own catalog at check time (the lists change daily, so a release is checked against the current ones; the report records each file's address and sha256), the matcher, pinned by hash, and what AgentCake serves only for old pages.",
+  "about": "What tools/blockers/check.py and live.py check against: the default filter lists of the content blockers most visitors run, read from each blocker's own catalog at check time (the lists change daily, so a release is checked against the current ones; the report records each file's address and sha256) and the matcher, pinned by hash.",
   "blockers": {
     "uBlock Origin": {
       "catalog": "https://raw.githubusercontent.com/gorhill/uBlock/master/assets/assets.json",
@@ -36,9 +36,6 @@
       "4f750dede164f19a0915b45c1238bc7f56ce388f1b1b1bd2ad01779720000565",
       "58074d280edeb2fe53228befff42152e8f71fd7a6b7d6ff048788bba93b88729"
     ]
-  },
-  "legacy": {
-    "/rrweb-record.min.js": "cake 0.3.x's recorder as a file of its own, served only for pages that still have 0.3.x's two tags (the page script has rrweb inside); EasyPrivacy blocks it by its name (/rrweb-record.min.js), which SERVER.md says"
   },
   "not_from_browsers": {
     "/healthz": "the load balancer's health check",

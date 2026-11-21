@@ -81,8 +81,8 @@ sessions were judged Human + agent.
 
 ## README's figures
 
-README's "How it decides" gives the size of the test data; its results are this section's, counted on 2026-11-16 with
-AgentCake 0.5.0's code: one run of `agentcake eval` over every data set it reads that has answers, the converted public
+README's "How it decides" gives the size of the test data; its results are this section's, counted on 2026-11-20 with
+AgentCake 0.6.0's code: one run of `agentcake eval` over every data set it reads that has answers, the converted public
 humans included, and six public sets of people that the scripts which converted them judged the same way, apart from
 `agentcake eval` (the percent a session shows is calibrated on what `agentcake eval` reads, so a set kept out of it
 stays held out). The sessions are real people's, so they are not in this repository and the counts can't be repeated

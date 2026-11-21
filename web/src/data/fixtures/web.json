@@ -773,7 +773,7 @@
         "dimension": "region",
         "rows": [
           {
-            "key": "USCA",
+            "key": "US:California",
             "value": "California",
             "country": "US",
             "agent": 6,
@@ -786,7 +786,7 @@
             "human_page_views": 23
           },
           {
-            "key": "GBENG",
+            "key": "GB:England",
             "value": "England",
             "country": "GB",
             "agent": 3,
@@ -799,7 +799,7 @@
             "human_page_views": 12
           },
           {
-            "key": "USNY",
+            "key": "US:New York",
             "value": "New York",
             "country": "US",
             "agent": 4,
@@ -812,17 +812,17 @@
             "human_page_views": 17
           },
           {
-            "key": null,
+            "key": "DE:",
             "value": null,
-            "country": null,
-            "agent": 4,
-            "human": 9,
-            "visitors": 9,
-            "agent_visitors": 3,
-            "human_visitors": 6,
-            "page_views": 31,
-            "agent_page_views": 10,
-            "human_page_views": 21
+            "country": "DE",
+            "agent": 2,
+            "human": 3,
+            "visitors": 4,
+            "agent_visitors": 2,
+            "human_visitors": 2,
+            "page_views": 15,
+            "agent_page_views": 6,
+            "human_page_views": 9
           }
         ]
       },
@@ -869,17 +869,30 @@
             "human_page_views": 17
           },
           {
-            "key": null,
+            "key": "DE:",
             "value": null,
-            "country": null,
-            "agent": 5,
-            "human": 11,
-            "visitors": 11,
-            "agent_visitors": 3,
-            "human_visitors": 8,
-            "page_views": 39,
-            "agent_page_views": 12,
-            "human_page_views": 27
+            "country": "DE",
+            "agent": 2,
+            "human": 3,
+            "visitors": 4,
+            "agent_visitors": 2,
+            "human_visitors": 2,
+            "page_views": 15,
+            "agent_page_views": 6,
+            "human_page_views": 9
+          },
+          {
+            "key": "US:",
+            "value": null,
+            "country": "US",
+            "agent": 1,
+            "human": 2,
+            "visitors": 3,
+            "agent_visitors": 1,
+            "human_visitors": 2,
+            "page_views": 8,
+            "agent_page_views": 2,
+            "human_page_views": 6
           }
         ]
       },
@@ -987,6 +1000,12 @@
     ]
   },
   "shown": 10,
-  "place": true,
+  "place": {
+    "source": "database",
+    "attribution": {
+      "text": "IP Geolocation by DB-IP",
+      "url": "https://db-ip.com"
+    }
+  },
   "time_zone": "PST"
 }

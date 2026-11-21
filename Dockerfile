@@ -1,9 +1,13 @@
 # AgentCake on a server as one container: the whole program (one process, one SQLite database) on python:3.14-slim,
-# installed from the release wheel. SERVER.md, "Install with Docker", says how to build, set up and run it.
+# installed from the release wheel. SERVER.md, "Install with Docker Compose", says how to build, set up and run it.
 #
 # Build: put agentcake-<version>-py3-none-any.whl, checked against the release's SHA256SUMS, alone in dist/ next to
-# this file, then `docker build -t agentcake .`. Nothing is compiled and nothing is downloaded besides the base image:
-# the wheel has no dependencies, and .dockerignore lets only the wheel into the build.
+# this file, then `docker build -t agentcake .`. Nothing is compiled: the wheel has no dependencies, and .dockerignore
+# lets only the wheel into the build. Nothing is downloaded but the base image. The city database the visitor's
+# country, region and city are looked up in is not in the image: AgentCake downloads it into the data volume at its
+# first check, minutes after it starts, as with systemd (agentcake/updates.py, while lists_auto_update is on;
+# `agentcake lists update` does it at once). Built into the image, it took most of a build's time and memory on a
+# server with 1 GB.
 #
 # Run it on the host's network (`docker run --network host`). The local page (dashboard, sessions, replay, settings)
 # listens on 127.0.0.1 only: in a network of its own that is the container's loopback, which no tunnel reaches; on
@@ -38,8 +42,11 @@ EXPOSE ${PUBLIC_PORT}
 # As PID 1, Python has no handler for SIGTERM and the kernel does not apply the default action to PID 1, so
 # `docker stop` would wait and then kill; SIGINT has Python's own handler, which ends `serve`.
 STOPSIGNAL SIGINT
-# `agentcake status` asks the local page's /api/health on the configured port: exit 0 when it answers, 1 when not.
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+# `agentcake status` asks the local page's /api/health on the configured port: exit 0 when it answers, 1 when not. It
+# waits health_timeout_s for the answer, so a server that does not answer fails the check within seconds. The timeout
+# here is Docker's default, 30 s: on a server with one slow or shared CPU, starting the check's Python alone can take
+# seconds, and 5 s showed a working server as unhealthy.
+HEALTHCHECK --interval=30s --timeout=30s --start-period=10s --retries=3 \
     CMD ["python3", "-I", "-m", "agentcake", "status"]
 # -I: nothing is imported from the working folder or PYTHON* variables, as in deploy/cake.service.
 ENTRYPOINT ["python3", "-I", "-m", "agentcake"]

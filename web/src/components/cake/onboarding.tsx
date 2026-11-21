@@ -16,12 +16,12 @@ export function OnboardingLayout({ status, title, example, children }: {
   status: ReactNode; title: string; example: Example; children: ReactNode
 }) {
   return (
-    <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,11fr)_minmax(0,9fr)]">
+    <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-8 lg:grid-cols-[minmax(0,11fr)_minmax(0,9fr)]">
       <section className="flex flex-col gap-6">
         <Crumb pose="wave" className="w-36" />
         <div className="flex flex-col gap-2">
           <div>{status}</div>
-          <h1 className="text-4xl font-semibold">{title}</h1>
+          <h1 className="text-4xl font-semibold minimal:text-3xl minimal:font-bold minimal:tracking-tight">{title}</h1>
         </div>
         {children}
       </section>
@@ -35,7 +35,7 @@ export function OnboardingLayout({ status, title, example, children }: {
 export function OnboardingStep({ n, id = `step-${n}`, title, children }: { n?: number; id?: string; title: string; children: ReactNode }) {
   return (
     <section className="flex flex-col gap-2" aria-labelledby={id}>
-      <h2 id={id} className="flex items-center gap-2 text-xl font-semibold">{n !== undefined && <Badge variant="tag">{n}</Badge>}{title}</h2>
+      <h2 id={id} className="flex items-center gap-2 text-xl font-semibold minimal:text-lg minimal:font-bold">{n !== undefined && <Badge variant="tag">{n}</Badge>}{title}</h2>
       {children}
     </section>
   )
@@ -43,8 +43,8 @@ export function OnboardingStep({ n, id = `step-${n}`, title, children }: { n?: n
 
 export function OrSeparator() {
   return (
-    <div role="separator" className="flex items-center gap-3 text-sm font-extrabold text-faint-foreground">
-      <span className="flex-1 border-t-2 border-dashed border-border" />Or<span className="flex-1 border-t-2 border-dashed border-border" />
+    <div role="separator" className="flex items-center gap-3 text-sm font-extrabold text-faint-foreground minimal:font-medium">
+      <span className="flex-1 border-t-2 border-dashed border-border minimal:border-t minimal:border-solid" />Or<span className="flex-1 border-t-2 border-dashed border-border minimal:border-t minimal:border-solid" />
     </div>
   )
 }
@@ -56,7 +56,7 @@ export function ExamplePreview({ example }: { example: Example }) {
   return (
     <Card variant="sunk" className="lg:sticky lg:top-20" aria-label={`${PREVIEW_TITLE} (sample data)`}>
       <CardContent className="flex flex-col gap-3">
-        <div className="flex items-center justify-between gap-2"><h3 className="text-lg font-semibold">{PREVIEW_TITLE}</h3><Badge variant="tag">Sample data</Badge></div>
+        <div className="flex items-center justify-between gap-2"><h3 className="text-lg font-semibold minimal:text-base">{PREVIEW_TITLE}</h3><Badge variant="tag">Sample data</Badge></div>
         <div className="pointer-events-none flex flex-col gap-2">
           {example.sessions.map((s) => <SessionRow key={s.id} s={s} compact />)}
         </div>

@@ -143,6 +143,15 @@ class CommunityDocuments(unittest.TestCase):
             self.assertTrue(url.endswith(".md"), url)
             self.assertTrue(os.path.isfile(os.path.join(ROOT, url[len(raw):])), url)
 
+    def test_contributing_and_the_pr_template_ask_for_eval_results_as_readme_does(self):
+        """README's rule for a change to the rules or the model, before and after `agentcake eval` and no more humans
+        classified as agents, is the contribution guide's and the pull request template's too."""
+        for path in (README_MD, CONTRIBUTING_MD, PULL_REQUEST_TEMPLATE):
+            with self.subTest(path=os.path.relpath(path, ROOT)):
+                flat = " ".join(read(path).split())
+                self.assertRegex(flat, r"`agentcake eval` results from before and after")
+                self.assertRegex(flat, r"\bmust not (?:mis)?classify more humans as agents\b")
+
     def test_changelog_starts_with_this_version(self):
         """The newest entry is this version's; the next version's may come first while it isn't released, marked
         "(unreleased)", which it loses when the version changes to it."""

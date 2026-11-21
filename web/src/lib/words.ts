@@ -1,6 +1,7 @@
-// The interface's own wording, in one place (DESIGN.md §2). Visitors are Human / Agent / Unknown / Bot, never person,
-// people or user; the names of the categories themselves are src/lib/taxonomy.ts's (judging.en.json). Text that comes
-// with the data (session titles, reasons, the coverage table) is not here: it comes from /api.
+// The interface's own wording, in one place (DESIGN.md §2). Visitors are Human / Agent / Unknown / Script bot, never
+// person, people or user; the names of the categories themselves are src/lib/taxonomy.ts's (judging.en.json). Text that
+// comes with the data (session titles, reasons, the coverage table) is not here: it comes from /api. A sentence with a
+// count takes it as integer() writes it (src/lib/format.ts): this file imports nothing at run time, so tests read it.
 import type { DateRange } from "@/data/types"
 
 export const WORDS = {
@@ -8,11 +9,21 @@ export const WORDS = {
   actedForHuman: "Sessions where an AI agent acted on behalf of a human",
   rowMarker: "An AI agent acted for a human",
   aHuman: "A human",
-  botRow: "Bot sessions are counted but don't show a timeline.",
+  botRow: "Script bot sessions are counted but don't show a timeline.",
   withAgentTitle: "Install with your AI agent",
-  withAgentHow: "Open Claude Code or Codex in your website's project folder, and then paste the following prompt:",
+  withAgentHow: "Open Claude Code, Codex or another coding agent in your website's code folder. If your website has no code, use a new, empty folder. Then paste the following prompt:",
+  /** Under the prompt: what the agent does with it (the guide it points to, INSTALL.md), in the order it does it. */
+  withAgentWhat: (product: string) => `Answer the agent's questions about your website, such as its address, and sign in to your accounts. Review its plan, including where ${product} runs and any costs, and approve it. The agent can then create a server, add a DNS record and connect your website.`,
   setUpManually: "Install manually",
   scriptWhere: "Paste this line once, before the closing </head> tag in the layout or template that every page uses. For separate HTML files, add the line to each file.",
+  /** Step 2's "On a server": the three things a public website's AgentCake needs on its own subdomain, each in plain
+   *  words over its commands (/api/setup's server: install, dns, settings). */
+  onServer: {
+    install: { title: "A server", what: (product: string) => `Use a Linux server with Docker, at least 1 GB of memory, and ports 80 and 443 open. Run these commands in the ${product} release folder to add your subdomain to the Caddyfile and start ${product} with Caddy. Caddy automatically obtains and renews the HTTPS certificate that browsers require.` },
+    dns: { title: "A DNS record", what: () => "Add this record in your DNS provider's settings to point your subdomain to your server. On Cloudflare, set the record to DNS only (gray cloud). It usually takes effect within a few minutes to a few hours." },
+    settings: { title: "Settings on the server", what: (product: string) => `Run these commands in the release folder on the server, with your domain in place of <your-domain>. These commands set your website's domain and the address where browsers reach ${product}. The last command restarts ${product}.` },
+  },
+  serverFullSteps: "For detailed steps, or to install without Docker, see",
   dashboard: "Dashboard",
   keyMetrics: "Key metrics",
   deepDive: "Deep dive",
@@ -28,13 +39,19 @@ export const WORDS = {
   sessionsGroup: "Sessions",
   visitorsGroup: "Visitors",
   pageViewsGroup: "Page views",
-  botsNotInChart: "Bot sessions are counted separately and are excluded from this chart.",
+  botsNotInChart: "Script bot sessions are counted separately and are excluded from this chart.",
   activeTime: "active time spent",
   pagesPerSession: "pages per session",
   session: "session",
   sessions: "sessions",
   totals: "Sessions, visitors, page views, active time spent, and pages per session",
   allFromDemoShop: "All sessions are from the demo shop",
+  /** The dashboard's warning while the IP addresses AgentCake reads look like a CDN's (Overview.address_check). */
+  addressCheck: {
+    title: "CDN IP addresses detected",
+    text: (cdn: string, sessions: string, product: string) =>
+      `${product} found that ${cdn} of the last ${sessions} sessions came from CDN IP addresses. This usually means that ${product} receives the CDN's address instead of each visitor's address. Currently, ${product} doesn't use IP addresses to verify names. If the DNS record for ${product} goes through Cloudflare, set it to DNS only. If a CDN or load balancer is in front of ${product} on your own domain, set proxy_hops. For details, see`,
+  },
   visitors: "visitors",
   noVisitorIds: "No visitor IDs in the selected date range",
   visitorsAre: "Each visitor is identified by a random ID that the page script stores in their browser for one year after their last visit.",
@@ -58,7 +75,7 @@ export const WORDS = {
   /** The note under Trends: the time zone its days and hours are in, as /api/web names it ("PST", "UTC+05:45"). */
   timesIn: (zone: string) => `Times in ${zone}`,
   /** The Agent block's comparison, PostHog's words for its previous period: as long as the range, right before it. */
-  vsPrior: (n: number) => `vs. ${n} prior`,
+  vsPrior: (count: string) => `vs. ${count} prior`,
   timeZone: "Time zone",
   timeZoneAbout: "Dates and times on the dashboard and in Session replay use this time zone.",
   /** The time zone choice that follows the computer or server AgentCake runs on: its IANA name and its abbreviation
@@ -67,6 +84,24 @@ export const WORDS = {
     `${where}'s time zone (${name && name !== short ? `${name}, ${short}` : short})`,
   searchTimeZones: "Search time zones",
   noTimeZoneMatches: "No time zone matches your search.",
+  /** Settings, How detection works: the date of the agent and network lists in use (a release's, or an update's). */
+  listsBuilt: (built: string, age: string) => `Built on ${built} (${age} ago).`,
+  /** Settings, How detection works: the monthly update of the lists and, on a server that reads the visitor's address,
+   *  the city database (lists_auto_update; places: /api/settings lists.city_database); its last run (lists.last_update);
+   *  and the warning once updates fail in a row (lists.failing). off and failing take the command as a part of their
+   *  own, so the page sets it as code. */
+  autoUpdate: {
+    title: "Automatic updates",
+    on: (places: boolean) => `Downloads the latest agent lists${places ? ", IP ranges, and city database" : " and IP ranges"} every month. No data about your site or its visitors is sent.`,
+    off: <Command>(command: Command, places: boolean) => [`The agent lists${places ? ", IP ranges, and city database are" : " and IP ranges are"} downloaded only when you run `, command, "."] as const,
+    lastOk: (when: string) => `Last update: ${when} (successful)`,
+    lastFailed: (when: string, error: string) => `Last update: ${when} (failed: ${error})`,
+    retry: (product: string) => `${product} tries the update again the next day.`,
+    failing: (count: string) => `The last ${count} updates failed. To update now, run this command:`,
+  },
+  /** The top bar's Style menu (DESIGN.md §17): its name and the two styles' names. */
+  style: "Style",
+  styles: { cake: "Cake", minimal: "Minimal" },
   showAsTable: "Show as table",
   hideTable: "Hide table",
   toAgent: "Hand-off to agent",
@@ -102,7 +137,7 @@ export const WORDS = {
     breakdown: "Break down by",
     notSet: "Not set",
     direct: "No referrer",
-    showAll: (n: number) => `Show all ${n}`,
+    showAll: (count: string) => `Show all ${count}`,
     showFewer: "Show fewer",
     all: "All",
     kind: "Session type",
@@ -112,7 +147,8 @@ export const WORDS = {
     removeFilter: "Remove filter",
     watch: (value: string) => `View sessions for ${value} in Session replay`,
     serverOnly: (product: string) => `Country, region, and city data is available only when ${product} runs on a server.`,
-    botsNote: "This table includes Agent and Human sessions only. Bot sessions aren't counted.",
+    noPlace: "No sessions in the selected date range have a known country.",
+    botsNote: "This table includes Agent and Human sessions only. Script bot sessions aren't counted.",
   },
   /** What each dashboard card shows, behind its information icon (Clarity's own words stay in CLARITY), written as
    *  Clarity writes its tooltips. */
@@ -141,8 +177,6 @@ export const CLARITY = {
 /** A total's name, the metric alone: "Sessions", "Active time spent". */
 export const metricName = (unit: string) => unit.charAt(0).toUpperCase() + unit.slice(1)
 
-/** "1 session", "28 sessions": a count of sessions, the noun in the right number. */
-export const sessionCount = (n: number) => `${n} ${n === 1 ? WORDS.session : WORDS.sessions}`
 
 /** The date filter's choices, in menu order. */
 export const RANGES: Record<DateRange, string> = { "24h": "Last 24 hours", "7d": "Last 7 days", "30d": "Last 30 days", all: "All time" }

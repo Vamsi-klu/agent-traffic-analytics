@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import type { Network, ServerHalf, ServerPage } from "@/data/types"
 import { NO_VALUE, clock } from "@/lib/format"
 import { WORDS } from "@/lib/words"
+import { SourceCredit } from "./bits"
 
 const fetchText = (f: ServerPage["fetch"]) => [f.site, f.mode, f.dest, f.user].map((v) => v ?? NO_VALUE).join(" · ")
 
@@ -32,7 +33,8 @@ export function ServerHalfTable({ server }: { server: ServerHalf }) {
   return (
     <div className="flex flex-col gap-2">
       {server.network && (
-        <p className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground"><NetworkIcon className="size-4 shrink-0" aria-hidden />{networkParts(server.network).map((part) => <span key={part}>{part}</span>)}</p>
+        <p className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground"><NetworkIcon className="size-4 shrink-0" aria-hidden />{networkParts(server.network).map((part) => <span key={part}>{part}</span>)}
+          {server.network.attribution && <SourceCredit credit={server.network.attribution} />}</p>
       )}
       <Card className="py-0">
         <Table>

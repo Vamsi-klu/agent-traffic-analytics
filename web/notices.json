@@ -18,7 +18,8 @@
     "$comment": "Third-party files that are not npm packages, kept in web/src and compiled into dist/ (THIRD_PARTY.md): each is listed when the build put it into dist/, with its licence file, which stays in web/src.",
     "entries": [
       {"file": "src/assets/fonts/Fredoka-Variable.ttf", "license": "OFL-1.1", "licence_file": "src/assets/fonts/Fredoka-OFL.txt"},
-      {"file": "src/assets/fonts/Nunito-Variable.ttf", "license": "OFL-1.1", "licence_file": "src/assets/fonts/Nunito-OFL.txt"}
+      {"file": "src/assets/fonts/Nunito-Variable.ttf", "license": "OFL-1.1", "licence_file": "src/assets/fonts/Nunito-OFL.txt"},
+      {"file": "src/assets/fonts/Inter-Variable.ttf", "license": "OFL-1.1", "licence_file": "src/assets/fonts/Inter-OFL.txt"}
     ]
   },
   "texts": {

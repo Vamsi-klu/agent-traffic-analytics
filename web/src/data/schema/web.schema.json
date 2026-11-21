@@ -89,7 +89,7 @@
       }
     },
     "shown": { "description": "How many rows a table shows before Show all.", "type": "integer", "minimum": 1 },
-    "place": { "description": "Whether the load balancer gives sessions their country, region and city (server mode with trust_lb).", "type": "boolean" },
+    "place": { "description": "Where the Geography table's country, region and city come from, and DB-IP's credit while it is in use.", "$ref": "common.schema.json#/$defs/Places" },
     "time_zone": { "description": "What the Trends chart's note calls the time zone its days and hours are in: an abbreviation (PST, UTC) or an offset (UTC+05:45).", "$ref": "common.schema.json#/$defs/Text" }
   },
   "$defs": {

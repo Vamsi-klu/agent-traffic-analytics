@@ -50,8 +50,8 @@ export function RegisterCard({ rules, outcome, onRegister, onContinue, initial }
       <Card className="w-full">
         <CardContent className="flex flex-col gap-5">
           <div className="flex flex-col gap-1">
-            <h1 className="text-3xl font-semibold">{W.title}</h1>
-            <p className="text-lg leading-snug font-extrabold">{W.subtitle}</p>
+            <h1 className="text-3xl font-semibold minimal:text-2xl minimal:font-bold minimal:tracking-tight">{W.title}</h1>
+            <p className="text-lg leading-snug font-extrabold minimal:text-base minimal:font-semibold">{W.subtitle}</p>
           </div>
           <div className="flex flex-col gap-2 text-muted-foreground">
             <p>{W.why}</p>

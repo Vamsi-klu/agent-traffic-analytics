@@ -39,7 +39,7 @@ function ToggleGroup({
       data-orientation={orientation}
       style={{ "--gap": spacing } as React.CSSProperties}
       className={cn(
-        "group/toggle-group flex w-fit flex-row items-center gap-[--spacing(var(--gap))] rounded-lg data-[size=sm]:rounded-[min(var(--radius-md),10px)] data-vertical:flex-col data-vertical:items-stretch",
+        "group/toggle-group flex w-fit flex-row items-center gap-[--spacing(var(--gap))] rounded-lg minimal:gap-0 data-[size=sm]:rounded-[min(var(--radius-md),10px)] data-vertical:flex-col data-vertical:items-stretch",
         className
       )}
       {...props}
@@ -52,6 +52,10 @@ function ToggleGroup({
     </ToggleGroupPrimitive.Root>
   )
 }
+
+/** Minimal style: the items of a group join into one segmented control (after the item's own look, whose corners it
+ *  replaces): square inside, rounded at the ends, one border between two items. */
+const MINIMAL_SEGMENTS = "minimal:rounded-none minimal:first:rounded-l-md minimal:last:rounded-r-md minimal:not-first:border-l-0"
 
 /** Frosting: an item can carry a hint (a Tooltip trigger around it, cake's Hint), whose own data-state would replace
  *  the item's on / off, which its picked look reads: the item keeps its own. */
@@ -78,6 +82,7 @@ function ToggleGroupItem({
           variant: context.variant || variant,
           size: context.size || size,
         }),
+        MINIMAL_SEGMENTS,
         className
       )}
       {...props}

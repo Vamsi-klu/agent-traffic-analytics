@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
-import type { Disk, ReplaysStopped } from "@/data/types"
+import type { Attribution, Disk, ReplaysStopped } from "@/data/types"
 import { PERCENT, aboutDays, bytes, percent } from "@/lib/format"
 import { PRODUCT_NAME, SOURCE } from "@/lib/product"
 import { cn } from "@/lib/utils"
@@ -15,9 +15,9 @@ import { cn } from "@/lib/utils"
 export function CopyBlock({ text, className }: { text: string; className?: string }) {
   const [done, setDone] = useState(false)
   return (
-    <div className={cn("flex items-stretch overflow-hidden rounded-xl border-2 border-line bg-foreground", className)}>
+    <div className={cn("flex items-stretch overflow-hidden rounded-xl border-2 border-line bg-foreground minimal:border", className)}>
       <pre className="min-w-0 flex-1 p-3 font-mono text-sm break-words whitespace-pre-wrap text-background">{text}</pre>
-      <div className="flex items-center border-l-2 border-line bg-card px-2">
+      <div className="flex items-center border-l-2 border-line bg-card px-2 minimal:border-l">
         <Button variant="ghost" size="sm" onClick={() => { void navigator.clipboard?.writeText(text); setDone(true) }}>
           {done ? <Check aria-hidden /> : <Copy aria-hidden />}{done ? "Copied" : "Copy"}
         </Button>
@@ -31,28 +31,45 @@ export function CopyBlock({ text, className }: { text: string; className?: strin
 export function PageHeader({ title, lead, actions, as: Heading = "h1" }: { title: string; lead?: ReactNode; actions?: ReactNode; as?: "h1" | "h2" }) {
   return (
     <div className="flex flex-wrap items-end justify-between gap-3">
-      <div className="flex flex-col gap-1"><Heading className="text-3xl font-semibold">{title}</Heading>{lead && <p className="text-muted-foreground">{lead}</p>}</div>
+      <div className="flex flex-col gap-1"><Heading className="text-3xl font-semibold minimal:text-2xl minimal:font-bold minimal:tracking-tight">{title}</Heading>{lead && <p className="text-muted-foreground">{lead}</p>}</div>
       {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
     </div>
   )
 }
 
-/** A document of the repository a sentence names (SERVER.md), as a link to it at this version's tag (SOURCE), opened in a
- *  new tab; the page loads nothing from the repository. The link look (Button link: underline, focus ring) set in the
- *  sentence's own type, without the button's height, padding and border, so it reads as a word of the sentence. */
-export function DocumentLink({ path }: { path: string }) {
+/** A link out of the pages, opened in a new tab; the page loads nothing from it. The link look (Button link: underline,
+ *  focus ring) set in the type around it, without the button's height, padding and border, so it reads as words of
+ *  the sentence it is in. */
+function InlineLink({ href, children }: { href: string; children: ReactNode }) {
   return (
     <Button variant="link" asChild className="inline h-auto border-0 p-0 align-baseline [font-size:inherit] [font-weight:inherit] [line-height:inherit]">
-      <a href={`${SOURCE}/${path}`} target="_blank" rel="noopener noreferrer">{path}</a>
+      <a href={href} target="_blank" rel="noopener noreferrer">{children}</a>
     </Button>
   )
+}
+
+/** A document of the repository a sentence names (SERVER.md), as a link to it at this version's tag (SOURCE). */
+export function DocumentLink({ path }: { path: string }) {
+  return <InlineLink href={`${SOURCE}/${path}`}>{path}</InlineLink>
+}
+
+/** The credit a data source asks for where its results show, its own words linking to it (DB-IP's "IP Geolocation by
+ *  DB-IP" under the Geography table and on a session's network line, DESIGN.md §6): small and quiet, after the data
+ *  it is for. */
+export function SourceCredit({ credit }: { credit: Attribution }) {
+  return <span className="text-xs text-muted-foreground"><InlineLink href={credit.url}>{credit.text}</InlineLink></span>
+}
+
+/** A line of small print under a table's rows (DESIGN.md §6): the Script bot sentence under each StatsTable. */
+export function TableNote({ children }: { children: ReactNode }) {
+  return <p className="text-xs text-muted-foreground">{children}</p>
 }
 
 /** A section's title, with a link or a note on the right (the session page's Server middleware and All actions). */
 export function SectionTitle({ children, aside }: { children: ReactNode; aside?: ReactNode }) {
   return (
     <div className="mt-8 mb-3 flex flex-wrap items-baseline justify-between gap-2">
-      <h2 className="text-xl font-semibold">{children}</h2>
+      <h2 className="text-xl font-semibold minimal:text-lg minimal:font-bold">{children}</h2>
       {aside && <div className="text-sm">{aside}</div>}
     </div>
   )
@@ -119,8 +136,8 @@ export function StatCard({ label, value, sub, mark, muted = false, help }: { lab
   return (
     <Card variant="flat" size="sm" className={cn(muted && "opacity-70")}>
       <CardContent className="flex flex-col gap-1">
-        <span className="flex items-center gap-2 text-sm font-bold text-muted-foreground">{mark}{label}{help}</span>
-        <span className="font-heading text-3xl leading-none font-semibold">{value}</span>
+        <span className="flex items-center gap-2 text-sm font-bold text-muted-foreground minimal:text-[length:var(--label-font-size)] minimal:font-medium">{mark}{label}{help}</span>
+        <span className="font-heading text-3xl leading-none font-semibold minimal:text-2xl minimal:font-bold minimal:tracking-tight minimal:tabular-nums">{value}</span>
         {sub && <span className="text-xs text-muted-foreground">{sub}</span>}
       </CardContent>
     </Card>
@@ -193,8 +210,8 @@ export function BudgetWarning({ usedPct, warnAtPct, freeAtPct, autoFree, full }:
 
 /** System status with a dot: receiving / waiting / not connected. */
 export function Status({ tone, children }: { tone: "ok" | "warn" | "off"; children: ReactNode }) {
-  const dot = tone === "ok" ? "bg-ok" : tone === "warn" ? "bg-warn" : "bg-muted"
-  return <span className="inline-flex items-center gap-2 text-sm font-extrabold whitespace-nowrap"><span aria-hidden className={cn("size-2.5 rounded-full border-2 border-line", dot)} />{children}</span>
+  const dot = tone === "ok" ? "bg-ok" : tone === "warn" ? "bg-warn" : "bg-muted minimal:bg-input"
+  return <span className="inline-flex items-center gap-2 text-sm font-extrabold whitespace-nowrap minimal:font-semibold"><span aria-hidden className={cn("size-2.5 rounded-full border-2 border-line minimal:size-2 minimal:border-0", dot)} />{children}</span>
 }
 
 /** One settings row: title (+ tags), one or two sentences, the control on the right. */
@@ -202,7 +219,7 @@ export function SettingRow({ title, tags, desc, control }: { title: string; tags
   return (
     <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-5 gap-y-2 border-b border-border py-4 last:border-b-0">
       <div className="flex flex-col gap-0.5">
-        <h4 className="flex flex-wrap items-center gap-2 font-extrabold">{title}{tags}</h4>
+        <h4 className="flex flex-wrap items-center gap-2 font-extrabold minimal:font-semibold">{title}{tags}</h4>
         <div className="text-sm text-muted-foreground">{desc}</div>
       </div>
       <div>{control}</div>

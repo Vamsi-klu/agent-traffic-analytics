@@ -1,10 +1,10 @@
-// Session replay: the session list, everything by default, highlighted agent rows, muted bots (DESIGN.md §6.1).
-// Data: /api/sessions, one page at a time; the filters live in the URL (like PostHog 1.0's event list). The verdict
-// filter is All, Agent, Human and Bot, All picked by default, each verdict in its badge's colours; under Agent, a second
+// Session replay: the session list, everything by default, highlighted agent rows, muted bots (DESIGN.md §6.1). Data:
+// /api/sessions, one page at a time; the filters live in the URL (like PostHog 1.0's event list). The verdict filter is
+// All, Agent, Human and Script bot, All picked by default, each verdict in its badge's colours; under Agent, a second
 // row splits it into Agent only and Human + agent (named as src/lib/taxonomy.ts names them), which combines with the
 // agent's name (the dashboard links to each name). A row of the dashboard's Sources, Devices or Geography tables opens
-// the list of its sessions (dimension and key in the URL, as PostHog's "View recordings"): a tag in the filter bar
-// says which, and removing it shows every session again.
+// the list of its sessions (dimension and key in the URL, as PostHog's "View recordings"): a tag in the filter bar says
+// which, and removing it shows every session again.
 import { useState } from "react"
 import { useSearchParams } from "react-router"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -23,7 +23,9 @@ import { api, asApiError, useApi } from "@/data/api"
 import type { AgentTurns, DateRange, Evidence, SessionSummary, SessionsPage as Page, SessionsQuery, Verdict, WebDimension } from "@/data/types"
 import { ALL, ANY_AGENT, VERDICT_FILTERS, choiceQuery, pick, readEvidence, readRange, readTurns } from "@/lib/filters"
 import { TAXONOMY, TURNS_ORDER } from "@/lib/taxonomy"
-import { WORDS, sessionCount } from "@/lib/words"
+import { sessionCount } from "@/lib/counts"
+import { integer } from "@/lib/format"
+import { WORDS } from "@/lib/words"
 import { RangeFilter } from "@/pages/dashboard"
 
 /** The verdict filter's chips in order, each in its verdict's colours (All is neutral). */
@@ -107,7 +109,7 @@ function SessionList({ query, page, filters, set, clear, row, clearRow }: {
       <Card variant="flat" size="sm">
         <CardContent className="flex flex-wrap items-center gap-2">
           <ToggleGroup type="single" value={filters.filter} onValueChange={(v) => v && set("filter")(v)} aria-label="Session type" className="flex-wrap">
-            {CHIPS.map((c) => <ToggleGroupItem key={c.value} value={c.value} variant={c.variant}>{c.label} <span className="font-mono text-xs">{page.counts[c.value]}</span></ToggleGroupItem>)}
+            {CHIPS.map((c) => <ToggleGroupItem key={c.value} value={c.value} variant={c.variant}>{c.label} <span className="font-mono text-xs">{integer(page.counts[c.value])}</span></ToggleGroupItem>)}
           </ToggleGroup>
           <Separator orientation="vertical" className="h-6 max-md:hidden" />
           <Select value={filters.agent} onValueChange={set("agent")}><SelectTrigger aria-label="Agent"><SelectValue /></SelectTrigger>
@@ -121,19 +123,19 @@ function SessionList({ query, page, filters, set, clear, row, clearRow }: {
           )}
           {filters.filter === "agent" && (
             <ToggleGroup type="single" variant="outline" size="sm" value={filters.turns} onValueChange={(v) => v && set("turns")(v)} aria-label="Human involvement" className="basis-full flex-wrap">
-              <ToggleGroupItem value={ALL}>{WORDS.eitherTurns} <span className="font-mono text-xs">{page.counts.agent}</span></ToggleGroupItem>
+              <ToggleGroupItem value={ALL}>{WORDS.eitherTurns} <span className="font-mono text-xs">{integer(page.counts.agent)}</span></ToggleGroupItem>
               {TURNS_ORDER.map((t) => (
                 <Hint key={t} text={TAXONOMY.turns[t].about}>
-                  <ToggleGroupItem value={t}>{TAXONOMY.turns[t].label} <span className="font-mono text-xs">{page.counts[t]}</span></ToggleGroupItem>
+                  <ToggleGroupItem value={t}>{TAXONOMY.turns[t].label} <span className="font-mono text-xs">{integer(page.counts[t])}</span></ToggleGroupItem>
                 </Hint>
               ))}
             </ToggleGroup>
           )}
           {filters.filter === "human" && (
             <ToggleGroup type="single" variant="outline" size="sm" value={filters.evidence} onValueChange={(v) => v && set("evidence")(v)} aria-label="Evidence" className="basis-full flex-wrap">
-              <ToggleGroupItem value={ALL}>{WORDS.allHumanSessions} <span className="font-mono text-xs">{page.counts.human}</span></ToggleGroupItem>
+              <ToggleGroupItem value={ALL}>{WORDS.allHumanSessions} <span className="font-mono text-xs">{integer(page.counts.human)}</span></ToggleGroupItem>
               <Hint text={TAXONOMY.evidence.thin.about}>
-                <ToggleGroupItem value="thin">{TAXONOMY.evidence.thin.label} <span className="font-mono text-xs">{page.counts.thin}</span></ToggleGroupItem>
+                <ToggleGroupItem value="thin">{TAXONOMY.evidence.thin.label} <span className="font-mono text-xs">{integer(page.counts.thin)}</span></ToggleGroupItem>
               </Hint>
             </ToggleGroup>
           )}

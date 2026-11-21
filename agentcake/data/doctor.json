@@ -1,5 +1,5 @@
 {
-  "about": "What doctor sends and how it reads the answers. page_request: the headers of the request doctor sends to a page of the user's website (site_url, or doctor --url): a page typed into a browser's address bar (Sec-Fetch-* as Chrome sends them for it), plus the three Web Bot Auth headers with values that only say they are a test; the site's middleware copies Sec-Fetch-* and Signature-Agent into its token and notes whether Signature and Signature-Input came, so doctor sees what reached the site's server. user_agent: {command}-doctor/{version}. blocked_errors: the errno names a connection to 127.0.0.1 fails with when a sandbox forbids it (macOS sandbox and Linux seccomp: EPERM or EACCES; a network namespace without loopback: ENETUNREACH), as opposed to ECONNREFUSED, which means nothing listens there. write_blocked_errors: the errno names a write in the replays folder fails with when a sandbox forbids it although the folder's permissions allow it (macOS sandbox: EPERM; Linux Landlock: EACCES), so doctor says so instead of calling the storage broken.",
+  "about": "What doctor sends and how it reads the answers. page_request: the headers of the request doctor sends to a page of the user's website (site_url, or doctor --url): a page typed into a browser's address bar (Sec-Fetch-* as Chrome sends them for it), plus the three Web Bot Auth headers with values that only say they are a test; the site's middleware copies Sec-Fetch-* and Signature-Agent into its token and notes whether Signature and Signature-Input came, so doctor sees what reached the site's server. user_agent: {command}-doctor/{version}. blocked_errors: the errno names a connection to 127.0.0.1, or to the page of the website doctor opens, fails with when a sandbox forbids it (macOS sandbox and Linux seccomp: EPERM or EACCES; a network namespace without loopback: ENETUNREACH), as opposed to ECONNREFUSED, which means nothing listens there. Only the system's own errors count: a TLS error carries the TLS library's code in errno (SSL_ERROR_SSL, the code of every refused certificate and of an https address on a plain HTTP server, is 1, the number of EPERM), and a failed DNS lookup the resolver's (EAI_*, on macOS 1 and 13 among them, the numbers of EPERM and EACCES). certificate_errors: for a certificate of the website's page that Python's default check refuses, the copy entry (data/copy.en.json) that says what is wrong, with the host of the address where the check refused it (after a redirect, the address it led to), by the check's code (verify_code, OpenSSL's X509_V_ERR_* numbers in include/openssl/x509_vfy.h), the first entry whose codes hold it: 9 not valid yet and 10 expired, both by this computer's clock and for any certificate of the chain; 18 self-signed; 62 not issued for the page's host name; 64 not for its IP address; 2, 19, 20 and 21 no chain to an authority Python trusts (a server that leaves out its intermediate certificates, a proxy that replaces certificates, a Python without root certificates); 78 and 80 to 93 the rules OpenSSL checks in strict mode, which Python 3.13 and later turn on (ssl.VERIFY_X509_STRICT), for any certificate of the chain, 85 among them, a certificate without an Authority Key Identifier. These numbers are the same in OpenSSL 1.1.1 and 3, except the strict mode's, which only OpenSSL 3 has (1.1.1 gives 78 and 79 to other errors); OpenSSL 3's 79, an issuer that is no CA, and 94, a key with explicit EC parameters, come outside strict mode too, though x509_vfy.h lists them with it (both tried with Python 3.14 on OpenSSL 3.6.4): openssl names the first major version of the OpenSSL Python runs on that an entry's codes hold for. Any other code: doctor_live_cert_other, with the check's own words. write_blocked_errors: the errno names a write in the replays folder fails with when a sandbox forbids it although the folder's permissions allow it (macOS sandbox: EPERM; Linux Landlock: EACCES), so doctor says so instead of calling the storage broken. The rest is for server mode (doctor_public.py). public_timeout_s: how long each of its requests over the internet may wait to connect, for the TLS handshake and for each read of the answer; the DNS lookup before it is bounded by the system resolver's own timeouts, not by this. upload_request: the headers of its self-check upload besides Origin, User-Agent and the made-up header, as cake.js sends an upload (Content-Type text/plain); the Accept-Language value is a valid tag no proxy rewrites, so a changed value means a replaced header. made_up_ja4: the value doctor sends in the load balancer's JA4 header (data/lb_headers.json): a visitor can send that header too, so whatever is in front of AgentCake must set or remove it. platforms: what is in front of AgentCake, told apart by the headers it adds to the self-check's answer (name and, with contains, a part of the value, any letter case) or to the request that reaches AgentCake (the name alone, as collect keeps the names): the headers come from each platform's own documentation; the most specific first, as a CDN sits in front of a load balancer. range_label ties a platform to the label of its address ranges in data/lists/ip_ranges.json. fix, address_fix and dns_fix name the copy entries (data/copy.en.json) that say how to change that platform when it changes the request's headers, when AgentCake sees its address instead of the visitor's, and when the DNS record of public_url leads to it. status_fix: for an HTTP status the platform answers the self-check upload with itself, without passing it on, the copy entry that says what to change instead of the general one (doctor_public_fix_forward: the path rule); CloudFront answers 403 to a method its behavior's Allowed HTTP methods leave out (AWS, \"HTTP 403 status code (Invalid method)\"), and the upload is a POST.",
   "page_request": {
     "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
     "sec-fetch-site": "none",
@@ -12,5 +12,42 @@
   },
   "user_agent": "{command}-doctor/{version}",
   "blocked_errors": ["EPERM", "EACCES", "ENETUNREACH"],
-  "write_blocked_errors": ["EPERM", "EACCES"]
+  "write_blocked_errors": ["EPERM", "EACCES"],
+  "certificate_errors": [
+    {"entry": "doctor_live_cert_dates", "codes": [9, 10]},
+    {"entry": "doctor_live_cert_self_signed", "codes": [18]},
+    {"entry": "doctor_live_cert_name", "codes": [62]},
+    {"entry": "doctor_live_cert_ip", "codes": [64]},
+    {"entry": "doctor_live_cert_issuer", "codes": [2, 19, 20, 21]},
+    {"entry": "doctor_live_cert_strict", "codes": [78, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93], "openssl": 3}
+  ],
+  "page_cache": {
+    "$comment": "A page of a site whose server has the middleware came without a token: doctor asks for it once more, with query and a random value of value_bytes bytes (new each run), an address no page cache has stored. Cache Enabler, WP Super Cache and most page cache plugins pass a URL with a query string they do not know on to the site (tried in Cache Enabler 1.8.17 on WordPress 7.1.5), so a good token there means the first page came from a cache (doctor_live.py). headers: the response headers page caches add, the first one the first page has is named: Cache Enabler, WP Super Cache, LiteSpeed Cache and Cloudflare send their own, Varnish, other CDNs and nginx setups commonly X-Cache or X-Cache-Status. no_store: the option, by the middleware's edge folder, that keeps pages out of caches so that every view gets its own token (edge/*/README.md).",
+    "query": "agentcake-doctor",
+    "value_bytes": 8,
+    "headers": ["X-Cache-Handler", "WP-Super-Cache", "X-LiteSpeed-Cache", "CF-Cache-Status", "X-Cache", "X-Cache-Status"],
+    "no_store": {"node": "noStore", "php": "noStore", "python": "no_store", "wordpress": "Page caching (Settings > AgentCake)"}
+  },
+  "public_timeout_s": 10,
+  "upload_request": {"content-type": "text/plain;charset=UTF-8", "accept-language": "en-x-doctor"},
+  "made_up_ja4": "made-up-by-doctor",
+  "platforms": [
+    {"name": "CloudFront", "match": [{"header": "x-amz-cf-id"}, {"header": "x-amz-cf-pop"}, {"header": "via", "contains": "cloudfront"}],
+     "fix": "doctor_public_fix_cloudfront", "status_fix": {"403": "doctor_public_fix_cloudfront_methods"}},
+    {"name": "Cloudflare", "match": [{"header": "cf-ray"}, {"header": "cf-connecting-ip"}, {"header": "server", "contains": "cloudflare"}],
+     "range_label": "Cloudflare", "fix": "doctor_public_fix_cloudflare", "address_fix": "doctor_public_fix_cloudflare_address",
+     "dns_fix": "doctor_public_fix_cloudflare_dns"},
+    {"name": "Vercel", "match": [{"header": "x-vercel-id"}, {"header": "server", "contains": "vercel"}], "fix": "doctor_public_fix_vercel"},
+    {"name": "Netlify", "match": [{"header": "x-nf-request-id"}, {"header": "server", "contains": "netlify"}]},
+    {"name": "Azure Front Door", "match": [{"header": "x-azure-ref"}, {"header": "x-azure-fdid"}, {"header": "x-azure-socketip"}],
+     "fix": "doctor_public_fix_azure"},
+    {"name": "Fly.io", "match": [{"header": "fly-client-ip"}, {"header": "fly-request-id"}, {"header": "via", "contains": "fly.io"}]},
+    {"name": "DigitalOcean App Platform", "match": [{"header": "do-connecting-ip"}, {"header": "x-do-app-origin"}]},
+    {"name": "Heroku", "match": [{"header": "via", "contains": "vegur"}]},
+    {"name": "Google Cloud load balancer", "match": [{"header": "via", "contains": "google"}, {"header": "x-cloud-trace-context"}]},
+    {"name": "AWS Application Load Balancer", "match": [{"header": "x-amzn-trace-id"}]},
+    {"name": "nginx", "match": [{"header": "server", "contains": "nginx"}], "fix": "doctor_public_fix_nginx"},
+    {"name": "Apache", "match": [{"header": "server", "contains": "apache"}], "fix": "doctor_public_fix_apache"},
+    {"name": "Caddy", "match": [{"header": "server", "contains": "caddy"}], "fix": "doctor_public_fix_caddy"}
+  ]
 }

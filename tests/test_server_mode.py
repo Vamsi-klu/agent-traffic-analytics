@@ -6,7 +6,9 @@ A real `agentcake serve` (cake_server.CakeServer) with its local page and its pu
 test plays the load balancer by sending its headers itself. It checks what SERVER.md promises: every local page path
 is 404 on the public port; the local page does not answer on this computer's network address; the load balancer's
 headers count only on the public listener and only with trust_lb on, X-Forwarded-For and the like never; the
-visitor's address is in no file of CAKE_HOME, in no stored event and not in the server's output.
+visitor's place comes from the city database (one copied in while the server runs is used at once), never from a
+header; the visitor's address is in no file of CAKE_HOME, in no stored event and not in the server's output; collect,
+and only collect, answers a page on another origin (the subdomain route) with CORS, and its preflight with 204.
 """
 import ipaddress
 import json
@@ -21,7 +23,8 @@ from unittest import mock
 
 TESTS = os.path.dirname(os.path.abspath(__file__))
 sys.path[:0] = [os.path.dirname(TESTS), TESTS]
-from agentcake import edge_api, netfacts, routes, streams  # noqa: E402  (needs the path above)
+import geo_fixtures  # noqa: E402
+from agentcake import config, edge_api, geoip, netfacts, routes, streams  # noqa: E402  (needs the path above)
 from agentcake.detect import lists  # noqa: E402
 from cake_server import (PREFIX, SERVER_MD, SITE_KEY, START_TIMEOUT_S, CakeServer, documented_public_routes,  # noqa: E402
                          free_port, http, read, run_cli)
@@ -59,10 +62,11 @@ def visit(session_id):
 
 
 def load_balancer_headers(address):
-    """The headers a load balancer adds in front of AgentCake (data/lb_headers.json), with made-up values."""
+    """The headers a load balancer adds in front of AgentCake (data/lb_headers.json), with made-up values, and the
+    place headers AgentCake 0.5 read, which a visitor can send too and which nothing reads any more."""
     names = netfacts.lb_headers()
-    return {names["ip"]: address, names["region"]: "US", names["ja4"]: "t13d1516h2_8daaf6152771_d8a2da3f94cd",
-            names["proto"]: "HTTP/2", "Content-Type": "text/plain"}
+    return {names["ip"]: address, names["ja4"]: "t13d1516h2_8daaf6152771_d8a2da3f94cd", names["proto"]: "HTTP/2",
+            "X-Cake-Region": "FR", "X-Cake-City": "Paris", "Content-Type": "text/plain"}
 
 
 def status_of_raw_request(port, request_line):
@@ -125,6 +129,74 @@ class PublicListener(unittest.TestCase):
         self.assertEqual(run_cli(idle, "status").returncode, 1)
 
 
+class CrossOriginCollect(unittest.TestCase):
+    """The subdomain route puts the website's pages and AgentCake's public listener on two origins
+    (https://www.example.com and https://cake.example.com). collect answers as PostHog 1.0's capture did: the request's
+    own Origin may read the answer, which is empty, whichever site sent it (whether a visit counts as the website's is
+    site_domain's to say, not CORS's); its preflight is 204. Nothing else on the public listener carries CORS."""
+
+    PAGE = "https://www.example.com"
+    PREFLIGHT = {"Origin": PAGE, "Access-Control-Request-Method": "POST", "Access-Control-Request-Headers": "content-type"}
+
+    @classmethod
+    def setUpClass(cls):
+        cls.server = CakeServer(trust_lb=True)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.server.remove()
+
+    def post(self, origin, body):
+        headers = {"Content-Type": "text/plain", **({"Origin": origin} if origin else {})}
+        return http(self.server.public + routes.COLLECT, body, headers, "POST")
+
+    def test_collect_answers_the_requests_own_origin(self):
+        status, headers, _ = self.post(self.PAGE, visit("cors-site"))
+        self.assertEqual(status, 204)
+        self.assertEqual(headers.get("Access-Control-Allow-Origin"), self.PAGE)
+        self.assertEqual(headers.get("Vary"), "Origin")
+        self.assertNotIn("Access-Control-Allow-Credentials", headers, "cake.js sends no cookie")
+
+    def test_any_origin_may_read_the_answer_a_sandboxed_page_too(self):
+        for number, origin in enumerate(("http://localhost:5173", "https://shop.elsewhere.example", "null")):
+            with self.subTest(origin=origin):
+                headers = self.post(origin, visit(f"cors-any-{number}"))[1]
+                self.assertEqual(headers.get("Access-Control-Allow-Origin"), origin)
+
+    def test_an_origin_no_browser_sends_is_not_echoed_and_the_visit_still_counts(self):
+        for number, origin in enumerate(("https://www.example.com/a/page", "javascript:alert(1)",
+                                         "https://a.example, https://b.example", None)):
+            with self.subTest(origin=origin):
+                status, headers, _ = self.post(origin, visit(f"cors-odd-{number}"))
+                self.assertEqual(status, 204)
+                self.assertNotIn("Access-Control-Allow-Origin", headers)
+
+    def test_a_refusal_carries_cors_too_so_the_page_reads_it_as_final(self):
+        """cake.js sends a batch again only for its retry statuses (transport.js); without CORS a refusal reads as a
+        network error, and the page would send the refused batch again on every tick."""
+        status, headers, _ = self.post(self.PAGE, json.dumps({"k": "ck_another_site", "s": "cors-refused"}).encode())
+        self.assertEqual((status, headers.get("Access-Control-Allow-Origin")), (403, self.PAGE))
+
+    def test_a_preflight_of_collect_is_204(self):
+        status, headers, body = http(self.server.public + routes.COLLECT, None, self.PREFLIGHT, "OPTIONS")
+        self.assertEqual((status, body), (204, b""))
+        self.assertEqual(headers.get("Access-Control-Allow-Origin"), self.PAGE)
+        self.assertEqual(headers.get("Access-Control-Allow-Methods"), "POST")
+        self.assertEqual(headers.get("Access-Control-Allow-Headers"), "Content-Type")
+
+    def test_no_other_public_path_carries_cors_and_their_preflights_are_404(self):
+        for route in (r for r in routes.PUBLIC if r.path != routes.COLLECT):
+            with self.subTest(route=f"{route.method} {route.path}"):
+                body = b"" if route.method == "POST" else None
+                headers = http(self.server.public + route.path, body, self.PREFLIGHT, route.method)[1]
+                self.assertNotIn("Access-Control-Allow-Origin", headers)
+                self.assertEqual(http(self.server.public + route.path, None, self.PREFLIGHT, "OPTIONS")[0], 404)
+
+    def test_a_preflight_outside_the_prefix_is_404(self):
+        outside = f"http://127.0.0.1:{self.server.public_port}{routes.COLLECT}"
+        self.assertEqual(http(outside, None, self.PREFLIGHT, "OPTIONS")[0], 404)
+
+
 class LoadBalancerHeaders(unittest.TestCase):
     """The load balancer's headers count only on the public listener, only with trust_lb on; X-Forwarded-For and the
     like never. The visitor's address is looked up and dropped: no file, stored event or output line keeps it."""
@@ -137,6 +209,8 @@ class LoadBalancerHeaders(unittest.TestCase):
         cls.expected_range = netfacts.published_range(cls.address)[0]
         trusting, not_trusting = CakeServer(trust_lb=True), CakeServer(trust_lb=False)
         cls.servers = (trusting, not_trusting)
+        with mock.patch.dict(os.environ, {"CAKE_HOME": trusting.home}):  # while the server runs, as lists update does
+            geo_fixtures.install(geoip.user_folder(), geo_fixtures.single(cls.address, "US", "Texas", "San Antonio"))
         headers = load_balancer_headers(cls.address)
         forwarded = {name: cls.address for name in FORWARDING_HEADERS} | {"Content-Type": "text/plain"}
         cls.answers = {
@@ -157,7 +231,8 @@ class LoadBalancerHeaders(unittest.TestCase):
 
     def test_public_listener_with_trust_lb_reads_them(self):
         net = self.trusting.net_of("public")
-        self.assertEqual((net["range"], net["country"], net["proto"]), (self.expected_range, "US", "HTTP/2"))
+        self.assertEqual((net["range"], net["country"], net["city"], net["proto"]),
+                         (self.expected_range, "US", "San Antonio", "HTTP/2"))
 
     def test_local_listener_ignores_them(self):
         self.assertIsNone(self.trusting.net_of("local"))
@@ -217,6 +292,54 @@ class UnreadableRequestTarget(unittest.TestCase):
         self.assertEqual(self.health, (200, 200))
 
     def test_the_server_writes_no_traceback(self):
+        self.assertNotIn("Traceback", self.output)
+
+
+def status_of_post(port, path, framing):
+    """The status a listener answers a POST with these framing header lines and no body with; None when it closes
+    the connection without an answer or is still waiting for a body after START_TIMEOUT_S."""
+    lines = [f"POST {path} HTTP/1.1", f"Host: 127.0.0.1:{port}", "Content-Type: text/plain"] + framing
+    with socket.create_connection(("127.0.0.1", port), timeout=START_TIMEOUT_S) as s:
+        s.sendall(("\r\n".join(lines) + "\r\n\r\n").encode("latin-1"))
+        try:
+            first = s.makefile("rb").readline().decode("latin-1")
+        except TimeoutError:
+            return None
+    return int(first.split()[1]) if first else None
+
+
+class BodyFraming(unittest.TestCase):
+    """A POST whose body is not framed by one Content-Length of digits within the listener's limit is refused before
+    its body is read, on both listeners: anyone can send one to the public port. A negative length used to make the
+    server read until the client hung up, and text made it write a traceback and answer nothing."""
+
+    REFUSED = {("Content-Length: -1",): 400, ("Content-Length: ten",): 400, ("Content-Length: 5, 5",): 400,
+               ("Content-Length: 5", "Content-Length: 5"): 400, ("Transfer-Encoding: chunked",): 411}
+
+    @classmethod
+    def setUpClass(cls):
+        cls.server = CakeServer(trust_lb=False)
+        listeners = {"local": (cls.server.local_port, "", config.DEFAULTS["local_max_body_bytes"]),
+                     "public": (cls.server.public_port, PREFIX, config.DEFAULTS["public_max_body_bytes"])}
+        cls.statuses = {(name, framing): status_of_post(port, prefix + routes.COLLECT, list(framing))
+                        for name, (port, prefix, _) in listeners.items() for framing in cls.REFUSED}
+        cls.too_large = {name: status_of_post(port, prefix + routes.COLLECT, [f"Content-Length: {limit + 1}"])
+                         for name, (port, prefix, limit) in listeners.items()}
+        cls.health = (http(cls.server.local + "/api/health")[0], http(cls.server.public + "/healthz")[0])
+        cls.output = cls.server.stop()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.server.remove()
+
+    def test_each_framing_is_refused_on_both_listeners(self):
+        self.assertEqual(self.statuses, {(name, framing): self.REFUSED[framing] for name, framing in self.statuses})
+
+    def test_a_length_over_the_limit_is_413_on_both_listeners(self):
+        self.assertEqual(self.too_large, {"local": 413, "public": 413})
+
+    def test_the_listeners_go_on_answering_and_write_no_traceback(self):
+        self.assertEqual(self.health, (200, 200))
         self.assertNotIn("Traceback", self.output)
 
 

@@ -29,8 +29,9 @@
                "disk": { "total": 494384795648, "free": 171798691840, "min_free": 10737418240, "low": false }, "replays_stopped": null },
   "coverage": {
     "bot": {
-      "question": "What counts as a bot?",
-      "answer": "A bot is a program that identifies itself and is known to run without a human. Examples include search engines, monitors, and link previews. Visitors that only appear automated count as Agent sessions."
+      "question": "What counts as a script bot?",
+      "answer": "Script bots are programs on the bot list that run the page script, such as search engines and monitors. Bots that don't run JavaScript aren't recorded. Visitors that only appear automated count as Agent sessions."
     }
-  }
+  },
+  "address_check": { "sessions": 0, "cdn": 0, "misconfigured": false }
 }

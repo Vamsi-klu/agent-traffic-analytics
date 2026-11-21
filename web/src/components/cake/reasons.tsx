@@ -54,9 +54,9 @@ export function ReasonLayer({ layer }: { layer: LayerReasons }) {
   const off = layer.state === "off"
   const unexplained = layer.reasons.length ? null : UNEXPLAINED[layer.state]
   return (
-    <section data-layer={layer.layer} data-state={layer.state} className={cn("overflow-hidden rounded-xl border-2 bg-card", off ? "border-dashed border-border" : "border-line")}>
-      <header className={cn("flex items-center gap-2 border-b-2 border-border px-3 py-2 font-extrabold", off ? "text-faint-foreground" : "bg-muted")}>
-        <span className={cn("inline-flex size-6 items-center justify-center rounded-full font-heading text-sm", off ? "bg-unsure text-card" : "bg-foreground text-background")}>{n}</span>
+    <section data-layer={layer.layer} data-state={layer.state} className={cn("overflow-hidden rounded-xl border-2 bg-card minimal:border", off ? "border-dashed border-border minimal:border-input" : "border-line")}>
+      <header className={cn("flex items-center gap-2 border-b-2 border-border px-3 py-2 font-extrabold minimal:border-b minimal:font-semibold", off ? "text-faint-foreground" : "bg-muted")}>
+        <span className={cn("inline-flex size-6 items-center justify-center rounded-full font-heading text-sm minimal:size-5 minimal:text-xs minimal:font-bold", off ? "bg-unsure text-card" : "bg-foreground text-background")}>{n}</span>
         {name}<span className="ml-auto"><LayerState layer={layer} /></span>
       </header>
       <ul className="flex flex-col gap-2 px-3 py-2">

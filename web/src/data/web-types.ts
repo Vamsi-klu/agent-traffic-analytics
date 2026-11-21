@@ -1,5 +1,6 @@
 // The JSON of GET /api/web (agentcake/api/web.py): visitors and the dashboard's Sources, Devices and Geography tables.
 // Part of the /api contract of ./types.ts, which re-exports these types (kept apart so each file stays one job).
+import type { Places } from "./place-types"
 import type { DateRange } from "./types"
 
 export type WebQuery = { range?: DateRange }
@@ -10,8 +11,8 @@ export type WebDimension =
   | "country" | "region" | "city" | "timezone" | "language"
 /** One value of a dimension: its Agent and Human sessions, the distinct visitor ids of its sessions, of its Agent and
  *  of its Human ones (null: none has one) and its page views, in all and by Agent and Human. key: what /api/sessions takes (null: the sessions without
- *  a value); value: what the row shows (null: not set; "" for the referring domain: no referrer); country: the country
- *  of a region or a city. */
+ *  a value; a region's or a city's is "<country>:<name>", "<country>:" for its country's Not set); value: what the row
+ *  shows (null: not set; "" for the referring domain: no referrer); country: the country of a region or a city. */
 export type WebRow = {
   key: string | null; value: string | null; country: string | null; agent: number; human: number
   visitors: number | null; agent_visitors: number | null; human_visitors: number | null
@@ -52,8 +53,9 @@ export type WebAnalytics = {
   tables: { sources: WebTable; devices: WebTable; geography: WebTable }
   /** How many rows a table shows before Show all. */
   shown: number
-  /** Whether the load balancer gives a session's country, region and city (a server with trust_lb). */
-  place: boolean
+  /** Where the country, region and city come from (the city database on a server), and DB-IP's credit while it is in
+   *  use. */
+  place: Places
   /** What the Trends chart's note calls the time zone its days and hours are in: "PST", "UTC", "UTC+05:45". */
   time_zone: string
 }

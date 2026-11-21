@@ -8,7 +8,8 @@ you and your visitors are. Have it checked by someone who can advise you on them
 How to use it: copy the text between the lines into your privacy notice, replace each `[bracketed]` part, and delete
 the sentences that do not apply to your site (for example the server middleware sentence when your server does not
 run AgentCake's middleware). Keep it in step with how you set AgentCake up: if you ask visitors before recording, say
-so; if you chose a retention period, give it.
+so; if you chose a retention period, give it. AgentCake records the country, region, and city only when it runs on a
+server with `trust_lb` on.
 
 ---
 
@@ -42,14 +43,18 @@ checkout from automated use / describe the purpose]. AgentCake does not try to i
   browser sends only the code, never the identifier. The code can't be turned back into the identifier, but we can make
   the same code from it, so it can link these visits to your account.
 
+Our server also records the country, region, and city of your IP address. This location comes from a local copy of
+DB-IP's IP to City Lite database.
+
 **What is not recorded**: what you type, which keys you press, passwords, card numbers, the content of private fields,
-cookies, and your IP address. Our server uses your IP address for a moment to check whether it belongs to a published
-network of an AI service, then discards it, keeping only codes made from it and from its network with a random key
-that is replaced every [30] days: they show whether two requests came from the same network, and cannot be turned back
-into your address. AgentCake sets no cookies. It keeps a random visit identifier in your browser's session storage,
-which is deleted when you close the tab, and a random visitor identifier in your browser's local storage, which it
-uses only to count how many visitors the site has and which is deleted a year after your last visit[, together with
-the code made from our identifier for your account, which is deleted when you sign out].
+cookies, and your IP address. Our server checks your IP address against published network ranges, such as those of AI
+services. The server also looks up the country, region, and city of the address, and then discards the address. Only
+these results are kept, together with salted hashes of the address and its network. The hashes use a random key that
+is replaced every [30] days. The hashes show whether two requests came from the same address or network. A hash can't
+be reversed to reveal your IP address. AgentCake sets no cookies. It keeps a random visit identifier in your browser's
+session storage, which is deleted when you close the tab, and a random visitor identifier in your browser's local
+storage, which it uses only to count how many visitors the site has and which is deleted a year after your last
+visit[, together with the code made from our identifier for your account, which is deleted when you sign out].
 
 **Where it is kept, and who receives it**: on [our server in [country or region] / describe where]. AgentCake does
 not send what it records about your visit to anyone else, including the makers of AgentCake: no website traffic,

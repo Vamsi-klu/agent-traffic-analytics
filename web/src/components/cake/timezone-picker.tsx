@@ -55,7 +55,7 @@ export function TimezonePicker({ id, zones, value, follow, onPick }: {
         <Input value={search} onChange={(e) => { setSearch(e.target.value); setActive(0) }} onKeyDown={keys}
           placeholder={WORDS.searchTimeZones} aria-label={WORDS.searchTimeZones} role="combobox" aria-expanded
           aria-controls={list} aria-activedescendant={shown[active] ? optionId(active) : undefined}
-          className="rounded-b-none border-0 border-b-2 border-border focus-visible:ring-0" />
+          className="rounded-b-none border-0 border-b-2 border-border focus-visible:ring-0 minimal:border-b" />
         <div id={list} role="listbox" aria-label={WORDS.timeZone} className="max-h-72 overflow-y-auto p-1">
           {shown.map((c, i) => (
             <div key={c.name || "follow"} id={optionId(i)} role="option" aria-selected={c.name === value}

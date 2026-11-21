@@ -4,11 +4,12 @@ which operator a Web Bot Auth signer is, all read from files on this computer.
 Like PostHog's bot_definitions.py and bot_ip_networks.py, the lists ship with each release: User-Agent names
 from botscent, PostHog, ai.robots.txt and our own (names.json), operators' published address ranges (ip_ranges.json),
 Web Bot Auth signers (signers.json) and their key directories (keys.json), all built by lists_build.py from
-sources.json. Nothing in this module opens a connection. `agentcake lists update` writes a dated copy under
-<CAKE_HOME>/lists/, which is used while it is at least as new as the release's own.
+sources.json. Nothing in this module opens a connection. `agentcake lists update`, and `agentcake serve` once a month
+(agentcake/updates.py), write a dated copy under <CAKE_HOME>/lists/, which is used while it is at least as new as the
+release's own.
 
     Lists.load(bundled_dir, user_root) -> the snapshot in use (the release's own folder is parsed once per process)
-    current()            -> the same for this CAKE_HOME, cached for this process
+    current()            -> the same for this CAKE_HOME, kept for the process until an update changes it
     .match_ua(ua)        -> {id, name, operator, category: agent | bot, kind, kind_label, row, evidence, sources,
                              browser, by_design, matched} for a declared name (browser: its kind names a browser
                              people also use by hand; by_design: the environment rules that browser matches by
@@ -331,7 +332,8 @@ class Lists:
         if max_age_days is None:
             max_age_days = update_settings()["max_age_days"]
         today = today or datetime.datetime.now(datetime.timezone.utc).date()
-        age = (today - datetime.date.fromisoformat(self.built)).days
+        # a clock behind the build date (a wrong clock, a fixed demo clock) reads as the build day, never a negative age
+        age = max(0, (today - datetime.date.fromisoformat(self.built)).days)
         return {"built": self.built, "age_days": age, "max_age_days": max_age_days, "stale": age > max_age_days,
                 "location": self.location, "sources": self._sources, "skipped": list(self.skipped)}
 
@@ -343,7 +345,7 @@ def update_settings():
 
 
 def user_root():
-    """<CAKE_HOME>/lists: where `agentcake lists update` puts its dated copies."""
+    """<CAKE_HOME>/lists: where `agentcake lists update` and the monthly update put their dated copies."""
     return os.path.join(paths.home(), update_settings()["user_dir"])
 
 
@@ -372,15 +374,23 @@ def _signature(directory):
         return None
 
 
-_CURRENT = {}
+_CURRENT = {}  # user_root -> (that folder's (inode, modification time) when it was read, the Lists in use)
 
 
 def current():
-    """The lists in use for this CAKE_HOME, read once per process (reload() after an update)."""
+    """The lists in use for this CAKE_HOME, kept for the process and read again once an update renamed a new copy into
+    its folder (lists_build.write_snapshot) from another process (the one `agentcake serve` starts for the monthly
+    update, or `agentcake lists update`), as geoip.py notices a new city database: no restart is needed."""
     root = user_root()
-    if root not in _CURRENT:
-        _CURRENT[root] = Lists.load(BUNDLED_DIR, root)
-    return _CURRENT[root]
+    try:  # taken before reading, so a copy renamed in meanwhile is read at the next call
+        found = os.stat(root)
+        state = found.st_ino, found.st_mtime_ns
+    except OSError:  # no update yet
+        state = None
+    kept = _CURRENT.get(root)
+    if kept is None or kept[0] != state:
+        kept = _CURRENT[root] = (state, Lists.load(BUNDLED_DIR, root))
+    return kept[1]
 
 
 def reload():

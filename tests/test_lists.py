@@ -267,31 +267,46 @@ class StatusTest(unittest.TestCase):
         self.assertEqual((stale["age_days"], stale["stale"]), (31, True))
         self.assertEqual(stale["location"], "bundled")
 
+    def test_a_clock_behind_the_build_date_reads_as_the_build_day(self):
+        # A computer whose clock is behind the day the lists were built (a wrong clock, a fixed demo clock) must not
+        # read "Built on <date> (-3 days ago)." in Settings or "-3 day(s) old" in doctor.
+        behind = self.snapshot.status(max_age_days=30, today=self.built - datetime.timedelta(days=3))
+        self.assertEqual((behind["age_days"], behind["stale"]), (0, False))
+
     def test_status_lists_every_source_with_its_snapshot(self):
         sources = self.snapshot.status(max_age_days=30, today=self.built)["sources"]
         for name in ("botscent", "posthog", "ai-robots-txt"):
             self.assertRegex(sources[name]["commit"], "^[0-9a-f]{40}$")
 
 
+def copy_bundled(root, built):
+    """The release's lists as an update dated `built` under root (its folder, written in place)."""
+    target = os.path.join(root, built)
+    os.makedirs(target)
+    for name in lists.SNAPSHOT_FILES:
+        with open(os.path.join(BUNDLED, name), encoding="utf-8") as f:
+            data = json.load(f)
+        data["built"] = built
+        with open(os.path.join(target, name), "w", encoding="utf-8") as f:
+            json.dump(data, f)
+    return target
+
+
+def shifted(days):
+    """The release's lists' date moved by days."""
+    return str(datetime.date.fromisoformat(lists.Lists.load(BUNDLED).built) + datetime.timedelta(days=days))
+
+
 class SnapshotChoiceTest(unittest.TestCase):
     def setUp(self):
         self.root = tempfile.mkdtemp(prefix="cake-lists-")
         self.addCleanup(shutil.rmtree, self.root)
-        self.bundled_built = lists.Lists.load(BUNDLED).built
 
     def copy_bundled(self, built):
-        target = os.path.join(self.root, built)
-        os.makedirs(target)
-        for name in lists.SNAPSHOT_FILES:
-            with open(os.path.join(BUNDLED, name), encoding="utf-8") as f:
-                data = json.load(f)
-            data["built"] = built
-            with open(os.path.join(target, name), "w", encoding="utf-8") as f:
-                json.dump(data, f)
-        return target
+        return copy_bundled(self.root, built)
 
     def shifted(self, days):
-        return str(datetime.date.fromisoformat(self.bundled_built) + datetime.timedelta(days=days))
+        return shifted(days)
 
     def test_a_newer_update_is_used(self):
         newer = self.copy_bundled(self.shifted(5))
@@ -312,6 +327,29 @@ class SnapshotChoiceTest(unittest.TestCase):
         partial = self.copy_bundled(self.shifted(5))
         os.remove(os.path.join(partial, "signers.json"))
         self.assertEqual(lists.Lists.load(BUNDLED, user_root=self.root).location, "bundled")
+
+
+class CurrentTest(unittest.TestCase):
+    """current(): the lists in use for this CAKE_HOME, kept for the process until an update changes its dated copies,
+    whichever process wrote it (`agentcake lists update` beside a running serve, or another serve)."""
+
+    def setUp(self):
+        environment = mock.patch.dict(os.environ, {"CAKE_HOME": tempfile.mkdtemp(prefix="cake-lists-")})
+        environment.start()
+        self.addCleanup(environment.stop)
+        self.addCleanup(shutil.rmtree, os.environ["CAKE_HOME"])
+        lists.reload()
+        self.addCleanup(lists.reload)
+
+    def test_the_lists_are_read_once_while_no_update_comes(self):
+        self.assertIs(lists.current(), lists.current())
+
+    def test_an_update_another_process_wrote_is_used_without_a_restart(self):
+        self.assertEqual(lists.current().location, "bundled")
+        newer = copy_bundled(lists.user_root(), shifted(5))
+        self.assertEqual(lists.current().location, newer)
+        newest = copy_bundled(lists.user_root(), shifted(6))
+        self.assertEqual(lists.current().location, newest)
 
 
 class NoNetworkTest(unittest.TestCase):
