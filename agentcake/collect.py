@@ -11,10 +11,12 @@ hashed, never kept (no other forwarding header is ever read). collect_store.py k
 batch's key, so a batch sent twice is stored once; the visit; the server-half token; each record in its stream with
 its page view, within the limits (settings max_events_per_post, max_events_per_session; field caps in
 data/sizes.json). A request that carries Web Bot Auth headers is checked here, where the whole request is at hand
-(webbotauth.SessionVerifier: the first signed request of a session, once), and the result is kept with the request's
-facts for the verdict (evidence.py). Sessions older than the retention are pruned. Only after the transaction is
-committed does judging.on_data decide whether to judge the session now (schedule.py: every batch on this computer, at
-most every public_judge_interval_ms on the public listener; the maintenance round and an opened page do the rest).
+(webbotauth.SessionVerifier: the first signed request of a session, once; a signature that does not verify with the
+request's Host is tried with the site's other names, which a front door that replaces Host leaves out), and the
+result is kept with the request's facts for the verdict (evidence.py). Sessions older than the retention are pruned.
+Only after the transaction is committed does judging.on_data decide whether to judge the session now (schedule.py:
+every batch on this computer, at most every public_judge_interval_ms on the public listener; the maintenance round
+and an opened page do the rest).
 
 Answers 204, also to a copy of a batch already kept (so cake.js stops sending it), with X-Cake-Token when a token was
 read: ok | dup | reuse | replay | stale | bad | off (edge_token.take_token; reuse is a stored copy of a page, after a
@@ -24,7 +26,7 @@ visit cannot mark itself a test.
 """
 import json
 from http import HTTPStatus
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlsplit
 
 from agentcake import collect_store, config, evidence, judging, netfacts, session_split, site_origin, store, upload
 from agentcake.datafiles import load, sizes
@@ -39,7 +41,7 @@ COLLECT_METHOD = "POST"  # protocol: cake.js uploads with POST (docs/collect-for
 HOST = "Host"  # protocol: the request's authority (RFC 9110 7.2), what a Web Bot Auth signature's @authority covers
 # The public listener sits behind a TLS-terminating load balancer (SERVER.md); the local one is plain HTTP.
 SCHEMES = {True: "https", False: "http"}  # protocol: URI schemes
-_verifier = []  # one webbotauth.SessionVerifier per process, made on first use (it reads the bundled keys)
+_verifier = []  # (the lists it was made from, their webbotauth.SessionVerifier): _session_verifier()
 
 
 def from_local(request):
@@ -99,20 +101,43 @@ def _web_bot_auth(request, session_id, c, public):
     """The Web Bot Auth result of a request carrying Signature-Input or Signature-Agent, as evidence.py reads it;
     None for a request without them, or when the bundled lists cannot be read (doctor says why). The target is
     rebuilt from what the listener kept, so a signature over the path or query may not verify: verdict.json's
-    signature_proxy_components then make it "could not verify", never impersonation."""
+    signature_proxy_components then make it "could not verify", never impersonation. The authority is the request's
+    Host, then the site's other names (site_authorities)."""
     headers = request.headers
     if not (headers.get(HEADERS["signature_input"]) or headers.get(HEADERS["signature_agent"])):
         return None
-    if not _verifier:
-        try:
-            _verifier.append(webbotauth.SessionVerifier(lists.current().key_directories()))
-        except lists.ListsError:
-            return None
+    try:
+        verifier = _session_verifier()
+    except lists.ListsError:
+        return None
     query = urlencode(request.query, doseq=True)
     target = ((c.get("path_prefix") or "") if public else "") + request.path + ("?" + query if query else "")
     signed = httpsig.Request(COLLECT_METHOD, SCHEMES[public], headers.get(HOST) or "", target, list(headers.items()))
-    result = _verifier[0].verify(session_id, signed)
+    result = verifier.verify(session_id, signed, site_authorities(c))
     return {name: getattr(result, name) for name in evidence.VERIFICATION_FIELDS}
+
+
+def _session_verifier():
+    """The verifier of the key directories in the lists in use, made on first use and again once an update replaced
+    the lists (lists.current() is then another snapshot); raises lists.ListsError when they cannot be read."""
+    snapshot = lists.current()
+    if not _verifier or _verifier[0][0] is not snapshot:
+        _verifier[:] = [(snapshot, webbotauth.SessionVerifier(snapshot.key_directories()))]
+    return _verifier[0][1]
+
+
+def site_authorities(c):
+    """The names an agent may have signed a request to the site for: its site_domain with and without
+    www., then the host of public_url (the subdomain route's address, cake.example.com), each once; none unset."""
+    names = []
+    domain = (c.get("site_domain") or "").strip().lower()
+    if domain:
+        www = site_origin.WWW  # the label a site's main name is also served under (www.example.com)
+        names += [domain, domain[len(www):] if domain.startswith(www) else www + domain]
+    public_host = urlsplit(c.get("public_url") or "").netloc.lower()  # an origin: config.py refuses anything else
+    if public_host and public_host not in names:
+        names.append(public_host)
+    return names
 
 
 def _count(refusal, now):

@@ -105,8 +105,8 @@
         "network": {
           "type": ["object", "null"],
           "additionalProperties": false,
-          "required": ["country", "range", "ja4", "protocol"],
-          "properties": { "country": { "$ref": "common.schema.json#/$defs/NullableText" }, "range": { "$ref": "common.schema.json#/$defs/NullableText" }, "ja4": { "$ref": "common.schema.json#/$defs/NullableText" }, "protocol": { "$ref": "common.schema.json#/$defs/NullableText" } }
+          "required": ["country", "range", "ja4", "protocol", "attribution"],
+          "properties": { "country": { "$ref": "common.schema.json#/$defs/NullableText" }, "range": { "$ref": "common.schema.json#/$defs/NullableText" }, "ja4": { "$ref": "common.schema.json#/$defs/NullableText" }, "protocol": { "$ref": "common.schema.json#/$defs/NullableText" }, "attribution": { "$ref": "common.schema.json#/$defs/Attribution" } }
         },
         "note": { "$ref": "common.schema.json#/$defs/NullableText" }
       }

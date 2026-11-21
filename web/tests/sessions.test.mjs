@@ -41,6 +41,20 @@ test("the page is Session replay, and the chips are All, picked by default, then
   } finally { await tab.close() }
 })
 
+test("the chips and the count above the list write a thousand or more with a comma between thousands", async () => {
+  const counts = { all: 12345, human: 7000, agent: 4321, bot: 1024, agent_only: 4000, human_agent: 321, thin: 1500 }
+  const tab = await openTab(app)
+  try {
+    await tab.page.route("**/api/sessions**", (route) => route.fulfill({ json: { ...list, counts, total: counts.all } }))
+    await tab.page.goto(app.url("#/sessions"))
+    await tab.page.waitForSelector('[aria-label="Session type"]', { timeout: WAIT_MS })
+    const { verdicts } = judging
+    assert.deepEqual((await tab.page.locator('[aria-label="Session type"] > *').allInnerTexts()).map((t) => t.replace(/\s+/g, " ")),
+      ["All 12,345", `${verdicts.agent.label} 4,321`, `${verdicts.human.label} 7,000`, `${verdicts.bot.label} 1,024`])
+    assert.ok((await tab.page.locator("main").innerText()).includes("12,345 sessions, sorted from newest to oldest"))
+  } finally { await tab.close() }
+})
+
 test("the title has no description under it: the Bot chip and the rows themselves say what the list holds", async () => {
   const tab = await open()
   try {
@@ -182,7 +196,7 @@ test("bot rows are muted and say there is no human behind them", async () => {
     await tab.page.waitForFunction((n) => document.querySelectorAll('a[href^="#/sessions/"]').length === n, bots.length)
     assert.deepEqual(await ids(tab.page), bots)
     for (const row of await tab.page.$$('a[href^="#/sessions/"]')) {
-      assert.match(await row.innerText(), /Bot sessions are counted but don't show a timeline\./)
+      assert.match(await row.innerText(), /Script bot sessions are counted but don't show a timeline\./)
       assert.equal(await row.getAttribute("data-highlight"), null)
     }
   } finally { await tab.close() }

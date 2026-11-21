@@ -17,7 +17,7 @@ import { Legend, ThinEvidenceTag, TurnsBadge, UnnamedTag, VERDICTS, VerdictBadge
 import { ReasonLayer } from "@/components/cake/reasons"
 import { api, useApi } from "@/data/api"
 import type { Actor, SessionDetail } from "@/data/types"
-import { clock, duration } from "@/lib/format"
+import { clock, duration, integer } from "@/lib/format"
 import { actorAt } from "@/lib/replay-timing"
 import { useReplay, type ReplayState } from "@/lib/use-replay"
 import { WORDS } from "@/lib/words"
@@ -55,8 +55,8 @@ function SessionBody({ d }: { d: SessionDetail }) {
           <VerdictBadge verdict={s.verdict} percent={d.percent} />{s.evidence && <ThinEvidenceTag />}{s.agent_turns && <TurnsBadge turns={s.agent_turns} />}
           {s.agent && <AgentTag name={s.agent} certainty={s.certainty} />}{s.verdict === "agent" && !s.agent && <UnnamedTag />}
         </div>
-        <h1 className="text-3xl font-semibold">{d.title}</h1>
-        <p className="text-sm text-muted-foreground">{s.when} · {duration(d.timeline.duration_ms)} · {d.pages.length} page{d.pages.length === 1 ? "" : "s"} · Session ID <span className="font-mono">{s.id}</span></p>
+        <h1 className="text-3xl font-semibold minimal:text-2xl minimal:font-bold minimal:tracking-tight">{d.title}</h1>
+        <p className="text-sm text-muted-foreground">{s.when} · {duration(d.timeline.duration_ms)} · {integer(d.pages.length)} page{d.pages.length === 1 ? "" : "s"} · Session ID <span className="font-mono">{s.id}</span></p>
       </div>
       <Columns ratio="3-2">
         <div className="flex flex-col gap-5">

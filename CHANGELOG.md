@@ -3,6 +3,195 @@
 Every release of AgentCake, newest first. Each release's files and their `SHA256SUMS` are on
 [GitHub Releases](https://github.com/tartini-ai/agent-traffic-analytics/releases).
 
+## 0.6.0
+
+You can have a coding agent set up AgentCake for your website after you approve its plan. On a server, AgentCake runs at
+a subdomain of your site by default. AgentCake also downloads the latest agent lists every month.
+
+### Upgrading from 0.5.1
+
+- To upgrade a server, see "Upgrading from 0.5.1" in [`SERVER.md`](SERVER.md#upgrading-from-051). Your site key stays
+  the same. The dashboard keeps all existing data.
+- By default, AgentCake downloads updates from the internet every month. To stop these downloads, turn off **Automatic
+  updates** in **Settings**.
+- AgentCake no longer reads location headers from a load balancer. You can remove `X-Cake-Region`, `X-Cake-Subdivision`,
+  and `X-Cake-City` from your load balancer's settings. Sessions recorded earlier keep their location data.
+- For Next.js, Express, and Hono, copy the server middleware into an `agentcake-edge` folder in your repository. Vercel
+  and other CI services can then install the middleware. To get the steps, run `agentcake setup --print --site`.
+
+### Install with a coding agent
+
+- Use the instructions in [`README.md`](README.md) to install AgentCake on your computer or a server. Paste them into a
+  coding agent in your website's code folder. For a site builder, use a new, empty folder.
+- The agent follows the guide in [`INSTALL.md`](INSTALL.md). The agent reviews your website's code, hosting, and DNS
+  without changing any files. Answer the agent's questions about your website, such as its address.
+- The agent will prompt you to approve its plan before it installs AgentCake. Each plan lists the setup, your tasks,
+  the monthly cost of each item, and the total cost.
+- The agent can also do these tasks:
+  - Create a server
+  - Add a DNS record
+  - Deploy your website
+  - Paste the script tag in a site builder
+  - Check the setup with `agentcake doctor`
+- These tasks might require you to sign in to your accounts, enter payment details, and accept terms.
+- If AgentCake is already installed, copy the instructions for your agent from the **Connect your website** page.
+- AgentCake recognizes a folder with only a WordPress theme or plugin as a WordPress site. The setup steps for this
+  folder use AgentCake's WordPress plugin.
+
+### Install on a server
+
+- By default, your website's pages load the page script from a subdomain, such as `cake.example.com`. To start AgentCake
+  and Caddy, run `docker compose up -d` in the release folder on the server.
+- Caddy automatically obtains and renews the HTTPS certificate for your subdomain. Caddy forwards only requests for
+  `/cake/cake.js` and `/cake/collect` to AgentCake. For details, see [`SERVER.md`](SERVER.md).
+- If your site has its own load balancer or reverse proxy, you can use a path of your site instead. With either option,
+  the dashboard is available only at 127.0.0.1 on the server.
+- Use the new `public_url` setting for the address where browsers reach AgentCake on a subdomain. For details, see
+  "Settings" in [`SERVER.md`](SERVER.md#settings).
+- With the new `proxy_hops` setting, AgentCake can read the visitor's IP address from `X-Forwarded-For` on the path
+  option. By default, the value is 0, and AgentCake reads `X-Cake-Client-IP` as before.
+- On the public listener, `/cake/collect` supports CORS, so pages on your website can send data to your subdomain. No
+  cookies are sent or requested.
+- The setup page shows the commands and the DNS record that a subdomain needs. To get the script tag for your subdomain,
+  set `public_url` and run `agentcake setup --print --site`.
+- To use CloudFront with the path option, follow the steps in [`SERVER.md`](SERVER.md#path-rules). Requests from
+  CloudFront to the server use plain HTTP on port 8080 and travel over the internet.
+- If your site doesn't have its own domain, you can use a free sslip.io name for AgentCake's server. To learn about the
+  risks, see "Sites without their own domain" in [`SERVER.md`](SERVER.md#sites-without-their-own-domain).
+- To compare hosting platforms and their requirements, see [`docs/hosting.md`](docs/hosting.md). It shows which setups
+  are free and the approximate monthly cost of the others.
+- With Docker Compose, you can back up the `agentcake-data` volume with the commands in "Backups" in
+  [`SERVER.md`](SERVER.md#backups).
+
+### `agentcake doctor`
+
+- For a subdomain, doctor checks each step that a visitor's browser takes to reach AgentCake. Doctor's test upload
+  doesn't count as a visit. For the path option, doctor runs three of these checks:
+  - **Self-check upload**
+  - **Visitor IP address**
+  - **Recent visitor IP addresses**
+- When a header is removed or replaced, doctor can identify the CDN or proxy that AgentCake runs behind. For some
+  platforms, doctor also shows the setting to change.
+- The self-check upload can fail with a 403 error from CloudFront. To fix it, check that the `/cake/*` behavior forwards
+  requests to AgentCake and allows POST. Doctor shows which **Allowed HTTP methods** to choose.
+- Doctor shows a warning instead of a failure in these cases:
+  - Proxied DNS records on Cloudflare
+  - Cached pages without the token
+  - Uncached pages that time out
+- On a server, doctor shows a warning when the city database is missing or old. The warning says when AgentCake
+  downloads the database, or shows the command that downloads it.
+- For Next.js, Express, and Hono, doctor checks the `agentcake-edge` folder. For each problem, doctor shows how to fix
+  it.
+- For a folder with only a WordPress theme or plugin, doctor skips the code checks. To check the plugin, set `site_url`
+  to a page of your WordPress site.
+- When `agentcake doctor --url` can't verify a site's HTTPS certificate, it says why. For example, the certificate has
+  expired, is self-signed, or is for another host name.
+- When the certificate's issuer isn't trusted, doctor also lists possible causes, such as a proxy that replaces
+  certificates. Doctor no longer blames a sandbox for certificate errors.
+
+### Location
+
+- When an upload arrives, AgentCake looks up the visitor's country, region, and city in the server's city database.
+  Sessions recorded while the server has no city database show Not set as their country.
+- The city database is DB-IP's IP to City Lite, under the CC BY 4.0 license. AgentCake doesn't store the visitor's IP
+  address or send any data about it outside your server.
+- By default, AgentCake downloads a missing database 1 to 15 minutes after it starts. It does this only on a server that
+  reads visitors' IP addresses. To see the database in use, run `agentcake lists`.
+- In **Geography**, the Region and City tables are grouped by country. Sessions without a known region or city appear in
+  one row per country, such as "Germany – Not set".
+- While the database is in use, the dashboard and the session page show "IP Geolocation by DB-IP" with a link to DB-IP.
+  The database's license requires this credit.
+
+### Automatic updates
+
+- Once a month, `agentcake serve` downloads the latest agent lists and IP ranges. On a server that reads visitors' IP
+  addresses, AgentCake also downloads the city database. You can also run `agentcake lists update`.
+- The updates connect only to public addresses that are listed in AgentCake's data files. The updates don't send any
+  data about your site, its visitors, or your installation. For details, see [`PRIVACY.md`](PRIVACY.md).
+- In **Settings**, use the **Automatic updates** switch to turn the updates on or off. By default, the switch is on,
+  both on your computer and on a server. The setting is `lists_auto_update`.
+- If you turn off **Automatic updates** while the lists download, AgentCake skips the city database. When a download
+  fails, AgentCake keeps the lists or database in use and tries again the next day.
+- Settings shows when the last update ran and whether it succeeded. Doctor and `/api/health` also show the last update.
+  AgentCake records the updates in `updates.json` in the data folder.
+- Updates run at the lowest CPU priority on every server, with Docker Compose or systemd. On a server with 1 vCPU,
+  Docker reports AgentCake as healthy during the first update.
+- The Docker health check has a timeout of 30 seconds.
+- With systemd, AgentCake keeps running if an update exceeds the memory limit. **Settings** and `agentcake doctor` show
+  the failed update. To install the new `deploy/cake.service`, follow the steps in [`SERVER.md`](SERVER.md#upgrading).
+
+### Detection
+
+- With CloudFront's default settings, the session page lists the missing `Accept-Language` header only as a weak signal.
+  This also applies to other proxies that change the `User-Agent` header or remove `Sec-Fetch-Mode`.
+- AgentCake can now verify signed agents behind a proxy that changes the `Host` header. AgentCake also checks the
+  signature against `site_domain` and the host in `public_url`.
+- If most recent sessions with an IP address come from a CDN, AgentCake might read the CDN's address. The dashboard
+  shows a warning, and sessions that end during this time are classified without IP addresses.
+- On a server, AgentCake ignores the order of request headers, because a proxy or CDN might change it.
+- AgentCake stores the `Host` header of each upload, which contains your site's name or AgentCake's name. Doctor uses
+  this header to check that its test upload arrives unchanged. For details, see [`PRIVACY.md`](PRIVACY.md).
+- AgentCake checks whether a phone or tablet user agent matches the browser. Device emulation in developer tools can
+  cause the same mismatches. These mismatches alone don't classify a session as Agent.
+- In desktop mode, an iPad page reports a Mac, while its web worker reports an iPad. On a touch screen, AgentCake
+  doesn't treat this as a mismatch.
+- The bundled lists date from November 19, 2026, and include these changes:
+  - CloudFront ranges marked as CDN
+  - More PerplexityBot and Claude-Agent ranges
+  - Updated iCloud Private Relay ranges
+  - Updated AWS ranges
+
+### Dashboard
+
+- **Script bot** is the new name of the **Bot** classification. AgentCake records only bots that run the page script.
+  This count differs from the bot traffic in other analytics tools.
+- Counts on the dashboard and in Session replay use a thousands separator, such as 1,900. The API returns numbers
+  without a separator.
+- The local pages have two styles: **Cake**, which is the default, and **Minimal**, a plain style for reports and
+  screenshots. To switch, use the **Style** menu in the top bar. Your browser saves your selection.
+- The local pages always use a light theme.
+- The behavior model doesn't classify phone or tablet visits. If such a visit is classified as Human with limited
+  evidence, its session page has the title "Phone or tablet visit".
+
+### Local API
+
+- Both `/api/health` and `/api/overview` return a new `address_check` field. It shows how many recent sessions with an
+  IP address came from a CDN. It also indicates whether AgentCake might be reading a CDN's IP address.
+- The new `places` field in `/api/health` shows the city database in use. The new `updates` field shows the status of
+  automatic updates. `/api/settings` also includes `lists_auto_update` and the result of the last update.
+- In `/api/web`, the `place` field shows where Geography gets its location data. When AgentCake uses the city database,
+  the `attribution` field in `/api/session` contains DB-IP's credit.
+- The new `server` field in `/api/setup` contains the server setup that the setup page shows.
+- The API continues to use `bot` in field names and values for Script bot sessions.
+
+### Fixes
+
+- AgentCake compresses the page script, cake.js, with gzip for browsers that support it. This reduces the download from
+  148 KB to 48 KB. AgentCake also sends an ETag for the script.
+- You don't need to restart AgentCake after `agentcake lists update`. This also applies to the keys that verify Web Bot
+  Auth signatures.
+- When a download is shorter than its `Content-Length` header, AgentCake tries the download again. If every attempt
+  fails, AgentCake keeps using the current lists.
+- AgentCake rejects these POST requests on both listeners. It returns an error and closes the connection without reading
+  the body:
+  - No `Content-Length` header
+  - Two `Content-Length` headers
+  - A negative or non-numeric length
+  - A length above the limit
+  - A `Transfer-Encoding` header
+- To clear the `site_dir` setting, run `agentcake config set site_dir ""`. This command doesn't set `site_dir` to the
+  current folder.
+- The WordPress plugin's signatures work on PHP without `getallheaders()`. On the Plugins page, WordPress shows the
+  plugin's version as 0.6.0.
+
+### Removed
+
+- To run AgentCake, use `bin/agentcake` or the installed `agentcake` command. The release doesn't include `bin/cake` or
+  `cake.py` from 0.3.x. If your systemd service runs `cake.py`, install `deploy/cake.service` again.
+- If a page still loads `/rrweb-record.min.js` or `/cake/rrweb-record.min.js`, remove that script tag. This recorder
+  file from 0.3.x is no longer available. The page script includes the session recorder.
+- For more about these changes, see "Upgrading" in [`SERVER.md`](SERVER.md#upgrading).
+
 ## 0.5.1
 
 Last 24 hours replaces Today, dates and times follow a time zone you can choose, and the date ranges and their

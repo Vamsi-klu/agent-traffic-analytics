@@ -6,8 +6,9 @@ session list's filter by one of their rows (/api/sessions?dimension=&key=).
 Visitors are the distinct visitor ids of all the range's sessions, and of its Agent, Human and Bot sessions (a visitor
 with sessions of two kinds counts in both); sessions without one are counted as without, never as visitors. The
 tables leave bots out (Total = Agent + Human): each row holds the sessions (Agent, Human), visitors (all, Agent, Human)
-and page views of one value, most sessions first. Without a load balancer the place
-dimensions have no "not set" row (the dashboard says they come only on a server). A row's key opens its sessions.
+and page views of one value, most sessions first. On this computer the place dimensions
+have no "not set" row (the dashboard says they come only on a server; test_api_places.py has the server's). A row's
+key opens its sessions.
 The Trends chart counts the Agent and the Human sessions by the hour (the last 24 hours) or by the day (7 and 30 days,
 all time) they began in, as the cards count them; Top agents counts each agent's Agent sessions the same way, by its name (the
 ones no name fits together), and never a bot.
@@ -99,17 +100,20 @@ class Answers(WebCase):
         rows = self.dimension(self.get(), "devices", "device_type")
         self.assertEqual({row["key"]: row["agent"] + row["human"] for row in rows}, {"Desktop": 3, "Mobile": 1})
 
-    def test_without_a_load_balancer_the_place_dimensions_have_no_rows(self):
+    def test_on_this_computer_the_place_dimensions_have_no_rows(self):
         body = self.get()
-        self.assertFalse(body["place"])
+        self.assertEqual(body["place"]["source"], "none")
         for name in ("country", "region", "city"):
             self.assertEqual(self.dimension(body, "geography", name), [])
 
-    def test_a_region_is_named_from_cldr_with_its_country(self):
+    def test_a_region_is_named_with_its_country_and_a_cldr_id_by_its_name(self):
         from agentcake.api import web_dimensions
-        self.assertEqual(web_dimensions.label("region", "USCA"), {"value": "California", "country": "US"})
-        self.assertEqual(web_dimensions.label("region", "JP13"), {"value": "Tokyo", "country": "JP"})
-        self.assertEqual(web_dimensions.label("region", "ZZ99"), {"value": "99", "country": "ZZ"})  # unknown: its code
+        self.assertEqual(web_dimensions.label("region", "US:California"), {"value": "California", "country": "US"})
+        self.assertEqual(web_dimensions.label("region", "US:USCA"), {"value": "California", "country": "US"})
+        self.assertEqual(web_dimensions.label("region", "JP:JP13"), {"value": "Tokyo", "country": "JP"})
+        self.assertEqual(web_dimensions.label("region", "ZZ:ZZ99"), {"value": "99", "country": "ZZ"})  # unknown: its code
+        self.assertEqual(web_dimensions.label("region", "DE:"), {"value": None, "country": "DE"})
+        self.assertEqual(web_dimensions.label("city", "DE:"), {"value": None, "country": "DE"})
 
     def test_rows_split_page_views_by_agent_and_human(self):
         rows = self.dimension(self.get(), "sources", "referring_domain")

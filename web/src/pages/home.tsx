@@ -1,9 +1,11 @@
 // Installed, no visits from the website yet: how to connect it, in two ways. First, one sentence for a coding agent,
-// which asks the owner what the code can't tell (the website's address, and where AgentCake runs: a server by default)
-// and then follows `agentcake setup --print --site` (SERVER.md for a server) and doctor; or set it up by hand: 1 the
+// which points to the guide README's install sentence names (INSTALL.md): the agent looks at the website, decides where
+// AgentCake runs, asks the owner, explains its plan and waits for their approval, then connects the website (`agentcake
+// setup --print --site`, SERVER.md for a server) and checks it with doctor; or set it up by hand: 1 the
 // website's address (site_domain, the project the top bar shows), 2 where AgentCake runs (a server for a public website,
-// SERVER.md, the default; this computer for a site on it), 3 the page script, by hand or in a terminal, with the server
-// middleware as an optional part. Under both, the website's first visit, asked for again every refresh_ms and shown when it
+// the default: on its own subdomain, the three things that takes, a server, a DNS record and its settings, each in plain
+// words over its commands, SERVER.md for the rest; this computer for a site on it), 3 the page script, by hand or in a
+// terminal, with the server middleware as an optional part. Under both, the website's first visit, asked for again every refresh_ms and shown when it
 // comes, as PostHog 1.0's setup page asked "What URL will you be using PostHog on?", gave the snippet, and its
 // dashboard waited under "Start sending events" until the first. Sessions an earlier AgentCake's demo shop recorded
 // don't connect the website: the home page stays here until the website's own first session (recorded.site), and the
@@ -28,6 +30,8 @@ import type { SessionSummary, Settings, Setup } from "@/data/types"
 import { PRODUCT_NAME } from "@/lib/product"
 import { WORDS } from "@/lib/words"
 import { useSetProjectDomain, useSetWebsiteConnected } from "@/pages/project"
+
+const ON_SERVER = ["install", "dns", "settings"] as const // the order the subdomain route takes them in
 
 export function HomePage() {
   const navigate = useNavigate()
@@ -79,10 +83,10 @@ function Steps({ setup, initial, onOpen }: { setup: Setup; initial: Settings; on
     >
       <Card aria-labelledby="with-agent">
         <CardContent className="flex flex-col gap-3">
-          <h2 id="with-agent" className="text-xl font-semibold">{WORDS.withAgentTitle}</h2>
+          <h2 id="with-agent" className="text-xl font-semibold minimal:text-lg minimal:font-bold">{WORDS.withAgentTitle}</h2>
           <p className="text-sm text-muted-foreground">{WORDS.withAgentHow}</p>
           <CopyBlock text={setup.sentence} />
-          <p className="text-xs text-faint-foreground">{`The agent asks for your website's address and where to run ${PRODUCT_NAME}. It follows the setup steps to add one line of script to your pages, and then checks the result. Before you commit, review the changes and any steps that remain.`}</p>
+          <p className="text-xs text-faint-foreground">{WORDS.withAgentWhat(PRODUCT_NAME)}</p>
         </CardContent>
       </Card>
       <OrSeparator />
@@ -112,10 +116,16 @@ function Steps({ setup, initial, onOpen }: { setup: Setup; initial: Settings; on
                   <TabsTrigger value="server"><Server aria-hidden />On a server</TabsTrigger>
                   <TabsTrigger value="computer"><Monitor aria-hidden />On this computer</TabsTrigger>
                 </TabsList>
-                <TabsContent value="server" className="flex flex-col gap-2">
+                <TabsContent value="server" className="flex flex-col gap-4">
                   <p className="text-sm">You can't collect data from visitors to your public website if {PRODUCT_NAME} is only accessible on your computer. To collect their visit data, run {PRODUCT_NAME} on a server that can receive data from their browsers, then connect your website to it.</p>
-                  <CopyBlock text={setup.server} />
-                  <p className="text-xs text-faint-foreground">For the full steps, see <DocumentLink path="SERVER.md" />.</p>
+                  {ON_SERVER.map((part) => (
+                    <section key={part} className="flex flex-col gap-2" aria-labelledby={`on-server-${part}`}>
+                      <h3 id={`on-server-${part}`} className="text-sm font-semibold">{WORDS.onServer[part].title}</h3>
+                      <p className="text-sm">{WORDS.onServer[part].what(PRODUCT_NAME)}</p>
+                      <CopyBlock text={setup.server[part]} />
+                    </section>
+                  ))}
+                  <p className="text-xs text-faint-foreground">{WORDS.serverFullSteps} <DocumentLink path="SERVER.md" />.</p>
                 </TabsContent>
                 <TabsContent value="computer"><p className="text-sm">A website that runs on this computer, such as a development server on localhost, sends its visits to {PRODUCT_NAME} automatically, with no setup.</p></TabsContent>
               </Tabs>

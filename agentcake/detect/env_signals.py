@@ -20,9 +20,12 @@ Both give the same dict, which the rules read:
 
     {"pages": [{"path", "env", "auto", "botd", "dom_add", "botscent", "hidden_input", "nav": {"headers"},
                 "markers": {"list", "from", "spans": [{"marker", "product", "kind", "from", "to"}, ...]}}, ...],
-     "collect": {"requests": n, "headers": {name: {"present": k, "values": [...]}}, "ip_classes": [...]},
+     "collect": {"requests": n, "headers": {name: {"present": k, "values": [...]}}, "ua_as_page", "ip_classes": [...]},
      "viewport_changes": [{"page", "dw", "dh", "doh", "w", "h"}, ...],
      "script_settings": {"hook_dom": true}}
+
+ua_as_page: every upload carried a User-Agent the page reported (navigator.userAgent), false when a front door rewrote
+them (CloudFront's defaults: "Amazon CloudFront", no Accept-Language); left out when no page reported one.
 
 A key is left out when the session did not record it, so the rules read it as unknown, not as a miss ("markers" comes
 from cake.js on a page view where its mark watch ran, and from the recorder's check of Claude in Chrome's indicator on
@@ -35,6 +38,7 @@ from __future__ import annotations
 from collections import Counter, defaultdict, namedtuple
 
 from agentcake import addresses
+from agentcake.datafiles import load
 from agentcake.detect import markers
 from agentcake.detect.env_rules import load_rules
 
@@ -53,6 +57,7 @@ RRWEB_META = 4  # protocol: rrweb EventType.Meta (width and height of the viewpo
 RRWEB_VIEWPORT_RESIZE = 4  # protocol: rrweb IncrementalSource.ViewportResize
 PAGE_METHOD = "GET"
 COLLECT_METHOD = "POST"
+USER_AGENT = load("data/edge.json")["headers"]["user_agent"]  # the upload header ua_as_page compares with the page's
 DOM_FIELDS = ("tag", "nattr", "attrs", "open_shadow", "disp", "parent", "how")
 HOOK_FLAGS = ("pptr", "utilityScript", "puppeteerEval")
 # cake.js format v1: the signal records that hold what the lab sent in env.js's `snap.auto`, and the fields they hold
@@ -143,8 +148,8 @@ def _headers(headers, names):
     return out
 
 
-def _collect(requests, names):
-    """The upload requests' headers, counted per name, and the classes of the networks they came from."""
+def _collect(requests, names, page_agents):
+    """The upload requests' headers counted per name, ua_as_page (page_agents: what the page reported) and networks."""
     if not requests:
         return None
     headers = {name: {"present": 0, "values": []} for name in names}
@@ -156,6 +161,9 @@ def _collect(requests, names):
             if value not in headers[name]["values"]:
                 headers[name]["values"].append(value)
     out = {"requests": len(requests), "headers": headers}
+    if page_agents:
+        sent = headers.get(USER_AGENT) or {"present": 0, "values": []}
+        out["ua_as_page"] = sent["present"] == len(requests) and set(sent["values"]) <= set(page_agents)
     if any("ip_class" in request for request in requests):
         out["ip_classes"] = sorted({request["ip_class"] for request in requests if request.get("ip_class")})
     return out
@@ -224,7 +232,8 @@ def _assemble(parts_per_page, collect_requests, settings):
         pages.append(page)
         observations += _observations(index, parts)
     signals = {"pages": pages}
-    collect = _collect(list(collect_requests), settings["network_headers"])
+    page_agents = [p.env.get("userAgent") for p in parts_per_page if isinstance(p.env, dict) and p.env.get("userAgent")]
+    collect = _collect(list(collect_requests), settings["network_headers"], page_agents)
     if collect is not None:
         signals["collect"] = collect
     if observations:

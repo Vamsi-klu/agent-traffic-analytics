@@ -9,7 +9,9 @@ chunk's time. Unknown sessions, self-checks and other sites' uploads are 404, a 
 past the last 404. The server half lists the srv rows with their comparisons and reuses, and says why page views
 have none. A Mixed session's title follows its turns; its summary tells who acted when on the timeline's clock and
 which layers point to the verdict, with their own percents, never another word for how sure it is; its hand-off and
-length are whole milliseconds, the hand-off where its agent segment starts.
+length are whole milliseconds, the hand-off where its agent segment starts. A Human session on limited evidence is
+titled by why the behavior layer judged nothing: a phone or tablet, uploaded, judged and opened, is never titled as too
+few actions however many taps it has; too few actions on a computer still is.
 """
 import json
 import os
@@ -18,12 +20,15 @@ import unittest
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import verdict_cases  # noqa: E402
+from api_client import Client, contract_problems  # noqa: E402
+from test_judging import CHROME, SID, T0, JudgingCase, clicks, visit_batch  # noqa: E402
 from agentcake.api import actions as actions_api, answers, reasons as reasons_api, session as session_api  # noqa: E402
 from agentcake.detect import verdict, verdict_text  # noqa: E402
 from agentcake.wording import product  # noqa: E402
 
 LAYERS = ["name", "verify", "environment", "behavior"]
 ACTION_WORDS = ("Open ", "Click", "Type", "Scroll", "Tap")
+PHONE = {"userAgent": verdict_cases.IPHONE, "platform": "iPhone", "anyPointer": ["coarse"], "maxTouchPoints": 5}
 
 
 class Words(unittest.TestCase):
@@ -60,6 +65,16 @@ class Words(unittest.TestCase):
         self.assertEqual(session_api.title("human", None, "too_little_data", None, [], "thin"), "Not enough actions to classify")
         self.assertEqual(session_api.title("human", None, "not_sure", None, [], "thin"), "Actor not identified")
         self.assertEqual(session_api.title("human", None, None, None, [], "thin"), "Actor not identified")
+
+    def test_a_human_session_on_limited_evidence_is_titled_by_why_the_behavior_layer_judged_nothing(self):
+        """A phone or tablet is never judged by behavior, however many actions it has: its title says so and never
+        that there were too few actions; too few actions still says that."""
+        title = session_api.title
+        self.assertEqual(title("human", None, "too_little_data", None, [], "thin", why="few_actions"),
+                         "Not enough actions to classify")
+        touch = title("human", None, "too_little_data", None, [], "thin", why="touch")
+        self.assertNotEqual(touch, "Not enough actions to classify")
+        self.assertEqual(touch, "Phone or tablet visit")
 
     def test_a_human_agent_summary_tells_who_acted_when_and_which_layers_point_to_it(self):
         epoch = 1_794_608_433_697
@@ -201,6 +216,33 @@ class Layers(unittest.TestCase):
         said = self.layers(judged["layers"], judged["reasons"])["name"]
         self.assertEqual((said["state"], said["percent"]), ("agent", 99))
         self.assertEqual([r["text"] for r in said["reasons"]], ["This visitor identifies itself as Googlebot."])
+
+
+class LimitedEvidenceTitle(JudgingCase):
+    """A session uploaded, judged and opened as the page opens it: a Human session on limited evidence is titled by
+    why the behavior layer judged nothing."""
+
+    def opened(self, raw, env=None, ua=CHROME):
+        body = visit_batch(0, T0, raw, ua=ua)
+        if env:
+            body["x"].append({"t": T0 + 5, "ty": "env", "env": env})
+        self.post(body, T0)
+        answer = Client().get(f"/api/session/{SID}")
+        self.assertEqual(answer.status, 200, answer.body)
+        self.assertEqual(contract_problems(answer.body, "session"), [])
+        return answer.body
+
+    def test_a_phone_or_tablet_with_many_taps_is_never_titled_too_few_actions(self):
+        body = self.opened(clicks(20, T0), env=PHONE, ua=verdict_cases.IPHONE)
+        behavior = next(layer for layer in body["layers"] if layer["layer"] == "behavior")
+        self.assertEqual((body["session"]["verdict"], body["session"]["evidence"]), ("human", "thin"))
+        self.assertIn("phone or tablet", " ".join(reason["text"] for reason in behavior["reasons"]))
+        self.assertNotEqual(body["title"], "Not enough actions to classify")
+        self.assertEqual(body["title"], answers.words()["title"]["touch"])
+
+    def test_too_few_actions_on_a_computer_is_still_titled_so(self):
+        body = self.opened(clicks(1, T0))
+        self.assertEqual((body["session"]["evidence"], body["title"]), ("thin", "Not enough actions to classify"))
 
 
 class Share(unittest.TestCase):

@@ -2,8 +2,7 @@
 
 The first form needs agentcake importable (an installed wheel). bin/agentcake uses the second form for a release
 folder or a checkout: isolated mode (-I) puts neither the current folder nor this file's folder on sys.path, so the
-folder that holds the package is added here, the way pip's own __main__.py does it. cake.py, the 0.3.x
-entry point, runs this file too.
+folder that holds the package is added here, the way pip's own __main__.py does it.
 
 Before anything else is imported, a Python older than the one data/product.json names ("python") is told so in one
 sentence (data/copy.en.json, "python_too_old") instead of failing somewhere later with a traceback. An older Python

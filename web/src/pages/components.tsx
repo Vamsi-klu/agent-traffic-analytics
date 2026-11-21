@@ -38,9 +38,10 @@ import { TrendsChart } from "@/components/cake/trends-chart"
 import { TimezonePicker } from "@/components/cake/timezone-picker"
 import { PathsTable, TABLE_ICONS, WebStatsTable } from "@/components/cake/web-stats"
 import { RegisterCard } from "@/components/cake/register-card"
+import { StyleMenu } from "@/components/cake/style-menu"
 import { UNREACHABLE, api, useApi } from "@/data/api"
 import type { LayerReasons, Overview, Registration, ServerHalf, SessionPage, SessionSummary, Timezones, WebAnalytics } from "@/data/types"
-import { NO_VALUE, mbToBytes } from "@/lib/format"
+import { NO_VALUE, integer, mbToBytes } from "@/lib/format"
 import type { ReplayState } from "@/lib/use-replay"
 import { PRODUCT_NAME } from "@/lib/product"
 import { UNNAMED } from "@/lib/taxonomy"
@@ -50,7 +51,7 @@ import { CLARITY, WORDS } from "@/lib/words"
  *  rule), the code it names (props, tokens, files, the API it reads), in code type like the name, and the component. */
 function Block({ name, use, code, children }: { name: string; use: string | string[]; code?: string; children: ReactNode }) {
   return (
-    <section className="flex flex-col gap-3 border-t-2 border-dashed border-border pt-6">
+    <section className="flex flex-col gap-3 border-t-2 border-dashed border-border pt-6 minimal:border-t minimal:border-solid">
       <div className="flex flex-col gap-0.5"><h2 className="font-mono text-base font-bold">{name}</h2>
         {[use].flat().map((paragraph) => <p key={paragraph} className="text-sm text-muted-foreground">{paragraph}</p>)}
         {code && <p className="font-mono text-xs text-muted-foreground">{code}</p>}</div>
@@ -60,7 +61,7 @@ function Block({ name, use, code, children }: { name: string; use: string | stri
 }
 
 /** One SessionRow per look: highlighted (Agent: Human + agent, Agent only), normal (Human, Human on thin evidence),
- *  muted (Bot). */
+ *  muted (Script bot). */
 const ROW_LOOKS: ((s: SessionSummary) => boolean)[] = [
   (s) => s.agent_turns === "human_agent", (s) => s.agent_turns === "agent_only", (s) => s.verdict === "human",
   (s) => s.evidence === "thin", (s) => s.verdict === "bot",
@@ -77,7 +78,7 @@ const SERVER_LOOKS: ServerHalf = {
     { at_ms: 0, path: "/", fetch: { site: "none", mode: "navigate", dest: "document", user: "?1" }, signature: null, same_network: true, same_user_agent: true, same_language: true, reuses: 0 },
     { at_ms: 41250, path: "/pricing", fetch: { site: "same-origin", mode: "navigate", dest: "document", user: null }, signature: { agent: "chatgpt.com", verified: false }, same_network: false, same_user_agent: true, same_language: null, reuses: 1 },
   ],
-  network: { country: "US", range: "OpenAI ChatGPT-User", ja4: "t13d1516h2_8daaf6152771", protocol: "HTTP/2" },
+  network: { country: "US", range: "OpenAI ChatGPT-User", ja4: "t13d1516h2_8daaf6152771", protocol: "HTTP/2", attribution: { text: "IP Geolocation by DB-IP", url: "https://db-ip.com" } },
   note: null,
 }
 /** Pages of each look: who acted on them (a human, both, an agent only) and a page without actions. */
@@ -115,6 +116,12 @@ function Overview({ overview: o, registration, sessions, web, zones }: {
   const mixedSpans = mixed?.segments && spansOf(mixed.segments, mixed.duration_ms)
   return (
     <>
+      <Block name="StyleMenu" use={[
+          "Use the Style menu at the end of the top bar to switch between two styles. Cake is the default style and includes the Crumb mascot. Minimal is a plain style for reports and screenshots.",
+          "The menu shows a small preview of each style and a check mark next to the style in use. The selected style applies immediately and is saved in this browser. To see every component on this page in Minimal, choose Minimal in the menu.",
+        ]} code="lib/style.ts · data-style minimal on <html> · tokens.css · minimal: variant (index.css) · localStorage agentcake-style">
+        <StyleMenu />
+      </Block>
       <Block name="Button · variant" use={[
           "Use the Default button for the one main action on each screen. Use an Outline button for a secondary action, such as Cancel in a dialog. Use a Secondary button when a secondary action needs less emphasis.",
           "Use Ghost buttons in toolbars and navigation. Use a Destructive button to delete data, and a Link button for a link inside text.",
@@ -166,13 +173,13 @@ function Overview({ overview: o, registration, sessions, web, zones }: {
       </Block>
       <Block name="StatCard · InfoTip" use={[
           "Each number card under the Agent block names the metric it counts. The icon on each card uses the text color of its classification. Some cards show a note under the number with more detail or the reason data is missing.",
-          "Bot cards are dimmed, and a dash appears when a number has no data. Hover over the information icon to see what a metric or chart means. Sessions and Active time spent use Clarity's own definitions.",
+          "Script bot cards are dimmed, and a dash appears when a number has no data. Hover over the information icon to see what a metric or chart means. Sessions and Active time spent use Clarity's own definitions.",
         ]}>
         <div className="grid w-full gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard label="Sessions" value={String(o.counts.all)} mark={<Activity className="size-4" aria-hidden />} help={<InfoTip label="Sessions" lines={CLARITY.sessions} />} />
-          <StatCard label={`${VERDICTS.human.label} ${WORDS.sessions}`} value={String(o.counts.human)} sub={`${o.counts.thin} ${WORDS.withThinEvidence}`} mark={<User className="size-4 text-human-foreground" aria-hidden />} />
-          <StatCard label={`${VERDICTS.bot.label} ${WORDS.sessions}`} value={String(o.counts.bot)} mark={<Cpu className="size-4 text-unsure-foreground" aria-hidden />} muted help={<BotHelp bot={o.coverage.bot} />} />
-          <StatCard label="Visitors" value={web.visitors.all === null ? NO_VALUE : String(web.visitors.all)} sub={web.visitors.all === null ? WORDS.noVisitorIds : undefined}
+          <StatCard label="Sessions" value={integer(o.counts.all)} mark={<Activity className="size-4" aria-hidden />} help={<InfoTip label="Sessions" lines={CLARITY.sessions} />} />
+          <StatCard label={`${VERDICTS.human.label} ${WORDS.sessions}`} value={integer(o.counts.human)} sub={`${integer(o.counts.thin)} ${WORDS.withThinEvidence}`} mark={<User className="size-4 text-human-foreground" aria-hidden />} />
+          <StatCard label={`${VERDICTS.bot.label} ${WORDS.sessions}`} value={integer(o.counts.bot)} mark={<Cpu className="size-4 text-unsure-foreground" aria-hidden />} muted help={<BotHelp bot={o.coverage.bot} />} />
+          <StatCard label="Visitors" value={web.visitors.all === null ? NO_VALUE : integer(web.visitors.all)} sub={web.visitors.all === null ? WORDS.noVisitorIds : undefined}
             mark={<UsersRound className="size-4" aria-hidden />} />
         </div>
       </Block>
@@ -181,7 +188,7 @@ function Overview({ overview: o, registration, sessions, web, zones }: {
       <Block name="Spotlight · none yet" use="This version appears when sessions are recorded but none of them is an Agent session yet."><div className="w-full"><SpotlightEmpty /></div></Block>
 
       <Block name="SessionRow" use={[
-          "Agent session rows are highlighted, and Bot session rows are dimmed. Human session rows appear without highlighting.",
+          "Agent session rows are highlighted, and Script bot session rows are dimmed. Human session rows appear without highlighting.",
           "The compact row is a smaller version used in previews and in the Agent block. Sessions from an earlier demo shop show the Demo shop tag.",
         ]} code="DemoShopTag">
         <div className="flex w-full flex-col gap-3">
@@ -274,7 +281,7 @@ function Overview({ overview: o, registration, sessions, web, zones }: {
       </Block>
       <Block name="TopAgentsChart · MetricPicker" use={[
           "Top agents shows a bar for each agent, based on the metric that you select. The metric menu works the same way as on Trends. The agent with the highest value appears first.",
-          "Each agent gets its own row, and Unnamed agents appear with the gray avatar. Each bar ends with its value, or a dash when there's no value. Bots never appear in this chart.",
+          "Each agent gets its own row, and Unnamed agents appear with the gray avatar. Each bar ends with its value, or a dash when there's no value. Script bots never appear in this chart.",
         ]} code="MetricPicker · /api/web">
         <div className="w-full"><TopAgentsChart agents={web.agents} /></div>
       </Block>
@@ -303,7 +310,7 @@ function Overview({ overview: o, registration, sessions, web, zones }: {
       <Separator />
       <Block name="AgentAvatar · AgentTag · UnnamedTag" use={[
           "Each agent always has the same dessert-shaped avatar, next to its name. Avatars use flat colors that are never the same as a classification color.",
-          "The gray avatar marks agents with no name, which are labeled Unnamed. This avatar always uses the scoop shape and the same gray as Bot and Unknown. Avatars idle and blink, and they stay still when reduced motion is on.",
+          "The gray avatar marks agents with no name, which are labeled Unnamed. Unnamed agents are shown with a gray scoop avatar, the same gray used for Script bot and Unknown. Avatars idle and blink, and they stay still when reduced motion is on.",
         ]} code="--avatar-1 … --avatar-6">
         <div className="flex w-full flex-col gap-4">
           <div className="flex flex-wrap items-end gap-4">
@@ -317,18 +324,20 @@ function Overview({ overview: o, registration, sessions, web, zones }: {
           <div className="flex flex-wrap items-center gap-2">{o.agents_seen.map((a) => (a.name ? <AgentTag key={a.name} name={a.name} /> : <UnnamedTag key={UNNAMED} />))}</div>
         </div>
       </Block>
-      <Block name="Taxonomy · BotHelp" use="The bottom of the dashboard lists each classification with its badge and a short description. Agent only and Human + agent appear under Agent. The “?” on the Bot sessions card explains what counts as a bot." code="BotHelp · judging.en.json (read when the pages are built)">
+      <Block name="Taxonomy · BotHelp" use="The bottom of the dashboard lists each classification with its badge and a short description. Agent only and Human + agent appear under Agent. The “?” on the Script bot sessions card explains what counts as a script bot." code="BotHelp · judging.en.json (read when the pages are built)">
         <div className="w-full"><Taxonomy /></div>
       </Block>
-      <Block name="StatsTable · PathsTable · WebStatsTable" use={[
-          "The Paths, Sources, Devices, and Geography cards show the same kind of table, with the title at the top of each card. Each table starts with a different breakdown: Channel, Device type, or Region.",
+      <Block name="StatsTable · PathsTable · WebStatsTable · TableNote" use={[
+          "The Paths, Sources, Devices, and Geography cards all use this table. Each card shows its title at the top. Each table starts with a different breakdown: Channel, Device type, or Country.",
           "All, Agent, and Human use the session list's classification colors. Each row shows the sessions in bold, then visitors and page views, for the selected type. When All is selected, the Agent share also appears in bold.",
-          "Hover over a row to split each number into Agent and Human. Rows are sorted by sessions, and the first ten appear until you select Show all. Bots aren't counted.",
+          "Hover over a row to split each number into Agent and Human. Rows are sorted by sessions, and the first ten appear until you select Show all. Script bots aren't counted.",
           "Select a value to open its sessions. On a narrow screen, the table scrolls instead of the page.",
-        ]} code="Select · /api/web">
+          "A region or city appears with its country. Each country also has its own Not set row.",
+          "Below Geography, SourceCredit links to the source of the city database.",
+        ]} code="Select · SourceCredit · /api/web">
         <div className="w-full"><PathsTable paths={web.paths} shown={web.shown} /></div>
         <div className="w-full"><WebStatsTable title={WORDS.web.titles.sources} icon={TABLE_ICONS.sources} help={WORDS.about.sources} table={web.tables.sources} shown={web.shown} place={web.place} /></div>
-        <div className="w-full"><WebStatsTable title={WORDS.web.titles.geography} icon={TABLE_ICONS.geography} help={WORDS.about.geography} table={web.tables.geography} shown={web.shown} place={false} initial="region" /></div>
+        <div className="w-full"><WebStatsTable title={WORDS.web.titles.geography} icon={TABLE_ICONS.geography} help={WORDS.about.geography} table={web.tables.geography} shown={web.shown} place={web.place} initial="region" /></div>
       </Block>
       <Block name="PageLoading · PageError" use="Before a page's data is ready, a loading message fades in after a moment. If the data can't load, the page shows the error and a Try again button." code="Loaded">
         <div className="grid w-full items-center gap-4 md:grid-cols-2">
@@ -348,7 +357,7 @@ function Overview({ overview: o, registration, sessions, web, zones }: {
       <Block name="ReasonLayer" use="Each of the four layers in Why this classification lists its reasons. Below each reason's explanation, smaller text lists the details that were detected. When a layer is turned off, it has a dashed border and a note that explains why.">
         <div className="grid w-full items-start gap-3 md:grid-cols-2">{LAYER_LOOKS.map((layer) => <ReasonLayer key={layer.layer} layer={layer} />)}</div>
       </Block>
-      <Block name="ServerHalfTable" use="This table shows what your site's server middleware saw for each page request. In server mode, it also shows the network line.">
+      <Block name="ServerHalfTable" use="This table shows the details that your site's server middleware reported for each page request. In server mode, the table also shows the network line. A network line that shows a country ends with the city database credit.">
         <div className="w-full"><ServerHalfTable server={SERVER_LOOKS} /></div>
       </Block>
       <Block name="RegisterCard" use={[

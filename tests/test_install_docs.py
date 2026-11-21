@@ -28,7 +28,7 @@ import unittest
 
 TESTS = os.path.dirname(os.path.abspath(__file__))
 sys.path[:0] = [os.path.dirname(TESTS), TESTS]
-from agentcake import config  # noqa: E402  (needs the path above)
+from agentcake import config, doctor_platforms  # noqa: E402  (needs the path above)
 from agentcake.cli import EXIT_USAGE, help_text  # noqa: E402
 from agentcake.wording import product, text  # noqa: E402
 from cake_server import AGENTCAKE, ROOT, free_port, read  # noqa: E402
@@ -46,6 +46,11 @@ SHOWN_TO_AGENTS = (INSTALL_MD, README_MD, README_ZH, AGENTS_MD)
 READMES = ((README_MD, "Install", False), (README_ZH, "安装", True))
 
 SHELL_SYNTAX = ("&", ";", "|", ">", "<", "$", "`")  # chaining, pipes, redirection, variables, command substitution
+# The one exception, the server middleware's secret: AgentCake's command prints it into a shell variable, and the
+# shell's own printf writes the variable into the platform's command (Vercel reads its input for only half a second,
+# too short for a command that goes through SSH). It is never printed, and no other command may look like this.
+SECRET_COMMAND = re.compile(r'^secret="\$\([^()`]*\bagentcake secret print\)" && printf %s "\$secret" '
+                            r'\| [a-z][^|&;<>`$]*$')
 ASSIGNMENT = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*=")
 STARTS_A_SERVER = {"start"}  # the one INSTALL.md command that leaves a process running; the help check covers it
 HELP_ITSELF = ("help",)  # `agentcake help` prints the command list, so the list does not name it (cli.main)
@@ -55,6 +60,8 @@ MARKDOWN_PICTURE = re.compile(r"!\[[^\]]*\]\(([^)\s]+)\)")  # LINK finds a pictu
 LINK_ADDRESS = re.compile(r"\]\((https?://[^)\s]+)\)")  # a Markdown link's or picture's address, between its brackets
 WRITTEN_URL = re.compile(r"https?://[^\s`<>\"]+")
 INLINE_COMMAND = re.compile(r"`(agentcake (?:--)?[a-z][^`]*)`")
+# A release file or folder: agentcake- and a version, or agentcake. and an extension (agentcake-web names a resource)
+RELEASE_NAME = re.compile(r"\bagentcake(?:-\d[\w.+-]*|\.[a-z][\w.]*)")
 
 
 def code_blocks(markdown):
@@ -69,6 +76,23 @@ def section(markdown, heading):
     if not match:
         raise AssertionError(f"no section '## {heading}'")
     return match.group(1)
+
+
+def part(markdown, heading):
+    """The text under one `### heading` (a part of a step), up to the next `## ` or `### `."""
+    match = re.search(rf"^### {re.escape(heading)}\n(.*?)(?=^#{{2,3}} |\Z)", markdown, re.M | re.S)
+    if not match:
+        raise AssertionError(f"no part '### {heading}'")
+    return match.group(1)
+
+
+def platform_rows(markdown):
+    """INSTALL.md's table of the response headers that name a platform, as [(platform, {every word in backticks})]."""
+    table = re.search(r"^\| Platform \| Response headers \|\n\|[-|]+\|\n((?:\|.*\|\n)+)", markdown, re.M)
+    if not table:
+        raise AssertionError("no table '| Platform | Response headers |'")
+    rows = [[cell.strip() for cell in line.strip().strip("|").split("|")] for line in table.group(1).splitlines()]
+    return [(name, set(re.findall(r"`([^`]+)`", headers))) for name, headers in rows]
 
 
 def command_words(command):
@@ -169,9 +193,13 @@ class InstallDocuments(unittest.TestCase):
     def test_every_code_block_in_install_md_holds_one_command(self):
         blocks = code_blocks(self.install)
         self.assertTrue(blocks)
+        secret = [block for block in blocks if SECRET_COMMAND.match(block[0])]
+        self.assertEqual(len(secret), 1, "the secret's command is the one exception, once")
         for block in blocks:
             self.assertEqual(len(block), 1, f"one command per block: {block}")
             command = block[0]
+            if block in secret:
+                continue
             for syntax in SHELL_SYNTAX:
                 self.assertNotIn(syntax, command, f"{command!r} chains, pipes, redirects or reads a variable")
             self.assertFalse(ASSIGNMENT.match(command), f"{command!r} sets a variable")
@@ -202,15 +230,15 @@ class InstallDocuments(unittest.TestCase):
         self.assertEqual(set(pages), {self.tag})
 
     def test_file_names_and_versions_in_install_md_are_this_releases(self):
-        names = {name.rstrip(".") for name in re.findall(r"\bagentcake[-.][\w.+-]*", self.install)}
+        names = {name.rstrip(".") for name in RELEASE_NAME.findall(self.install)}
         self.assertTrue(names)
         self.assertLessEqual(names, self.release_files | {self.release_folder})
         self.assertEqual(set(VERSION.findall(self.install)), {self.version})
 
     def test_the_release_is_downloaded_with_curl_and_then_checked(self):
-        """The repository is public: INSTALL.md's step 2 downloads the release with curl, with no sign-in, and checks it
+        """The repository is public: INSTALL.md's step 5 downloads the release with curl, with no sign-in, and checks it
         with the one shasum line after the downloads."""
-        step = section(self.install, "Step 2. Download the release and check it")
+        step = part(self.install, "Download the release and check it")
         commands = [block[0] for block in code_blocks(step)]
         downloads = [i for i, command in enumerate(commands) if command.startswith("curl ")]
         self.assertTrue(downloads)
@@ -220,6 +248,16 @@ class InstallDocuments(unittest.TestCase):
     def test_one_repository_everywhere(self):
         found = repositories(self.install) | repositories(self.readme)
         self.assertEqual(len(found), 1, found)
+
+    # ---------------------------------------------------------------------------------------- the platforms
+    def test_the_platform_table_is_doctors(self):
+        """Step 1 tells the agent which platform a live site's response headers name. It is doctor's own table
+        (data/doctor.json "platforms"), row for row and in its order, so the two never disagree: each row names the
+        platform's headers and the words a header's value contains."""
+        expected = [(platform["name"], {word for rule in platform["match"] for word in (rule["header"], rule.get("contains"))
+                                        if word})
+                    for platform in doctor_platforms.platforms()]
+        self.assertEqual(platform_rows(self.install), expected)
 
     # ---------------------------------------------------------------------------------------- the command line
     def test_every_agentcake_command_shown_is_one_the_command_line_lists(self):
@@ -286,15 +324,16 @@ class InstallDocuments(unittest.TestCase):
     def test_an_agent_stops_only_what_it_started_and_answers_in_the_users_language(self):
         """In a trial run of connecting a website, Claude Code stopped the server it had started for doctor with
         `lsof -ti tcp:<port> | xargs kill`, which stops whatever listens on that port, perhaps the user's own program;
-        in another it answered a Chinese request in English. INSTALL.md's website section and AGENTS.md say to stop
-        a program by the process ID noted when starting it, never by port or name, and to answer in the user's
-        language."""
-        website = " ".join(section(self.install, "Connect the user's website (only if the user asks)").split())
+        in another it answered a Chinese request in English. INSTALL.md's website part and AGENTS.md say to stop
+        a program by the process ID noted when starting it, never by port or name; both say to answer in the user's
+        language, INSTALL.md from the first message to the hand-over."""
+        website = " ".join(part(self.install, "Connect the website").split())
         agents = " ".join(self.agents.split())
         for words in ("note its process ID", "never by port or name"):
             self.assertIn(words, website)
             self.assertIn(words, agents)
-        self.assertIn("tell the user, in their language", website)
+        self.assertIn("Answer in the user's language.", section(self.install, "How to work"))
+        self.assertIn("Tell the user, in their language", section(self.install, "Step 7. Finish the setup"))
         self.assertIn("in the user's language", agents)
 
     def test_whether_agentcake_is_on_path_is_left_to_doctors_line(self):
@@ -307,7 +346,7 @@ class InstallDocuments(unittest.TestCase):
     def test_the_download_is_checked_by_the_checksum_command_alone(self):
         """In a trial run Claude Code printed SHA256SUMS and the file's hash and compared them itself,
         with no OK line. Step 2 says the command's OK line alone decides."""
-        step = section(self.install, "Step 2. Download the release and check it")
+        step = part(self.install, "Download the release and check it")
         self.assertIn(["shasum -a 256 -c SHA256SUMS --ignore-missing"], code_blocks(step))
         flat = " ".join(step.split())
         for words in ("this command alone decides", "Do not print hashes and compare them yourself"):

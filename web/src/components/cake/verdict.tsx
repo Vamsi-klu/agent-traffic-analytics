@@ -48,7 +48,7 @@ function BadgeDot({ icon: Icon, className }: { icon: LucideIcon; className: stri
 /** How sure cake is of a verdict, after its word: bold, on the highlighter (the session page's verdict and layers). */
 function Percent({ value }: { value?: number | null }) {
   if (value === undefined || value === null) return null
-  return <><span aria-hidden>·</span><b className="rounded-sm bg-highlight px-1 font-extrabold text-highlight-foreground">{`${value}%`}</b></>
+  return <><span aria-hidden>·</span><b className="rounded-sm bg-highlight px-1 font-extrabold text-highlight-foreground minimal:font-bold">{`${value}%`}</b></>
 }
 
 /** A verdict, or who acted in a stretch, an action or a layer ("unsure" and "unknown" read Unknown); percent: how sure
@@ -112,13 +112,13 @@ export function UnnamedTag({ className }: { className?: string }) {
 /** Small square colour key, used in legends and next to KPI labels. */
 export function Swatch({ kind, className }: { kind: SegKind | "mixed"; className?: string }) {
   const cls = kind === "mixed" ? "pattern-mixed-solid" : segClass[kind]
-  return <span aria-hidden className={cn("inline-block size-3 shrink-0 rounded-sm border-2 border-line", cls, className)} />
+  return <span aria-hidden className={cn("inline-block size-3 shrink-0 rounded-sm border-2 border-line minimal:size-2.5 minimal:rounded-full minimal:border-0", cls, className)} />
 }
 
 /** unknown: whether the chart draws Unknown too (the active time chart has Human and Agent only). */
 export function Legend({ className, unknown = true }: { className?: string; unknown?: boolean }) {
   return (
-    <div className={cn("flex flex-wrap items-center gap-x-4 gap-y-1 text-xs font-bold text-muted-foreground", className)}>
+    <div className={cn("flex flex-wrap items-center gap-x-4 gap-y-1 text-xs font-bold text-muted-foreground minimal:font-medium", className)}>
       <span className="inline-flex items-center gap-1.5"><Swatch kind="h" />{VERDICTS.human.label}</span>
       <span className="inline-flex items-center gap-1.5"><Swatch kind="a" />{VERDICTS.agent.label}</span>
       {unknown && <span className="inline-flex items-center gap-1.5"><Swatch kind="u" />{VERDICTS.unknown.label}</span>}

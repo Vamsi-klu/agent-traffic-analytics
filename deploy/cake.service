@@ -25,6 +25,9 @@ ExecStart=/usr/bin/python3 -I /opt/cake/app/agentcake/__main__.py serve
 Restart=on-failure
 RestartSec=3
 MemoryMax=600M
+# At that limit the kernel kills the largest process, the monthly update's own (agentcake/updates.py): serve goes on and
+# records the failed update. systemd's default, stop, would stop serve with it before it recorded anything.
+OOMPolicy=continue
 # What the service creates (the database, the settings) is readable by `cake` only: it holds the site's visits.
 UMask=0077
 NoNewPrivileges=true

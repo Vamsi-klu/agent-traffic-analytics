@@ -2,7 +2,8 @@
 
 A wheel and a .pyz carry the package only: SERVER.md, PRIVACY.md and the other documents are in the repository (and
 the release folder). So a sentence that names one gives its address too, the repository at this version's tag:
-{source}, which product() fills from data/product.json and the version, so no release writes it by hand.
+{source}, which product() fills from data/product.json and the version, so no release writes it by hand. The guide a
+coding agent follows, INSTALL.md, is {guide}: the raw file at the same tag, the address README's install sentence gives.
 
     python3 -I -m unittest discover -s tests -p test_wording.py -v      (from the repository root)
 """
@@ -82,8 +83,34 @@ class Source(unittest.TestCase):
 
     def test_the_address_is_filled_in_where_the_words_are_printed(self):
         sentence = wording.text("site_sentence", launcher="agentcake")
-        self.assertIn(wording.product()["source"] + "/SERVER.md", sentence)
-        self.assertNotIn("{source}", sentence)
+        self.assertIn(wording.product()["guide"], sentence)
+        self.assertNotIn("{guide}", sentence)
+
+    def test_the_sentence_asks_for_network_access_when_the_download_fails_in_readmes_words(self):
+        """An agent whose sandbox has no network cannot read the guide, so the sentence it was given is all it has;
+        the local page's and setup --print's say what README's install instructions say."""
+        sentence = wording.text("site_sentence", launcher="agentcake")
+        asked = "If the download fails, ask for network access."
+        self.assertIn(asked, sentence)
+        with open(os.path.join(ROOT, "README.md"), encoding="utf-8") as f:
+            self.assertIn(asked, f.read())
+        self.assertLess(sentence.index("download the guide"), sentence.index(asked))
+
+
+class Guide(unittest.TestCase):
+    """The local page's sentence and README's install sentence send a coding agent to the same guide: INSTALL.md at
+    this version's tag as a raw file, which curl and the GitHub CLI download as Markdown. The page at {source} is HTML,
+    which an agent that downloads it can't read reliably."""
+
+    def test_guide_is_the_raw_install_md_at_this_versions_tag(self):
+        with open(RELEASE_SETTINGS, encoding="utf-8") as f:
+            tag = json.load(f)["tag_prefix"] + agentcake.__version__
+        self.assertEqual(wording.product()["guide"],
+                         f"https://raw.githubusercontent.com/tartini-ai/agent-traffic-analytics/{tag}/INSTALL.md")
+
+    def test_readme_names_the_same_guide(self):
+        with open(os.path.join(ROOT, "README.md"), encoding="utf-8") as f:
+            self.assertIn(wording.product()["guide"], f.read())
 
 
 if __name__ == "__main__":

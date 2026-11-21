@@ -2,7 +2,7 @@
   "about": "Caps on what one visit can store, and the lengths of the ids and secrets cake makes. Part of the stored data's format, not settings.",
   "max_chars": {
     "session_id": 40, "url": 500, "user_agent": 400, "sec_fetch_value": 40,
-    "country": 8, "subdivision": 16, "city": 80, "ja4": 64, "proto": 12, "signature_header": 300,
+    "country": 8, "subdivision": 80, "city": 80, "ja4": 64, "proto": 12, "signature_header": 300,
     "token_id": 40, "token_path": 200, "token_body": 8000,
     "page_view": 40, "visitor_id": 40, "batch_why": 16, "drop_counts": 200, "header_value": 200, "header_names": 64
   },

@@ -20,6 +20,10 @@ half:
   mode         "server" when server mode is on (public_listen), else "local": every visit comes from 127.0.0.1
   weak         weak.facts() of the signals, requests and raw records, with how many sessions came from the same
                address (its salted ip_hash) within the weak same_address window
+  address_check   address_check.check() at the session's last upload, when it has an address (server mode). When it
+               says the address is a CDN's, the session is judged as if it had none: no network, no
+               earlier visits from it, no same-address count, no country, and no network classes for the
+               environment rules
 raw: the raw stream's records (the behaviour model's input); rrweb: only when there are none (cake 0.3.x
 recordings), the rrweb events. A record without a time is left out: the behaviour model orders by it. A cake 0.3.4
 visit has one page view (None), and its server half is the session's first srv row (0.3.4 kept no page view to link
@@ -27,7 +31,7 @@ it to).
 """
 import json
 
-from agentcake import session_replay, streams, visit_batches
+from agentcake import address_check, session_replay, streams, visit_batches
 from agentcake.config import load_cfg
 from agentcake.datafiles import load
 from agentcake.detect import env_rules, env_signals, httpsig, markers, verdict_identity, weak, webbotauth
@@ -68,15 +72,32 @@ def session_evidence(con, session_id, c=None, now_s=None):
     raw = _timed((json.loads(text) for _, _, text in streams.read_events(con, session_id, ["raw"])), RAW_TIME)
     rrweb = None if raw else _timed((json.loads(text) for text in session_replay.rrweb_texts(con, session_id)),
                                     RRWEB_TIME)
-    evidence = {"mode": SERVER_MODE if c.get("public_listen") else LOCAL_MODE, "pages": pages,
+    mode = SERVER_MODE if c.get("public_listen") else LOCAL_MODE
+    network = _network(facts)
+    checked = _address_check(con, session_id, network, mode)
+    doubted = checked["misconfigured"]  # the address read is the front door's: judged as if there were none
+    found = weak.facts(signals, facts, raw, local=mode == LOCAL_MODE)
+    if doubted:
+        network, found["country"] = None, None
+        (signals.get("collect") or {}).pop("ip_classes", None)
+    evidence = {"mode": mode, "pages": pages,
                 "user_agents": claims["user_agents"], "platform": claims["platform"],
                 "signatures": _signatures(facts, halves, now_s if now_s is not None else clock_ms() / MS_PER_S),
-                "network": _network(facts), "rdns": None, "env": env_rules.evaluate(signals),
+                "network": network, "rdns": None, "env": env_rules.evaluate(signals),
                 "marks": markers.turn_spans(signals),
-                "touch": _touch(signals), "visits": _visits(con, session_id, facts),
-                "weak": dict(weak.facts(signals, facts, raw),
-                             address_sessions=_address_sessions(con, session_id, facts))}
+                "touch": _touch(signals), "visits": [] if doubted else _visits(con, session_id, facts),
+                "address_check": checked,
+                "weak": dict(found, address_sessions=None if doubted else _address_sessions(con, session_id, facts))}
     return evidence, raw, rrweb
+
+
+def _address_check(con, session_id, network, mode):
+    """address_check.check() at the session's last upload when the session has an address to doubt (server mode);
+    else nothing to say."""
+    if mode == LOCAL_MODE or network is None:
+        return dict(address_check.NOTHING)
+    (last_ms,) = con.execute("SELECT MAX(recv_ms) FROM requests WHERE session_id=?", (session_id,)).fetchone()
+    return address_check.check(con, last_ms)
 
 
 def _server_halves(con, session_id):

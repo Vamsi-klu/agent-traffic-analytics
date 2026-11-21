@@ -114,18 +114,52 @@ class BadValues(Home):
         for key, value in (("retention_days", "7"), ("budget_mb", "10"), ("path_prefix", "/ca ke"),
                            ("public_listen", "anywhere"), ("site_key", "bad"), ("site_key", ""), ("port", "x"),
                            ("token_max_age_ms", "soon"), ("budget_warn_ratio", "1.5"), ("start_poll_s", "-1"),
-                           ("timezone", "Mars/Olympus"), ("timezone", "../../etc/passwd"), ("timezone", "PST")):
+                           ("timezone", "Mars/Olympus"), ("timezone", "../../etc/passwd"), ("timezone", "PST"),
+                           ("public_url", "cake.example.com"), ("public_url", "https://cake.example.com/cake"),
+                           ("public_url", "https://cake.example.com/"), ("public_url", "ftp://cake.example.com")):
             with self.subTest(key=key, value=value), self.assertRaises(ValueError):
                 config.coerce(key, value)
+
+    def test_a_public_url_is_an_origin_only(self):
+        """Scheme, host name and port, nothing else: a query or fragment would swallow path_prefix and /cake.js in the
+        script address; user@ is no part of where browsers go; a bracket or a port out of range makes urlsplit raise
+        in collect (Web Bot Auth's names), doctor and setup."""
+        for value in ("https://cake.example.com?x=1", "https://cake.example.com#setup",
+                      "https://user@cake.example.com", "https://[", "https://[2001:db8::1",
+                      "https://cake.example.com:65536", "https://cake.example.com:"):
+            with self.subTest(value=value), self.assertRaises(ValueError):
+                config.coerce("public_url", value)
+        highest = "https://cake.example.com:65535"
+        self.assertEqual(config.coerce("public_url", highest), highest)
+
+    def test_a_refused_public_url_says_what_it_takes(self):
+        """The address only, as a browser's Origin names it: the path is path_prefix's."""
+        with self.assertRaises(ValueError) as refused:
+            config.coerce("public_url", "https://cake.example.com/cake")
+        self.assertIn("https://cake.example.com", str(refused.exception))
+        self.assertIn("path_prefix", str(refused.exception))
 
     def test_accepted_and_tidied(self):
         self.assertEqual(config.coerce("site_domain", "https://example.com/"), "example.com")
         self.assertEqual(config.coerce("path_prefix", "cake/"), "/cake")
         self.assertEqual(config.coerce("path_prefix", "/"), "")
         self.assertEqual(config.coerce("public_listen", ""), "")
+        self.assertEqual(config.coerce("public_url", " https://cake.example.com "), "https://cake.example.com")
+        self.assertEqual(config.coerce("public_url", "http://cake.example.localhost:8443"),
+                         "http://cake.example.localhost:8443")
+        self.assertEqual(config.coerce("public_url", ""), "", "empty: the same-site path")
         self.assertIs(config.coerce("trust_lb", "on"), True)
         self.assertEqual(config.coerce("timezone", " America/Los_Angeles "), "America/Los_Angeles")
         self.assertEqual(config.coerce("timezone", ""), "", "empty: follow this computer's timezone")
+
+    def test_an_empty_site_dir_clears_it_instead_of_naming_the_current_folder(self):
+        """As with every other text setting, an empty value clears it: never the folder the command was run in."""
+        for value in ("", "  "):
+            self.assertEqual(config.coerce("site_dir", value), "", repr(value))
+        self.write_user({"site_dir": os.path.join(self.home, "site")})
+        out = subprocess.run(AGENTCAKE + ["config", "set", "site_dir", ""], capture_output=True, text=True,
+                             cwd=self.home)
+        self.assertEqual((out.returncode, self.read_user()["site_dir"]), (0, ""), out.stdout + out.stderr)
 
     def test_config_set_refuses_and_keeps_the_file(self):
         self.write_user({"retention_days": 30})
@@ -240,10 +274,10 @@ class DataFilesDriveBehaviour(unittest.TestCase):
 
     def test_lb_headers_json(self):
         headers = http.client.HTTPMessage()
-        headers["X-Example-Region"] = "DE"
-        with mock.patch.dict(datafiles.load("data/lb_headers.json")["headers"], {"region": "X-Example-Region"}):
+        headers["X-Example-Proto"] = "HTTP/3"
+        with mock.patch.dict(datafiles.load("data/lb_headers.json")["headers"], {"proto": "X-Example-Proto"}):
             facts, _ = netfacts.net_facts(headers, {"trust_lb": True})
-        self.assertEqual(facts["country"], "DE")
+        self.assertEqual(facts["proto"], "HTTP/3")
 
     def test_product_json(self):
         with mock.patch.dict(datafiles.load("data/product.json"), {"name": "Example Cake", "command": "examplecake"}):

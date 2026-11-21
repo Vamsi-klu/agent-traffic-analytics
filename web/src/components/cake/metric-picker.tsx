@@ -2,11 +2,12 @@
 // picks its graph's: a Select naming the metric, under the card's title and as tall as every other dropdown (Sessions
 // first, then Visitors, Page views, Active time spent and Pages per session: the five main metrics, named as their total
 // cards are, whose information icons say what each means, so the picker needs none). Trends and Top agents use it. A
-// value reads the same on the charts, in their hovers (TooltipValue) and on the total cards: counts whole, active time in
+// value reads the same on the charts, in their hovers (TooltipValue) and on the total cards: counts whole, with a comma
+// between thousands (integer()), active time in
 // minutes, pages per session with one decimal.
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import type { TrendNumbers } from "@/data/types"
-import { minutes } from "@/lib/format"
+import { integer, minutes } from "@/lib/format"
 import { WORDS, metricName } from "@/lib/words"
 
 export type Metric = "sessions" | "visitors" | "page_views" | "active_time" | "pages_per_session"
@@ -15,9 +16,9 @@ export const activeMinutes = (ms: number) => Number(minutes(ms))
 /** Each metric: its name, its value for a group of sessions (null: none), how a value reads, the y-axis unit and
  *  whether it counts (whole numbers). */
 export const METRICS: Record<Metric, { label: string; value: (n: TrendNumbers) => number | null; shown: (v: number) => string; unit?: string; whole?: boolean }> = {
-  sessions: { label: metricName(WORDS.sessions), value: (n) => n.sessions, shown: String, whole: true },
-  visitors: { label: metricName(WORDS.visitors), value: (n) => n.visitors, shown: String, whole: true },
-  page_views: { label: metricName(WORDS.pageViews), value: (n) => n.page_views, shown: String, whole: true },
+  sessions: { label: metricName(WORDS.sessions), value: (n) => n.sessions, shown: integer, whole: true },
+  visitors: { label: metricName(WORDS.visitors), value: (n) => n.visitors, shown: integer, whole: true },
+  page_views: { label: metricName(WORDS.pageViews), value: (n) => n.page_views, shown: integer, whole: true },
   active_time: { label: metricName(WORDS.activeTime), value: (n) => (n.active_ms === null ? null : activeMinutes(n.active_ms)), shown: (v) => `${v.toFixed(1)} min`,
     unit: " min" },
   pages_per_session: { label: metricName(WORDS.pagesPerSession), value: (n) => n.pages_per_session, shown: (v) => v.toFixed(1) },

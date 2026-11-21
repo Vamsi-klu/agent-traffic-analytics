@@ -1,5 +1,5 @@
 {
-  "$comment": "Where AgentCake's name and verification lists come from and how they are built. tools/build_lists.py (when a release is made) and `agentcake lists update` (only when someone runs it) fetch every source below and write names.json, ip_ranges.json, signers.json and keys.json, and beside them each repository's licence file at the commit read (<source>.LICENSE.txt, unchanged); AgentCake never fetches anything while it runs. This file and kinds.json are edited by hand; the four generated files are not. Every exclusion, correction and addition below says why.",
+  "$comment": "Where AgentCake's name and verification lists come from and how they are built. tools/build_lists.py (when a release is made), `agentcake lists update` (when someone runs it) and `agentcake serve` (once a month while lists_auto_update is on: agentcake/updates.py) fetch every source below and write names.json, ip_ranges.json, signers.json and keys.json, and beside them each repository's licence file at the commit read (<source>.LICENSE.txt, unchanged); AgentCake fetches nothing else, and only these addresses. This file and kinds.json are edited by hand; the four generated files are not. Every exclusion, correction and addition below says why.",
   "fetch": {
     "timeout_s": 30,
     "retries": 1,
@@ -7,9 +7,21 @@
     "user_agent": "agentcake-lists"
   },
   "update": {
-    "$comment": "`agentcake lists update` writes <CAKE_HOME>/<user_dir>/<date>/. Lists older than max_age_days are reported as stale by status(), for doctor and the settings page.",
+    "$comment": "`agentcake lists update`, and `agentcake serve` once a month while lists_auto_update is on (defaults.json; agentcake/updates.py), write <CAKE_HOME>/<user_dir>/<date>/. Lists older than max_age_days are reported as stale by status(), for doctor and the settings page.",
     "user_dir": "lists",
-    "max_age_days": 30
+    "max_age_days": 30,
+    "auto": {
+      "$comment": "The monthly update. `agentcake serve` checks first at a random moment first_check_s after it starts (a server without a city database gets one then), then every check_every_s; a part (the lists; on a server, the city database) is updated once its last success is every_days old, which is no more than max_age_days, so the lists stay within their age limit while updates succeed. A part that failed is tried again at the next check, never sooner than retry_after_s after the failure, restarts included. warn_after_failures failed runs in a row are a WARN in doctor and a warning on the settings page. state_file (in <CAKE_HOME>) records the last run, its error cut to error_chars; lock_file (in <CAKE_HOME>) keeps two updates, the background one and `agentcake lists update`, from running at once. The process serve starts for the update runs at nice value child_nice, the lowest CPU priority, as logrotate's own systemd unit does (Nice=19): on a server with one CPU, converting the city database takes the whole CPU for minutes, and at serve's priority collect, the local page and the container's health check waited for it.",
+      "every_days": 30,
+      "first_check_s": [60, 900],
+      "check_every_s": 86400,
+      "retry_after_s": 72000,
+      "warn_after_failures": 2,
+      "state_file": "updates.json",
+      "lock_file": "updates.lock",
+      "error_chars": 300,
+      "child_nice": 19
+    }
   },
   "github": {
     "commit_api": "https://api.github.com/repos/{repo}/commits/{ref}",
@@ -210,7 +222,7 @@
     }
   },
   "ip_ranges": {
-    "$comment": "Operators' own published address lists, looked up in this order: an agent's or bot's own range first, then a privacy relay, then a CDN, then a cloud, so an address inside both a crawler range and a cloud is named after the crawler. 'verifies' lists the names a range can confirm. Labels of the eleven 0.3.3 ranges are kept as they were. Floors are PostHog's: a published agent or bot range wider than this is refused as an upstream mistake.",
+    "$comment": "Operators' own published address lists, looked up in this order: an agent's or bot's own range first, then a privacy relay, then a CDN, then a cloud, so an address inside both a crawler range and a cloud is named after the crawler. 'verifies' lists the names a range can confirm. Labels of the eleven 0.3.3 ranges are kept as they were. Floors are PostHog's: a published agent or bot range wider than this is refused as an upstream mistake. AWS's ip-ranges.json names the service of each prefix (AMAZON holds them all): Amazon CloudFront, a CDN, is the addresses it reaches websites from (CLOUDFRONT_ORIGIN_FACING, what AgentCake sees behind it, some of them IPv6 outside CLOUDFRONT) and its edge servers (CLOUDFRONT, where a DNS record behind it leads); AWS, a cloud, is every prefix.",
     "floors": {"v4": 16, "v6": 32, "kinds": ["agent", "bot"]},
     "published_fields": {"prefixes": "creationTime", "aws": "createDate", "oracle": "last_updated_timestamp", "sail": "modified"},
     "ranges": [
@@ -231,10 +243,11 @@
       {"id": "ahrefs", "label": "Ahrefs", "kind": "bot", "operator": "Ahrefs", "format": "prefixes", "urls": ["https://api.ahrefs.com/v3/public/crawler-ip-ranges"], "verifies": ["ahrefsbot", "ahrefssiteaudit"]},
       {"id": "icloud-private-relay", "label": "iCloud Private Relay", "kind": "relay", "operator": "Apple", "format": "csv-first-column", "urls": ["https://mask-api.icloud.com/egress-ip-ranges.csv"], "verifies": []},
       {"id": "cloudflare", "label": "Cloudflare", "kind": "cdn", "operator": "Cloudflare", "format": "lines", "urls": ["https://www.cloudflare.com/ips-v4", "https://www.cloudflare.com/ips-v6"], "verifies": []},
+      {"id": "aws-cloudfront", "label": "Amazon CloudFront", "kind": "cdn", "operator": "Amazon", "format": "aws", "services": ["CLOUDFRONT_ORIGIN_FACING", "CLOUDFRONT"], "urls": ["https://ip-ranges.amazonaws.com/ip-ranges.json"], "verifies": []},
       {"id": "google-cloud", "label": "Google Cloud", "kind": "cloud", "operator": "Google", "format": "prefixes", "urls": ["https://www.gstatic.com/ipranges/cloud.json"], "verifies": []},
       {"id": "aws", "label": "AWS", "kind": "cloud", "operator": "Amazon", "format": "aws", "urls": ["https://ip-ranges.amazonaws.com/ip-ranges.json"], "verifies": []},
       {"id": "oracle-cloud", "label": "Oracle Cloud", "kind": "cloud", "operator": "Oracle", "format": "oracle", "urls": ["https://docs.oracle.com/en-us/iaas/tools/public_ip_ranges.json"], "verifies": []},
-      {"id": "digitalocean", "label": "DigitalOcean", "kind": "cloud", "operator": "DigitalOcean", "format": "csv-first-column", "urls": ["https://digitalocean.com/geo/google.csv"], "verifies": []}
+      {"id": "digitalocean", "label": "DigitalOcean", "kind": "cloud", "operator": "DigitalOcean", "format": "csv-first-column", "urls": ["https://www.digitalocean.com/geo/google.csv"], "verifies": []}
     ]
   },
   "signers": {

@@ -192,6 +192,12 @@ class SessionVerifier:
 
     A request without a signature is not remembered, since a later request of the same session may be signed.
     Up to settings.session_cache_size sessions are kept, the least recently used leaving first. Thread-safe.
+
+    authorities: other names the request's site goes by, tried in order as its @authority when the signature does not
+    verify with the request's own. A front door that replaces Host (nginx's default proxy_set_header
+    Host $proxy_host, CloudFront, Azure Front Door) changes the authority the verifier rebuilds, not the one the agent
+    signed. A signature binds the name it was made for, so a forgery verifies with none of them and stays invalid as
+    checked with the request's own name; each extra name costs one more verification, once per session.
     """
 
     def __init__(self, directory, settings=None, clock=time.time):
@@ -201,18 +207,34 @@ class SessionVerifier:
         self._results = OrderedDict()
         self._lock = threading.Lock()
 
-    def verify(self, session_id, request):
+    def verify(self, session_id, request, authorities=()):
         with self._lock:
             if session_id in self._results:
                 self._results.move_to_end(session_id)
                 return self._results[session_id]
-        result = verify_request(request, self.directory, self.clock(), self.settings)
+        now_s = self.clock()
+        result = verify_request(request, self.directory, now_s, self.settings)
+        if result.outcome == INVALID:
+            result = self._other_names(request, authorities, now_s) or result
         if result.outcome != NONE:
             with self._lock:
                 self._results[session_id] = result
                 while len(self._results) > self.settings.session_cache_size:
                     self._results.popitem(last=False)
         return result
+
+    def _other_names(self, request, authorities, now_s):
+        """The Verification of the request as made for the first of the other names that verifies it, else None."""
+        tried = {request.authority.strip().lower()}
+        for authority in authorities:
+            name = (authority or "").strip().lower()
+            if not name or name in tried:
+                continue
+            tried.add(name)
+            result = verify_request(dataclasses.replace(request, authority=name), self.directory, now_s, self.settings)
+            if result.outcome == VERIFIED:
+                return result
+        return None
 
 
 def _check(request, label, member, values, agents, directory, now_s, settings):

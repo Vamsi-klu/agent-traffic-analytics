@@ -1,5 +1,5 @@
 {
-  "$comment": "The words of the JSON API's answers (agentcake/api/), ready for the local pages to show: English only, visitors are Human or Agent (with Unknown and Bot), never person, people or user. {name} and {command} come from product.json, the other {placeholders} are filled where the text is used. A list is one line per item. summary: the session page's summary (agentcake/api/session.py): who acted when, turn by turn, its moments ({start}, {end}, {at}) as the player writes them, then the layers that point to the verdict, each named as judging.en.json 'layers' names it, with the percent the layer shows.",
+  "$comment": "The words of the JSON API's answers (agentcake/api/), ready for the local pages to show: English only, visitors are Human or Agent (with Unknown and Script bot), never person, people or user. {name} and {command} come from product.json, the other {placeholders} are filled where the text is used. A list is one line per item. title: the session page's title (agentcake/api/session.py), who acted, or for a Human session on limited evidence why: too_little_data too few actions, touch a phone or tablet (whatever its number of actions), unsure the rest. summary: the session page's summary (agentcake/api/session.py): who acted when, turn by turn, its moments ({start}, {end}, {at}) as the player writes them, then the layers that point to the verdict, each named as judging.en.json 'layers' names it, with the percent the layer shows.",
 
   "errors": {
     "no_session": "No session with this ID was found. It might have been deleted. Go back to the session list to choose another session.",
@@ -58,10 +58,11 @@
     "unnamed_again": "the agent again",
     "then": "{before}, then {after}",
     "unsure": "Actor not identified",
-    "too_little_data": "Not enough actions to classify"
+    "too_little_data": "Not enough actions to classify",
+    "touch": "Phone or tablet visit"
   },
   "layer_notes": {
-    "bot_environment": "Bots often leave automation traces. This session is classified as Bot because the visitor is on the bot list.",
+    "bot_environment": "Script bots often leave automation traces, such as webdriver or a headless browser. This session is classified as Script bot because the visitor is on the bot list.",
     "both_ways": "Unknown means that this layer's evidence is too uncertain to classify the session."
   },
   "summary": {
@@ -93,8 +94,16 @@
   },
 
   "setup_terminal": ["cd <your-site-folder>", "{launcher} setup --print --site", "{launcher} doctor"],
-  "setup_server": ["{command} config set public_listen 0.0.0.0:8080", "{command} config set path_prefix /cake",
-                   "{command} config set site_key <your-site-key>", "{command} secret init", "{command} serve"],
+  "setup_server": {
+    "install": ["sed -i 's/cake\\.example\\.com/cake.<your-domain>/' deploy/Caddyfile", "docker compose build",
+                "docker compose up -d"],
+    "dns": ["Type: A", "Name: cake", "Value: <your server's public IPv4 address>"],
+    "settings": ["alias {command}='docker compose exec agentcake python3 -I -m {command}'",
+                 "{command} config set public_listen 127.0.0.1:8080", "{command} config set path_prefix /cake",
+                 "{command} config set trust_lb true", "{command} config set site_domain <your-domain>",
+                 "{command} config set public_url https://cake.<your-domain>", "{command} config set site_key <your-site-key>",
+                 "docker compose restart agentcake"]
+  },
   "script_key_placeholder": "<your-site-key>",
   "lists_update": "{launcher} lists update"
 }

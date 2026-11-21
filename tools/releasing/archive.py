@@ -1,12 +1,12 @@
 """The release folder, agentcake-<version>.tar.gz: AgentCake ready to run, and what a server install needs.
 
-One folder, agentcake-<version>/, holding what pyproject.toml's [tool.flit.sdist] names (bin/agentcake, the 0.3.x
-entry points, INSTALL.md, SERVER.md, deploy/cake.service, Dockerfile, .dockerignore, ...), the package as the release
-built it (compiled local pages, minified cake.js), pyproject.toml, the readme, the license files and PKG-INFO, so it
-is also a source distribution (https://packaging.python.org/specifications/source-distribution-format/) that pip
+One folder, agentcake-<version>/, holding what pyproject.toml's [tool.flit.sdist] names (bin/agentcake, INSTALL.md,
+SERVER.md, deploy/, Dockerfile, .dockerignore, docker-compose.yml, ...), the package as the
+release built it (compiled local pages, minified cake.js), pyproject.toml, the readme, the license files and PKG-INFO,
+so it is also a source distribution (https://packaging.python.org/specifications/source-distribution-format/) that pip
 can build. The wheel goes in too, alone in dist/ next to Dockerfile, which is where `docker build` takes it from
-(SERVER.md, "Install with Docker"). Files are chosen the way flit_core chooses them for a source distribution: each
-include pattern is a file or a folder (all of it), relative to the project; exclude patterns take files out again.
+(SERVER.md, "Install with Docker Compose"). Files are chosen the way flit_core chooses them for a source distribution:
+each include pattern is a file or a folder (all of it), relative to the project; exclude patterns take files out again.
 """
 import glob
 import os

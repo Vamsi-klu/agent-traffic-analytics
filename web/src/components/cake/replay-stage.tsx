@@ -29,9 +29,9 @@ function StageNote({ children }: { children: ReactNode }) {
 export function ReplayStage({ replay }: { replay: StageProps }) {
   return (
     <div className="flex flex-col" data-replay={replay.status}>
-      <div className="flex items-center gap-2 border-b-2 border-line px-3 py-2">
-        <span className="flex gap-1.5" aria-hidden>{[0, 1, 2].map((i) => <i key={i} className="size-2.5 rounded-full border-2 border-line bg-muted" />)}</span>
-        <span data-address="" className="min-w-0 flex-1 truncate rounded-full border-2 border-border bg-muted px-3 text-sm text-muted-foreground">{withoutScheme(replay.address)}</span>
+      <div className="flex items-center gap-2 border-b-2 border-line px-3 py-2 minimal:border-b">
+        <span className="flex gap-1.5" aria-hidden>{[0, 1, 2].map((i) => <i key={i} className="size-2.5 rounded-full border-2 border-line bg-muted minimal:border-0 minimal:bg-input" />)}</span>
+        <span data-address="" className="min-w-0 flex-1 truncate rounded-full border-2 border-border bg-muted px-3 text-sm text-muted-foreground minimal:border">{withoutScheme(replay.address)}</span>
       </div>
       <div className="relative aspect-video overflow-hidden bg-muted">
         <div ref={replay.mount} className="cake-replay absolute inset-0" />
@@ -55,7 +55,7 @@ export function ReplayControls({ replay, durationMs }: { replay: ReplayState; du
   const ready = replay.status === "ready"
   const toggle = replay.playing ? "Pause" : "Play"
   return (
-    <div className="flex flex-wrap items-center gap-2 border-t-2 border-line px-3 py-2">
+    <div className="flex flex-wrap items-center gap-2 border-t-2 border-line px-3 py-2 minimal:border-t">
       <Hint text={toggle}>
         <Button variant="outline" size="icon-sm" aria-label={toggle} disabled={!ready} onClick={replay.playing ? replay.pause : replay.play}>{replay.playing ? <Pause /> : <Play />}</Button>
       </Hint>

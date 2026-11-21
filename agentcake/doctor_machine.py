@@ -6,26 +6,37 @@ will be made in) against disk_min_free_mb (space.disk_space): below it new repla
 room, and none is deleted for it, a FAIL; the line gives the floor and the free space and says how to free space or
 lower the floor.
 lists_check(): the age of the name and address lists in use (detect/lists.py) against max_age_days:
-older is a WARN naming `agentcake lists update`, the one command that goes online, or an upgrade. path_check():
+older is a WARN naming `agentcake lists update`, which downloads them now, or an upgrade. places_check(c), on a
+server only (geoip.sees_addresses: on this computer every visit is 127.0.0.1 and there is no line): the city database
+the visitors' places are looked up in (geoip.py); none yet, one that cannot be read, or one older than
+data/geo.json's max_months_old is a WARN naming the same command. While the updates are on and none has been
+downloaded or failed to be (updates.untried), the WARN says instead when serve's first check, minutes after it starts,
+downloads it: a new server, the Docker image's included, has none until then. updates_check(c): whether `serve`
+updates both once a month (lists_auto_update, updates.py), when the last update ran (in AgentCake's time zone, as the
+log import's line writes it) and how it went; warn_after_failures failed updates in a row are a WARN naming the same
+command, and with the setting off the line names it too. path_check():
 every `agentcake` on PATH, as `which -a` lists them: when the first is not this installation, typing the command runs
 another program, which is a WARN (the instructions run this one by its full path).
 """
+import datetime
 import os
 import platform
 import sys
 
-from agentcake import codecs, paths
+from agentcake import codecs, geoip, paths, timezone, updates
 from agentcake.detect import lists
 from agentcake.doctor_lines import WARN
 from agentcake.space import disk_space
-from agentcake.units import BYTES_PER_MB
+from agentcake.units import BYTES_PER_MB, MS_PER_S, S_PER_MIN
 from agentcake.wording import product, text
 
 SHEBANG = "#!"  # protocol: the first bytes of a script that names its interpreter
+SENTENCE_ENDS = (".", "!", "?")  # an update's error ends one sentence of the line, before the next one starts
 
 
-def machine_checks(c):
-    return [python_check(), disk_check(c), lists_check(), path_check()]
+def machine_checks(c, today=None):
+    places = [places_check(c, today)] if geoip.sees_addresses(c) else []
+    return [python_check(), disk_check(c), lists_check(today)] + places + [updates_check(c), path_check()]
 
 
 def python_check():
@@ -57,6 +68,65 @@ def lists_check(today=None):
     if status["stale"]:
         return text("doctor_lists"), WARN, text("doctor_lists_stale", launcher=paths.launcher(), **values)
     return text("doctor_lists"), True, text("doctor_lists_info", location=paths.tilde(status["location"]), **values)
+
+
+def places_check(c, today=None):
+    status, launcher = geoip.status(today=today) or {}, paths.launcher()
+    if "month" not in status:
+        if status.get("errors"):
+            return text("doctor_places"), WARN, text("doctor_places_unreadable", error=status["errors"][0],
+                                                     launcher=launcher)
+        return text("doctor_places"), WARN, " ".join([text("doctor_places_missing"), _places_coming(c, launcher)])
+    values = {"month": status["month"], "months": status["months_old"], "folder": status["folder"]}
+    if status["stale"]:
+        return text("doctor_places"), WARN, text("doctor_places_stale", launcher=launcher, **values)
+    return text("doctor_places"), True, text("doctor_places_info", **values)
+
+
+def _places_coming(c, launcher):
+    """How a server without a city database gets one: before any update has tried, serve's first check downloads it
+    (when that comes, from sources.json); with the updates off, or after a download failed (the next try waits for a
+    later daily check), the command that downloads it now."""
+    if c.get(updates.SETTING) and updates.untried(updates.PLACES):
+        first, last = (seconds // S_PER_MIN for seconds in updates.settings()["first_check_s"])
+        return text("doctor_places_first_update", first=first, last=last)
+    return text("doctor_places_command", launcher=launcher)
+
+
+def updates_check(c):
+    found = updates.status(c)
+    last = found["last"]
+    if found["auto"]:
+        said = [text("doctor_updates_on_server" if geoip.sees_addresses(c) else "doctor_updates_on",
+                     days=updates.settings()["every_days"])]
+    else:
+        said = [text("doctor_updates_off")]
+    command = text("doctor_updates_command", launcher=paths.launcher())
+    if found["failing"]:
+        return text("doctor_updates"), WARN, " ".join(said + [text("doctor_updates_failing", count=found["failures"],
+                                                                    error=_ended(last["error"])), command])
+    if last:
+        when = _clock(last["at"], c)
+        said.append(text("doctor_updates_last_ok", when=when) if last["ok"]
+                    else text("doctor_updates_last_failed", when=when, error=_ended(last["error"])))
+    if not found["auto"]:
+        said.append(command)
+    elif last and not last["ok"]:
+        said.append(text("doctor_updates_retry"))
+    return text("doctor_updates"), True, " ".join(said)
+
+
+def _ended(error):
+    """An update's error (a URL and urllib's reason, as a rule) with a full stop, so the next sentence starts anew."""
+    error = (error or "").rstrip()
+    return error if error.endswith(SENTENCE_ENDS) else error + SENTENCE_ENDS[0]
+
+
+def _clock(at, c):
+    """A recorded ISO time in AgentCake's time zone, written as the log import's line writes its time."""
+    zone, moment = timezone.chosen(c), datetime.datetime.fromisoformat(at)
+    shown = moment.astimezone(zone)
+    return shown.strftime(text("doctor_logs_time", zone=timezone.short(zone, moment.timestamp() * MS_PER_S)))
 
 
 def path_check(path=None, ours=None):

@@ -9,7 +9,17 @@
   "properties": {
     "sentence": { "$ref": "common.schema.json#/$defs/Text" },
     "terminal": { "$ref": "common.schema.json#/$defs/Text" },
-    "server": { "$ref": "common.schema.json#/$defs/Text" },
+    "server": {
+      "description": "The On a server tab's three things for the subdomain route, one command or field per line, placeholders only: install (the commands that start AgentCake and Caddy from the release folder), dns (the record that points cake.<the site's domain> at the server) and settings (what AgentCake on the server is told, public_url among it).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["install", "dns", "settings"],
+      "properties": {
+        "install": { "$ref": "common.schema.json#/$defs/Text" },
+        "dns": { "$ref": "common.schema.json#/$defs/Text" },
+        "settings": { "$ref": "common.schema.json#/$defs/Text" }
+      }
+    },
     "example": {
       "type": "object",
       "additionalProperties": false,

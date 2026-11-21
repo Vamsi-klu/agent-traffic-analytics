@@ -521,5 +521,8 @@
     ]
   },
   "shown": 10,
-  "place": false
+  "place": {
+    "source": "none",
+    "attribution": null
+  }
 }

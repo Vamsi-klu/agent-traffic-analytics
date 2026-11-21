@@ -249,7 +249,9 @@ class CakeFormatTest(unittest.TestCase):
         self.assertNotIn("nav", second)
 
     def test_the_rules_read_cake_js_data_unchanged(self):
-        requests = [{"headers": {"User-Agent": HEADLESS}, "ip_class": "cloud"}] * 3
+        # chrome-headless-shell's upload: no Accept-Language, but its own User-Agent and the fetch metadata every
+        # Chrome sends (as its recorded uploads show)
+        requests = [{"headers": {"User-Agent": HEADLESS, "Sec-Fetch-Mode": "cors"}, "ip_class": "cloud"}] * 3
         hits = {hit.rule for hit in evaluate(env_signals.from_cake(automated_visit(), requests)).hits}
         for rule in ("env.auto.webdriver", "env.auto.headless-ua", "env.auto.headless-ua-collector",
                      "env.auto.collect-no-accept-language", "env.auto.cdp-runtime-leak", "env.auto.ipc-flooding-off",
@@ -264,6 +266,20 @@ class CakeFormatTest(unittest.TestCase):
         self.assertEqual((collect["requests"], collect["headers"]["accept-language"]["present"]), (2, 2))
         self.assertEqual(collect["ip_classes"], ["cdn", "residential"])
         self.assertNotIn("ip_classes", env_signals.from_cake(automated_visit(), [{"headers": {}}])["collect"])
+
+    def test_upload_requests_say_whether_their_user_agent_is_the_pages_own(self):
+        """A front door that rewrites the upload requests (CloudFront's defaults: User-Agent "Amazon CloudFront")
+        leaves ua_as_page false; without a User-Agent from the page there is nothing to compare, so it is unknown."""
+        def ua_as_page(*agents, batches=None):
+            requests = [{"headers": {"User-Agent": agent} if agent else {}} for agent in agents]
+            return env_signals.from_cake(batches or automated_visit(), requests)["collect"].get("ua_as_page")
+
+        self.assertIs(ua_as_page(HEADLESS, HEADLESS), True)
+        self.assertIs(ua_as_page("Amazon CloudFront"), False)
+        self.assertIs(ua_as_page(HEADLESS, UA), False)  # one request with a User-Agent the page never reported
+        self.assertIs(ua_as_page(HEADLESS, None), False)  # a browser always sends one
+        page_only = [batch("pv-z", 0, 10.5, x=[{"t": 10, "ty": "page", "n": 1}])]
+        self.assertIsNone(ua_as_page(HEADLESS, batches=page_only))
 
     def test_a_page_view_that_sent_only_its_page_record_stays_unknown(self):
         page_only = batch("pv-z", 0, 10.5, x=[{"t": 10, "ty": "page", "n": 1}])

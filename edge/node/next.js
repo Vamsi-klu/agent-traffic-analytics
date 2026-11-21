@@ -6,7 +6,7 @@
  *   import { NextResponse } from "next/server"
  *   import { cakeNext } from "@agentcake/edge/next"
  *   const cake = cakeNext()                                   // the secret: CAKE_SERVER_TIMING_SECRET
- *   export async function middleware(request) {
+ *   export default async function middleware(request) {
  *     return cake(request, NextResponse.next())
  *   }
  *

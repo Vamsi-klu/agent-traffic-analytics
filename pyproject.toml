@@ -21,16 +21,17 @@ license-files = ["LICENSE", "THIRD_PARTY.md"]  # in the wheel's .dist-info/licen
 [project.urls]
 Source = "https://github.com/tartini-ai/agent-traffic-analytics"
 Issues = "https://github.com/tartini-ai/agent-traffic-analytics/issues"
-Changelog = "https://github.com/tartini-ai/agent-traffic-analytics/blob/v0.5.1/CHANGELOG.md"
+Changelog = "https://github.com/tartini-ai/agent-traffic-analytics/blob/v0.6.0/CHANGELOG.md"
 
 [project.scripts]
 agentcake = "agentcake.cli:main"
 
-# The release folder: run it with bin/agentcake (INSTALL.md), install it on a server (SERVER.md: deploy/cake.service,
-# Dockerfile, .dockerignore). A release copies the sites' middleware (edge/) into the package, like the compiled pages,
-# so it is not listed here. Tests, tools and the web sources stay in the repository: they need the whole checkout, and
-# README's pictures (docs/assets/) are for the repository's page on GitHub.
+# The release folder: run it with bin/agentcake (INSTALL.md), install it on a server (SERVER.md: docker-compose.yml,
+# Dockerfile, .dockerignore and deploy/, which holds the Caddyfile and cake.service). A release copies the sites'
+# middleware (edge/) into the package, like the compiled pages, so it is not listed here. Tests, tools and the web
+# sources stay in the repository: they need the whole checkout, and README's pictures (docs/assets/) are for the
+# repository's page on GitHub.
 [tool.flit.sdist]
-include = ["bin/", "cake.py", "deploy/", "docs/", "Dockerfile", ".dockerignore", "AGENTS.md", "INSTALL.md",
-           "PRIVACY.md", "SERVER.md", "THIRD_PARTY.md"]
+include = ["bin/", "deploy/", "docs/", "Dockerfile", ".dockerignore", "docker-compose.yml", "AGENTS.md",
+           "INSTALL.md", "PRIVACY.md", "SERVER.md", "THIRD_PARTY.md"]
 exclude = ["web/", "tests/", "tools/", "eval/", "edge/", "docs/assets/"]

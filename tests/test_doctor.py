@@ -16,8 +16,10 @@ ENETUNREACH) is said to be the sandbox's doing, never "not running", and the lin
 The running server's lines, with its answers made up (there is no demo shop to check): the page script line
 passes when /cake.js answers with this installation's site key in it, and a visit has arrived once a self-check or a
 real session has.
-WARN and SKIP lines are printed and do not fail doctor. The other lines have their own test files:
-test_doctor_machine.py, test_doctor_site.py, test_doctor_live.py.
+WARN and SKIP lines are printed and do not fail doctor. In server mode doctor prints AgentCake's public lines under
+their own heading (doctor_public.py, whose test file runs them against stand-ins); on this computer alone it prints
+none, and a sandbox that blocks connections leaves them out. The other lines have their own test files:
+test_doctor_machine.py, test_doctor_site.py, test_doctor_live.py, test_doctor_public.py.
 """
 import contextlib
 import errno
@@ -34,8 +36,9 @@ from unittest import mock
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, HERE)
-from agentcake import codecs, config, doctor, doctor_lines, paths, store, streams, wording  # noqa: E402
+from agentcake import codecs, config, doctor, doctor_lines, doctor_public, paths, store, streams, wording  # noqa: E402
 from cake_server import free_port  # noqa: E402
+from doctor_public_fixtures import FakeNet  # noqa: E402
 
 BASE = 1794517500000
 SITE_KEY = "ck_doctortest"
@@ -58,7 +61,7 @@ class ScratchHome(unittest.TestCase):
 class ReplayStorage(ScratchHome):
     def test_a_fresh_data_folder_passes(self):
         name, ok, info = doctor.replay_storage()
-        self.assertEqual(name, "replay storage")
+        self.assertEqual(name, "Replay storage")
         self.assertTrue(ok, info)
         self.assertIn(codecs.writer_codec(), info)
 
@@ -290,6 +293,48 @@ class ServerChecks(ScratchHome):
     def test_the_words_name_no_demo_shop(self):
         for check, (_, info) in self.lines(selfcheck=1).items():
             self.assertNotIn("demo", (check + info).lower())
+
+
+class ServerModeLines(ScratchHome):
+    """doctor() with a network where no name resolves (doctor_public_fixtures.FakeNet) and no AgentCake running."""
+    PUBLIC_HOST, SITE_DOMAIN, PREFIX = "cake.example.com", "example.com", "/cake"
+    PUBLIC_URL = "https://" + PUBLIC_HOST
+    PUBLIC_KEYS = ("doctor_public_dns", "doctor_public_cert", "doctor_public_this", "doctor_public_cors",
+                   "doctor_public_upload", "doctor_public_address", "doctor_public_visitors")
+
+    def printed(self, **settings):
+        config.save_user(**settings)
+        out, net = io.StringIO(), FakeNet(None, {}, {})
+        with contextlib.redirect_stdout(out), mock.patch.object(doctor_public, "Network", lambda: net):
+            doctor.doctor()
+        return out.getvalue()
+
+    def server(self, **settings):
+        return dict(site_key="ck_doctorserver", public_listen=f"127.0.0.1:{free_port()}", path_prefix=self.PREFIX,
+                    **settings)
+
+    def test_on_this_computer_doctor_prints_no_server_mode_lines(self):
+        printed = self.printed(site_key="ck_doctorlocal")
+        for key in self.PUBLIC_KEYS:
+            self.assertNotIn(wording.text(key), printed)
+
+    def test_in_server_mode_the_lines_come_under_the_public_address(self):
+        printed = self.printed(**self.server(site_domain=self.SITE_DOMAIN, public_url=self.PUBLIC_URL))
+        self.assertIn(wording.text("doctor_public_header", url=self.PUBLIC_URL), printed)
+        self.assertIn(f"[FAIL] {wording.text('doctor_public_dns')}: No DNS record exists for {self.PUBLIC_HOST} yet", printed)
+
+    def test_the_same_site_path_without_site_domain_says_to_set_it(self):
+        printed = self.printed(**self.server())
+        self.assertIn(wording.text("doctor_public_header_path", url=self.PREFIX + "/"), printed)
+        no_domain = wording.text("doctor_public_no_site_domain", launcher=paths.launcher())
+        self.assertIn(f"[SKIP] {wording.text('doctor_public_upload')}: {no_domain}", printed)
+
+    def test_a_sandbox_blocking_connections_leaves_them_out(self):
+        blocked = doctor.Reach(None, doctor.BLOCKED, "Operation not permitted")
+        with mock.patch.object(doctor, "reach", return_value=blocked):
+            printed = self.printed(**self.server(site_domain=self.SITE_DOMAIN, public_url=self.PUBLIC_URL))
+        self.assertNotIn(wording.text("doctor_public_header", url=self.PUBLIC_URL), printed)
+        self.assertIn(wording.text("doctor_blocked_next", launcher=paths.launcher()), printed)
 
 
 class Verdicts(unittest.TestCase):

@@ -10,8 +10,9 @@
 // human and an agent took turns, with its replay (README's are of a copy of a demo shop's data folder, served with
 // `agentcake serve`); without such a session it says so before taking any picture. It refuses every request that would
 // leave that AgentCake, so a session's replay never reaches the site it was recorded on. --out writes the pictures to
-// another folder than README's.
-//   cd web && npm run build && node scripts/readme-preview.mjs --origin http://127.0.0.1:<port>/ [--out <folder>]
+// another folder than README's. --style minimal takes the same pictures in the Minimal style (shots.mjs STYLES), named
+// preview-*-minimal.png, for README's folded Minimal style block; Cake is the default.
+//   cd web && npm run build && node scripts/readme-preview.mjs --origin http://127.0.0.1:<port>/ [--out <folder>] [--style minimal]
 // It finds the parts by the icons of their cards' titles (lucide's classes) and the page's structure, never by
 // words, so new interface words do not change it.
 // Playwright and Chromium: as scripts/shots.mjs finds them.
@@ -20,7 +21,7 @@ import path from "node:path"
 import { fileURLToPath } from "node:url"
 import { PNG } from "pngjs"
 import { hideInReplay } from "./readme-images.mjs"
-import { launch, shoot } from "./shots.mjs"
+import { STYLES, launch, pickStyle, shoot } from "./shots.mjs"
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 const OUT = path.join(here, "..", "..", "docs", "assets", "readme")
@@ -46,6 +47,9 @@ export const SLIDES = [
 ]
 const SESSION_ROW = 'main a[href^="#/sessions/"]' // a row of the session list
 const option = (name) => { const at = process.argv.indexOf(name); return at > 0 ? process.argv[at + 1] : undefined }
+const STYLE = option("--style") ?? STYLES[0] // the pages' style the pictures show; the default style keeps README's names
+/** A picture's file name in STYLE: the default style's as SLIDES gives it, another's with the style before .png. */
+const named = (file) => (STYLE === STYLES[0] ? file : file.replace(/\.png$/, `-${STYLE}.png`))
 
 /** In the page: where a part lies (page px), { top, bottom, startY }: from the block holding its first icon (or the
  *  page's top) to the block holding its last (or the page's end), and where the page's own first block starts at the
@@ -131,6 +135,7 @@ async function opened(origin) {
 async function shotContext(browser, origin) {
   const context = await browser.newContext({ viewport: { width: VIEW.width, height: VIEW.height }, colorScheme: "light",
     reducedMotion: "reduce", deviceScaleFactor: VIEW.pixelRatio })
+  await pickStyle(context, STYLE)
   await context.route("**/*", (route) => {
     const url = route.request().url()
     return /^(data|blob|about):/.test(url) || url.startsWith(origin) ? route.continue() : route.abort()
@@ -182,6 +187,7 @@ async function stopAtHandoff(page, handoffMs) {
 async function main() {
   const origin = option("--origin")?.replace(/\/?$/, "/")
   if (!origin) throw new Error("give the AgentCake to film: --origin http://127.0.0.1:<port>/")
+  if (!STYLES.includes(STYLE)) throw new Error(`--style is one of ${STYLES.join(", ")}, not ${STYLE}`)
   const out = option("--out") ? path.resolve(option("--out")) : OUT
   const slides = await opened(origin)
   await mkdir(out, { recursive: true })
@@ -206,9 +212,9 @@ async function main() {
       const scroll = await view.evaluate(isolate, { ...range, viewHeight: VIEW.height })
       await view.waitForTimeout(250)
       const png = await smaller(scaler, await view.screenshot({ animations: "disabled", caret: "hide" }))
-      await writeFile(path.join(out, slide.file), png)
+      await writeFile(path.join(out, named(slide.file)), png)
       const replay = stopped === null ? "" : `, its replay stopped at ${stopped} ms (hand-off at ${slide.handoffMs} ms)`
-      console.log(`${slide.file}: ${slide.route} from ${scroll} px${replay}, ${(png.length / 1e3).toFixed(0)} kB`)
+      console.log(`${named(slide.file)}: ${slide.route} from ${scroll} px${replay}, ${(png.length / 1e3).toFixed(0)} kB`)
       await view.goto("about:blank")
     }
   } finally {

@@ -26,6 +26,11 @@ SOURCES_FOLDER = "agentcake/static/src/"
 DATA_FOLDER = "agentcake/data/"
 LICENCE_SUFFIX = ".LICENSE.txt"
 DATA_SUFFIX = ".json"
+# What runs a module of the package by its name: `python3 -m agentcake`, bin/agentcake, the .pyz and the Docker image
+# run __main__; pyproject.toml's [project.scripts] runs cli.main. Every other module ships because one of these
+# imports it.
+ENTRY_POINTS = ("agentcake/__main__.py", "agentcake/cli.py")
+INIT = "__init__.py"
 
 
 def read(path):
@@ -43,6 +48,25 @@ def string_literals(path):
             if isinstance(node, ast.Constant) and isinstance(node.value, str) and id(node) not in docstrings]
 
 
+def imported(path):
+    """The agentcake module names a module imports anywhere in its code (a function's own import too)."""
+    names = set()
+    for node in ast.walk(ast.parse(read(path), path)):
+        if isinstance(node, ast.Import):
+            names.update(alias.name for alias in node.names)
+        elif isinstance(node, ast.ImportFrom) and node.module:
+            names.update([node.module] + [f"{node.module}.{alias.name}" for alias in node.names])
+    return {name for name in names if name.split(".")[0] == PACKAGE}
+
+
+def module_files(name, files):
+    """The shipped files importing a module name runs: its own and every __init__.py of the packages above it."""
+    parts = name.split(".")
+    found = ["/".join(parts[:depth]) + "/" + INIT for depth in range(1, len(parts) + 1)]
+    found.append("/".join(parts) + ".py")
+    return [file for file in found if file in files]
+
+
 class ReleasedPackage(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -56,9 +80,21 @@ class ReleasedPackage(unittest.TestCase):
         licences = {f"{PACKAGE}/{part['licence']}" for part in parts if "licence" in part}
         self.assertIn(BUILT_SCRIPT, self.files)
         self.assertEqual({name for name in self.files if name.startswith(SOURCES_FOLDER)}, licences)
+        self.assertEqual(sorted({f"{PACKAGE}/{part['file']}" for part in parts} & set(self.files)), [])
 
     def test_the_evaluation_stays_in_the_checkout(self):
         self.assertEqual([name for name in self.files if name.startswith(EVALUATION)], [])
+
+    def test_every_module_is_an_entry_point_or_imported_by_a_module_that_ships(self):
+        """A module only the tests import would be installed on every server for nothing."""
+        reached, waiting = set(), [file for name in ENTRY_POINTS for file in module_files(
+            name[:-len(".py")].replace("/", "."), self.files)]
+        while waiting:
+            file = waiting.pop()
+            if file not in reached:
+                reached.add(file)
+                waiting += [found for name in imported(self.files[file]) for found in module_files(name, self.files)]
+        self.assertEqual(sorted(name for name in self.files if name.endswith(".py") and name not in reached), [])
 
     def test_every_data_file_is_named_by_code_or_data_that_ships(self):
         code = "\n".join(text for name, path in self.files.items() if name.endswith(".py")

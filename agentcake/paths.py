@@ -1,8 +1,8 @@
 """Where AgentCake's files are: the data folder $CAKE_HOME and the files that ship inside the package.
 
 Data lives in $CAKE_HOME (default ~/.cake, the folder 0.3.x used): config.json, cake.db, cake.pid, cake.log and
-srv_secret are named here; replays/ (replay_chunks.py) and lists/ (detect/lists.py, `agentcake lists update`) sit next
-to them. The functions read $CAKE_HOME on every call instead of once at import, so a test, or a process started with
+srv_secret are named here; replays/ (replay_chunks.py), lists/ (detect/lists.py, filled by `agentcake lists update` and
+the monthly update) and updates.json (updates.py) sit next to them. The functions read $CAKE_HOME on every call instead of once at import, so a test, or a process started with
 another CAKE_HOME, gets its own folder without reloading anything. The package's own files (static/, data/, schema.sql)
 sit next to this module, wherever the package was installed. launcher() is the command people are told to run, whichever
 way this copy was installed. The compiled local pages (web/, built with `npm run build`) are found by

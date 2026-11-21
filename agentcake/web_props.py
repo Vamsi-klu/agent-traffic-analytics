@@ -11,7 +11,8 @@ from what cake.js records (static/src/source.js, visitor.js) and what the collec
                        channel PostHog's default rules give them (web_channel.py); entry_t: when that record was made
     browser, os, device_type   web_device.describe() of the User-Agent, with the environment record once it arrives;
                                a session cake.js began on an open page takes those of the page's session before it
-    country, subdivision, city the load balancer's, on a server with trust_lb (netfacts.py); none on this computer
+    country, subdivision, city the city database's for the visitor's address, on a server with trust_lb (netfacts.py,
+                               geoip.py); none on this computer
     language, tz_offset        the page record's (or the environment record's) navigator.language and time zone offset
 
     page views and active time  web_time.py
@@ -40,7 +41,7 @@ MARKS = {kind: f'"ty":"{kind}"' for kind in (PAGE, SESSION, ENVIRONMENT)}  # as 
 AD_SOURCE = "gad_source"  # protocol: the campaign parameter PostHog's channel rules read besides the UTM ones
 GCLID, FBCLID = "gclid", "fbclid"  # protocol: the click ids PostHog's channel rules read
 CLICK_SEPARATOR = " "
-GEO = ("country", "subdivision", "city")  # the load balancer's facts kept with the session (netfacts.net_facts)
+GEO = ("country", "subdivision", "city")  # the place kept with the session (netfacts.net_facts)
 Entry = namedtuple("Entry", "t referring_domain utm_source utm_medium utm_campaign utm_content utm_term gad_source "
                             "click_ids has_gclid has_fbclid language tz_offset")
 
@@ -110,7 +111,7 @@ def _device(con, session, user_agent):
 
 
 def _place(con, session, facts):
-    """The load balancer's country, region and city (netfacts.net_facts), where none is known yet."""
+    """The session's country, region and city (netfacts.net_facts: the city database's), where none is known yet."""
     con.execute("UPDATE session_web SET country=COALESCE(country, ?), subdivision=COALESCE(subdivision, ?), "
                 "city=COALESCE(city, ?) WHERE session_id=?", (*(facts.get(key) for key in GEO), session))
 

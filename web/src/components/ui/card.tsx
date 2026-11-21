@@ -10,10 +10,10 @@ const cardVariants = cva(
   {
     variants: {
       variant: {
-        default: "border-2 border-line bg-card shadow-hard",
-        flat: "border-2 border-line bg-card",
-        sunk: "border-2 border-dashed border-border bg-muted",
-        highlight: "border-3 border-line bg-agent-soft shadow-hard",
+        default: "border-2 border-line bg-card shadow-hard minimal:border",
+        flat: "border-2 border-line bg-card minimal:border",
+        sunk: "border-2 border-dashed border-border bg-muted minimal:border minimal:border-input",
+        highlight: "border-3 border-line bg-agent-soft shadow-hard minimal:border minimal:bg-card",
       },
     },
     defaultVariants: { variant: "default" },
@@ -56,13 +56,13 @@ function CardTitle({ className, icon: Icon, children, ...props }: React.Componen
     <div
       data-slot="card-title"
       className={cn(
-        "font-heading text-lg leading-snug font-semibold group-data-[size=sm]/card:text-base",
+        "font-heading text-lg leading-snug font-semibold group-data-[size=sm]/card:text-base minimal:text-base minimal:group-data-[size=sm]/card:text-sm",
         Icon && "flex items-center gap-2",
         className
       )}
       {...props}
     >
-      {Icon && <Icon className="size-5" aria-hidden />}
+      {Icon && <Icon className="size-5 minimal:size-4" aria-hidden />}
       {children}
     </div>
   )

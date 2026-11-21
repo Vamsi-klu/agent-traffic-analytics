@@ -11,9 +11,8 @@ Python bindings of Brave's adblock-rust, installed by hash) go into DIR, by defa
 the end; nothing goes into the repository or into AgentCake. Prints each request with what blocks it (rule, list,
 line) and the address and sha256 of every list it read; --report writes all of it as JSON.
 
-Exit code 0: no current request is blocked (a route kept only for old pages may be, as SERVER.md says); 1: a current
-request is blocked, and the lines say by what; 2: a catalog, a list or the matcher could not be fetched, so nothing
-was decided. live.py checks the same in a real Chromium with uBO Lite.
+Exit code 0: no request is blocked; 1: a request is blocked, and the lines say by what; 2: a catalog, a list or the
+matcher could not be fetched, so nothing was decided. live.py checks the same in a real Chromium with uBO Lite.
 """
 import argparse
 import hashlib
@@ -96,7 +95,7 @@ def where(rule, list_names, lists):
 
 
 def judge(reqs, answers, lists):
-    """Rows of the report and the requests that fail the check (blocked and not legacy)."""
+    """Rows of the report and the requests that fail the check: each request a blocker blocks."""
     rows, failing = [], []
     for req, answer in zip(reqs, answers):
         row = dict(req, verdicts={})
@@ -104,8 +103,7 @@ def judge(reqs, answers, lists):
             if v["blocked"]:
                 named = {hit["list"] for hit in v["lists"] if hit["rule"] == v["rule"]}
                 v = dict(v, written_at=where(v["rule"], named, lists))
-                if not req["legacy"]:
-                    failing.append((req, blocker, v))
+                failing.append((req, blocker, v))
             row["verdicts"][blocker] = v
         rows.append(row)
     return rows, failing
@@ -115,16 +113,13 @@ def show(rows, failing, lists):
     for row in rows:
         blocked = {b: v for b, v in row["verdicts"].items() if v["blocked"]}
         state = "blocked" if blocked else "passes"
-        if blocked and row["legacy"]:
-            state = "blocked, expected (kept only for old pages)"
         print(f"{row['label']:34} {row['url']:52} {state}")
         for blocker, v in blocked.items():
             print(f"    {blocker}: {v['rule']}  ({'; '.join(v['written_at']) or 'line not found'})")
     print(f"\nlists read ({len(lists)}):")
     for item in lists:
         print(f"  {item['blocker']}: {item['name']}  {item['url']}  sha256 {item['sha256']}")
-    current = sum(not r["legacy"] for r in rows)
-    print(f"\nblockers: {len({r['label'] for r, _, _ in failing})} of {current} current requests blocked")
+    print(f"\nblockers: {len({r['label'] for r, _, _ in failing})} of {len(rows)} requests blocked")
 
 
 def run(folder, report):

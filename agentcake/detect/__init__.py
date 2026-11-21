@@ -6,11 +6,12 @@ verdict.py makes one conclusion per session from four layers, each in its own mo
                          keydirectory.py)
   environment            env_rules.py and predicate.py (the rule table and its language), env_signals.py (what the
                          rules read from a session), markers.py (agent products' marks on the page and when each was
-                         there)
+                         there), verdict_soft.py (when soft traces count)
   behaviour              behavior.py (whether the model runs), model.py and timeline.py (the model), features.py,
                          segment.py and rrweb_events.py (its input)
 attribute.py names the agent; crawler.py and weak.py add the reasons that never change a verdict; verdict_text.py
 words every reason. schedule.py says when a session is judged; agentcake/judging.py does it and agentcake/evidence.py
 reads its evidence from the database. Nothing in this package reads the database, and only lists_build.py goes online
-(when a release is built or `agentcake lists update` runs, never while cake judges).
+(when a release is built, when `agentcake lists update` runs, and once a month in the process `agentcake serve`
+starts for the update, agentcake/updates.py; never in the process that judges).
 """

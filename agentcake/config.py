@@ -87,9 +87,14 @@ def _path_prefix(v):
     return "" if v == "/" else v
 
 
+def _folder(v):
+    """A folder as a full path; a blank value clears the setting (os.path.abspath of "" is the current folder)."""
+    return os.path.abspath(os.path.expanduser(v)) if v.strip() else ""
+
+
 # how typed text is tidied before it is checked; any other text setting is only stripped
 NORMALIZE = {"site_domain": lambda v: re.sub(r"^https?://", "", v).strip("/"),
-             "site_dir": lambda v: os.path.abspath(os.path.expanduser(v)),
+             "site_dir": _folder,
              "path_prefix": _path_prefix}
 
 

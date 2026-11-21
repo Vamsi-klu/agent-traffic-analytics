@@ -8,6 +8,8 @@ for the page the way a browser opens it and reads what came back: the page loads
 response carries a token this AgentCake's secret signed, in its time window; the token holds the Sec-Fetch values and
 the signature headers doctor sent. A middleware that is not mounted, a token signed with another secret or with a clock
 far off, a proxy in front of the site that drops headers, a page without cake.js: each fails its own line and says why.
+A page cache in front of the site (stored HTML, no Server-Timing, as Cache Enabler serves it) is a WARN, found by one
+more request at an address no cache has stored, which carries a good token.
 """
 import contextlib
 import errno
@@ -23,6 +25,7 @@ import threading
 import time
 import unittest
 import urllib.error
+import urllib.request
 import wsgiref.simple_server
 from unittest import mock
 
@@ -212,6 +215,99 @@ class Broken(PageChecks):
             ok, info = self.line(self.checks("http://localhost:3000/"), "doctor_live_script")
         self.assertIs(ok, False)
         self.assertIn(wording.text("doctor_live_blocked"), info)
+
+
+CACHE_HEADER = ("X-Cache-Handler", "cache-enabler-engine")  # what Cache Enabler adds to a page it serves
+
+
+def page_cache(app, asked):
+    """A page cache in front of the site, the way Cache Enabler and most WordPress page cache plugins work (tried in
+    Cache Enabler 1.8.17 on WordPress 7.1.5): the first view of a page goes through to the site and only its
+    HTML is stored; every later view gets the stored HTML with the cache's own header and none of the site's, so no
+    Server-Timing. A URL with a query string goes through to the site and is not stored. Every request's path and
+    query is noted in asked."""
+    stored = {}
+
+    def cache(environ, start_response):
+        path, query = environ.get("PATH_INFO") or "/", environ.get("QUERY_STRING", "")
+        asked.append((path, query))
+        if query:
+            return app(environ, start_response)
+        if path in stored:
+            start_response("200 OK", [("Content-Type", "text/html; charset=UTF-8"), CACHE_HEADER])
+            return [stored[path]]
+        stored[path] = b"".join(app(environ, start_response))
+        return [stored[path]]
+    return cache
+
+
+class PageCache(PageChecks):
+    def cached(self, app):
+        """The site behind a page cache that a visitor's view has filled: (its URL, the requests the cache got)."""
+        asked = []
+        url = self.serve(page_cache(app, asked))
+        with urllib.request.urlopen(url) as first_view:
+            first_view.read()
+        asked.clear()
+        return url, asked
+
+    def test_a_page_a_page_cache_served_warns_instead_of_failing(self):
+        """The middleware is mounted and has the secret: the page doctor got came from the page cache. Saying "not
+        mounted, or no secret" would send the owner after a problem they do not have."""
+        url, _ = self.cached(self.mounted())
+        checks = self.checks(url, framework="wordpress")
+        ok, info = self.line(checks, "doctor_live_token")
+        self.assertEqual(ok, doctor_lines.WARN, info)
+        self.assertNotEqual(info, wording.text("doctor_live_token_none", env=SECRET_ENV))
+        self.assertIn(": ".join(CACHE_HEADER), info)
+        self.assertIs(self.line(checks, "doctor_live_sec_fetch")[0], True, "read from the token past the cache")
+
+    def test_one_more_get_with_a_new_random_value_each_run(self):
+        url, asked = self.cached(self.mounted())
+        self.checks(url, framework="wordpress")
+        self.checks(url, framework="wordpress")
+        self.assertEqual([query for _, query in asked][::2], ["", ""], "each run: the page as it is first")
+        extra = [dict([query.split("=")]) for _, query in asked[1::2]]
+        self.assertEqual(len(asked), 4, asked)
+        self.assertEqual([list(e) for e in extra], [["agentcake-doctor"], ["agentcake-doctor"]])
+        self.assertNotEqual(extra[0]["agentcake-doctor"], extra[1]["agentcake-doctor"])
+
+    def test_a_page_with_its_token_is_asked_for_once(self):
+        asked = []
+        url = self.serve(page_cache(self.mounted(), asked))  # nothing stored yet: the site answers
+        self.assertIs(self.line(self.checks(url), "doctor_live_token")[0], True)
+        self.assertEqual(asked, [("/", "")])
+
+    def test_no_token_past_the_cache_either_still_fails_and_says_why(self):
+        url, asked = self.cached(html_app(self.page))
+        self.assertEqual(self.line(self.checks(url), "doctor_live_token"),
+                         (False, wording.text("doctor_live_token_none", env=SECRET_ENV)))
+        self.assertEqual(len(asked), 2, asked)
+
+    def test_a_static_site_is_not_asked_twice(self):
+        url, asked = self.cached(html_app(self.page))
+        self.assertEqual(self.line(self.checks(url, framework="static"), "doctor_live_token")[0], doctor_lines.SKIP)
+        self.assertEqual(len(asked), 1, asked)
+
+    def test_past_the_cache_the_site_too_slow_says_so_instead_of_not_mounted(self):
+        """A site's server that makes a page slower than doctor waits (Playground under load took 5 to 11 s):
+        the server half was not checked, which is a WARN of its own, not "the middleware is not mounted". Both ways a
+        request times out, while reading the answer and while connecting (urllib wraps that one in URLError)."""
+        url, _ = self.cached(self.mounted())
+        real_urlopen, query = urllib.request.urlopen, doctor_live.load("data/doctor.json")["page_cache"]["query"]
+        for failure in (TimeoutError("timed out"), urllib.error.URLError(TimeoutError("timed out"))):
+            def slow_past_the_cache(request, timeout=None):
+                if query in request.full_url:
+                    raise failure
+                return real_urlopen(request, timeout=timeout)
+            with self.subTest(failure=repr(failure)), \
+                    mock.patch("urllib.request.urlopen", side_effect=slow_past_the_cache):
+                checks = self.checks(url, framework="wordpress")
+                ok, info = self.line(checks, "doctor_live_token")
+                self.assertEqual(ok, doctor_lines.WARN, info)
+                self.assertIn(f"{config.load_cfg()['http_timeout_s']} s", info)
+                self.assertIn(": ".join(CACHE_HEADER), info)
+                self.assertEqual(self.line(checks, "doctor_live_sec_fetch")[0], doctor_lines.SKIP)
 
 
 class StaticSite(PageChecks):

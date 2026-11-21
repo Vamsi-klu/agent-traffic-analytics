@@ -26,10 +26,10 @@ from unittest import mock
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from api_client import Client, contract_problems  # noqa: E402
 from cake_server import AGENTCAKE  # noqa: E402
-from agentcake import config, log_report, store, wording  # noqa: E402
-from agentcake.api import visits  # noqa: E402
-from agentcake.detect import lists  # noqa: E402
-from agentcake.units import BYTES_PER_MB, MS_PER_DAY, PERCENT  # noqa: E402
+from agentcake import config, log_report, store, updates, wording  # noqa: E402
+from agentcake.api import periods, visits  # noqa: E402
+from agentcake.detect import lists, lists_build  # noqa: E402
+from agentcake.units import BYTES_PER_MB, MS_PER_DAY, MS_PER_S, PERCENT  # noqa: E402
 
 DiskUsage = namedtuple("DiskUsage", "total used free")  # what shutil.disk_usage returns
 FETCH = {"s": "same-origin", "m": "navigate", "d": "document", "u": "?1"}  # a browser's Sec-Fetch-* in a token
@@ -126,8 +126,49 @@ class Settings(SettingsCase):
                                dict(status, age_days=(late - built).days, stale=True)):
             self.assertTrue(self.settings()["lists"]["stale"])
 
+    def test_automatic_updates_are_on_by_default(self):
+        self.assertIs(self.settings()["lists_auto_update"], True)
+
+    def test_the_update_takes_in_the_city_database_only_where_it_downloads_it(self):
+        """On a server that reads the visitor's address (public_listen and trust_lb), as updates.due() and doctor say;
+        a public listener without trust_lb never looks up a place, so its update leaves the database out."""
+        for values, downloads in (({}, False), ({"public_listen": "127.0.0.1:8080"}, False),
+                                  ({"public_listen": "127.0.0.1:8080", "trust_lb": True}, True)):
+            config.save_user(**values)
+            self.assertIs(self.settings()["lists"]["city_database"], downloads, values)
+
+    def test_before_any_update_there_is_no_last_update(self):
+        self.assertEqual({key: self.settings()["lists"][key] for key in ("last_update", "failures", "failing")},
+                         {"last_update": None, "failures": 0, "failing": False})
+
+    def test_the_last_update_says_when_it_ran_and_why_it_failed(self):
+        def unreachable(url, accept=None):
+            raise lists_build.BuildError(f"{url}: unreachable")
+
+        updates.run(updates.AUTO, parts=[updates.LISTS], fetchers={updates.LISTS: unreachable})
+        ran_ms = datetime.datetime.fromisoformat(updates.status()["last"]["at"]).timestamp() * MS_PER_S
+        answer = self.settings()["lists"]
+        self.assertEqual(answer["last_update"]["when"], periods.when(ran_ms, periods.now_ms(), None))
+        self.assertIs(answer["last_update"]["ok"], False)
+        self.assertIn("unreachable", answer["last_update"]["error"])
+        self.assertEqual((answer["failures"], answer["failing"]), (1, False))
+        for _ in range(updates.settings()["warn_after_failures"] - 1):
+            updates.run(updates.AUTO, parts=[updates.LISTS], fetchers={updates.LISTS: unreachable})
+        self.assertIs(self.settings()["lists"]["failing"], True)
+
 
 class Changes(SettingsCase):
+    def test_a_post_turns_automatic_updates_off_and_back_on(self):
+        answer = self.client.post("/api/settings", {"lists_auto_update": False})
+        self.assertEqual(answer.status, 200, answer.body)
+        self.assertEqual(contract_problems(answer.body, "settings"), [])
+        self.assertIs(answer.body["lists_auto_update"], False)
+        self.assertIs(self.saved()["lists_auto_update"], False)
+        self.assertEqual(updates.due(config.load_cfg(), datetime.datetime.now(datetime.timezone.utc)
+                                     + datetime.timedelta(days=updates.settings()["every_days"] * 3)), [])
+        self.assertIs(self.client.post("/api/settings", {"lists_auto_update": True}).body["lists_auto_update"], True)
+        self.assertEqual(self.refused({"lists_auto_update": "off"}), "lists_auto_update must be true or false.")
+
     def test_a_post_saves_only_what_it_names_and_config_get_reads_the_same(self):
         changes = {"retention_days": 90, "budget_mb": 20480, "auto_free": False, "site_domain": "https://Shop.example/",
                    "hook_dom": True, "hide_selectors": ".account-email, #address"}
@@ -197,6 +238,12 @@ class Sources(SettingsCase):
         body = self.settings()
         self.assertEqual(body["route"], "server")
         self.assertIn('src="/cake/cake.js"', body["script_tag"], "the path on the site's own domain")
+
+    def test_with_public_url_the_line_loads_from_the_subdomain(self):
+        config.save_user(public_listen="127.0.0.1:9", path_prefix="/cake", public_url="https://cake.example.com")
+        body = self.settings()
+        self.assertEqual(body["script_tag"],
+                         '<script src="https://cake.example.com/cake/cake.js" data-site="ck_settings" defer></script>')
 
     def test_the_server_half_says_which_headers_never_arrived(self):
         now = int(time.time() * 1000)

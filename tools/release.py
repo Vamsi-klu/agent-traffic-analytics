@@ -2,8 +2,9 @@
 """Build a release of AgentCake (we build it, people download what we built).
 
     python3 -I tools/release.py refresh
-        Refresh the lists that ship with AgentCake (needs the internet), in this working tree. Read the summary
-        and `git diff`, run the tests, update the dates in THIRD_PARTY.md, and commit before building.
+        Refresh the lists that ship with AgentCake (needs the internet), in this working tree, and write Cloudflare's
+        ranges from them into deploy/Caddyfile. Read the summary and `git diff`, run the tests, update the dates in
+        THIRD_PARTY.md, and commit before building.
 
     python3 -I tools/release.py build [--out <folder>] [--tag v<version>]
         Build the release of the commit checked out (HEAD) into <folder> (default dist/, which must be empty):
@@ -23,7 +24,7 @@ import sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 
-from tools.releasing import build, bundled_lists, checksums  # noqa: E402  (the repository is put on sys.path first)
+from tools.releasing import build, bundled_lists, caddyfile, checksums  # noqa: E402  (the repository goes on sys.path first)
 from tools.releasing.settings import ReleaseError, load  # noqa: E402
 
 
@@ -58,6 +59,9 @@ def main(argv=None):
         if args.command == "refresh":
             changed = bundled_lists.refresh(ROOT, settings)
             print("release: changed:\n" + changed if changed else "release: the lists did not change")
+            wrote = caddyfile.refresh(ROOT, settings)
+            print(f"release: {settings['caddyfile']['file']}: Cloudflare's ranges "
+                  + ("written from the lists" if wrote else "are the lists' already"))
             return 0
         out_dir = os.path.abspath(args.out or os.path.join(ROOT, settings["out_dir"]))
         print_summary(build.build(ROOT, out_dir, tag=args.tag))

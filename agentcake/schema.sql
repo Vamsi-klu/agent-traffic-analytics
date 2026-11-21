@@ -91,6 +91,9 @@ CREATE TABLE IF NOT EXISTS labels(session_id TEXT NOT NULL, name TEXT NOT NULL, 
 CREATE TABLE IF NOT EXISTS requests(session_id TEXT NOT NULL, recv_ms INT NOT NULL, seq INT, facts TEXT NOT NULL,
     pv TEXT);
 CREATE INDEX IF NOT EXISTS requests_s ON requests(session_id, recv_ms);
+-- The latest requests first, for the address check (address_check.py: it reads back from a time until it has seen
+-- enough sessions).
+CREATE INDEX IF NOT EXISTS requests_t ON requests(recv_ms);
 
 -- Each batch cake.js sent (upload format v1, docs/collect-format.md), keyed the way the format tells a batch
 -- sent twice: visit, page view, batch number. Its header: when cake.js made it (t, epoch ms) and when it arrived, the

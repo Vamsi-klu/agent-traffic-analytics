@@ -1,12 +1,14 @@
 """One release, from one commit, into one folder: what `python3 -I tools/release.py build` runs.
 
-The steps: export the commit (source.py) into a scratch folder; check its lists are fresh (bundled_lists.py) and its
-cake.js current; name README's pictures at the release's tag (readme.py); build the local pages into the package
-(webapp.py), copy the sites' middleware into it (middleware.py) and minify cake.js (cakejs.py); write the wheel, the
-.pyz and the release folder, then SHA256SUMS; look for what must never ship (scan.py). Only when all of that passed
-are the files moved into the output folder, which must be empty or missing: a release never mixes with older files
-and nothing in the folder is overwritten or deleted. The summary names the commit, each file's size and sha256, and
-the tools used; a tool version other than release.json "toolchain" is pointed out, since it can change bytes.
+The steps: export the commit (source.py) into a scratch folder; check its lists are fresh (bundled_lists.py), that
+deploy/Caddyfile trusts their Cloudflare ranges (caddyfile.py), that the WordPress plugin names the version being
+released (middleware.py), and that its cake.js is current; name README's
+pictures at the release's tag (readme.py); build the local pages into the package (webapp.py), copy the sites'
+middleware into it (middleware.py) and minify cake.js (cakejs.py); write the wheel, the .pyz and the release folder,
+then SHA256SUMS; look for what must never ship (scan.py). Only when all of that passed are the files moved into the
+output folder, which must be empty or missing: a release never mixes with older files and nothing in the folder is
+overwritten or deleted. The summary names the commit, each file's size and sha256, and the tools used; a tool version
+other than release.json "toolchain" is pointed out, since it can change bytes.
 """
 import os
 import platform
@@ -15,8 +17,9 @@ import subprocess
 import tempfile
 import zlib
 
-from tools.releasing import (archive, bundled_lists, cakejs, checksums, middleware, project as project_module, pyz,
-                             readme, scan, source, webapp, wheel)
+from tools.releasing import (archive, bundled_lists, caddyfile, cakejs, checksums, middleware, pyz, readme, scan, source,
+                             webapp, wheel)
+from tools.releasing import project as project_module
 from tools.releasing.settings import ROOT, SETTINGS_FILE, ReleaseError, load
 
 
@@ -61,6 +64,8 @@ def prepare(repository, commit, tree, tag, log):
         raise ReleaseError(f"tag {tag} does not match the version, {project.version} (agentcake/__init__.py)")
     epoch = source.commit_time(repository, commit)
     lists_age = bundled_lists.check_fresh(tree, settings, epoch)
+    caddyfile.check(tree, settings)
+    middleware.check_plugin_version(tree, settings, project.version)
     pinned = readme.pin_tree(tree, settings, project)
     webapp.build(tree, settings)
     middleware.build(tree, settings)

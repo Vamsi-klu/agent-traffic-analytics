@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       AgentCake
  * Description:       AgentCake's server middleware for WordPress: a signed token in each page's Server-Timing header, and the cake.js line in each page's head.
- * Version:           0.0.0
+ * Version:           0.6.0
  * Requires at least: 5.7
  * Requires PHP:      7.4
  * Author:            AgentCake
@@ -86,13 +86,24 @@ function agentcake_warn(string $line): void
 }
 
 /**
+ * The request the middleware reads: null where PHP has getallheaders(), so that it takes the headers as sent, as on any
+ * PHP site; else $_SERVER without the slashes WordPress adds to it before plugins run (wp_magic_quotes()), which would
+ * otherwise go into the token, Signature-Agent's "https://..." as \"https://...\". PHP has no getallheaders() under
+ * php-cgi and in WordPress Playground.
+ */
+function agentcake_request_server(): ?array
+{
+    return function_exists('getallheaders') ? null : wp_unslash($_SERVER);
+}
+
+/**
  * send_headers: the page's token, before WordPress sends the page; only page requests get one (cake_edge_format.php).
  * Under "Page caching" a page that got a token is also marked for page cache plugins, which read DONOTCACHEPAGE: a
  * stored page would go out to later visitors without a token, or with this one.
  */
 function agentcake_send_header(): void
 {
-    $token = agentcake_edge()->sendHeader();
+    $token = agentcake_edge()->sendHeader(agentcake_request_server());
     $constant = agentcake_config()['page_cache_constant'];
     if ($token !== null && agentcake_settings()['no_store'] && !defined($constant)) {
         define($constant, true);

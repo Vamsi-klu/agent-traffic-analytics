@@ -71,7 +71,7 @@ class Cake:
         self.env.pop("CAKE_PORT", None)
         self.local_port, self.public_port = free_port(), free_port()
         for key, value in (("port", self.local_port), ("public_listen", f"{LOOPBACK}:{self.public_port}"),
-                           ("path_prefix", prefix)):
+                           ("path_prefix", prefix), ("lists_auto_update", "false")):  # its own downloads only
             subprocess.run([sys.executable, "-I", MAIN, "config", "set", key, str(value)], env=self.env, check=True,
                            capture_output=True)
         with open(os.path.join(home, os.path.basename(paths.config_file())), encoding="utf-8") as f:

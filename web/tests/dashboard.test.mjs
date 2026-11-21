@@ -124,6 +124,51 @@ test("Key metrics counts by importance, four to a row: sessions, visitors, page 
   }
 })
 
+/** The sample answers with counts of a thousand or more: the totals add up as the API's do, and Trends' sessions are a
+ *  thousand times the sample's, so its axis goes past a thousand too. */
+const THOUSANDS = {
+  ...overview,
+  counts: { all: 12345, human: 7000, agent: 4321, bot: 1024, agent_only: 4000, human_agent: 321, thin: 1500 },
+  agent_earlier: 1234,
+  agents_seen: [{ name: "Claude in Chrome", sessions: 2500 }, { name: null, sessions: 1821 }],
+  page_views: { all: 19000, human: 10000, agent: 8000, bot: 1000 },
+}
+const TIMES = 1000
+const THOUSANDS_WEB = {
+  ...web,
+  visitors: { all: 4730, agent: 1170, human: 3000, bot: 1001, without: 0 },
+  page_views: { all: 19000, agent: 8000, human: 10000, bot: 1000 },
+  agents: [{ ...web.agents[0], sessions: 2500, visitors: 1100, page_views: 9000 }],
+  trends: { ...web.trends, points: web.trends.points.map((p) => ({ ...p, human: { ...p.human, sessions: p.human.sessions * TIMES },
+    agent: { ...p.agent, sessions: p.agent.sessions * TIMES } })) },
+}
+
+test("a count of a thousand or more has a comma between thousands on the cards, in the Agent block, on Top agents and on Trends' axis", async () => {
+  const tab = await open({ answer: THOUSANDS, webAnswer: THOUSANDS_WEB })
+  try {
+    const of = (v, unit) => `${judging.verdicts[v].label} ${unit}`
+    const texts = await totals(tab.page)
+    for (const card of ["Sessions 12,345", `${of("agent", "sessions")} 4,321`, `${of("human", "sessions")} 7,000 1,500 ${WORDS.withThinEvidence}`,
+      `${of("bot", "sessions")} 1,024`, "Visitors 4,730", `${of("agent", "visitors")} 1,170`, `${of("human", "visitors")} 3,000`,
+      `${of("bot", "visitors")} 1,001`, "Page views 19,000", `${of("agent", "page views")} 8,000`, `${of("human", "page views")} 10,000`,
+      `${of("bot", "page views")} 1,000`]) assert.ok(texts.includes(card), `${card} in ${JSON.stringify(texts)}`)
+    const spotlight = (await tab.page.locator('[aria-labelledby="spot-title"]').innerText()).replace(/\s+/g, " ")
+    for (const shown of ["4,321", "+3,087", "vs. 1,234 prior", "2,500 Claude in Chrome", `1,821 ${UNNAMED}`]) {
+      assert.ok(spotlight.includes(shown), `${shown} in the Agent block: ${spotlight}`)
+    }
+    const chart = (title) => tab.page.locator('[data-slot="card"]').filter({ has: tab.page.locator('[data-slot="card-title"]', { hasText: new RegExp(`^${title}$`) }) })
+    await chart(TOP_AGENTS).locator(".recharts-label-list text").first().waitFor({ timeout: WAIT_MS })
+    assert.deepEqual(await chart(TOP_AGENTS).locator(".recharts-label-list text").allTextContents(), ["2,500"])
+    const ticks = chart(WORDS.trends).locator(".recharts-yAxis-tick-labels .recharts-cartesian-axis-tick-value")
+    await ticks.first().waitFor({ timeout: WAIT_MS })
+    const axis = await ticks.allTextContents()
+    assert.ok(axis.some((tick) => /^\d{1,3}(,\d{3})+$/.test(tick)), `Trends' axis passes a thousand: ${axis}`)
+    assert.deepEqual(axis.filter((tick) => /\d{4}/.test(tick)), [], "no tick of a thousand or more without its comma")
+    assert.deepEqual((await tab.page.locator("main").innerText()).match(/(?<![\d,.])\d{4,}(?![\d,])/g), null,
+      "no count of a thousand or more without its comma anywhere on the dashboard")
+  } finally { await tab.close() }
+})
+
 test("Deep dive's cards come straight under its heading, in order: Top agents, Trends, Paths, Sources, Devices, Geography", async () => {
   const tab = await open()
   try {

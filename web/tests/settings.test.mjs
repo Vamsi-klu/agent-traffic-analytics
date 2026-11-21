@@ -1,7 +1,8 @@
 // The settings page in Chromium, against the built app with /api/settings answered here: every item shows what
 // /api/settings and /api/register say; a change is posted at once with only its field, and a selector list the browser
 // can't read isn't posted; where visits come from is asked again while the page is open, leaving the form as it
-// is; lists past their age limit and a full budget warn; "Delete all data" asks first and then posts /api/delete for everything;
+// is; lists past their age limit and a full budget warn; the monthly update of the lists is a switch, with its last run,
+// and failed updates in a row warn and give the command; "Delete all data" asks first and then posts /api/delete for everything;
 // freeing space deletes the oldest replays of every kind once less than the rest of the budget than /api/settings's share
 // is left, as its description says.
 // Usage: node --test tests/
@@ -90,6 +91,9 @@ test("every item shows what /api/settings and /api/register say", async () => {
     assert.equal(await page.getByRole("radio", { name: "Keep everything" }).getAttribute("aria-checked"), "true")
     assert.equal(await page.getByRole("switch", { name: "Automatic cleanup" }).getAttribute("aria-checked"), "true")
     assert.equal(await page.getByRole("switch", { name: "Extra automation detection" }).getAttribute("aria-checked"), "false")
+    assert.equal(await page.getByRole("switch", { name: WORDS.autoUpdate.title }).getAttribute("aria-checked"), "true")
+    assert.ok(shown.includes(WORDS.autoUpdate.on(settings.lists.city_database)))
+    assert.ok(shown.includes(WORDS.autoUpdate.lastOk(settings.lists.last_update.when)))
     assert.equal(await page.getByLabel("Mask elements").inputValue(), settings.hide_selectors)
     assert.equal(await page.getByRole("switch", { name: /Name|Verification|Environment|Behavior/ }).count(), 0, "the four layers: shown, not switches")
     assert.ok(shown.includes(`Built on ${settings.lists.built}`) && shown.includes("Up to date"))
@@ -208,6 +212,46 @@ test("lists past their age limit warn and give the command; a full budget says n
     assert.ok((await page.locator("pre").allInnerTexts()).includes(late.lists.update_command))
     await page.getByText("All remaining replays belong to active sessions", { exact: false }).waitFor({ timeout: WAIT_MS })
   } finally { await tab.close() }
+})
+
+test("the automatic updates switch posts its setting alone; off, the row names the command", async () => {
+  const tab = await open()
+  try {
+    const page = tab.page, toggle = page.getByRole("switch", { name: WORDS.autoUpdate.title })
+    await toggle.click()
+    await page.waitForFunction(() => document.querySelector('[role="switch"][aria-label="Automatic updates"]')?.getAttribute("aria-checked") === "false")
+    assert.deepEqual(tab.posts, [{ lists_auto_update: false }])
+    const [before, , after] = WORDS.autoUpdate.off(settings.lists.update_command, settings.lists.city_database)
+    assert.ok((await text(page)).includes(`${before}${settings.lists.update_command}${after}`))
+  } finally { await tab.close() }
+})
+
+test("on a server that doesn't read the visitor's address, the update names the lists only, as it downloads only them", async () => {
+  const tab = await open({ ...settings, route: "server", lists: { ...settings.lists, city_database: false } })
+  try {
+    const shown = await text(tab.page)
+    assert.ok(shown.includes(WORDS.autoUpdate.on(false)))
+    assert.ok(!shown.includes("city database"))
+  } finally { await tab.close() }
+})
+
+test("a failed update says why and that it runs again; failed updates in a row warn and give the command", async () => {
+  const failed = { ...settings, lists: { ...settings.lists, last_update: { when: "Today 03:12", ok: false, error: "https://api.github.com/repos/x/y/commits/main: timed out" }, failures: 1, failing: false } }
+  const tab = await open(failed)
+  try {
+    const page = tab.page, shown = await text(page)
+    assert.ok(shown.includes(WORDS.autoUpdate.lastFailed("Today 03:12", failed.lists.last_update.error)))
+    assert.ok(shown.includes(WORDS.autoUpdate.retry(NAME)))
+    assert.ok(!shown.includes(WORDS.autoUpdate.failing("1")), "one failure is not a warning")
+  } finally { await tab.close() }
+  const failing = { ...failed, lists: { ...failed.lists, failures: 2, failing: true } }
+  const again = await open(failing)
+  try {
+    const page = again.page
+    await page.getByText(WORDS.autoUpdate.failing("2")).waitFor({ timeout: WAIT_MS })
+    assert.ok((await page.locator("pre").allInnerTexts()).includes(failing.lists.update_command))
+    assert.ok(!(await text(page)).includes(WORDS.autoUpdate.retry(NAME)), "failing: the warning gives the command instead")
+  } finally { await again.close() }
 })
 
 test("Delete all data asks first, then posts /api/delete for every session", async () => {

@@ -12,6 +12,7 @@
     "site_domain": { "type": "string" },
     "hook_dom": { "type": "boolean" },
     "hide_selectors": { "type": "string" },
-    "timezone": { "type": "string" }
+    "timezone": { "type": "string" },
+    "lists_auto_update": { "type": "boolean" }
   }
 }

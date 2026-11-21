@@ -45,8 +45,9 @@ class CakeServesCakeJs(unittest.TestCase):
         cls.env.pop("CAKE_PORT", None)
         port = free_port()
         cls.base = f"http://127.0.0.1:{port}"
-        # replays are stored whatever this computer's free disk (disk_min_free_mb, is tested in test_space)
-        for key, value in (("port", port), ("site_key", SITE_KEY), ("disk_min_free_mb", 0)):
+        # replays are stored whatever this computer's free disk (disk_min_free_mb, is tested in test_space); the
+        # monthly update is off, so a test never goes online (agentcake/updates.py)
+        for key, value in (("port", port), ("site_key", SITE_KEY), ("disk_min_free_mb", 0), ("lists_auto_update", "false")):
             subprocess.run(AGENTCAKE + ["config", "set", key, str(value)], env=cls.env, check=True, capture_output=True)
         cls.server = subprocess.Popen(AGENTCAKE + ["serve"], env=cls.env, stdout=subprocess.DEVNULL,
                                       stderr=subprocess.DEVNULL)

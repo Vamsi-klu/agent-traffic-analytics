@@ -20,6 +20,33 @@ from tools.releasing.settings import ReleaseError
 
 EPOCH = 1794528000  # 2026-11-12 00:00:00 UTC, a made-up commit time
 TOP = f"agentcake-{VERSION}"
+# Every file of the release folder besides the package (test_release_contents.py) and the wheel in dist/, with who
+# uses it where AgentCake is installed: a file nobody uses has no place on people's servers.
+BESIDE_THE_PACKAGE = {
+    ".dockerignore": "docker build: only the wheel goes into the image",
+    "AGENTS.md": "the coding agent that installs AgentCake from this folder",
+    "Dockerfile": "docker build, and docker compose (SERVER.md)",
+    "INSTALL.md": "the install steps AGENTS.md sends that coding agent to",
+    "LICENSE": "the licence",
+    "PKG-INFO": "pip, for which the folder is a source distribution",
+    "PRIVACY.md": "what AgentCake records, which the commands and the pages point to",
+    "README.md": "the folder's own description",
+    "SERVER.md": "installing AgentCake on a server",
+    "THIRD_PARTY.md": "the notices of what AgentCake carries of others",
+    "bin/agentcake": "running AgentCake from the folder (INSTALL.md)",
+    "deploy/Caddyfile": "Caddy in front of AgentCake on its own subdomain (docker-compose.yml, SERVER.md)",
+    "deploy/cake.service": "systemd (SERVER.md)",
+    "docker-compose.yml": "AgentCake and Caddy on a server, `docker compose up -d` (SERVER.md)",
+    "docs/Caddyfile.example": "Caddy's log lines that `agentcake logs import` reads (SERVER.md)",
+    "docs/FAQ.md": "answers to common questions (README.md)",
+    "docs/apache.conf.example": "Apache's log lines that `agentcake logs import` reads (SERVER.md)",
+    "docs/collect-format.md": "what an upload holds (PRIVACY.md)",
+    "docs/hosting.md": "what AgentCake needs and what it costs on each hosting platform (SERVER.md)",
+    "docs/locales/zh-CN/README.md": "README.md in Chinese",
+    "docs/nginx.conf.example": "nginx's log lines that `agentcake logs import` reads (SERVER.md)",
+    "docs/privacy-notice-template.md": "the privacy notice a website adapts (INSTALL.md, PRIVACY.md)",
+    "pyproject.toml": "pip, building the wheel from the folder",
+}
 
 
 def build(test, tree):
@@ -87,10 +114,20 @@ class RealReleaseFolder(unittest.TestCase):
             cls.names = {m.name[len(cls.top) + 1:] for m in tar.getmembers() if m.isfile()}
 
     def test_it_has_what_a_server_install_needs(self):
-        for name in ("Dockerfile", ".dockerignore", "SERVER.md", "deploy/cake.service", "INSTALL.md", "PRIVACY.md",
-                     "LICENSE", "THIRD_PARTY.md", "bin/agentcake", "cake.py", "docs/collect-format.md", "PKG-INFO"):
+        for name in ("Dockerfile", ".dockerignore", "docker-compose.yml", "deploy/Caddyfile", "SERVER.md",
+                     "deploy/cake.service", "INSTALL.md", "PRIVACY.md", "LICENSE", "THIRD_PARTY.md", "bin/agentcake",
+                     "docs/collect-format.md", "PKG-INFO"):
             self.assertIn(name, self.names)
         self.assertIn(f"dist/{Project(ROOT, settings()).wheel_name()}", self.names)
+
+    def test_bin_agentcake_is_its_only_way_to_run_agentcake(self):
+        """bin/cake and cake.py, cake 0.3.x's command and entry point, are not in the folder."""
+        self.assertEqual(sorted(self.names & {"bin/cake", "cake.py"}), [])
+
+    def test_beside_the_package_and_its_wheel_it_holds_only_files_someone_uses(self):
+        wheel_file = f"dist/{Project(ROOT, settings()).wheel_name()}"
+        beside = {name for name in self.names if not name.startswith("agentcake/")} - {wheel_file}
+        self.assertEqual(sorted(beside), sorted(BESIDE_THE_PACKAGE))
 
     def test_tests_tools_web_sources_and_eval_stay_out(self):
         for folder in ("tests/", "tools/", "web/", "eval/", "edge/"):

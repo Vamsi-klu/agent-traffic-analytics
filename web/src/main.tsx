@@ -7,14 +7,11 @@ import { HomePage } from "@/pages/home"
 import { RegistrationGate } from "@/pages/register"
 import { ProjectShell } from "@/pages/project"
 import { pages } from "@/pages/registry"
+import { showStyle } from "@/lib/style"
 import "./index.css"
 
-// Light / dark follows the system; ?theme=dark|light forces one (used by screenshots).
-const forced = new URLSearchParams(location.search).get("theme")
-const media = matchMedia("(prefers-color-scheme: dark)")
-const apply = () => document.documentElement.classList.toggle("dark", forced ? forced === "dark" : media.matches)
-apply()
-media.addEventListener("change", apply)
+// The style this browser picked last (lib/style.ts), before the first paint, so the pages open in it.
+showStyle()
 
 // The bundled fonts first (local files: milliseconds). Charts measure their labels once and keep the size, so they
 // must measure in the real font whenever their data arrives; and nothing reflows when the fonts land. A font that

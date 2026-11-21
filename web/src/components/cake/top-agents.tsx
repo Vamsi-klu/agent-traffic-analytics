@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart"
 import type { AgentNumbers } from "@/data/types"
 import { NO_VALUE } from "@/lib/format"
+import { useStyle } from "@/lib/style"
 import { UNNAMED } from "@/lib/taxonomy"
 import { WORDS } from "@/lib/words"
 import { AGENT_ROW_PX, AgentTick, TICK_AVATAR } from "./avatar"
@@ -21,6 +22,9 @@ import { METRICS, MetricPicker, TooltipValue, type Metric } from "./metric-picke
 
 /** The thickest an agent's bar gets (px), so a few agents across a full-width card still read as bars, not blocks. */
 const AGENT_BAR_PX = 32
+/** Minimal style's bars (DESIGN.md §17): thinner, with smaller corners, as X's charts draw them. */
+const MINIMAL_BAR_PX = 16
+const MINIMAL_BAR_RADIUS = 2
 /** The names' column (px): never narrower than an avatar and a short name, never wider than this on a wide card. */
 const NAME_MIN_PX = 72
 const NAME_MAX_PX = 200
@@ -80,6 +84,8 @@ export function TopAgentsChart({ agents }: { agents: AgentNumbers[] }) {
     .map(({ name, found }) => ({ name, value: found ?? 0, shown: found === null ? NO_VALUE : shown(found) }))
   const config = { value: { label, color: "var(--chart-2)" } } satisfies ChartConfig
   const [frame, setFrame] = useState<HTMLDivElement | null>(null)
+  // drawn again when the style switch changes the font, so the names are measured in the new one
+  const minimal = useStyle() === "minimal"
   const room = chartRoom(rows, useWidth(frame), frame)
   return (
     <Card>
@@ -90,11 +96,11 @@ export function TopAgentsChart({ agents }: { agents: AgentNumbers[] }) {
       <CardContent className="flex flex-1 flex-col gap-2">
         {rows.length ? (
           <ChartContainer ref={setFrame} config={config} height={rows.length * AGENT_ROW_PX} className="aspect-auto w-full">
-            <BarChart data={rows} layout="vertical" margin={{ top: 0, bottom: 0, left: 0, right: room.values }} maxBarSize={AGENT_BAR_PX}>
+            <BarChart data={rows} layout="vertical" margin={{ top: 0, bottom: 0, left: 0, right: room.values }} maxBarSize={minimal ? MINIMAL_BAR_PX : AGENT_BAR_PX}>
               <XAxis type="number" hide /><YAxis type="category" dataKey="name" width={room.names} interval={0} tickLine={false} axisLine={false} tick={<AgentTick />} />
               <ChartTooltip content={<ChartTooltipContent hideLabel={false} formatter={(_value, _name, item) => <TooltipValue label={label} shown={item.payload.shown} />} />} />
               {/* a shape of its own, drawn as the default one, makes recharts keep a bar 0 long, and its label "—" */}
-              <Bar dataKey="value" fill="var(--color-value)" radius={4} shape={<Rectangle />}><LabelList dataKey="shown" position="right" className="fill-foreground font-bold" /></Bar>
+              <Bar dataKey="value" fill="var(--color-value)" radius={minimal ? MINIMAL_BAR_RADIUS : 4} shape={<Rectangle />}><LabelList dataKey="shown" position="right" className="fill-foreground font-bold" /></Bar>
             </BarChart>
           </ChartContainer>
         ) : <CardEmpty text={WORDS.noAgentSessionsInRange} />}

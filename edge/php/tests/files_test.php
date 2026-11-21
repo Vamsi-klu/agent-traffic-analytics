@@ -45,7 +45,8 @@ function test_the_plugin_writes_the_cake_js_line_agent_cake_expects(): void
     same(read_json(REPO . '/agentcake/defaults.json')['site_key']['pattern'], $plugin['site_key_pattern'], 'the site key');
     check(strpos((string) file_get_contents(REPO . '/agentcake/routes.py'), '"GET", "' . $plugin['script_path'] . '"') !== false, 'cake serves the script there');
     $snippet = (string) file_get_contents(REPO . '/agentcake/site_setup.py');
-    check(strpos($snippet, '<script src="{base}' . $plugin['script_path'] . '" data-site="{site_key}" defer>') !== false, 'the attributes of cake\'s own line');
+    check(strpos($snippet, '<script src="{src}" data-site="{site_key}" defer>') !== false, 'the attributes of cake\'s own line');
+    check(strpos($snippet, 'SCRIPT_PATH = "' . $plugin['script_path'] . '"') !== false, 'its src ends in the same path');
 }
 
 /** A plugin header field read the way WordPress's get_file_data() reads it, from the file's first 8 KB. */

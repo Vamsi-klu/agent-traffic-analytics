@@ -5,8 +5,11 @@
 Python and compression.zstd; the free disk space against disk_min_free_mb (below it new replays are not stored and
 none is deleted for it, a failure that says they start again on their own and how to change it), with
 shutil.disk_usage replaced by a nearly full disk; the age of the name
-and address lists against their age limit (over max_age_days: a warning naming `agentcake lists update`); and every `agentcake` on
-PATH (`which -a`): one that is not this installation coming first is named.
+and address lists against their age limit (over max_age_days: a warning naming `agentcake lists update`); on a server
+(public_listen with trust_lb), the city database: missing or more than a month old, a warning naming the same command,
+and no line at all on this computer; the monthly update: on or off, when the last one ran and how it went, and failed
+updates in a row as a warning naming the same command; and every `agentcake` on PATH (`which -a`): one that is not this
+installation coming first is named.
 """
 import contextlib
 import datetime
@@ -24,11 +27,14 @@ from unittest import mock
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.dirname(HERE))
-from agentcake import codecs, config, doctor, doctor_lines, doctor_machine, store, streams, wording  # noqa: E402
-from agentcake.detect import lists  # noqa: E402
-from agentcake.units import BYTES_PER_MB  # noqa: E402
+import geo_fixtures  # noqa: E402
+from agentcake import (codecs, config, doctor, doctor_lines, doctor_machine, geoip, geoip_build, store,  # noqa: E402
+                       streams, timezone, updates, wording)
+from agentcake.detect import lists, lists_build  # noqa: E402
+from agentcake.units import BYTES_PER_MB, S_PER_MIN  # noqa: E402
 from cake_server import free_port  # noqa: E402
 from space_sessions import DAY, add_session, replay  # noqa: E402
+from test_lists_build import fetcher, recipe, world  # noqa: E402
 
 DiskUsage = namedtuple("DiskUsage", "total used free")  # what shutil.disk_usage returns
 
@@ -147,6 +153,144 @@ class Lists(ScratchHome):
         later = built + datetime.timedelta(days=lists.update_settings()["max_age_days"] + 1)
         _, verdict, info = doctor_machine.lists_check(today=later)
         self.assertEqual(verdict, doctor_lines.WARN)
+        self.assertIn("lists update", info)
+
+
+class AutomaticUpdates(ScratchHome):
+    """The line about the monthly update (updates.py): on or off, when the last update ran and how it went; failed runs
+    in a row are a warning that names the command, as is lists that are too old (Lists above)."""
+
+    def setUp(self):
+        super().setUp()
+        lists.reload()
+        self.addCleanup(lists.reload)
+
+    def line(self, **settings):
+        self.settings(**settings)
+        return next(line for line in doctor_machine.machine_checks(config.load_cfg())
+                    if line[0] == wording.text("doctor_updates"))
+
+    def shown_date(self):
+        """The last update's date as doctor writes it, in AgentCake's time zone: the record's UTC time is a day ahead
+        of it in the evening west of UTC, so the record's own date would be the wrong one then."""
+        at = datetime.datetime.fromisoformat(updates.status()["last"]["at"])
+        return at.astimezone(timezone.chosen(config.load_cfg())).date().isoformat()
+
+    def fail_updates(self, times=1):
+        def unreachable(url, accept=None):
+            raise lists_build.BuildError(f"{url}: unreachable")
+
+        for _ in range(times):
+            updates.run(updates.AUTO, parts=[updates.LISTS], fetchers={updates.LISTS: unreachable})
+
+    def test_on_before_any_update_it_passes_and_says_how_often(self):
+        _, ok, info = self.line()
+        self.assertIs(ok, True)
+        self.assertIn(str(updates.settings()["every_days"]), info)
+
+    def test_off_it_passes_and_names_the_command(self):
+        _, ok, info = self.line(lists_auto_update=False)
+        self.assertIs(ok, True)
+        self.assertIn(f"{doctor_machine.paths.launcher()} lists update", info)
+
+    def test_one_failed_update_passes_and_says_when_and_why(self):
+        self.fail_updates()
+        _, ok, info = self.line()
+        self.assertIs(ok, True)
+        self.assertIn("unreachable", info)
+        self.assertIn(self.shown_date(), info)
+
+    def test_failed_updates_in_a_row_warn_and_name_the_command(self):
+        self.fail_updates(updates.settings()["warn_after_failures"])
+        for settings in ({}, {"lists_auto_update": False}):
+            with self.subTest(**settings):
+                _, verdict, info = self.line(**settings)
+                self.assertEqual(verdict, doctor_lines.WARN)
+                self.assertIn("unreachable", info)
+                self.assertIn(f"{doctor_machine.paths.launcher()} lists update", info)
+
+    def test_an_error_without_a_full_stop_still_ends_its_sentence(self):
+        self.fail_updates(updates.settings()["warn_after_failures"])
+        _, _, info = self.line()
+        self.assertIn("unreachable. To update now", info.replace(updates.status()["last"]["error"], "unreachable"))
+
+    def test_a_successful_update_says_when_it_ran(self):
+        sources = recipe()
+        with mock.patch.object(lists_build, "read_recipe", return_value=(sources, lists_build.read_recipe()[1])):
+            updates.run(updates.MANUAL, parts=[updates.LISTS], fetchers={updates.LISTS: fetcher(world(sources))})
+        _, ok, info = self.line()
+        self.assertIs(ok, True)
+        self.assertIn(self.shown_date(), info)
+        self.assertNotIn("lists update", info)
+
+
+class CityDatabase(ScratchHome):
+    SERVER = {"public_listen": "127.0.0.1:8080", "trust_lb": True}
+
+    def line(self, settings, today=None):
+        c = dict(config.load_cfg(), **settings)
+        return next((line for line in doctor_machine.machine_checks(c, today=today)
+                     if line[0] == wording.text("doctor_places")), None)
+
+    def test_on_this_computer_there_is_no_line(self):
+        self.assertIsNone(self.line({}))
+        geo_fixtures.install(geoip.user_folder())
+        self.assertIsNone(self.line({}), "a database is no use without visitor addresses")
+
+    def first_check_minutes(self):
+        return [seconds // S_PER_MIN for seconds in updates.settings()["first_check_s"]]
+
+    def fail_download(self):
+        """One automatic update whose city database download failed, recorded as serve's child records it."""
+        def unreachable(url, path):
+            raise geoip_build.BuildError(f"{url}: unreachable")
+
+        self.settings(**self.SERVER)
+        updates.run(updates.AUTO, parts=[updates.PLACES], fetchers={updates.PLACES: unreachable})
+
+    def test_on_a_server_before_its_first_automatic_update_it_says_when_and_names_no_command(self):
+        """A new server: serve downloads the database at its first check, minutes after it starts, so the line says
+        when, and gives no command for a coding agent to run in the meantime."""
+        _, verdict, info = self.line(self.SERVER)
+        self.assertEqual(verdict, doctor_lines.WARN, "until then every visit's country is Not set")
+        first, last = self.first_check_minutes()
+        self.assertRegex(info, rf"\b{first}\b\D+\b{last}\b minutes")
+        self.assertNotIn("lists update", info)
+
+    def test_on_a_server_with_automatic_updates_off_it_names_the_update_command(self):
+        _, verdict, info = self.line(dict(self.SERVER, lists_auto_update=False))
+        self.assertEqual(verdict, doctor_lines.WARN)
+        self.assertIn(f"{doctor_machine.paths.launcher()} lists update", info)
+
+    def test_after_a_failed_download_it_names_the_update_command(self):
+        """The next try waits for a daily check (retry_after_s), so the command is the way to have it now."""
+        self.fail_download()
+        _, verdict, info = self.line(self.SERVER)
+        self.assertEqual(verdict, doctor_lines.WARN)
+        self.assertIn(f"{doctor_machine.paths.launcher()} lists update", info)
+
+    def test_a_database_of_this_month_or_the_last_passes_and_names_its_month(self):
+        geo_fixtures.install(geoip.user_folder())
+        for today in (datetime.date(2026, 11, 18), datetime.date(2026, 12, 31)):
+            _, ok, info = self.line(self.SERVER, today)
+            self.assertIs(ok, True, today)
+            self.assertIn(geo_fixtures.MONTH, info)
+
+    def test_one_more_than_a_month_old_warns_and_names_the_update_command(self):
+        geo_fixtures.install(geoip.user_folder())
+        _, verdict, info = self.line(self.SERVER, datetime.date(2027, 1, 2))
+        self.assertEqual(verdict, doctor_lines.WARN)
+        self.assertIn(geo_fixtures.MONTH, info)
+        self.assertIn("lists update", info)
+
+    def test_one_that_cannot_be_read_warns_and_says_why(self):
+        geo_fixtures.install(geoip.user_folder())
+        with open(os.path.join(geoip.user_folder(), geoip.FILES["places"]), "wb") as f:
+            f.write(b"not places")
+        os.utime(os.path.join(geoip.user_folder(), geoip.FILES["about"]), ns=(1, 1))
+        _, verdict, info = self.line(self.SERVER)
+        self.assertEqual(verdict, doctor_lines.WARN)
+        self.assertIn("places", info)
         self.assertIn("lists update", info)
 
 

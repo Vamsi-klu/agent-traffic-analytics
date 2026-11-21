@@ -95,6 +95,38 @@
         "low": { "type": "boolean" }
       }
     },
-    "ReplaysStopped": { "enum": ["disk", "budget", null] }
+    "ReplaysStopped": { "enum": ["disk", "budget", null] },
+    "AddressCheck": {
+      "description": "On a server, whether the visitor's address AgentCake reads is a CDN's own (agentcake/address_check.py): of the latest sessions with an address (at most data/verdict.json address_check.sessions), how many came from a CDN's published IP ranges; misconfigured when that is enough of them, and then sessions are judged as if they had no address. All zero and false where no address is read (this computer, or trust_lb off).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sessions", "cdn", "misconfigured"],
+      "properties": {
+        "sessions": { "$ref": "#/$defs/Count" },
+        "cdn": { "$ref": "#/$defs/Count" },
+        "misconfigured": { "type": "boolean" }
+      }
+    },
+    "Attribution": {
+      "description": "The credit a data source asks for on every page that shows its results (DB-IP's link, \"IP Geolocation by DB-IP\"); null while none of its results is shown.",
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["text", "url"],
+      "properties": { "text": { "$ref": "#/$defs/Text" }, "url": { "$ref": "#/$defs/Text" } }
+    },
+    "PlaceSource": {
+      "description": "Where visitors' country, region and city come from: none (AgentCake on this computer sees no visitor addresses), missing (a server whose city database is not downloaded yet) or database (DB-IP's IP to City Lite).",
+      "enum": ["none", "missing", "database"]
+    },
+    "Places": {
+      "description": "The source of places, and the credit every page that shows places carries while the database is in use.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source", "attribution"],
+      "properties": {
+        "source": { "$ref": "#/$defs/PlaceSource" },
+        "attribution": { "$ref": "#/$defs/Attribution" }
+      }
+    }
   }
 }

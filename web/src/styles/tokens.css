@@ -1,10 +1,12 @@
-/* cake · Frosting theme tokens. The ONLY place colours, fonts and shape values are written.
+/* cake · Frosting theme tokens (the Cake style), then the Minimal style's (DESIGN.md §17). The ONLY place colours,
+   fonts and shape values are written.
    Names follow shadcn/ui (https://ui.shadcn.com/docs/theming) plus cake's extra tokens.
    Documented in /DESIGN.md §3 (the table there must match this file: npm run check:ui).
    Plain CSS on purpose: the React app imports it (index.css). */
 
 @font-face { font-family: "Fredoka"; src: url("../assets/fonts/Fredoka-Variable.ttf") format("truetype"); font-weight: 300 700; font-display: swap; }
 @font-face { font-family: "Nunito"; src: url("../assets/fonts/Nunito-Variable.ttf") format("truetype"); font-weight: 200 1000; font-display: swap; }
+@font-face { font-family: "Inter"; src: url("../assets/fonts/Inter-Variable.ttf") format("truetype"); font-weight: 100 900; font-display: swap; }
 
 :root {
   /* shadcn/ui variables */
@@ -26,7 +28,7 @@
   --border: #e6d8c4;
   --input: #e6d8c4;
   --ring: #2a78d6;
-  /* chart colours are the verdict and status colours themselves, defined once below (their dark values follow) */
+  /* chart colours are the verdict and status colours themselves, defined once below */
   --chart-1: var(--human);
   --chart-2: var(--agent);
   --chart-3: var(--unsure);
@@ -62,7 +64,6 @@
   --cake-cheek: #ff9fb8;
   --cake-shine: #ffffff;
   --cake-outline: #2b2118;
-  --cake-line: #2b2118;
   /* cake extras: agent avatars (DESIGN.md §15). Never the verdict colours; check:ui measures the distance to them */
   --avatar-1: #5fcf95;
   --avatar-2: #a48cf2;
@@ -74,57 +75,41 @@
   --font-sans: "Nunito", ui-rounded, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-heading: "Fredoka", "Nunito", ui-rounded, system-ui, sans-serif;
   --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  /* the logo's wordmark and Crumb's "z": Fredoka in either style (in this one, the headings' own font) */
+  --font-logo: "Fredoka", "Nunito", ui-rounded, system-ui, sans-serif;
+  /* Minimal style's (below) label size and the soft shadow of its menus and dialogs; nothing in this style uses them */
+  --label-font-size: 0.8125rem;
+  --menu-shadow-color: rgb(101 119 134 / 0.2);
+  --menu-shadow-color-near: rgb(101 119 134 / 0.15);
 }
 
-.dark {
-  --background: #1b1713;
-  --foreground: #f6eee3;
-  --card: #262019;
-  --card-foreground: #f6eee3;
-  --popover: #2d261e;
-  --popover-foreground: #f6eee3;
-  --primary: #ff6f98;
-  --primary-foreground: #1b1713;
-  --secondary: #2d261e;
-  --secondary-foreground: #f6eee3;
-  --muted: #17130f;
-  --muted-foreground: #cfc2b1;
-  --accent: #352c23;
-  --accent-foreground: #f6eee3;
-  --destructive: #f07070;
-  --border: #3a3129;
-  --input: #3a3129;
-  --ring: #6ea8f0;
-  --line: #5a4d40;
-  --shadow-color: #0b0806;
-  --faint-foreground: #a99a88;
-  --highlight: #7a5c12;
-  --highlight-foreground: #f6eee3;
-  --human: #3987e5;
-  --human-soft: #1c3150;
-  --human-foreground: #9cc4f5;
-  --agent: #e0682f;
-  --agent-soft: #4a2617;
-  --agent-foreground: #f5a982;
-  --unsure: #8f8a82;
-  --unsure-soft: #36312b;
-  --unsure-foreground: #cdc7bd;
-  --ok: #4cc27f;
-  --ok-soft: #173525;
-  --warn: #e3a63c;
-  --warn-soft: #3b2c10;
-  --cake-jam: #f0597e;
-  --cake-cream: #f7e6cc;
-  --cake-frosting: #f67ea3;
-  --cake-cherry: #e5484b;
-  --cake-cheek: #f58aa7;
-  --cake-shine: #fff6ea;
-  --cake-outline: #120e0a;
-  --cake-line: #d9cab6;
-  --avatar-1: #8fdcb4;
-  --avatar-2: #c3b1ff;
-  --avatar-3: #ffa6c9;
-  --avatar-4: #d6e27a;
-  --avatar-5: #e8a6ea;
-  --avatar-6: #94dde2;
+/* Minimal style (DESIGN.md §17): a plain, X-like look for reports and screenshots, light only as Cake is.
+   <html data-style="minimal"> turns it on (src/lib/style.ts). It overrides the tokens above; the components' minimal:
+   classes (the minimal variant in index.css) change the frame: 1px borders, no hard shadow, smaller corners. Without
+   the attribute (Cake, the default) none of this applies. */
+:root[data-style="minimal"] {
+  --background: #f7f9f9;
+  --foreground: #0f1419;
+  --card: #ffffff;
+  --card-foreground: #0f1419;
+  --popover: #ffffff;
+  --popover-foreground: #0f1419;
+  --primary: #0f1419;
+  --primary-foreground: #ffffff;
+  --secondary: #eff3f4;
+  --secondary-foreground: #0f1419;
+  --muted: #f7f9f9;
+  --muted-foreground: #536471;
+  --accent: #f7f9f9;
+  --accent-foreground: #0f1419;
+  --border: #eff3f4;
+  --input: #cfd9de;
+  --ring: #1d9bf0;
+  --radius: 0.375rem;
+  --line: #eff3f4;
+  --shadow-color: transparent;
+  --faint-foreground: #64717d;
+  --highlight-foreground: #0f1419;
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-heading: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
 }

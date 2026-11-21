@@ -10,6 +10,10 @@ doctor(folder, url) prints one line per check (doctor_lines.py: PASS, FAIL, WARN
   allow it is a sandbox's doing, a SKIP that asks for doctor in the user's own terminal, never "storage broken");
 - this computer (doctor_machine.py): Python and zstd, free disk space, the lists' age, `agentcake` on PATH;
 - the web server's log import, once one has run (doctor_logs.py): how the last went, which headers the log lacks;
+- in server mode (public_listen), AgentCake as visitors' browsers reach it (doctor_public.py): on the subdomain route
+  (public_url) its DNS record, certificate, CORS answers, a self-check upload sent from the website's origin, the
+  visitor address it sees and the recent visitors' addresses; on the same-site path the last three. On this computer
+  alone there are no such lines. A sandbox that blocks connections to 127.0.0.1 blocks these too: then they are left out;
 - the user's own website, when its folder (--dir, site_dir) or a page of it (--url, site_url) is known: its files
   (doctor_site.py) and that page, opened (doctor_live.py).
 Returns 0 when no check failed (a WARN or a SKIP does not fail), else 1. Its words are in data/copy.en.json.
@@ -32,10 +36,11 @@ from agentcake.doctor_live import page_checks
 from agentcake.doctor_logs import logs_checks
 from agentcake.doctor_lines import SKIP, passed, print_checks, summary
 from agentcake.doctor_machine import machine_checks
+from agentcake.doctor_public import public_checks, public_header
 from agentcake.doctor_site import website_checks
 from agentcake.ping import http_get
 from agentcake.site_code import SiteCode
-from agentcake.site_setup import SCRIPT_PATH
+from agentcake.site_setup import SCRIPT_PATH, server_mode
 from agentcake.wording import text
 
 REFUSED, BLOCKED = "refused", "blocked"  # why AgentCake did not answer: nothing listens; this process may not connect
@@ -66,7 +71,7 @@ def reach(c):
 
 
 def replay_storage():
-    """("replay storage", verdict, info): the replays folder can be written (before the first start: made, in the
+    """("Replay storage", verdict, info): the replays folder can be written (before the first start: made, in the
     nearest existing folder above it), which codec new chunks get, and no stored chunk needs a codec this Python lacks
     (zstd chunks copied to a Python older than 3.14). A write that a sandbox refuses is not checked here (SKIP)."""
     folder, codec = replay_chunks.replay_dir(), codecs.writer_codec()
@@ -180,9 +185,13 @@ def doctor(d=None, url=None):
     c = load_cfg()
     base, reached = base_url(c), reach(c)
     checks = server_checks(c, reached, base) + [replay_storage()] + machine_checks(c) + logs_checks()
+    public = public_checks(c, reached.health) if server_mode(c) and reached.problem != BLOCKED else []
     folder, url = d or c.get("site_dir") or None, url or c.get("site_url") or None
     site = site_checks(c, folder, url) if folder or url else []  # optional: the user's own website
     print_checks(checks)
+    if public:
+        print(public_header(c))
+        print_checks(public)
     if site:
         print(text("doctor_site_header"))
         print_checks(site)
@@ -192,5 +201,5 @@ def doctor(d=None, url=None):
         print(text("doctor_blocked_next", launcher=paths.launcher()))
     elif not reached.health:
         print(text("doctor_sandbox_note"))
-    print(summary(checks + site, base))
-    return 0 if passed(checks + site) else 1
+    print(summary(checks + public + site, base))
+    return 0 if passed(checks + public + site) else 1

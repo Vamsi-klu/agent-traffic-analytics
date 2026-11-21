@@ -1,6 +1,5 @@
 // Crumb, the mascot: a slice of cake with a magnifying glass. A plain white body (no layers, no sprinkles), frosting
 // with drips in the palette colour, a red cherry, ink outline and face. Drawn for the product (no third-party art). DESIGN.md §7.
-// Lines use --cake-line (light in dark mode); the face (.face) stays ink on the white body.
 // Standing poses idle like the agent avatars (sway, bob, squash) and the open eyes blink (§15); still with reduced motion.
 import type { ComponentProps } from "react"
 import { PRODUCT_NAME } from "@/lib/product"
@@ -50,23 +49,23 @@ export function Crumb({ pose = "look", className, label = `${PRODUCT_NAME} masco
         <ellipse className="f-shine" cx="99" cy="46" rx="3" ry="2.2" />
         {pose === "sleep" ? (
           <>
-            <path className="o face" strokeWidth="3.5" d="M80 102 q6 5 12 0" /><path className="o face" strokeWidth="3.5" d="M108 101 q6 5 12 0" />
-            <ellipse className="f-outline face" cx="100" cy="112" rx="4" ry="3" />
+            <path className="o" strokeWidth="3.5" d="M80 102 q6 5 12 0" /><path className="o" strokeWidth="3.5" d="M108 101 q6 5 12 0" />
+            <ellipse className="f-outline" cx="100" cy="112" rx="4" ry="3" />
             <text x="160" y="70" fontSize="22">z</text><text x="172" y="52" fontSize="18">z</text>
           </>
         ) : pose === "oops" ? (
           <>
-            <circle className="f-outline face" cx="86" cy="101" r="6" /><circle className="f-outline face" cx="114" cy="100" r="6" />
+            <circle className="f-outline" cx="86" cy="101" r="6" /><circle className="f-outline" cx="114" cy="100" r="6" />
             <circle className="f-shine" cx="88" cy="99" r="2" /><circle className="f-shine" cx="116" cy="98" r="2" />
-            <ellipse className="f-outline face" cx="100" cy="114" rx="5" ry="6" />
+            <ellipse className="f-outline" cx="100" cy="114" rx="5" ry="6" />
           </>
         ) : (
           <>
             <g className="blink">
-              <ellipse className="f-outline face" cx={86 + look} cy="101" rx="5.5" ry="7" /><ellipse className="f-outline face" cx={114 + look} cy="100" rx="5.5" ry="7" />
+              <ellipse className="f-outline" cx={86 + look} cy="101" rx="5.5" ry="7" /><ellipse className="f-outline" cx={114 + look} cy="100" rx="5.5" ry="7" />
               <circle className="f-shine" cx={88 + look} cy="98" r="2" /><circle className="f-shine" cx={116 + look} cy="97" r="2" />
             </g>
-            <path className="o f-outline face" strokeWidth="2.5" d="M92 108 Q100 119 108 108 Z" />
+            <path className="o f-outline" strokeWidth="2.5" d="M92 108 Q100 119 108 108 Z" />
             <path className="f-jam" d="M96 113 Q100 117 104 113" />
           </>
         )}
@@ -95,7 +94,7 @@ export function CrumbHead({ className, label, ...props }: { className?: string; 
       <path className="o f-frosting" strokeWidth="5" d={CAP} />
       <path className="o" strokeWidth="5" d="M106 40 Q110 27 122 25" />
       <circle className="o f-cherry" strokeWidth="5" cx="103" cy="50" r="11" />
-      <ellipse className="f-outline face" cx="86" cy="101" rx="5.5" ry="7" /><ellipse className="f-outline face" cx="114" cy="100" rx="5.5" ry="7" />
+      <ellipse className="f-outline" cx="86" cy="101" rx="5.5" ry="7" /><ellipse className="f-outline" cx="114" cy="100" rx="5.5" ry="7" />
     </svg>
   )
 }

@@ -107,7 +107,8 @@ export async function startShop(cake) {
 export async function startCake() {
   const home = mkdtempSync(path.join(os.tmpdir(), "agentcake-revisits-"))
   const env = { ...process.env, CAKE_HOME: home, CAKE_PORT: String(await freePort()) }
-  for (const args of [["config", "set", "site_key", SITE_KEY], ["secret", "init"]]) {
+  // lists_auto_update off: a test never goes online (agentcake/updates.py)
+  for (const args of [["config", "set", "site_key", SITE_KEY], ["config", "set", "lists_auto_update", "false"], ["secret", "init"]]) {
     execFileSync(PYTHON, ["-I", AGENTCAKE, ...args], { env, stdio: "ignore" })
   }
   const child = spawn(PYTHON, ["-I", AGENTCAKE, "serve"], { env, stdio: ["ignore", "pipe", "pipe"] })

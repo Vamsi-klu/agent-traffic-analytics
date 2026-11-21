@@ -1,0 +1,31 @@
+{
+  "about": "The city database the visitor's country, region and city are looked up in (geoip.py), on a server only: on this computer every visit comes from 127.0.0.1. It is DB-IP's IP to City Lite (CC BY 4.0), which is not part of the package: about 86 MB to download and 110 MB converted, with a new one every month. On a server, the updates (agentcake/updates.py, while lists_auto_update is on: at the first check after AgentCake starts, then monthly) and `agentcake lists update` download it into <CAKE_HOME>/<folder.user_dir>/; the Docker image has none. geoip_build.py turns the CSV into fixed-length records (format), which geoip.py reads through mmap with a binary search. Only source.url is fetched, and nothing about the visits is sent.",
+  "source": {
+    "name": "DB-IP IP to City Lite",
+    "page": "https://db-ip.com/db/download/ip-to-city-lite",
+    "url": "https://download.db-ip.com/free/dbip-city-lite-{month}.csv.gz",
+    "month_format": "%Y-%m",
+    "earlier_months": 1,
+    "not_published_status": 404,
+    "columns": {"start": 0, "end": 1, "country": 3, "region": 4, "city": 5},
+    "unknown_country": "ZZ",
+    "$comment": "DB-IP publishes each month's file on its first day (November 2026's at 07:41 UTC on November 1); until then this month's address answers not_published_status, and the month before is still there. The CSV (RFC 4180, UTF-8) has ip_start, ip_end, continent, country (ISO 3166-1 alpha-2, unknown_country for none), stateprov, city, latitude, longitude; both address families cover the whole space, ranges in order."
+  },
+  "license": {"name": "CC BY 4.0", "url": "https://creativecommons.org/licenses/by/4.0/"},
+  "attribution": {"text": "IP Geolocation by DB-IP", "url": "https://db-ip.com",
+                  "$comment": "DB-IP's terms: a web application includes this link on the pages that display or use results from the database (the dashboard's Geography card, a session's network line)."},
+  "notice": "This folder holds {name} of {month} by DB-IP.com ({page}), downloaded from {url} and converted into AgentCake's lookup files: the first address of each range with its country, region and city. The continent, latitude and longitude are left out, and neighbouring ranges with the same place are joined.\nIP Geolocation by DB-IP: {attribution_url}\nLicensed under the Creative Commons Attribution 4.0 International License: {license_url}\n",
+  "fetch": {"timeout_s": 60, "retries": 1, "max_bytes": 268435456, "chunk_bytes": 1048576, "user_agent": "agentcake-lists"},
+  "folder": {"user_dir": "geo", "staging_prefix": ".geo-incoming-", "retired_prefix": ".geo-retired-"},
+  "files": {"ipv4": "ipv4.bin", "ipv6": "ipv6.bin", "places": "places.bin", "about": "about.json", "notice": "NOTICE.txt",
+            "download": "download.csv.gz"},
+  "format": {
+    "version": 1,
+    "start_bytes": {"ipv4": 4, "ipv6": 16},
+    "place_bytes": 4,
+    "offset_bytes": 4,
+    "separator": "\u001f",
+    "$comment": "ipv4.bin and ipv6.bin: one record per range, in order of its first address: that address (big-endian, start_bytes) and its place number (big-endian, place_bytes); a range runs to the next record's address, and place 0 is none (DB-IP's unknown_country, or a gap). places.bin: places + 1 offsets (big-endian, offset_bytes) into the UTF-8 text after them; place n is the text between offsets n - 1 and n, its country, region and city joined by separator, a region or city it does not know empty."
+  },
+  "max_months_old": 1
+}

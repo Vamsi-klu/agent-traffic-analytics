@@ -44,7 +44,8 @@
     "why": "An address shape, except an asset name such as logo@2x.png, whose last part is a file type."
   },
   "skip_folders": {
-    "lists": "Name and address lists `agentcake lists update` downloaded: published data (operators' IP ranges among it), never a visit."
+    "lists": "Name and address lists `agentcake lists update` downloaded: published data (operators' IP ranges among it), never a visit.",
+    "geo": "The city database `agentcake lists update` downloaded on a server: DB-IP's published ranges and places, never a visit."
   },
   "skip_files": {
     "srv_secret": "The server half's secret itself: its value is what the scan looks for everywhere else."

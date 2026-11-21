@@ -57,6 +57,7 @@
         "sec-fetch-user": {"present": 0, "values": []},
         "sec-fetch-dest": {"present": 20, "values": ["empty"]}
       },
+      "ua_as_page": true,
       "ip_classes": ["residential"]
     },
     "viewport_changes": [{"page": 1, "dw": -200, "dh": 0, "doh": 0, "w": 1312, "h": 862}]
@@ -85,7 +86,15 @@
     },
     "env.auto.collect-no-accept-language": {
       "hit": [{"collect": {"headers": {"accept-language": {"present": 0, "values": []}}}}],
-      "miss": [{}, {"collect": {"requests": 0, "headers": {"accept-language": {"present": 0, "values": []}}}}]
+      "miss": [{}, {"collect": {"requests": 0, "headers": {"accept-language": {"present": 0, "values": []}}}},
+               {"collect": {"ua_as_page": false, "headers": {"accept-language": {"present": 0, "values": []}}}},
+               {"collect": {"headers": {"accept-language": {"present": 0, "values": []}, "sec-fetch-mode": {"present": 0, "values": []}}}}]
+    },
+    "env.auto.collect-no-accept-language-proxy": {
+      "hit": [{"collect": {"ua_as_page": false, "headers": {"accept-language": {"present": 0, "values": []}, "user-agent": {"present": 20, "values": ["Amazon CloudFront"]}}}},
+              {"collect": {"headers": {"accept-language": {"present": 0, "values": []}, "sec-fetch-mode": {"present": 0, "values": []}}}}],
+      "miss": [{}, {"collect": {"headers": {"accept-language": {"present": 0, "values": []}}}},
+               {"collect": {"ua_as_page": false}}]
     },
     "env.auto.cdp-runtime-leak": {
       "hit": [{"auto": {"runtimeEnableLeak": {"prepareStackTraceCount": 40}}},
@@ -221,8 +230,13 @@
       "miss": [{}]
     },
     "env.spoof.worker-mismatch": {
-      "hit": [{"auto": {"workerConsistency": {"differs": ["userAgent"]}}}],
-      "miss": [{}, {"auto": {"workerConsistency": {"differs": ["languages", "hardwareConcurrency"]}}}]
+      "hit": [{"auto": {"workerConsistency": {"differs": ["userAgent"]}}},
+              {"env": {"platform": "Win32"}, "auto": {"workerConsistency": {"differs": ["platform"], "worker": {"platform": "MacIntel"}}}},
+              {"env": {"maxTouchPoints": 0}, "auto": {"workerConsistency": {"differs": ["platform"], "worker": {"platform": "iPad"}}}},
+              {"env": {"maxTouchPoints": 5}, "auto": {"workerConsistency": {"differs": ["platform", "userAgent"], "worker": {"platform": "iPad"}}}}],
+      "miss": [{}, {"auto": {"workerConsistency": {"differs": ["languages", "hardwareConcurrency"]}}},
+               {"env": {"userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15", "uaData": null, "maxTouchPoints": 5}, "auto": {"workerConsistency": {"differs": ["platform"], "worker": {"platform": "iPad"}}}},
+               {"env": {"userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/19.0 Safari/605.1.15", "uaData": null, "maxTouchPoints": 5}, "auto": {"workerConsistency": {"differs": ["platform"], "worker": {"platform": "iPhone"}}}}]
     },
     "env.spoof.native-functions-patched": {
       "hit": [{"auto": {"nativeTampering": {"tampered": {"Navigator.webdriver": ["toString: () => false"]}}}},
@@ -249,6 +263,39 @@
     "env.spoof.empty-brands-desktop-chrome": {
       "hit": [{"env": {"uaData": {"brands": []}}}],
       "miss": [{}, {"env": {"userAgent": "Mozilla/5.0 (Linux; Android 14; Pixel 8 Build/AP2A; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/157.0.0.0 Mobile Safari/537.36", "uaData": {"brands": [], "mobile": true}}}]
+    },
+    "env.spoof.phone-ua-desktop-platform": {
+      "hit": [{"env": {"userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 19_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/19.0 Mobile/15E148 Safari/604.1", "platform": "Win32"}},
+              {"env": {"userAgent": "Mozilla/5.0 (iPad; CPU OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1", "platform": "Linux x86_64"}},
+              {"env": {"userAgent": "Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Mobile Safari/537.36", "platform": "MacIntel"}},
+              {"env": {"userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Mobile Safari/537.36", "platform": "Win32"}}],
+      "miss": [{},
+               {"env": {"userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 19_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/19.0 Mobile/15E148 Safari/604.1", "platform": "iPhone"}},
+               {"env": {"userAgent": "Mozilla/5.0 (iPad; CPU OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1", "platform": "iPad"}},
+               {"env": {"userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15", "platform": "MacIntel"}},
+               {"env": {"userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Mobile Safari/537.36", "platform": "Linux armv81"}},
+               {"env": {"userAgent": "Mozilla/5.0 (Android 15; Mobile; rv:146.0) Gecko/146.0 Firefox/146.0", "platform": "Linux aarch64"}},
+               {"env": {"userAgent": "Mozilla/5.0 (Linux; Android 14; sdk_gphone64_x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Mobile Safari/537.36", "platform": "Linux x86_64"}},
+               {"env": {"userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36", "platform": "MacIntel"}}]
+    },
+    "env.spoof.ios-ua-chromium-engine": {
+      "hit": [{"env": {"userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 19_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/19.0 Mobile/15E148 Safari/604.1", "vendor": "Google Inc.", "uaData": {"brands": [], "platform": "iOS", "mobile": true}}},
+              {"env": {"userAgent": "Mozilla/5.0 (iPad; CPU OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1", "vendor": "Apple Computer, Inc.", "uaData": {"brands": [], "platform": "iOS", "mobile": true}}},
+              {"env": {"userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 19_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/19.0 Mobile/15E148 Safari/604.1", "vendor": "Google Inc.", "uaData": null}}],
+      "miss": [{},
+               {"env": {"userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 19_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/19.0 Mobile/15E148 Safari/604.1", "vendor": "Apple Computer, Inc.", "uaData": null}},
+               {"env": {"userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 19_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/157.0.0.0 Mobile/15E148 Safari/604.1", "vendor": "Apple Computer, Inc.", "uaData": null}},
+               {"env": {"userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15", "vendor": "Apple Computer, Inc.", "uaData": null}},
+               {"env": {"userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Mobile Safari/537.36", "vendor": "Google Inc.", "uaData": {"brands": [{"brand": "Google Chrome", "version": "157"}], "platform": "Android", "mobile": true}}}]
+    },
+    "env.spoof.android-ua-apple-gpu": {
+      "hit": [{"env": {"userAgent": "Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Mobile Safari/537.36"}},
+              {"env": {"userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Mobile Safari/537.36", "webgl": {"vendor": "Apple Inc.", "renderer": "Apple GPU"}}}],
+      "miss": [{},
+               {"env": {"userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Mobile Safari/537.36", "webgl": {"vendor": "Qualcomm", "renderer": "Adreno (TM) 740"}}},
+               {"env": {"userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Mobile Safari/537.36", "webgl": {"vendor": null, "renderer": null}}},
+               {"env": {"userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 19_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/19.0 Mobile/15E148 Safari/604.1", "webgl": {"vendor": "Apple Inc.", "renderer": "Apple GPU"}}},
+               {"env": {"userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36"}}]
     },
     "env.product.cursor-browser": {
       "hit": [{"env": {"userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Cursor/3.23.12 Chrome/138.0.7204.251 Electron/37.6.0 Safari/537.36"}}],

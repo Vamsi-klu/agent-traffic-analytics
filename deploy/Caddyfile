@@ -1,0 +1,40 @@
+# Caddy in front of AgentCake, on AgentCake's own subdomain: the default way to see the visitors of a public website
+# (SERVER.md). docker-compose.yml runs it next to AgentCake; without Docker it is the Caddyfile of the caddy package
+# (/etc/caddy/Caddyfile). Put the name your DNS record points at this server in place of cake.example.com below.
+#
+# Caddy gets the HTTPS certificate for that name from Let's Encrypt, and renews it, once the name's A (and AAAA)
+# record points here and ports 80 and 443 are open. It passes only the page script and collect on to AgentCake's
+# public listener (the settings public_listen 127.0.0.1:8080 and path_prefix /cake) and answers 404 to anything else:
+# the dashboard stays on this server's 127.0.0.1. It keeps no access log, so the visitors' addresses are not written
+# down here.
+#
+# AgentCake, with trust_lb on, believes the three X-Cake headers it receives. Caddy sets two of them, the visitor's
+# address and the HTTP version, and removes the third, X-Cake-JA4, so that a visitor cannot write it: Caddy computes
+# no TLS fingerprint, so AgentCake gets none.
+#
+# Written from Caddy's documentation (Apache-2.0): reverse_proxy and header_up, the servers options trusted_proxies
+# and client_ip_headers, and the {client_ip} placeholder.
+{
+	servers {
+		# A request from Cloudflare's proxy (a DNS record set to Proxied, the orange cloud) names the visitor in
+		# CF-Connecting-IP; any other request comes from the visitor itself. These are the ranges Cloudflare publishes,
+		# written from AgentCake's bundled lists by `python3 -I tools/release.py refresh`: do not edit them by hand.
+		trusted_proxies static 103.21.244.0/22 103.22.200.0/22 103.31.4.0/22 104.16.0.0/13 104.24.0.0/14 108.162.192.0/18 131.0.72.0/22 141.101.64.0/18 162.158.0.0/15 172.64.0.0/13 173.245.48.0/20 188.114.96.0/20 190.93.240.0/20 197.234.240.0/22 198.41.128.0/17 2400:cb00::/32 2405:8100::/32 2405:b500::/32 2606:4700::/32 2803:f800::/32 2a06:98c0::/29 2c0f:f248::/32
+		trusted_proxies_strict
+		client_ip_headers CF-Connecting-IP
+	}
+}
+
+cake.example.com {
+	@agentcake path /cake/cake.js /cake/collect
+	handle @agentcake {
+		reverse_proxy 127.0.0.1:8080 {
+			header_up X-Cake-Client-IP {client_ip}
+			header_up X-Cake-Proto {http.request.proto}
+			header_up -X-Cake-JA4
+		}
+	}
+	handle {
+		respond 404
+	}
+}

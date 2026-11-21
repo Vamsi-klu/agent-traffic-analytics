@@ -28,7 +28,7 @@ class Serve(unittest.TestCase):
         self.addCleanup(shutil.rmtree, home, True)
         self.port = free_port()
         env = dict(os.environ, CAKE_HOME=home, CAKE_PORT=str(self.port))
-        for key, value in settings:
+        for key, value in (("lists_auto_update", "false"),) + settings:  # a test never goes online (updates.py)
             subprocess.run(AGENTCAKE + ["config", "set", key, value], env=env, capture_output=True, check=True)
         process = subprocess.Popen(AGENTCAKE + ["serve"], env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                    text=True)

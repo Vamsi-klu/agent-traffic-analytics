@@ -23,4 +23,4 @@ package is cake 0.3.4's single cake.py split into one module per job:
 __version__ is the only place the version is written; the wheel build (pyproject.toml) and the release read it here.
 """
 
-__version__ = "0.5.1"
+__version__ = "0.6.0"

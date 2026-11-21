@@ -16,8 +16,9 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 sys.path.insert(0, os.path.join(ROOT, "tests"))
 
+import geo_fixtures  # noqa: E402
 from verdict_cases import first_address  # noqa: E402
-from agentcake import collect, config, edge_secret, edge_token, evidence, store, streams  # noqa: E402
+from agentcake import collect, config, edge_secret, edge_token, evidence, geoip, store, streams  # noqa: E402
 from agentcake.datafiles import load  # noqa: E402
 from agentcake.responses import Request  # noqa: E402
 
@@ -176,6 +177,34 @@ class ServerMode(EvidenceCase):
         self.assertEqual((case["network"]["range_id"], case["network"]["range_kind"]), ("openai-chatgpt-user", "agent"))
         self.assertEqual(case["visits"], [T0])
         self.assertNotIn(address, repr(case))  # the address itself is never kept, only what it says
+
+    def test_an_address_the_check_finds_to_be_a_cdns_is_not_used(self):
+        """The front door gave Cloudflare's address for every visitor (an orange-cloud DNS record). Once enough
+        of the latest sessions came from it, a session is judged as if it had no address."""
+        cdn, enough = first_address("cloudflare"), load("data/verdict.json")["address_check"]["sessions"]
+        geo_fixtures.install(geoip.user_folder(), geo_fixtures.single(cdn, "US"))  # its country comes from the city database
+        sessions = [f"{n:032x}" for n in range(enough)]
+        for n, sid in enumerate(sessions):
+            self.post(page_batch(PV1, 1, T0 + n * S, sid=sid), T0 + n * S, public=True, **{LB["ip"]: cdn})
+        last, _, _ = self.evidence(sessions[-1])
+        self.assertEqual(last["address_check"], {"sessions": enough, "cdn": enough, "misconfigured": True})
+        self.assertEqual((last["network"], last["visits"], last["weak"]["address_sessions"], last["weak"]["country"]),
+                         (None, [], None, None))
+        self.assertNotIn("env.cloud.datacenter-ip", [hit.rule for hit in last["env"].hits])
+        first, _, _ = self.evidence(sessions[0])
+        self.assertEqual(first["address_check"], {"sessions": 1, "cdn": 1, "misconfigured": False}, "too few yet")
+        self.assertEqual((first["network"]["cdn"], first["weak"]["country"]), ("Cloudflare", "US"))
+        self.assertIn("env.cloud.datacenter-ip", [hit.rule for hit in first["env"].hits])
+
+    def test_the_header_order_is_not_read_on_a_server(self):
+        """Every upload to a server passed a front door, which sent the headers in its own order, also one
+        AgentCake takes no address from (trust_lb off: nginx or CloudFront in front)."""
+        config.save_user(trust_lb=False)
+        self.post(page_batch(PV1, 1, T0), T0, public=True)
+        self.assertEqual(self.evidence()[0]["weak"]["header_orders"], [])
+        config.save_user(public_listen="")  # local mode: the uploads reached this computer straight from the browser
+        self.post(page_batch(PV2, 1, T0 + S, sid=OTHER), T0 + S)
+        self.assertEqual(self.evidence(OTHER)[0]["weak"]["header_orders"], [["user-agent", "accept-language"]])
 
     def test_both_halves_of_web_bot_auth(self):
         claim = '"https://chatgpt.com"'

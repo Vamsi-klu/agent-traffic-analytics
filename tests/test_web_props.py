@@ -5,7 +5,8 @@ recorded before cake.js sent these fields).
 
 An upload's visitor id (and the first identify hash it carried), its first page record's source (the referring domain, the campaign parameters, which click ids
 were there: names only), the channel PostHog's rules give them, the device from the User-Agent (and the screen and
-client hints of the environment record), the load balancer's country, region and city, and the language and time zone
+client hints of the environment record), the country, region and city of the visitor's address (the city database on a
+server), and the language and time zone
 offset are kept in session_web. The earliest page record of a session gives its entry source. A session recorded by an
 older cake.js is filled from what was kept: only the domain of the referrer its page record sent whole, and the
 campaign parameters of its landing address. No full referrer address is ever written by them.
@@ -13,8 +14,9 @@ campaign parameters of its landing address. No full referrer address is ever wri
 import json
 import unittest
 
+import geo_fixtures
 from web_uploads import MINUTE_MS, T0, TAB, UA_IPHONE, VISITOR, WebCase, upload
-from agentcake import streams, web_props
+from agentcake import config, geoip, streams, web_props
 
 FULL_REFERRER = "https://www.example.org/private/path?q=secret-search-term#frag"
 
@@ -81,16 +83,15 @@ class Keep(WebCase):
         self.post(upload(1, T0 + 31 * MINUTE_MS, tab=later, ua=ua, page={"kind": "session"}))
         self.assertEqual(self.one("SELECT device_type FROM session_web WHERE session_id=?", later), ("Tablet",))
 
-    def test_the_load_balancers_place_is_kept_on_a_server(self):
-        self.settings = {}
-        from agentcake import config
+    def test_on_a_server_the_place_of_the_visitors_address_is_kept(self):
         config.save_user(trust_lb=True, public_listen="127.0.0.1:0")
-        self.post(upload(0, T0), public=True, X_Cake_Region="US", X_Cake_Subdivision="USCA",
-                  X_Cake_City="Mountain View")
-        self.assertEqual(self.row("country", "subdivision", "city"), ("US", "USCA", "Mountain View"))
+        geo_fixtures.install(geoip.user_folder())
+        self.post(upload(0, T0), public=True, X_Cake_Client_IP="192.0.2.10", X_Cake_Region="FR", X_Cake_City="Paris")
+        self.assertEqual(self.row("country", "subdivision", "city"), ("US", "California", "Mountain View"))
 
-    def test_without_the_load_balancer_there_is_no_place(self):
-        self.post(upload(0, T0), X_Cake_Region="US", X_Cake_City="Mountain View")
+    def test_on_this_computer_there_is_no_place(self):
+        geo_fixtures.install(geoip.user_folder())
+        self.post(upload(0, T0), X_Cake_Client_IP="192.0.2.10", X_Cake_Region="US", X_Cake_City="Mountain View")
         self.assertEqual(self.row("country", "subdivision", "city"), (None, None, None))
 
 

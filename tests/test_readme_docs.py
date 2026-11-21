@@ -2,7 +2,7 @@
 
     python3 -I -m unittest discover -s tests -v      (from the AgentCake folder)
 
-Each README has one install sentence, in its own language and in a code block to copy, that names this version
+Each README shows its install prompt below the title and again under Install. The prompt names this version
 and points at the INSTALL.md of this tag; it names both ways to read that file, curl and the GitHub CLI. The pictures
 are files of the repository (docs/assets/readme/, drawn by scripts in web/scripts/: the dashboard preview by
 readme-preview.mjs, the icon by readme-images.mjs) or shields.io's static badges,
@@ -35,6 +35,14 @@ STATIC_BADGE = "https://img.shields.io/badge/"  # protocol: shields.io's badges 
 RAW_INSTALL_MD = re.compile(r"https://raw\.githubusercontent\.com/\S+/INSTALL\.md")
 CJK = re.compile(r"[一-鿿]")
 TWO_WAYS = ("curl", "GitHub CLI")  # the sentence's two ways to read INSTALL.md
+# An agent without network reads no guide, so the sentence itself has it ask for network access when the download
+# fails (Codex in a sandbox without network asked only for the guide's text, and the release's files fail alike)
+ASK_FOR_NETWORK = {False: "If the download fails, ask for network access.",
+                   True: "如果下载失败，请申请网络访问权限。"}
+PASTE_INSTRUCTIONS = {
+    False: "Copy and paste these instructions into Claude Code or Codex to complete the installation.",
+    True: "要完成安装，请将下面的说明复制并粘贴到 Claude Code 或 Codex 的对话框中。",
+}
 
 
 def readme_branch():
@@ -83,7 +91,67 @@ class ReadmeDocuments(unittest.TestCase):
             self.assertIn(url, sentence)
             for way in TWO_WAYS:
                 self.assertIn(way, sentence)
+            self.assertIn(ASK_FOR_NETWORK[chinese], sentence)
             self.assertEqual(set(VERSION.findall(install)), {self.version}, path)
+
+    def test_the_title_highlights_the_original_install_prompt_before_the_badges(self):
+        fence = r"```text\n(.+?)\n```"
+        for path, heading, chinese in READMES:
+            with self.subTest(path=os.path.relpath(path, ROOT)):
+                markdown = read(path)
+                install = section(markdown, heading)
+                original, = re.findall(r"^" + fence + r"$", install, re.M | re.S)
+                lead = re.escape(PASTE_INSTRUCTIONS[chinese])
+                top = re.search(r"^# [^\n]+\n\n" + lead + r'\n\n(?:<div align="left">\n\n)?' + fence, markdown, re.M | re.S)
+                self.assertIsNotNone(top, "missing install instructions immediately below the title")
+                self.assertLess(top.end(), BADGE.search(markdown).start())
+                self.assertEqual(top[1], original)
+                self.assertEqual(len(original.splitlines()), 1 if chinese else 3)
+                self.assertEqual(install_sentences(markdown), [" ".join(original.splitlines())] * 2)
+
+    def test_the_install_instructions_at_the_top_are_left_aligned(self):
+        """The top block is centered (<div align="center">), and a code block takes its alignment from the block around
+        it: each line of the instructions was centered. A left-aligned block around the fence, with a blank line on
+        each side so GitHub still renders the fence, keeps the lines flush left; the sentence above stays centered."""
+        for path, *_ in READMES:
+            with self.subTest(path=os.path.relpath(path, ROOT)):
+                markdown = read(path)
+                left = re.search(r'\n\n<div align="left">\n\n```text\n[^`]*?/v0\.6\.0/INSTALL\.md[^`]*?\n```\n\n</div>\n\n',
+                                 markdown)
+                self.assertIsNotNone(left, "no left-aligned block around the instructions at the top")
+                self.assertLess(markdown.index('<div align="center">'), left.start())
+                self.assertLessEqual(left.end(), markdown.index("[!["))
+
+    def test_the_dashboard_preview_folds_the_cake_style_and_shows_the_minimal_style(self):
+        """The dashboard preview is two folded <details> blocks with the same table in each, in both READMEs: Cake
+        style folded, Minimal style open (readme-preview.mjs --style minimal), the same pictures in the same order and
+        the same line of no-break spaces under each. A README runs no script, so folding is the closest it comes to
+        the pages' Style menu. A blank line after each title lets GitHub render the table; the animation above stays
+        unfolded."""
+        titles = {False: ("Cake style", "Minimal style"), True: ("Cake 样式", "Minimal 样式")}
+        for path, _, chinese in READMES:
+            with self.subTest(path=os.path.relpath(path, ROOT)):
+                markdown = read(path)
+                blocks = re.findall(r"<details( open)?>\n<summary>([^<]+)</summary>\n\n(.*?)\n</details>", markdown, re.S)
+                self.assertEqual([(opened, title) for opened, title, _ in blocks],
+                                 [("", titles[chinese][0]), (" open", titles[chinese][1])])
+                cake, minimal = (body for _, _, body in blocks)
+                pictures = [m or h for m, h in PICTURE.findall(cake)]
+                self.assertEqual(len(pictures), 6)
+                self.assertTrue(all("/preview-" in picture for picture in pictures), pictures)
+                self.assertIn("&nbsp;" * 100, cake)
+                self.assertEqual(minimal, cake.replace('.png"', '-minimal.png"'))
+                unfolded = markdown[:markdown.index("<details")]
+                self.assertTrue(any("/demo.png" in (m or h) for m, h in PICTURE.findall(unfolded)))
+
+    def test_each_readme_says_the_registration_goes_to_tartini_ai_once(self):
+        """As the local page and PRIVACY.md say: only the registration details, to Tartini AI, once, when you choose
+        Register and continue."""
+        expected = {False: r"Choosing \*\*Register and continue\*\* sends your registration details to Tartini AI once\.",
+                    True: r"只有在你选择 \*\*Register and continue\*\* 后，AgentCake 才会将你的注册信息发送给 Tartini AI，且仅发送一次。"}
+        for path, _, chinese in READMES:
+            with self.subTest(path=os.path.relpath(path, ROOT)):
+                self.assertRegex(" ".join(read(path).split()), expected[chinese])
 
     def test_pictures_are_in_the_repository_or_are_static_badges(self):
         for path, *_ in READMES:

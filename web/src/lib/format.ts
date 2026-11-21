@@ -62,5 +62,13 @@ export function siteAddress(domain: string) {
   return `${local ? "http" : "https"}://${domain}/`
 }
 
+/** The interface's language, for what the browser writes for it (numbers, country and language names): English only
+ *  (DESIGN.md §2), whatever language the browser is set to. */
+export const LOCALE = "en"
+const COUNT = new Intl.NumberFormat(LOCALE, { maximumFractionDigits: 0 })
+
+/** A count as every page writes it, with a comma between thousands as PostHog writes it: 1900 → "1,900". */
+export const integer = (n: number) => COUNT.format(n)
+
 /** Minutes with one decimal ("2.6"), for active time spent. */
 export const minutes = (ms: number) => (ms / (SECOND_MS * MINUTE_S)).toFixed(1)

@@ -1,7 +1,8 @@
 // Settings, like PostHog 1.0's setup page, in rows of two cards: your website's domain (the project: the top bar shows
 // it) and the line to add to its pages, beside the page script's two settings; where visits come from and when each
 // last arrived (asked again every refresh_ms), with what the server middleware says about your site's server, beside how
-// AgentCake decides (the four layers and the lists' age, which are not settings); keeping data (as cake 0.3.4: keep
+// AgentCake decides (the four layers and the lists' age, which are not settings, and the monthly update of the lists,
+// which is: lists_auto_update, with its last run and a warning once updates fail in a row); keeping data (as cake 0.3.4: keep
 // everything by default, a budget whose cleanup deletes the oldest replays of every kind of session, and the disk's
 // floor), beside the registration and deleting everything. Data: GET /api/settings and GET /api/register; each change is saved at once with POST /api/settings,
 // which answers the new state; "Delete all data" posts /api/delete after its Dialog.
@@ -23,9 +24,10 @@ import { LAYERS } from "@/components/cake/reasons"
 import { TimezonePicker, type ZoneChoice } from "@/components/cake/timezone-picker"
 import { api, asApiError, useApi } from "@/data/api"
 import type { Connection, LayerId, Registration, Settings, SettingsUpdate } from "@/data/types"
-import { NO_VALUE, PERCENT, bytes, mbToBytes, percent } from "@/lib/format"
+import { NO_VALUE, PERCENT, bytes, integer, mbToBytes, percent } from "@/lib/format"
 import { PRODUCT_NAME } from "@/lib/product"
-import { WORDS, sessionCount } from "@/lib/words"
+import { sessionCount } from "@/lib/counts"
+import { WORDS } from "@/lib/words"
 import { useSetProjectDomain } from "@/pages/project"
 
 const CONNECTION: Record<Connection, { tone: "ok" | "warn" | "off"; label: string }> = {
@@ -86,6 +88,8 @@ function SettingsForm({ initial, registration, zones }: { initial: Settings; reg
     <div className="flex flex-col items-end gap-1"><Status tone={CONNECTION[s.sources[source]].tone}>{CONNECTION[s.sources[source]].label}</Status>{lastSeen(s.last_seen[source])}</div>
   )
   const selectorsOk = readable(hidden)
+  const places = s.lists.city_database, updated = s.lists.last_update
+  const command = <code key="command" className="font-mono wrap-anywhere">{s.lists.update_command}</code>
   return (
     <>
       {error && <Alert variant="destructive"><AlertDescription>{`Your change couldn't be saved. ${error}`}</AlertDescription></Alert>}
@@ -147,11 +151,16 @@ function SettingsForm({ initial, registration, zones }: { initial: Settings; reg
             {(Object.keys(LAYERS) as LayerId[]).map((id) => (
               <SettingRow key={id} title={`${LAYERS[id].n} · ${LAYERS[id].name}`} desc={LAYER_WORDS[id]} control={<Badge variant="tag">{LAYER_WHERE[id]}</Badge>} />
             ))}
-            <SettingRow title="Agent and network lists" desc={`Built on ${s.lists.built} (${s.lists.age_days === 1 ? "1 day" : `${s.lists.age_days} days`} ago) and included with each release of ${PRODUCT_NAME}.`}
+            <SettingRow title="Agent and network lists" desc={WORDS.listsBuilt(s.lists.built, s.lists.age_days === 1 ? "1 day" : `${s.lists.age_days} days`)}
               control={<Badge variant="tag">{s.lists.stale ? "Out of date" : "Up to date"}</Badge>} />
-            {s.lists.stale && (
+            <SettingRow title={WORDS.autoUpdate.title} tags={<Badge variant="tag">On by default</Badge>}
+              desc={<>{s.lists_auto_update ? WORDS.autoUpdate.on(places) : WORDS.autoUpdate.off(command, places)}{updated && (
+                <span className="mt-1 block wrap-anywhere">{updated.ok ? WORDS.autoUpdate.lastOk(updated.when) : WORDS.autoUpdate.lastFailed(updated.when, updated.error ?? NO_VALUE)}{!updated.ok && s.lists_auto_update && !s.lists.failing && <span className="block">{WORDS.autoUpdate.retry(PRODUCT_NAME)}</span>}</span>
+              )}</>}
+              control={<Switch checked={s.lists_auto_update} onCheckedChange={(on) => void save({ lists_auto_update: on })} aria-label={WORDS.autoUpdate.title} />} />
+            {(s.lists.failing || s.lists.stale) && (
               <div className="flex flex-col gap-2">
-                <Alert variant="warn"><AlertDescription>{`These lists are more than ${s.lists.max_age_days} days old. To get newer lists, run this command or upgrade ${PRODUCT_NAME}:`}</AlertDescription></Alert>
+                <Alert variant="warn"><AlertDescription>{s.lists.failing ? WORDS.autoUpdate.failing(integer(s.lists.failures)) : `These lists are more than ${s.lists.max_age_days} days old. To get newer lists, run this command or upgrade ${PRODUCT_NAME}:`}</AlertDescription></Alert>
                 <CopyBlock text={s.lists.update_command} />
               </div>
             )}
@@ -202,7 +211,7 @@ function RegistrationCard({ registration: r }: { registration: Registration }) {
     <Card>
       <CardHeader><CardTitle icon={ShieldCheck}>Data collection and registration</CardTitle></CardHeader>
       <CardContent className="flex flex-col gap-3 text-sm">
-        <p className="font-extrabold">{PRODUCT_NAME} doesn't collect usage data or telemetry.</p>
+        <p className="font-extrabold minimal:font-semibold">{PRODUCT_NAME} doesn't collect usage data or telemetry.</p>
         {r.sent ? (
           <>
             <p>{`Information sent to Tartini AI when you registered (${r.sent.when}):`}</p>

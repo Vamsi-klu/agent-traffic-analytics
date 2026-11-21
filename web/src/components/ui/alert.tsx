@@ -3,17 +3,17 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "cn"
 
 const alertVariants = cva(
-  "group/alert relative grid w-full gap-0.5 rounded-xl border-2 border-line px-3.5 py-2.5 text-left text-sm has-data-[slot=alert-action]:relative has-data-[slot=alert-action]:pr-18 has-[>svg]:grid-cols-[auto_1fr] has-[>svg]:gap-x-2 *:[svg]:row-span-2 *:[svg]:translate-y-0.5 *:[svg]:text-current *:[svg:not([class*='size-'])]:size-4",
+  "group/alert relative grid w-full gap-0.5 rounded-xl border-2 border-line px-3.5 py-2.5 text-left text-sm minimal:border minimal:px-4 minimal:py-3 has-data-[slot=alert-action]:relative has-data-[slot=alert-action]:pr-18 has-[>svg]:grid-cols-[auto_1fr] has-[>svg]:gap-x-2 *:[svg]:row-span-2 *:[svg]:translate-y-0.5 *:[svg]:text-current *:[svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
         default: "bg-card text-card-foreground",
         destructive:
-          "bg-card text-destructive *:data-[slot=alert-description]:text-destructive/90 *:[svg]:text-current",
+          "bg-card text-destructive *:data-[slot=alert-description]:text-destructive/90 *:[svg]:text-current minimal:border-destructive/30",
         // Frosting tones (DESIGN.md §6)
-        info: "bg-human-soft text-foreground",
-        warn: "bg-warn-soft text-foreground",
-        ok: "bg-ok-soft text-foreground",
+        info: "bg-human-soft text-foreground minimal:border-transparent",
+        warn: "bg-warn-soft text-foreground minimal:border-transparent",
+        ok: "bg-ok-soft text-foreground minimal:border-transparent",
       },
     },
     defaultVariants: {

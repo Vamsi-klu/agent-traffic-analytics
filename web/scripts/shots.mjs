@@ -1,4 +1,5 @@
-// Screenshot the built app (dist/) in light, dark and 485px wide, and fail on horizontal scroll.
+// Screenshot the built app (dist/) 1280 and 485px wide, in both styles (Cake, then Minimal: STYLES), and fail on
+// horizontal scroll.
 // The pages read /api, answered here from src/data/fixtures/ (scripts/fixture-api.mjs), so every shot shows the same data:
 // the dashboard and the session list (LIBRARY_PAGES) show cake's own answers on the fixed test library at a fixed moment
 // (fixtures/library/), the other pages the samples, all behind a registered AgentCake
@@ -24,6 +25,17 @@ export const LIBRARY_PAGES = ["dashboard", "sessions"]
  *  what an AgentCake opened for the first time shows. */
 export const PAGE_ANSWERS = { register: { "**/api/register": "register/first-run" } }
 const fixtures = path.join(here, "..", "src", "data", "fixtures")
+/** The pages' two styles (src/lib/style.ts), the default first; files of Minimal's shots end in -minimal / _minimal. */
+export const STYLES = ["cake", "minimal"]
+
+/** Opens every page of the context in `style` as the top bar's Style menu leaves it: the choice this browser keeps
+ *  (lib/style.ts STORAGE_KEY). Cake is what a browser that picked nothing shows, so it sets nothing. */
+export async function pickStyle(ctx, style) {
+  if (style === "cake") return
+  await ctx.addInitScript((picked) => {
+    if (location.protocol.startsWith("http")) localStorage.setItem("agentcake-style", picked) // about:blank has no storage
+  }, style)
+}
 
 /** shot() with the page's requests to each glob of answers answered by its sample (just shot() when answers is unset):
  *  in a fresh document before and after, since moving between the app's # routes keeps it loaded, and what it asked
@@ -42,7 +54,7 @@ export async function withAnswers(page, answers, shot) {
     await page.goto("about:blank")
   }
 }
-const TYPES = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".ttf": "font/ttf", ".svg": "image/svg+xml", ".ico": "image/x-icon" }
+const TYPES = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".ttf": "font/ttf", ".svg": "image/svg+xml", ".ico": "image/x-icon", ".png": "image/png" }
 
 /** The built app (dist/, or `root`) with the fixture /api and the player's /static/ files: the release's paths. fixtures: the sample set to answer from first (LIBRARY), as fixtureApi takes it. */
 export function serve(root = dist, { fixtures } = {}) {
@@ -92,17 +104,19 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const srv = await serve(), lib = await serve(dist, { fixtures: LIBRARY })
   const base = `http://127.0.0.1:${srv.address().port}/`, libBase = `http://127.0.0.1:${lib.address().port}/`
   const browser = await launch(); let bad = 0
-  for (const [mode, width, scheme] of [["light", 1280, "light"], ["dark", 1280, "dark"], ["w485", 485, "light"]]) {
-    const ctx = await browser.newContext({ viewport: { width, height: 900 }, colorScheme: scheme, reducedMotion: "reduce", deviceScaleFactor: mode === "w485" ? 2 : 1 })
+  for (const style of STYLES) for (const [mode, width] of [["light", 1280], ["w485", 485]]) {
+    const ctx = await browser.newContext({ viewport: { width, height: 900 }, colorScheme: "light", reducedMotion: "reduce", deviceScaleFactor: mode === "w485" ? 2 : 1 })
+    await pickStyle(ctx, style)
     const page = await ctx.newPage()
+    const shot = style === "cake" ? mode : `${mode}_${style}`
     const take = async (name, url) => {
       const [sw, cw] = await withAnswers(page, PAGE_ANSWERS[name], async () => {
         const sizes = await shoot(page, url)
-        await page.screenshot({ path: path.join(out, `${name}_${mode}.png`), fullPage: true })
+        await page.screenshot({ path: path.join(out, `${name}_${shot}.png`), fullPage: true })
         return sizes
       })
       const ok = sw <= cw; if (!ok) bad++
-      console.log(`${name} ${mode} ${ok ? "no h-scroll" : `OVERFLOW ${sw}>${cw}`}`)
+      console.log(`${name} ${shot} ${ok ? "no h-scroll" : `OVERFLOW ${sw}>${cw}`}`)
     }
     for (const [name, route] of Object.entries(ROUTES)) if (!only.length || only.includes(name)) await take(name, (LIBRARY_PAGES.includes(name) ? libBase : base) + "index.html" + route)
     await ctx.close()

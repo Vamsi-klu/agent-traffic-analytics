@@ -1,7 +1,7 @@
 {
-  "$comment": "AgentCake's environment layer: each rule reads one trace of automation, of a named agent product, of a cloud machine or of an extension acting on the page. agentcake/detect/env_rules.py evaluates `match` (grammar in its docstring) against the signals env_signals.py builds; a hit carries id, layer, kind, half, strength, grade and the value that matched. `scope`: page = on each page view, landing = the first page view only, session = the session as a whole. `botscent`: the botscent page-half reasons a rule stands for, so the two can be compared on recorded sessions. `names`: the agent product or automation tool a rule names; `suggests`: a name a rule hints at without proving it. `enabled`: the default; the user's config can switch any rule. `setting`: on a rule that is off by default, the page-script setting that turns it on: the rule runs on a visit recorded with that setting on, as the visit's page records say (signals.script_settings names the page record fields that say how the site owner had set cake.js). `date`: when the evidence was taken; product rules follow one product's build and must be re-checked when it changes. Rule definitions and collision notes taken from botscent 1.2.0 and BotD 2.0.0 (both MIT) are credited in source_refs and THIRD_PARTY.md.",
+  "$comment": "AgentCake's environment layer: each rule reads one trace of automation, of a named agent product, of a cloud machine or of an extension acting on the page. agentcake/detect/env_rules.py evaluates `match` (grammar in its docstring) against the signals env_signals.py builds; a hit carries id, layer, kind, half, strength, grade and the value that matched. `scope`: page = on each page view, landing = the first page view only, session = the session as a whole. `botscent`: the botscent page-half reasons a rule stands for, so the two can be compared on recorded sessions. `names`: the agent product or automation tool a rule names; `suggests`: a name a rule hints at without proving it. `enabled`: the default; the user's config can switch any rule. `setting`: on a rule that is off by default, the page-script setting that turns it on: the rule runs on a visit recorded with that setting on, as the visit's page records say (signals.script_settings names the page record fields that say how the site owner had set cake.js). `date`: when the evidence was taken; product rules follow one product's build and must be re-checked when it changes. `family`: the rules that are one kind of evidence together (legend.families; the verdict counts them as one, verdict.json families). Rule definitions and collision notes taken from botscent 1.2.0 and BotD 2.0.0 (both MIT), and the conditions of fpscanner's checks (MIT), are credited in source_refs and THIRD_PARTY.md.",
   "version": 1,
-  "updated": "2026-11-15",
+  "updated": "2026-11-19",
   "legend": {
     "kinds": {
       "automation": "A trace of an automation driver, or of the flags it launches the browser with: an automated browser.",
@@ -25,6 +25,9 @@
       "project-claim": "The source project's own measurement, not reproduced by us.",
       "source": "Read in a detector's source code or documentation, not measured.",
       "inferred": "Inferred; neither measured nor taken from a detector."
+    },
+    "families": {
+      "phone_or_tablet": "A computer passing as a phone or tablet. Each rule reads only a page whose user agent names an iPhone, iPad, iPod or Android device, so no desktop page is read. A developer's device emulation and user-agent switchers make all of them hold at once, so together they are one kind of evidence."
     }
   },
   "source_refs": {
@@ -32,8 +35,12 @@
     "BotD": "fingerprintjs/BotD 2.0.0 (npm build botd.esm.js; repository commit 193c471a), MIT: its detectors",
     "rebrowser": "rebrowser/rebrowser-bot-detector commit 55fa59b, README test descriptions; package.json says MIT but the repository has no LICENSE file, so only its published detection ideas are used, none of its code",
     "audit": "AgentCake's signal audit of 2026-11-12 (119 signals, ids sig-NNN; ours)",
-    "lab": "AgentCake's lab recordings of 2026-11-09 and 2026-11-11 (ours: env.js, raw.js, bs.js and the lab server's request log)", "runs": "AgentCake's own runs of agent products and of automation made to look human, on its test shop, 2026-11-13 and 2026-11-14 (ours; measured with agentcake eval)",
-    "agent_markers": "AgentCake's table of agent products' marks, agentcake/data/agent_markers.json (ours; its own source_refs say where each mark comes from), read by env_signals into each page's markers"
+    "lab": "AgentCake's lab recordings of 2026-11-09 and 2026-11-11 (ours: env.js, raw.js, bs.js and the lab server's request log)", "runs": "AgentCake's own runs of agent products and of automation made to look human, on its test shop, 2026-11-13 and 2026-11-14 (ours; measured with agentcake eval), and of Playwright's phone and tablet emulation, 2026-11-19 (ours; cake.js uploads to its test collector, read with this rule table)",
+    "platforms": "AgentCake's simulation of the front doors websites put in front of it, 2026-11-18 (ours): the same visits uploaded with the headers CloudFront, an ALB, a Google Cloud load balancer, Cloudflare, nginx, Vercel and Caddy forward, after their documentation",
+    "agent_markers": "AgentCake's table of agent products' marks, agentcake/data/agent_markers.json (ours; its own source_refs say where each mark comes from), read by env_signals into each page's markers",
+    "fpscanner": "antoinevastel/fpscanner at 4255cfd8a23f (2026-08-05), MIT: src/detections/hasPlatformMismatch.ts, hasGPUMismatch.ts and hasMismatchPlatformWorker.ts (its exception for iOS in desktop mode); their conditions written as rules here, no code copied",
+    "playwright": "microsoft/playwright main at 09dab5d70932 (2026-11-19), Apache-2.0: packages/playwright-core/src/server/chromium/crPage.ts, calculateUserAgentMetadata and _updateUserAgent, which show what its phone emulation in Chromium sets (the user agent and its client hints) and leaves (navigator.platform, navigator.vendor); read, no code copied",
+    "mdn": "mdn/browser-compat-data at 589202441f49, CC0: api/NavigatorUAData.json (no version of Safari has navigator.userAgentData)"
   },
   "signals": {
     "network_headers": ["user-agent", "sec-ch-ua", "accept-language", "sec-fetch-site", "sec-fetch-mode", "sec-fetch-user", "sec-fetch-dest"],
@@ -107,13 +114,24 @@
     {
       "id": "env.auto.collect-no-accept-language", "layer": "env", "kind": "automation", "half": "collector", "scope": "session", "strength": "hard", "enabled": true,
       "title": "The requests don't include the language header that browsers usually send.",
-      "detail": "None of the requests from cake.js include an Accept-Language header. This is typical of chrome-headless-shell.",
-      "match": {"all": [{"path": "collect.requests", "gte": 1}, {"path": "collect.headers.accept-language.present", "eq": 0}]},
-      "report": ["collect.requests", "collect.headers.accept-language.present"],
-      "grade": "measured", "date": "2026-11-11",
-      "evidence": "Lab 2026-11-11: 1,324 of 1,324 collect requests from headless Playwright (chrome-headless-shell) had no Accept-Language; 1,273 of 1,273 from headed Playwright and Claude in Chrome had it. Lab 2026-11-09: 0 of 20 from chrome-headless-shell (V05) had it; 40 of 40 from the 3 human visits had it; new headless mode (V06, V07) sends it.",
-      "sources": ["audit:sig-101", "lab"],
-      "collisions": "None known: every browser a person uses sends Accept-Language. A privacy tool that strips the header would match (untested). Covers chrome-headless-shell (Playwright's and Puppeteer's default headless), not Chrome's new headless mode."
+      "detail": "None of the requests from cake.js include an Accept-Language header. The requests have the same User-Agent as the page and include the browser's Sec-Fetch-Mode header. This is typical of chrome-headless-shell.",
+      "match": {"all": [{"path": "collect.requests", "gte": 1}, {"path": "collect.headers.accept-language.present", "eq": 0}, {"path": "collect.ua_as_page", "eq": true}, {"path": "collect.headers.sec-fetch-mode.present", "gte": 1}]},
+      "report": ["collect.requests", "collect.headers.accept-language.present", "collect.ua_as_page", "collect.headers.sec-fetch-mode.present"],
+      "grade": "measured", "date": "2026-11-18",
+      "evidence": "Lab 2026-11-11: 1,324 of 1,324 collect requests from headless Playwright (chrome-headless-shell) had no Accept-Language; 1,273 of 1,273 from headed Playwright and Claude in Chrome had it. Lab 2026-11-09: 0 of 20 from chrome-headless-shell (V05) had it; 40 of 40 from the 3 human visits had it; new headless mode (V06, V07) sends it. Platform simulation 2026-11-18: chrome-headless-shell's own requests carry the page's User-Agent and Sec-Fetch-Mode, so the rule still holds for it; a person's requests through CloudFront's default settings arrive without Accept-Language too, which is why the last two conditions are there.",
+      "sources": ["audit:sig-101", "lab", "platforms"],
+      "collisions": "None known when the requests arrive as the browser sent them: every browser a person uses sends Accept-Language. A front door that drops the header for every visitor (CloudFront's default settings, which also put \"Amazon CloudFront\" in the User-Agent; its UserAgentRefererHeaders origin request policy, which also drops the Sec-Fetch headers) fails the last two conditions and gives env.auto.collect-no-accept-language-proxy instead. A privacy tool that strips only Accept-Language would match (untested). Covers chrome-headless-shell (Playwright's and Puppeteer's default headless), not Chrome's new headless mode."
+    },
+    {
+      "id": "env.auto.collect-no-accept-language-proxy", "layer": "env", "kind": "automation", "half": "collector", "scope": "session", "strength": "weak", "enabled": true,
+      "title": "The requests don't include the language header that browsers usually send. A proxy in front of AgentCake might have removed it.",
+      "detail": "The requests from cake.js have no Accept-Language header. The requests also have a different User-Agent from the page, or they don't include a Sec-Fetch-Mode header. Proxies and CDNs that rewrite requests, such as CloudFront with default settings, remove these headers for every visitor. In this case, AgentCake doesn't count the missing header as a sign of automation.",
+      "match": {"all": [{"path": "collect.requests", "gte": 1}, {"path": "collect.headers.accept-language.present", "eq": 0}, {"any": [{"path": "collect.ua_as_page", "eq": false}, {"path": "collect.headers.sec-fetch-mode.present", "eq": 0}]}]},
+      "report": ["collect.requests", "collect.headers.accept-language.present", "collect.ua_as_page", "collect.headers.sec-fetch-mode.present"],
+      "grade": "measured", "date": "2026-11-18",
+      "evidence": "Platform simulation 2026-11-18: a person's visit uploaded through CloudFront's default settings arrives without Accept-Language and with the User-Agent \"Amazon CloudFront\"; through CloudFront's UserAgentRefererHeaders origin request policy, with the browser's User-Agent but without Accept-Language and the Sec-Fetch headers. Before this rule split, both made the person an Agent.",
+      "sources": ["platforms"],
+      "collisions": "Every visitor whose requests pass such a front door matches, which is why it changes no conclusion. chrome-headless-shell behind it matches too and loses the hard rule; its page records (webdriver, the HeadlessChrome User-Agent) still give it away."
     },
     {
       "id": "env.auto.cdp-runtime-leak", "layer": "env", "kind": "automation", "half": "page", "scope": "page", "strength": "soft", "enabled": true,
@@ -453,12 +471,22 @@
       "id": "env.spoof.worker-mismatch", "layer": "env", "kind": "spoofing", "half": "page", "scope": "page", "strength": "soft", "enabled": true,
       "title": "The page and a background script report different browser details.",
       "detail": "A web worker reports a different user agent, platform, or brand list than the page.",
-      "match": {"some": "auto.workerConsistency.differs", "where": {"in": ["userAgent", "platform", "brands"]}},
+      "match": {"any": [
+        {"some": "auto.workerConsistency.differs", "where": {"in": ["userAgent", "brands"]}},
+        {"all": [
+          {"some": "auto.workerConsistency.differs", "where": {"eq": "platform"}},
+          {"not": {"all": [
+            {"first": [{"path": "env.platform", "eq": "MacIntel"}, {"path": "env.platform", "exists": true}]},
+            {"first": [{"path": "auto.workerConsistency.worker.platform", "regex": "^(iPhone|iPad|iPod)"}, {"path": "auto.workerConsistency.worker.platform", "exists": true}]},
+            {"first": [{"path": "env.maxTouchPoints", "gt": 1}, {"path": "env.maxTouchPoints", "exists": true}]}
+          ]}}
+        ]}
+      ]},
       "report": ["auto.workerConsistency.differs"],
-      "grade": "source", "date": "2026-11-09",
-      "evidence": "rebrowser workerConsistency: values faked by page scripts do not reach workers. No difference in the 2026-11-11 lab.",
-      "sources": ["rebrowser:workerConsistency", "audit:sig-036", "lab"],
-      "collisions": "User-agent switcher extensions that patch only the page. Differences in languages or CPU count are left out because privacy extensions cause them (rebrowser)."
+      "grade": "source", "date": "2026-11-19",
+      "evidence": "rebrowser workerConsistency: values faked by page scripts do not reach workers. No difference in the 2026-11-11 lab. fpscanner hasMismatchPlatformWorker: iOS in desktop mode (the default on iPad, an option on iPhone) reports MacIntel in the page and the device in a worker, so a platform that differs only that way, on a page with a touch screen, is not counted (2026-11-19). Each of the three tests counts as not holding when its input was not recorded, so the rule reads every other session as before.",
+      "sources": ["rebrowser:workerConsistency", "audit:sig-036", "lab", "fpscanner:hasMismatchPlatformWorker"],
+      "collisions": "User-agent switcher extensions that patch only the page. Differences in languages or CPU count are left out because privacy extensions cause them (rebrowser). An iPad or iPhone showing the desktop site reports MacIntel in the page and iPad or iPhone in a worker: not counted when the page reports more than one touch point, which no Mac does."
     },
     {
       "id": "env.spoof.native-functions-patched", "layer": "env", "kind": "spoofing", "half": "page", "scope": "page", "strength": "weak", "enabled": true,
@@ -529,6 +557,48 @@
       "evidence": "rebrowser platformMismatch: never happens in a real desktop Chrome. None in the lab.",
       "sources": ["rebrowser:platformMismatch"],
       "collisions": "Apps that set a custom WebView user agent on mobile (excluded)."
+    },
+    {
+      "id": "env.spoof.phone-ua-desktop-platform", "layer": "env", "kind": "spoofing", "half": "page", "scope": "page", "strength": "soft", "enabled": true, "family": "phone_or_tablet",
+      "title": "The user agent identifies a phone or tablet, but the browser reports a computer's operating system.",
+      "detail": "The user agent identifies an iPhone, iPad, iPod, or Android device. However, navigator.platform reports a computer's operating system, such as Windows or macOS. Phone emulation in desktop browsers can leave navigator.platform unchanged.",
+      "match": {"any": [
+        {"all": [{"path": "env.userAgent", "regex": "iPhone|iPad|iPod"}, {"path": "env.platform", "regex": "^(Win|Linux x86_64|Linux i686)"}]},
+        {"all": [{"path": "env.userAgent", "regex": "Android"}, {"path": "env.platform", "regex": "^(Mac|Win)"}]}
+      ]},
+      "report": ["env.userAgent", "env.platform"],
+      "grade": "measured", "date": "2026-11-19",
+      "evidence": "fpscanner hasPlatformMismatch flags a user agent that names Apple's systems with a Windows or Linux navigator.platform, and one that names Linux, as Android's do, with a Mac or Windows platform. Here only user agents that name a phone or tablet are read (desktop ones stay with env.spoof.ua-platform-mismatch), and for an iPhone, iPad or iPod only a computer's Linux counts, since an Android phone given an iPhone's user agent reports ARM Linux. Playwright's phone emulation in Chromium (crPage.ts) overrides the user agent and its client hints but never navigator.platform, which keeps the computer's. Android with Linux x86_64 is left out: Android's emulator and Android on x86 report it. Our runs of 2026-11-19 (Playwright 1.64.1, Chromium 149, on a Mac): its Pixel 7 and Galaxy S9+ emulation 2 of 2 (navigator.platform MacIntel); its iPhone 15 and iPad Pro 11 emulation on a Mac report MacIntel, which this rule leaves to env.spoof.ios-ua-chromium-engine; desktop Chromium 0. None in the lab.",
+      "sources": ["fpscanner:hasPlatformMismatch", "playwright:crPage", "runs"],
+      "collisions": "A developer's device emulation in a desktop browser (Chrome DevTools, Playwright) and user-agent switchers that set a phone's user agent and keep navigator.platform. Real iPhones, iPads and iPods report iPhone, iPad or iPod; Android devices report an ARM Linux (Linux armv8l, armv81, aarch64)."
+    },
+    {
+      "id": "env.spoof.ios-ua-chromium-engine", "layer": "env", "kind": "spoofing", "half": "page", "scope": "page", "strength": "soft", "enabled": true, "family": "phone_or_tablet",
+      "title": "The user agent identifies an iPhone, iPad, or iPod, but the browser has features of Chrome's engine.",
+      "detail": "Common browsers on iPhone and iPad use Apple's WebKit engine. WebKit reports Apple as navigator.vendor and doesn't have navigator.userAgentData. This browser matches Chrome in at least one of them.",
+      "match": {"all": [
+        {"path": "env.userAgent", "regex": "iPhone|iPad|iPod"},
+        {"any": [{"path": "env.uaData", "exists": true}, {"path": "env.vendor", "eq": "Google Inc."}]}
+      ]},
+      "report": ["env.userAgent", "env.vendor", "env.uaData"],
+      "grade": "measured", "date": "2026-11-19",
+      "evidence": "Playwright's iPhone and iPad emulation in Chromium (crPage.ts) sets the user agent and its client hints, with iOS as their platform; Chromium keeps navigator.userAgentData and reports Google Inc. as navigator.vendor. Browsers on iPhone and iPad run on WebKit, which has no navigator.userAgentData (MDN browser-compat-data) and reports Apple Computer, Inc. as its vendor. Our runs of 2026-11-19 (Playwright 1.64.1, Chromium 149, on a Mac): its iPhone 15 and iPad Pro 11 emulation 2 of 2 (navigator.userAgentData with iOS as its platform, Google Inc.); its iPhone 15 emulation in WebKit 0 (WebKit itself); desktop Chromium 0. None in the lab.",
+      "sources": ["playwright:crPage", "mdn:NavigatorUAData", "runs"],
+      "collisions": "Browsers that bring their own engine to iPhone and iPad, which the EU allows since iOS 17.4 (none seen). A developer's iPhone emulation in Chrome DevTools, and user-agent switchers that set an iPhone's user agent in Chrome."
+    },
+    {
+      "id": "env.spoof.android-ua-apple-gpu", "layer": "env", "kind": "spoofing", "half": "page", "scope": "page", "strength": "soft", "enabled": true, "family": "phone_or_tablet",
+      "title": "The user agent identifies an Android device, but the browser reports an Apple GPU.",
+      "detail": "WebGL reports an Apple GPU. Android devices use GPUs from other manufacturers, such as Qualcomm and Arm. On a Mac with Apple silicon, Chrome reports an Apple GPU, even when it emulates an Android phone.",
+      "match": {"all": [
+        {"path": "env.userAgent", "regex": "Android"},
+        {"any": [{"path": "env.webgl.vendor", "regex": "Apple"}, {"path": "env.webgl.renderer", "regex": "Apple"}]}
+      ]},
+      "report": ["env.userAgent", "env.webgl.renderer"],
+      "grade": "source", "date": "2026-11-19",
+      "evidence": "fpscanner hasGPUMismatch (its WebGL part; cake.js reads no WebGPU) flags an Apple GPU with a user agent that does not name Apple's systems; here only user agents that name Android are read. Chromium emulating an Android phone on a Mac keeps the Mac's WebGL renderer (ANGLE with an Apple M-series GPU). None in the lab.",
+      "sources": ["fpscanner:hasGPUMismatch"],
+      "collisions": "A developer's Android emulation in Chrome DevTools on a Mac; Android's emulator on a Mac may name the Mac's GPU in its renderer (untested). Android devices report Adreno, Mali, PowerVR, Xclipse or similar GPUs."
     },
     {
       "id": "env.product.cursor-browser", "layer": "env", "kind": "product", "half": "page", "scope": "page", "strength": "hard", "enabled": true,

@@ -19,7 +19,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 from cake_server import START_TIMEOUT_S, free_port  # noqa: E402
 from delete_fixtures import ROOT, Planted, chunk_texts, every_cell, http_status, read_text, run, wait_for  # noqa: E402
-from agentcake import cli, paths, routes, store, streams  # noqa: E402
+from agentcake import cli, config, paths, routes, store, streams  # noqa: E402
 from agentcake.api import answers, deletion  # noqa: E402
 from agentcake.responses import Request  # noqa: E402
 
@@ -73,6 +73,7 @@ class DeleteWhileRunning(Planted):
     def test_the_running_cake_deletes_and_keeps_running(self):
         port = str(free_port())
         os.environ["CAKE_PORT"] = port  # restored by Planted's patch of os.environ
+        config.save_user(lists_auto_update=False)  # a test never goes online (agentcake/updates.py)
         command = [sys.executable, "-I", os.path.join(ROOT, "agentcake", "__main__.py"), "serve"]
         with open(paths.log_file(), "a") as log:
             server = subprocess.Popen(command, env=dict(os.environ), stdout=log, stderr=log)

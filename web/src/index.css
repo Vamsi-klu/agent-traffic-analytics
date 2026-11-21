@@ -8,7 +8,9 @@
    comment) would add a rule no page uses to the CSS that ships. */
 @source "./**/*.{ts,tsx}";
 
-@custom-variant dark (&:is(.dark *));
+/* Minimal style (DESIGN.md §17): <html data-style="minimal">, set by src/lib/style.ts. The components carry its
+   look as minimal: classes. */
+@custom-variant minimal (&:is([data-style="minimal"] *));
 
 /* Tailwind theme: maps tokens.css to utility classes (bg-primary, text-human, shadow-hard, font-heading …).
    No values here: every value lives in styles/tokens.css. */
@@ -16,6 +18,7 @@
   --font-sans: var(--font-sans);
   --font-heading: var(--font-heading);
   --font-mono: var(--font-mono);
+  --font-logo: var(--font-logo);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -66,6 +69,8 @@
   /* the cartoon frame: one offset hard shadow, two sizes, used through components only */
   --shadow-hard: 4px 4px 0 var(--shadow-color);
   --shadow-hard-sm: 2px 2px 0 var(--shadow-color);
+  /* Minimal style's menus and dialogs: a soft shadow all round instead (its hard shadow is transparent) */
+  --shadow-menu: 0 0 15px var(--menu-shadow-color), 0 0 3px 1px var(--menu-shadow-color-near);
 }
 
 @layer base {
@@ -75,6 +80,9 @@
   body {
     @apply bg-background text-foreground font-sans antialiased;
     font-weight: 500;
+  }
+  :root[data-style="minimal"] body {
+    font-weight: 400;
   }
   h1, h2, h3 {
     @apply font-heading;
@@ -115,12 +123,7 @@
 .crumb .f-frosting { fill: var(--cake-frosting); } .crumb .f-cherry { fill: var(--cake-cherry); } .crumb .f-cheek { fill: var(--cake-cheek); }
 .crumb .f-shine { fill: var(--cake-shine); } .crumb .f-outline { fill: var(--cake-outline); } .crumb .f-glass { fill: var(--cake-shine); fill-opacity: .55; }
 .crumb .shadow { fill: var(--cake-outline); opacity: .18; } .crumb .faint { opacity: .55; }
-.crumb text { fill: var(--cake-outline); font-family: var(--font-heading); font-weight: 700; }
-/* Crumb's outer line, limbs, feet, magnifier and "z" use --cake-line (ink in light, warm light grey in dark, so Crumb
-   stays visible on a dark page); the face (.face: eyes, mouth) stays ink on the white body. Avatars keep their paint. */
-.crumb:not(.avatar) .o:not(.face) { stroke: var(--cake-line); }
-.crumb:not(.avatar) .f-outline:not(.face) { fill: var(--cake-line); }
-.crumb:not(.avatar) text { fill: var(--cake-line); }
+.crumb text { fill: var(--cake-outline); font-family: var(--font-logo); font-weight: 700; }
 
 /* Agent avatars + Crumb idle (DESIGN.md §15): sway, bob and a little squash on the body, a blink now and then.
    Each avatar has its own beat (data-phase). Everything stops under prefers-reduced-motion (global rule above). */
@@ -165,3 +168,7 @@
 }
 .cake-replay .replayer-mouse[data-who="agent"]::before { @apply bg-agent-soft text-agent-foreground; }
 .cake-replay .replayer-mouse[data-who="unsure"]::before { @apply border-dashed bg-unsure-soft text-unsure-foreground; }
+/* Minimal style: the pill keeps its side's colours, framed thin in its side's solid colour */
+[data-style="minimal"] .cake-replay .replayer-mouse:where([data-label]:not([data-label=""]))::before { @apply border border-human font-semibold; }
+[data-style="minimal"] .cake-replay .replayer-mouse[data-who="agent"]::before { @apply border-agent; }
+[data-style="minimal"] .cake-replay .replayer-mouse[data-who="unsure"]::before { @apply border-unsure; }

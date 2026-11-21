@@ -1,0 +1,53 @@
+# AgentCake and Caddy on one server: the default way to see the visitors of a public website (SERVER.md). The website,
+# wherever it is hosted, adds one line that loads the page script from AgentCake's own subdomain,
+# https://cake.<your domain>/cake/cake.js, and its visitors' browsers send their visits back there. Caddy answers
+# that subdomain over HTTPS, gets and renews its certificate, and passes only the page script and collect on to
+# AgentCake (deploy/Caddyfile).
+#
+#   1. A Linux server with Docker, and ports 80 and 443 open to the internet; this release folder on it, checked
+#      against SHA256SUMS. A DNS record that points cake.<your domain> at the server's address.
+#   2. That name in deploy/Caddyfile, in place of cake.example.com; then `docker compose up -d`.
+#   3. AgentCake's settings (SERVER.md, "Settings"), then `docker compose restart agentcake`.
+#
+# Both run on the host's network. AgentCake's local page (dashboard, sessions, replay, settings) listens on 127.0.0.1,
+# which there is the server's own 127.0.0.1: it never goes on the internet, and you open it through an SSH tunnel. Its
+# public listener (public_listen 127.0.0.1:8080) is reached by Caddy on the same server only. Caddy takes 80 and 443.
+#
+# Modelled on PostHog 1.0.0's docker-compose.yml (github.com/PostHog/posthog, tag 1.0.0, commit ab887730, MIT): the
+# service is built from the Dockerfile beside this file and started with `docker compose up -d`. PostHog 1.0 left
+# HTTPS to a proxy of your own in front of it; here that proxy is the second service.
+name: agentcake
+
+services:
+  agentcake:
+    build: .
+    network_mode: host
+    restart: unless-stopped
+    mem_limit: 600m
+    # As NoNewPrivileges=true in deploy/cake.service: serve and the update process it starts can gain no privileges
+    # through a setuid program or a file capability. Not on Caddy: its official image binds 80 and 443 with a file
+    # capability.
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - agentcake-data:/var/lib/cake
+  caddy:
+    image: caddy:2.11.9
+    network_mode: host
+    restart: unless-stopped
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+
+# Every volume has a name of its own, so a later release folder, unpacked next to this one, finds the same data when
+# it runs `docker compose up -d`: Compose would otherwise name them after the folder. agentcake-data is the data
+# folder, the volume SERVER.md's `docker run` and its backups use; agentcake-caddy-data holds the certificates and
+# Caddy's account with Let's Encrypt.
+volumes:
+  agentcake-data:
+    name: agentcake-data
+  caddy-data:
+    name: agentcake-caddy-data
+  caddy-config:
+    name: agentcake-caddy-config

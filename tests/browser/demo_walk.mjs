@@ -104,7 +104,8 @@ function freePort() {
 async function startCake() {
   const home = mkdtempSync(path.join(os.tmpdir(), "agentcake-walk-"))
   const port = await freePort()
-  for (const args of [["config", "set", "site_key", SITE_KEY], ["secret", "init"]]) {
+  // lists_auto_update off: a test never goes online (agentcake/updates.py)
+  for (const args of [["config", "set", "site_key", SITE_KEY], ["config", "set", "lists_auto_update", "false"], ["secret", "init"]]) {
     execFileSync(PYTHON, ["-I", path.join(repo, "agentcake", "__main__.py"), ...args],
       { env: { ...process.env, CAKE_HOME: home, CAKE_PORT: String(port) }, stdio: "ignore" })
   }

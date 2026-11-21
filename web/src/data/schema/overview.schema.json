@@ -5,7 +5,7 @@
   "description": "GET /api/overview?range= : the dashboard.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["counts", "agent_earlier", "agents_seen", "page_views", "pages_per_session", "latest_agent", "storage", "coverage"],
+  "required": ["counts", "agent_earlier", "agents_seen", "page_views", "pages_per_session", "latest_agent", "storage", "coverage", "address_check"],
   "properties": {
     "counts": { "$ref": "common.schema.json#/$defs/SessionCounts" },
     "agent_earlier": { "description": "Agent sessions of the range's previous period, PostHog's: as long as the range runs to the end of its current hour or day, right before it (25 hours, 8 days, 31 days); null for all time, which has no earlier range.", "type": ["integer", "null"], "minimum": 0 },
@@ -36,7 +36,8 @@
     "pages_per_session": { "$ref": "#/$defs/PagesPerSession" },
     "latest_agent": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/SessionSummary" } },
     "storage": { "$ref": "#/$defs/Storage" },
-    "coverage": { "$ref": "#/$defs/Coverage" }
+    "coverage": { "$ref": "#/$defs/Coverage" },
+    "address_check": { "$ref": "common.schema.json#/$defs/AddressCheck" }
   },
   "$defs": {
     "Pages": { "type": ["number", "null"], "minimum": 0 },
