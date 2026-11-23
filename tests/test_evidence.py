@@ -6,7 +6,8 @@ Uploads go through collect, then evidence.session_evidence() reads them back: pa
 Sec-Purpose of their server half and whether they were prerendered and shown; the server half read as the page
 request for the environment rules; on server mode's public listener the network facts of the address, the earlier
 visits from the same network and mode "server"; the Web Bot Auth result collect kept with a request and the page
-request's Signature-Agent; a phone or tablet; records without a time left out; a cake 0.3.4 visit's User-Agent and
+request's Signature-Agent; a phone or tablet, and whether its records fit a real one; records without a time left
+out; a cake 0.3.4 visit's User-Agent and
 server half. The addresses are the first of a published range (as a load balancer would give them).
 """
 import http.client, json, os, sys, tempfile, unittest
@@ -17,7 +18,7 @@ sys.path.insert(0, ROOT)
 sys.path.insert(0, os.path.join(ROOT, "tests"))
 
 import geo_fixtures  # noqa: E402
-from verdict_cases import first_address  # noqa: E402
+from verdict_cases import IPHONE, first_address  # noqa: E402
 from agentcake import collect, config, edge_secret, edge_token, evidence, geoip, store, streams  # noqa: E402
 from agentcake.datafiles import load  # noqa: E402
 from agentcake.responses import Request  # noqa: E402
@@ -110,6 +111,49 @@ class Pages(EvidenceCase):
         self.post(page_batch(PV1, 1, T0, env=phone), T0)
         self.post(page_batch(PV2, 1, T0, sid=OTHER), T0)
         self.assertEqual((self.evidence()[0]["touch"], self.evidence(OTHER)[0]["touch"]), (True, False))
+
+    def test_a_phone_whose_environment_record_fits_a_real_one(self):
+        """touch_fits: touch points and a screen of the size its User-Agent's device has (touch_device.fits); a
+        record without its screen, and a computer's, do not fit."""
+        iphone = {"userAgent": IPHONE, "platform": "iPhone", "anyPointer": ["coarse"], "maxTouchPoints": 5,
+                  "uaData": None, "screen": {"w": 390, "h": 844}, "dpr": 3}
+        no_screen = {key: value for key, value in iphone.items() if key != "screen"}
+        third = "9f4a0b6c4bce8ea5fbb8a4f5c6d7e8f9"
+        self.post(page_batch(PV1, 1, T0, env=iphone), T0)
+        self.post(page_batch(PV2, 1, T0, sid=OTHER, env=no_screen), T0)
+        self.post(page_batch("c3" * 16, 1, T0, sid=third), T0)
+        found = [self.evidence(sid)[0] for sid in (SID, OTHER, third)]
+        self.assertEqual([(case["touch"], case["touch_fits"]) for case in found],
+                         [(True, True), (True, False), (False, False)])
+
+    def test_a_phone_whose_environment_record_does_not_fit_names_the_check_it_failed(self):
+        """touch_failed: touch_device.failed_checks() of the pages, each check with its facts, none for a record that
+        fits. A computer's record fails the first check, that its browser says it is a phone or tablet (the verdict
+        reads the checks only where the browser said so)."""
+        iphone = {"userAgent": IPHONE, "platform": "iPhone", "anyPointer": ["coarse"], "maxTouchPoints": 5,
+                  "uaData": None, "screen": {"w": 390, "h": 844}, "dpr": 3}
+        bare = {key: value for key, value in iphone.items() if key not in ("screen", "maxTouchPoints")}
+        third = "9f4a0b6c4bce8ea5fbb8a4f5c6d7e8f9"
+        self.post(page_batch(PV1, 1, T0, env=iphone), T0)
+        self.post(page_batch(PV2, 1, T0, sid=OTHER, env=dict(bare, maxTouchPoints=0)), T0)
+        self.post(page_batch("c3" * 16, 1, T0, sid=third), T0)
+        found = [self.evidence(sid)[0] for sid in (SID, OTHER, third)]
+        self.assertEqual([(case["touch"], case["touch_failed"]) for case in found],
+                         [(True, []), (True, [{"check": "no-touch-points", "points": 0}, {"check": "no-screen"}]),
+                          (False, [{"check": "not-claimed"}])])
+
+    def test_a_viewport_that_got_shorter_is_a_hint_on_a_computer_and_not_on_a_phone(self):
+        """A phone browser's address bar hides and shows as the page scrolls: there the change says nothing."""
+        def shrinking(width, height, outer):
+            return [{"t": T0 + 20 + 30 * k, "ty": "geo", "why": "resize",
+                     "g": [width, height - 56 * k, width, outer, 0, 0, 1, width, outer]} for k in range(2)]
+        iphone = {"userAgent": IPHONE, "platform": "iPhone", "anyPointer": ["coarse"], "maxTouchPoints": 5,
+                  "uaData": None, "screen": {"w": 390, "h": 844}, "dpr": 3}
+        self.post(page_batch(PV1, 1, T0, env=iphone, r=shrinking(390, 714, 844)), T0)
+        self.post(page_batch(PV2, 1, T0, sid=OTHER, r=shrinking(1512, 862, 949)), T0)
+        held = [[hit.rule for hit in self.evidence(sid)[0]["env"].hits if hit.rule == "env.ext.viewport-shrink"]
+                for sid in (SID, OTHER)]
+        self.assertEqual(held, [[], ["env.ext.viewport-shrink"]])
 
 
 DOM_WATCH_RULE = "env.auto.main-world-eval-stack"

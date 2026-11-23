@@ -359,10 +359,14 @@
     },
     "env.ext.viewport-shrink": {
       "hit": [{"viewport_changes": [{"page": 3, "dw": 0, "dh": -56, "w": 1920, "h": 902}]},
-              {"viewport_changes": [{"page": 1, "dw": 0, "dh": -56, "doh": 0, "w": 1920, "h": 902}]}],
+              {"viewport_changes": [{"page": 1, "dw": 0, "dh": -56, "doh": 0, "w": 1920, "h": 902}]},
+              {"viewport_changes": [{"page": 0, "dw": 0, "dh": -56, "doh": 0, "w": 1920, "h": 902}], "pages": [{"env": {"uaData": {"mobile": false}, "anyPointer": ["fine", "coarse"], "maxTouchPoints": 10}}]},
+              {"viewport_changes": [{"page": 1, "dw": 0, "dh": -56, "doh": 0, "w": 1920, "h": 902}], "pages": [{"path": "/"}, {"path": "/left-before-its-record"}]}],
       "miss": [{},
                {"viewport_changes": [{"page": 1, "dw": 0, "dh": -56, "doh": -56, "w": 1920, "h": 902}]},
-               {"viewport_changes": [{"page": 1, "dw": 0, "dh": -310, "doh": 0, "w": 1920, "h": 648}]}]
+               {"viewport_changes": [{"page": 1, "dw": 0, "dh": -310, "doh": 0, "w": 1920, "h": 648}]},
+               {"viewport_changes": [{"page": 0, "dw": 0, "dh": -56, "doh": 0, "w": 412, "h": 803}], "pages": [{"env": {"uaData": {"mobile": true}, "anyPointer": ["coarse"], "maxTouchPoints": 5}}]},
+               {"viewport_changes": [{"page": 0, "dw": 0, "dh": -50, "w": 390, "h": 714}], "pages": [{"env": {"uaData": null, "anyPointer": ["coarse"], "maxTouchPoints": 5}}]}]
     },
     "env.ext.cross-site-landing": {
       "hit": [{"nav": {"headers": {"sec-fetch-site": "cross-site", "sec-fetch-user": null}}}],

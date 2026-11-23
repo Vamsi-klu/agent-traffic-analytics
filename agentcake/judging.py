@@ -21,8 +21,10 @@ session's length is made of: activity.py; and the version of the judge), its seg
 by the behaviour model) and its labels (every name a layer found). A session whose replay was removed to free space
 keeps the verdict made from it (0.3.4).
 
-The version of the judge is a fingerprint of its code (detect/, judging.py, evidence.py) and of every data file
-shipped with it (data/), as store.SCHEMA_VERSION is of the tables: nothing to raise by hand. A session an older judge
+The version of the judge is a fingerprint of its code (detect/, judging.py, evidence.py, and the two modules outside
+detect/ whose answers decide a verdict: web_device.py, the device a User-Agent names, which tells a real phone or
+tablet, and address_check.py, whether the address is the visitor's) and of every data file shipped with it (data/),
+as store.SCHEMA_VERSION is of the tables: nothing to raise by hand. A session an older judge
 judged (cake 0.3.4's among them, which kept no version) is judged anew when it is opened, and by the maintenance round
 with what is left of its limit, latest first, one transaction each: after an upgrade the sessions already kept get the
 new rules and percents too (11/13), a few at a time.
@@ -47,7 +49,7 @@ from agentcake.units import MS_PER_S, PERCENT
 OLD_VERDICTS = {"not_sure": "unsure", "too_little_data": "unsure"}  # 0.3.4's verdict column knew human/agent/unsure
 DETAIL = ("judging", "display_name", "operator", "kind", "name_certainty", "name_method", "category", "verification",
           "impersonating", "percent", "handoffs")  # handoffs: the session page marks and tells them (api/session.py)
-MODEL_CODE = ("detect", "judging.py", "evidence.py")  # the judge's code, in the package folder
+MODEL_CODE = ("detect", "judging.py", "evidence.py", "web_device.py", "address_check.py")  # in the package folder
 MODEL_DATA = "data"  # the data files shipped with it: all of them (the judge reads most, and words some columns)
 OLDER_JUDGE = ("SELECT id FROM sessions WHERE judged_ms > 0 AND model_version IS NOT ? AND replay_freed_ms IS NULL "
                "AND end_ms <= ? ORDER BY end_ms DESC LIMIT ?")

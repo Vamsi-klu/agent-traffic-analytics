@@ -11,24 +11,34 @@ have none. A Mixed session's title follows its turns; its summary tells who acte
 which layers point to the verdict, with their own percents, never another word for how sure it is; its hand-off and
 length are whole milliseconds, the hand-off where its agent segment starts. A Human session on limited evidence is
 titled by why the behavior layer judged nothing: a phone or tablet, uploaded, judged and opened, is never titled as too
-few actions however many taps it has; too few actions on a computer still is.
+few actions however many taps it has; too few actions on a computer still is. A phone or tablet whose environment
+record fits a real one is a Human like any other, with no limited-evidence mark; a phone or tablet shown as a Human
+shows no percent, with the mark or without, and an Agent on a phone keeps its percent.
 """
 import json
 import os
 import sys
 import unittest
+from unittest import mock
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import verdict_cases  # noqa: E402
 from api_client import Client, contract_problems  # noqa: E402
 from test_judging import CHROME, SID, T0, JudgingCase, clicks, visit_batch  # noqa: E402
-from agentcake.api import actions as actions_api, answers, reasons as reasons_api, session as session_api  # noqa: E402
+from agentcake.api import (actions as actions_api, answers, periods, reasons as reasons_api,  # noqa: E402
+                           session as session_api)
 from agentcake.detect import verdict, verdict_text  # noqa: E402
 from agentcake.wording import product  # noqa: E402
 
 LAYERS = ["name", "verify", "environment", "behavior"]
 ACTION_WORDS = ("Open ", "Click", "Type", "Scroll", "Tap")
 PHONE = {"userAgent": verdict_cases.IPHONE, "platform": "iPhone", "anyPointer": ["coarse"], "maxTouchPoints": 5}
+REAL_PHONE = dict(PHONE, uaData=None, screen={"w": 390, "h": 844}, dpr=3)  # its screen recorded too: a phone's size
+HEADLESS_IPHONE = verdict_cases.IPHONE.replace("Version/19.0", "HeadlessChrome/149.0.7827.55")
+PIXEL_TABLET_UA = ("Mozilla/5.0 (Linux; Android 14; Pixel Tablet) AppleWebKit/537.36 (KHTML, like Gecko) "
+                   "Chrome/157.0.0.0 Safari/537.36")  # Android without Mobile: a tablet's, which the Devices table reads
+PIXEL_TABLET = dict(PHONE, userAgent=PIXEL_TABLET_UA, platform="Linux aarch64", screen={"w": 1280, "h": 800}, dpr=2,
+                    uaData={"brands": [], "platform": "Android", "mobile": False})  # as a phone's (posthog-js's rules)
 
 
 class Words(unittest.TestCase):
@@ -218,19 +228,22 @@ class Layers(unittest.TestCase):
         self.assertEqual([r["text"] for r in said["reasons"]], ["This visitor identifies itself as Googlebot."])
 
 
-class LimitedEvidenceTitle(JudgingCase):
-    """A session uploaded, judged and opened as the page opens it: a Human session on limited evidence is titled by
-    why the behavior layer judged nothing."""
+class OpenedCase(JudgingCase):
+    """A session uploaded, judged and opened as the page opens it."""
 
-    def opened(self, raw, env=None, ua=CHROME):
-        body = visit_batch(0, T0, raw, ua=ua)
+    def opened(self, raw, env=None, ua=CHROME, sid=SID):
+        body = visit_batch(0, T0, raw, ua=ua, sid=sid)
         if env:
             body["x"].append({"t": T0 + 5, "ty": "env", "env": env})
         self.post(body, T0)
-        answer = Client().get(f"/api/session/{SID}")
+        answer = Client().get(f"/api/session/{sid}")
         self.assertEqual(answer.status, 200, answer.body)
         self.assertEqual(contract_problems(answer.body, "session"), [])
         return answer.body
+
+
+class LimitedEvidenceTitle(OpenedCase):
+    """A Human session on limited evidence is titled by why the behavior layer judged nothing."""
 
     def test_a_phone_or_tablet_with_many_taps_is_never_titled_too_few_actions(self):
         body = self.opened(clicks(20, T0), env=PHONE, ua=verdict_cases.IPHONE)
@@ -243,6 +256,71 @@ class LimitedEvidenceTitle(JudgingCase):
     def test_too_few_actions_on_a_computer_is_still_titled_so(self):
         body = self.opened(clicks(1, T0))
         self.assertEqual((body["session"]["evidence"], body["title"]), ("thin", "Not enough actions to classify"))
+
+
+class PhoneOrTablet(OpenedCase):
+    """A phone or tablet: a Human like any other when its record fits a real one, and no percent while it is shown as
+    a Human."""
+
+    def test_a_real_phone_is_a_human_without_the_limited_evidence_mark_titled_as_any_human(self):
+        body = self.opened(clicks(20, T0), env=REAL_PHONE, ua=verdict_cases.IPHONE)
+        behavior = next(layer for layer in body["layers"] if layer["layer"] == "behavior")
+        self.assertEqual((body["session"]["verdict"], body["session"]["evidence"]), ("human", None))
+        self.assertEqual(body["title"], answers.words()["title"]["human"])
+        self.assertIn("phone or tablet", " ".join(reason["text"] for reason in behavior["reasons"]))
+        self.assertEqual(body["summary"], behavior["reasons"][0]["text"])
+
+    def test_a_phone_that_does_not_fit_says_which_check_it_failed_after_the_model_was_not_used(self):
+        """Its record has no screen: the behavior layer's second line says so, drawn as the browser's evidence, and the
+        summary still says the model was not used; a real phone has no such line."""
+        body = self.opened(clicks(20, T0), env=PHONE, ua=verdict_cases.IPHONE)
+        behavior = next(layer for layer in body["layers"] if layer["layer"] == "behavior")
+        no_screen = verdict_text.reason("behavior.touch-no-screen")
+        self.assertEqual([(r["text"], r["kind"]) for r in behavior["reasons"][1:2]], [(no_screen["text"], "browser")])
+        self.assertEqual(body["summary"], behavior["reasons"][0]["text"])
+        real = self.opened(clicks(20, T0), env=REAL_PHONE, ua=verdict_cases.IPHONE, sid="a" * 32)
+        real_behavior = next(layer for layer in real["layers"] if layer["layer"] == "behavior")
+        self.assertNotIn(no_screen["text"], [r["text"] for r in real_behavior["reasons"]])
+
+    def test_a_pixel_tablet_is_a_human_without_the_limited_evidence_mark(self):
+        body = self.opened(clicks(20, T0), env=PIXEL_TABLET, ua=PIXEL_TABLET_UA)
+        self.assertEqual((body["session"]["verdict"], body["session"]["evidence"], body["title"]),
+                         ("human", None, answers.words()["title"]["human"]))
+
+    def test_a_real_phone_with_a_single_tap_is_a_human_too(self):
+        body = self.opened(clicks(1, T0), env=REAL_PHONE, ua=verdict_cases.IPHONE)
+        self.assertEqual((body["session"]["verdict"], body["session"]["evidence"], body["title"]),
+                         ("human", None, answers.words()["title"]["human"]))
+
+    def test_a_phone_or_tablet_shown_as_a_human_shows_no_percent_with_the_mark_or_without(self):
+        for sid, env, evidence in (("a" * 32, REAL_PHONE, None), ("b" * 32, PHONE, "thin")):
+            with self.subTest(evidence=evidence):
+                body = self.opened(clicks(20, T0), env=env, ua=verdict_cases.IPHONE, sid=sid)
+                self.assertEqual((body["session"]["verdict"], body["session"]["evidence"]), ("human", evidence))
+                self.assertIsNone(body["percent"])
+                kept = json.loads(self.row("verdict_detail", sid=sid)[0])
+                self.assertIsInstance(kept["percent"], int, "the verdict keeps the percent it computed")
+
+    def test_the_lists_count_and_filter_only_the_phone_that_does_not_fit_under_limited_evidence(self):
+        real, unconfirmed = "a" * 32, "b" * 32
+        self.opened(clicks(20, T0), env=REAL_PHONE, ua=verdict_cases.IPHONE, sid=real)
+        self.opened(clicks(20, T0), env=PHONE, ua=verdict_cases.IPHONE, sid=unconfirmed)
+        with mock.patch.object(periods, "now_ms", return_value=T0 + 60 * 1000):
+            listed = Client().get("/api/sessions", evidence="thin").body
+            counts = Client().get("/api/overview").body["counts"]
+        self.assertEqual([row["id"] for row in listed["results"]], [unconfirmed])
+        self.assertEqual((listed["counts"]["human"], listed["counts"]["thin"]), (2, 1))
+        self.assertEqual((counts["human"], counts["thin"]), (2, 1))
+
+    def test_a_computers_human_on_limited_evidence_keeps_its_percent(self):
+        body = self.opened(clicks(1, T0))
+        self.assertEqual(body["session"]["evidence"], "thin")
+        self.assertIsInstance(body["percent"], int)
+
+    def test_an_agent_on_a_phone_keeps_its_percent(self):
+        body = self.opened(clicks(20, T0), env=dict(REAL_PHONE, userAgent=HEADLESS_IPHONE), ua=HEADLESS_IPHONE)
+        self.assertEqual(body["session"]["verdict"], "agent")
+        self.assertIsInstance(body["percent"], int)
 
 
 class Share(unittest.TestCase):

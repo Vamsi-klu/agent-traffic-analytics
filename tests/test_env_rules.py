@@ -222,6 +222,35 @@ class EvaluateTest(unittest.TestCase):
         self.assertEqual((host["suggests"], host["pages"]), ("claude-chrome", [0]))
         self.assertEqual(host["value"][0]["disp"], "contents")
 
+    def test_the_viewport_rule_is_not_read_on_a_phone_or_tablet_and_holds_on_a_computer_as_before(self):
+        """A phone browser's address bar hides and shows as the page scrolls, which changes the viewport as Chrome's
+        debugging bar does on a computer. The browser's own word decides (touch_device.claimed, what stops the
+        behaviour model too); a computer's hit keeps its value."""
+        rule, change = "env.ext.viewport-shrink", {"page": 0, "dw": 0, "dh": -56, "doh": 0, "w": 412, "h": 803}
+
+        def held(*envs):
+            signals = {"pages": [merge(self.page, {"env": env}) for env in envs], "viewport_changes": [change]}
+            result = evaluate(signals, self.table)
+            self.assertNotIn(rule, result.unknown)
+            return [hit.value for hit in result.hits if hit.rule == rule]
+        phones = ({"uaData": {"mobile": True}}, {"uaData": None, "anyPointer": ["coarse"]})
+        computers = ({}, {"anyPointer": ["fine"]}, {"anyPointer": ["fine", "coarse"], "maxTouchPoints": 10})
+        for env in phones:
+            with self.subTest(env=env):
+                self.assertEqual(held(env), [])
+                self.assertEqual(held({}, env), [], "a phone on any page of the session")
+        for env in computers:
+            with self.subTest(env=env):
+                self.assertEqual(held(env), [[change]])
+        self.assertEqual([hit.value for hit in evaluate({"viewport_changes": [change]}, self.table).hits
+                          if hit.rule == rule], [[change]], "signals without pages: read as before")
+
+    def test_the_signals_a_caller_gives_are_left_as_they_are(self):
+        signals = {"pages": [merge(self.page, {"env": {"uaData": {"mobile": True}}})]}
+        before = json.dumps(signals, sort_keys=True)
+        evaluate(signals, self.table)
+        self.assertEqual(json.dumps(signals, sort_keys=True), before)
+
     def test_botscent_reasons_maps_hits_to_botscent_ids(self):
         page = merge(self.page, {"env": {"webdriver": True},
                                  "botscent": {"reasons": ["muse.cloud-browser.password-manager"]}})

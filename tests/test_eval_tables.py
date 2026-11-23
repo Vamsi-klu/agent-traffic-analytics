@@ -223,6 +223,39 @@ class Humans(unittest.TestCase):
         self.assertEqual((a1["count"], a1["n"], a1["details"]["mixed"], a1["details"]["not_judged"]), (1, 3, 1, 1))
 
 
+class PhonesTabletsAndTooFewActions(unittest.TestCase):
+    """Threshold A8: none is an Agent; a real phone or tablet is a Human, the rest too little data."""
+
+    def row(self, touch_fits=False, judged=None, **fields):
+        fields = dict({"uas": vc.IPHONE, "platform": "iPhone", "touch": True, "touch_fits": touch_fits,
+                       "behavior_result": vc.too_little("touch", None)}, **fields)
+        found = sessions.row("made-up", "store", "phone", {"class": "human"}, vc.evidence(**fields))
+        return dict(found, **({"class": judged} if judged else {}))
+
+    def test_a_real_phone_shown_as_a_human_and_the_rest_as_too_little_data_are_right(self):
+        few = self.row(uas=vc.CHROME_MAC, platform="MacIntel", touch=False,
+                       behavior_result=vc.too_little(n_actions=2))
+        a8 = measures._a8("store", [self.row(touch_fits=True), self.row(), few])
+        self.assertEqual((a8["count"], a8["n"]), (3, 3))
+        self.assertEqual(a8["details"]["classes"], {"human": 1, "too_little_data": 2})
+
+    def test_a_phone_whose_records_do_not_fit_shown_as_a_plain_human_is_wrong(self):
+        a8 = measures._a8("store", [self.row(judged="human"), self.row(touch_fits=True)])
+        self.assertEqual((a8["count"], a8["n"], a8["value"]), (1, 2, 0.5))
+
+    def test_one_judged_an_agent_is_wrong_whatever_its_records(self):
+        for touch_fits in (True, False):
+            with self.subTest(touch_fits=touch_fits):
+                a8 = measures._a8("store", [self.row(touch_fits=touch_fits, judged="agent")])
+                self.assertEqual((a8["count"], a8["n"]), (0, 1))
+
+    def test_the_published_threshold_says_what_is_measured(self):
+        entry = gate.by_id(gate.load(os.path.join(REPO, "eval", "thresholds.json")))["A8"]
+        for text in (entry["goal"], entry["measure"], entry["statistic"]):
+            self.assertIn("real phone or tablet", text)
+        self.assertEqual((entry["op"], entry["value"], entry["unit"]), (">=", 1.0, "share"))
+
+
 class PostHogMixed(unittest.TestCase):
     def unit(self, session, label, group, times):
         return {"session": session, "label": label, "group": group, "start": times[0],

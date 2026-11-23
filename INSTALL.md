@@ -1,6 +1,6 @@
 # Set up AgentCake for a website
 
-Use this guide to set up **AgentCake 0.6.0** for a website. For each visit, AgentCake shows whether a human, an AI
+Use this guide to set up **AgentCake 0.6.1** for a website. For each visit, AgentCake shows whether a human, an AI
 agent, or a script bot was in control. It also shows when a human and an agent took turns.
 
 AgentCake is a single program that stores its data in one SQLite database. It runs on macOS and Linux. It can run on
@@ -356,7 +356,7 @@ By default, the tunnel to the server uses port 7878 on this computer.
 
 Use the site owner's language in your updates.
 
-AgentCake's release folder, `agentcake-0.6.0/`, and its source both include `bin/agentcake`. Run `bin/agentcake` by its
+AgentCake's release folder, `agentcake-0.6.1/`, and its source both include `bin/agentcake`. Run `bin/agentcake` by its
 full path. This command needs `python3` 3.11 or newer.
 
 Otherwise, look for uv:
@@ -384,30 +384,30 @@ Use the site owner's language in your updates.
 
 Run the download and check commands in the download folder.
 
-To download the release, use its page on GitHub: https://github.com/tartini-ai/agent-traffic-analytics/releases/tag/v0.6.0
+To download the release, use its page on GitHub: https://github.com/tartini-ai/agent-traffic-analytics/releases/tag/v0.6.1
 
 First the checksums:
 
 ```sh
-curl -fsSLO https://github.com/tartini-ai/agent-traffic-analytics/releases/download/v0.6.0/SHA256SUMS
+curl -fsSLO https://github.com/tartini-ai/agent-traffic-analytics/releases/download/v0.6.1/SHA256SUMS
 ```
 
 Route A, the wheel:
 
 ```sh
-curl -fsSLO https://github.com/tartini-ai/agent-traffic-analytics/releases/download/v0.6.0/agentcake-0.6.0-py3-none-any.whl
+curl -fsSLO https://github.com/tartini-ai/agent-traffic-analytics/releases/download/v0.6.1/agentcake-0.6.1-py3-none-any.whl
 ```
 
 Route B, the one-file version:
 
 ```sh
-curl -fsSLO https://github.com/tartini-ai/agent-traffic-analytics/releases/download/v0.6.0/agentcake.pyz
+curl -fsSLO https://github.com/tartini-ai/agent-traffic-analytics/releases/download/v0.6.1/agentcake.pyz
 ```
 
 For a server, also download the release archive:
 
 ```sh
-curl -fsSLO https://github.com/tartini-ai/agent-traffic-analytics/releases/download/v0.6.0/agentcake-0.6.0.tar.gz
+curl -fsSLO https://github.com/tartini-ai/agent-traffic-analytics/releases/download/v0.6.1/agentcake-0.6.1.tar.gz
 ```
 
 Then check what you downloaded:
@@ -433,7 +433,7 @@ Use the site owner's language in your updates.
 Route A:
 
 ```sh
-uv tool install --python 3.14 ./agentcake-0.6.0-py3-none-any.whl
+uv tool install --python 3.14 ./agentcake-0.6.1-py3-none-any.whl
 ```
 
 uv installs the `agentcake` command in its own folder for tools, and downloads Python 3.14 if this computer has none
@@ -454,7 +454,7 @@ example `python3 /Users/<name>/agentcake/agentcake.pyz`. Leave the file where it
 **From here on, `agentcake` in a command stands for that full command.** Write it out in full every time, also where
 AgentCake's own messages say just `agentcake`.
 
-To check the installation, run `agentcake --version`, which prints `agentcake 0.6.0`.
+To check the installation, run `agentcake --version`, which prints `agentcake 0.6.1`.
 
 ### Start AgentCake on this computer
 
@@ -467,7 +467,7 @@ agentcake start
 ```
 
 It runs AgentCake in the background on 127.0.0.1 (port 7878) and prints the local page's address. If it says that
-AgentCake is already running, run `agentcake status`. Make sure that its `"version"` is `0.6.0`. An older version is an
+AgentCake is already running, run `agentcake status`. Make sure that its `"version"` is `0.6.1`. An older version is an
 earlier install using the same data folder: **ASK** the user before you stop it with `agentcake stop`, then start
 again. Its visits stay, and this version reads them.
 
@@ -748,34 +748,34 @@ steps.
 Next, copy the release to the server. For details, see
 [SERVER.md, step 3](SERVER.md#3-copy-the-release-to-the-server).
 
-Before each copy, including a retry, run `ssh <server> ls -A`. If `agentcake-0.6.0.tar.gz` or `SHA256SUMS` is already
+Before each copy, including a retry, run `ssh <server> ls -A`. If `agentcake-0.6.1.tar.gz` or `SHA256SUMS` is already
 there, ask the site owner before copying. If the listing fails, report the error and wait.
 
 To copy the release files to a Google Cloud server that you created:
 
 ```sh
-gcloud compute scp agentcake-0.6.0.tar.gz SHA256SUMS agentcake: --account=ACCOUNT --project=PROJECT_ID --zone=ZONE --tunnel-through-iap
+gcloud compute scp agentcake-0.6.1.tar.gz SHA256SUMS agentcake: --account=ACCOUNT --project=PROJECT_ID --zone=ZONE --tunnel-through-iap
 ```
 
-- On other servers, use `scp agentcake-0.6.0.tar.gz SHA256SUMS <server>:` in the download folder.
+- On other servers, use `scp agentcake-0.6.1.tar.gz SHA256SUMS <server>:` in the download folder.
 - To check them on the server, run `ssh <server> sha256sum -c SHA256SUMS --ignore-missing`. Make sure that the
   archive's line shows `OK`.
-- To unpack the archive, run `ssh <server> tar -xzf agentcake-0.6.0.tar.gz`.
+- To unpack the archive, run `ssh <server> tar -xzf agentcake-0.6.1.tar.gz`.
 - To add the subdomain, run
-  `ssh <server> "sed -i 's/cake\.example\.com/HOSTNAME/' agentcake-0.6.0/deploy/Caddyfile"` with the approved hostname.
+  `ssh <server> "sed -i 's/cake\.example\.com/HOSTNAME/' agentcake-0.6.1/deploy/Caddyfile"` with the approved hostname.
 
 An SSH command starts in the user's home folder on the server. Instead of `cd`, use `-f` with the release folder's
 `docker-compose.yml`.
 
-- To build the image, run `ssh <server> docker compose -f agentcake-0.6.0/docker-compose.yml build`.
-- To start the services, run `ssh <server> docker compose -f agentcake-0.6.0/docker-compose.yml up -d`.
-- To check them, run `ssh <server> docker compose -f agentcake-0.6.0/docker-compose.yml ps`.
+- To build the image, run `ssh <server> docker compose -f agentcake-0.6.1/docker-compose.yml build`.
+- To start the services, run `ssh <server> docker compose -f agentcake-0.6.1/docker-compose.yml up -d`.
+- To check them, run `ssh <server> docker compose -f agentcake-0.6.1/docker-compose.yml ps`.
 
 The `agentcake` service can show `starting` for a few seconds. If it does, wait a few seconds and run `ps` again. When
 the service shows `healthy`, continue with the settings.
 
 On the server, run AgentCake's commands with
-`docker compose -f agentcake-0.6.0/docker-compose.yml exec agentcake python3 -I -m agentcake`. For the settings
+`docker compose -f agentcake-0.6.1/docker-compose.yml exec agentcake python3 -I -m agentcake`. For the settings
 commands, see [SERVER.md, step 5](SERVER.md#5-configure-agentcake). Run each of these commands through `ssh <server>`.
 
 - If the website's pages already use a site key, set the same key on the server. For the command, see SERVER.md,
@@ -908,7 +908,7 @@ The server middleware reads the secret from `CAKE_SERVER_TIMING_SECRET`. To set 
 server, run this command:
 
 ```sh
-secret="$(ssh SERVER docker compose -f agentcake-0.6.0/docker-compose.yml exec -T agentcake python3 -I -m agentcake secret print)" && printf %s "$secret" | vercel env add CAKE_SERVER_TIMING_SECRET --environment production --sensitive --project PROJECT --scope TEAM
+secret="$(ssh SERVER docker compose -f agentcake-0.6.1/docker-compose.yml exec -T agentcake python3 -I -m agentcake secret print)" && printf %s "$secret" | vercel env add CAKE_SERVER_TIMING_SECRET --environment production --sensitive --project PROJECT --scope TEAM
 ```
 
 | Value | Replace with |

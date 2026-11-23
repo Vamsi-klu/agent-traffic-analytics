@@ -3,7 +3,10 @@
 Every rule is data, in agentcake/data/env_rules.json: its id, kind, the half it is read from (the page script, cake's
 collect endpoint or the site's server half), where it comes from, what is known to collide with it, when it was last
 checked and whether it is on by default. This module loads that table, checks it, and evaluates each rule's `match`
-(written in predicate.py's language) against a session's signals (env_signals.py turns recorded data into signals).
+(written in predicate.py's language) against a session's signals (env_signals.py turns recorded data into signals),
+with one more that says what kind of device the session is on: `touch`, whether its browser says it is a phone or
+tablet (touch_device.claimed, which also stops the behaviour model), for a session-scope rule that reads a computer's
+window (a page or landing rule reads one page's signals, which have no `touch`).
 A rule that is off by default can wait for a page-script setting (`setting`): it runs on the visits cake.js recorded
 with that setting on, as their page records say (signals' script_settings), whatever the setting is now. Rules of
 one `family` (the legend's families) are one kind of evidence together: the verdict counts them as one
@@ -23,7 +26,7 @@ from dataclasses import dataclass
 from functools import lru_cache
 
 from agentcake import paths
-from agentcake.detect import predicate
+from agentcake.detect import predicate, touch_device
 
 RULES_FILE = os.path.join(paths.PACKAGE_DIR, "data", "env_rules.json")
 
@@ -144,6 +147,7 @@ def evaluate(signals, table=None, enabled=None):
     """
     table = table or load_rules()
     overrides = enabled or {}
+    signals = dict(signals, touch=touch_device.claimed(signals.get("pages")))
     recorded = signals.get("script_settings") or {}
     hits, unknown, off = [], [], []
     for rule in table.rules:

@@ -20,8 +20,8 @@ from agentcake.detect import env_rules, markers, reasons_past, verdict, verdict_
 from tools.reasons_past import FACTS_COMMIT  # noqa: E402
 
 DETECT = os.path.join(ROOT, "agentcake", "detect")
-CODE_FILES = ("verdict.py", "verdict_identity.py", "verdict_marks.py", "attribute.py", "crawler.py", "behavior.py",
-              "weak.py")
+CODE_FILES = ("verdict.py", "verdict_identity.py", "verdict_marks.py", "verdict_touch.py", "attribute.py", "crawler.py",
+              "behavior.py", "weak.py")
 REASON_ID = re.compile(r"""["']((?:exclude|name|verify|env|behavior|crawler|weak)\.[a-z-]+)["']""")  # not rule ids
 LAYERS = {"exclusion", "name", "verify", "environment", "behavior", "weak"}
 TONES = {"agent", "human", "none"}

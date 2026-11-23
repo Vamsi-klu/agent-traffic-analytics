@@ -21,7 +21,7 @@ license-files = ["LICENSE", "THIRD_PARTY.md"]  # in the wheel's .dist-info/licen
 [project.urls]
 Source = "https://github.com/tartini-ai/agent-traffic-analytics"
 Issues = "https://github.com/tartini-ai/agent-traffic-analytics/issues"
-Changelog = "https://github.com/tartini-ai/agent-traffic-analytics/blob/v0.6.0/CHANGELOG.md"
+Changelog = "https://github.com/tartini-ai/agent-traffic-analytics/blob/v0.6.1/CHANGELOG.md"
 
 [project.scripts]
 agentcake = "agentcake.cli:main"

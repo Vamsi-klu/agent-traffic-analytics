@@ -116,8 +116,8 @@ class ReadmeDocuments(unittest.TestCase):
         for path, *_ in READMES:
             with self.subTest(path=os.path.relpath(path, ROOT)):
                 markdown = read(path)
-                left = re.search(r'\n\n<div align="left">\n\n```text\n[^`]*?/v0\.6\.0/INSTALL\.md[^`]*?\n```\n\n</div>\n\n',
-                                 markdown)
+                left = re.search(r'\n\n<div align="left">\n\n```text\n[^`]*?/' + re.escape(self.tag)
+                                 + r'/INSTALL\.md[^`]*?\n```\n\n</div>\n\n', markdown)
                 self.assertIsNotNone(left, "no left-aligned block around the instructions at the top")
                 self.assertLess(markdown.index('<div align="center">'), left.start())
                 self.assertLessEqual(left.end(), markdown.index("[!["))

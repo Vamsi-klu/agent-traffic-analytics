@@ -125,15 +125,16 @@ def too_little(reason="few_actions", n_actions=1):
 
 
 def evidence(mode="server", uas=CHROME_MAC, platform="MacIntel", hits=(), behavior_result=None, address=NOWHERE,
-             signatures=None, pages=None, rdns=None, touch=False, assistive=None, visits=()):
+             signatures=None, pages=None, rdns=None, touch=False, assistive=None, visits=(), touch_fits=False,
+             touch_failed=()):
     """One session's evidence (agentcake/detect/verdict.py's docstring). uas: one User-Agent for every half, or a
     {half: [User-Agent]} dict. address: the visitor's address in server mode (None: no address was seen)."""
     agents = {half: [uas] for half in HALVES} if isinstance(uas, str) else uas
     return {"mode": mode, "pages": pages if pages is not None else [{"t": T0}],
             "user_agents": agents, "platform": platform, "signatures": signatures or {},
             "network": network(address) if (mode == "server" and address) else None, "rdns": rdns,
-            "env": env(*hits), "behavior": behavior_result, "touch": touch, "assistive": assistive,
-            "visits": list(visits)}
+            "env": env(*hits), "behavior": behavior_result, "touch": touch, "touch_fits": touch_fits,
+            "touch_failed": list(touch_failed), "assistive": assistive, "visits": list(visits)}
 
 
 def crawl_pages(n, every_s):
