@@ -3,6 +3,59 @@
 Every release of AgentCake, newest first. Each release's files and their `SHA256SUMS` are on
 [GitHub Releases](https://github.com/tartini-ai/agent-traffic-analytics/releases).
 
+## 0.6.1
+
+A visit from a real phone or tablet, with nothing else found, now counts as Human without the Limited evidence
+tag.
+
+### Upgrading from 0.6.0
+
+- To upgrade a server, follow "Upgrading" in [`SERVER.md`](SERVER.md#upgrading). On a computer, give your coding agent
+  the instructions in [`README.md`](README.md) again. It asks you before it stops the running version. Your site key
+  and your data stay the same.
+- `deploy/cake.service`, `deploy/Caddyfile`, `docker-compose.yml`, `Dockerfile` and the database's format are the
+  same as in 0.6.0.
+- After the upgrade, AgentCake classifies the sessions it already has again with the new rules. A session is
+  classified again when you open it. The others are classified again in the background, newest first, up to 50 every
+  30 seconds. The dashboard's counts change as this goes on.
+- A session whose replay was removed to free space keeps its 0.6.0 classification. If it's a phone or tablet session
+  shown as Human, it no longer shows a percent.
+
+### Detection
+
+- The behavior model isn't used on phones and tablets. A phone or tablet visit now counts as Human, without the
+  Limited evidence tag, when all of these are true:
+  - At least one page recorded the browser's details. On every page that did, the browser says it's a phone or
+    tablet, reports touch points, and has a screen the size of the device that the User-Agent names.
+  - The name and verification layers found nothing. The environment layer found only weak signals, which are for
+    information only.
+  - No rule names the browser the page is open in, such as Cursor's in-app browser, and no agent product's indicator
+    appeared on a page.
+- To check the device, AgentCake also recognizes these real devices:
+  - Chrome on an Android tablet that shows the desktop site, which is its default there. Its User-Agent names no
+    device.
+  - A Pixel Tablet, whose User-Agent the Devices table reads as a phone's.
+  - An iPad or iPhone that shows the desktop site. Its User-Agent names a Mac, so AgentCake reads the device from a
+    web worker. If a page closed before its own web worker reported, AgentCake uses the device that the web workers
+    of the visit's other pages reported, if they all reported the same iPad, iPhone, or iPod.
+- Other phone or tablet visits that aren't an Agent or a Script bot still count as Human with the Limited evidence
+  tag. When the device didn't pass the check, the behavior layer's reasons say which part failed: the browser reports
+  a phone or tablet on some pages but not on others, a page reports no touch points or no valid screen size, the
+  screen is too large or too small for the device type, the User-Agent names no phone or tablet, or no web worker
+  reported the device of an iPad or iPhone that shows the desktop site.
+- The behavior layer's first reason for a phone or tablet now reads "The browser reports a phone or tablet, so the
+  behavior model isn't used."
+- A phone or tablet session shown as Human doesn't show a percent, with or without the Limited evidence tag. An Agent
+  or a Script bot on a phone keeps its percent.
+- On phones and tablets, AgentCake no longer reads the weak signal "The visible page area became shorter." A mobile
+  browser's address bar changes the page's height in the same way when it hides and appears.
+- The Limited evidence count under Human on the dashboard and the Limited evidence filter of the session list follow
+  the new rules.
+
+### Local API
+
+- `/api/session` gives `percent` as `null` for a phone or tablet session shown as Human.
+
 ## 0.6.0
 
 You can have a coding agent set up AgentCake for your website after you approve its plan. On a server, AgentCake runs at

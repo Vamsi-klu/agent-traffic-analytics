@@ -21,7 +21,7 @@ the specification and tests/test_verdict.py pins it rule by rule (the browser na
     makes the session Mixed; without any, Mixed needs long enough runs of both (a hand-off lies between them, and
     the timeline marks it). Behaviour alone judging an agent is "possibly an agent on the visitor's own computer":
     AI in a real browser, no name. Assistive-tool signs keep the behaviour's agent judgement from counting (Not
-    sure). Only weak signals: Human.
+    sure). Only weak signals: Human. A phone or tablet, which the model does not run on: verdict_touch.py.
  6  Confidence (verdict.json "confidence"): certain, likely, possible or unsure.
  7  Crawler-like patterns (crawler.py) and the other weak signals (weak.py) only add reasons.
  8  Each of the interface's four layers gets a state; a layer that did not run says why. The name layer's is the
@@ -41,7 +41,7 @@ Evidence, one session, every layer's result already computed (nothing here reads
     signatures   {"collector" | "server": webbotauth.Verification}  (the server half carries Signature-Agent only)
     network      lists.match_ip() of the address, None if none or a CDN's (address_check); rdns: {"name", "verified"}
     env          env_rules.evaluate() of the session's signals; None when it recorded none (cake 0.3.x)
-    behavior     behavior.run()'s result, None when it did not run; touch: a phone or tablet
+    behavior     behavior.run()'s result, None when it did not run; touch, touch_fits, touch_failed: verdict_touch.py
     marks        markers.turn_spans() of the session's signals: when an agent product's indicator said its agent was
                  working, which judge() hands to the behaviour timeline (it gives those actions to the agent)
     assistive    behavior.assistive_signs(); visits: start ms of the same network's earlier sessions
@@ -69,7 +69,7 @@ import dataclasses
 
 from agentcake import datafiles
 from agentcake.detect import (attribute, behavior, confidence, crawler, lists, model as behavior_model,
-                              verdict_identity, verdict_marks, verdict_soft, weak)
+                              verdict_identity, verdict_marks, verdict_soft, verdict_touch, weak)
 from agentcake.detect.verdict_identity import IMPERSONATION, SELF_REPORTED, VERIFIED
 from agentcake.detect.verdict_text import reason
 from agentcake.units import MS_PER_S, PERCENT
@@ -193,20 +193,20 @@ class _Case:
 
     def __init__(self, identity, hits, evidence, settings, lists_):
         self.identity, self.settings, self.lists = identity, settings, lists_
-        self.result = evidence.get("behavior")
+        self.result, self.assistive = evidence.get("behavior"), evidence.get("assistive")
         self.env_recorded = evidence.get("env") is not None
-        self.assistive = evidence.get("assistive")
         self.session_start = next((page.get("t") for page in evidence.get("pages") or [] if page.get("t")), None)
         overruling = settings["overruling_kinds"]
         self.overruling = [h for h in hits if h.strength == HARD and h.kind in overruling]
         self.browsers = attribute.browser_rules(hits, lists_)  # they name where the page is open, never who acts
         self.present = [h for h in hits if h.strength == HARD and h.kind not in overruling and h not in self.browsers]
         self.soft = [h for h in hits if h.strength == SOFT]
+        self.real_touch = verdict_touch.human(evidence, identity, self.browsers)  # a real phone or tablet, no finding
         self.reasons, self.traces = [], []
         self.cls, self.row, self.kinds = self._classify()
         self.naming = attribute.attribute(identity, self.cls, self.row, self.traces, self.overruling, lists_, settings,
                                           marked=bool(((self.result or {}).get("timeline") or {}).get("marks")))
-        self.reasons = self._behavior_reasons() + self.reasons + list(self.naming.reasons)
+        self.reasons = self._behavior_reasons(evidence) + self.reasons + list(self.naming.reasons)
 
     @property
     def verdict(self):
@@ -272,8 +272,8 @@ class _Case:
             return MIXED, AI_ROW, ["behavior"]
         if verdict == AGENT:
             return AGENT, AI_ROW, ["behavior"]
-        if verdict == HUMAN:
-            return HUMAN, None, ["behavior"]
+        if verdict == HUMAN or self.real_touch:  # the model judged nothing on a phone or tablet: no behaviour kind
+            return HUMAN, None, ["behavior"] * (verdict == HUMAN)
         return (NOT_SURE if verdict == UNSURE else TOO_LITTLE), None, []
 
     def _model_said(self, result):
@@ -289,13 +289,13 @@ class _Case:
         said = {HUMAN: "behavior.human", UNSURE: "behavior.unsure"}[result["verdict"]]
         return reason(said, PAGE, result["verdict"], **pct)
 
-    def _behavior_reasons(self):
+    def _behavior_reasons(self, evidence):
         result = self.result
         if result is None or self.cls == BOT:
             return []
         if result["verdict"] == TOO_LITTLE:
             if result["evidence"].get("reason") == "touch":
-                return [reason("behavior.touch", PAGE)]
+                return verdict_touch.reasons(evidence, self.cls)
             minimum = behavior_model.load_params()["min_actions"]
             return [reason("behavior.too-little-data", PAGE, result["n_actions"], n=result["n_actions"], min=minimum)]
         out = [self._model_said(result)] + self._indicator_reasons(result)

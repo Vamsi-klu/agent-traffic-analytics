@@ -146,10 +146,14 @@ def _a6(source, rows, automated_reason):
 
 
 def _a8(source, rows):
+    """A8 over the sessions the behaviour layer saw too little of and no other layer names: each is too little data,
+    or a Human when it is a real phone or tablet (its environment records fit one: the evidence's touch_fits)."""
     few = [r for r in rows if r["too_little"] and r["layers"].get("name") == NO_HIT
            and r["layers"].get("environment") in (NO_HIT, OFF)]
-    shown = sum(1 for r in few if r["class"] == "too_little_data")
-    return _ratio("A8", source, shown, len(few), "phones, tablets and too few actions shown as too little data",
+    shown = sum(1 for r in few if r["class"] == "too_little_data"
+                or (r["class"] == "human" and (r.get("evidence") or {}).get("touch_fits")))
+    return _ratio("A8", source, shown, len(few),
+                  "phones, tablets and too few actions shown as too little data, a real phone or tablet as Human",
                   details={"classes": tally(r["class"] for r in few)})
 
 

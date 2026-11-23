@@ -7,10 +7,12 @@ inside judge_interval_ms waits, opening the session judges it at once, a quiet s
 maintenance round, new data after that opens it again; the dashboard catches up on stale sessions. A Bot known by name
 and a session with too few actions never reach the behaviour model; a verdict keeps the version of the judge that made
 it, and a session an older judge judged (cake 0.3.4's among them) is judged anew when it is opened and by the round,
-latest first, after the quiet ones and within its limit, unless its replay was freed; a judgement that fails is rolled
-back and collect still answers 204; and none of it opens a socket.
+latest first, after the quiet ones and within its limit, unless its replay was freed (a phone an older judge left on
+limited evidence becomes a Human that way, or says which check its records failed); a judgement that fails is rolled
+back and collect still answers 204; and
+none of it opens a socket.
 """
-import gzip, http.client, json, os, shutil, socket, sys, tempfile, unittest
+import ast, gzip, http.client, json, os, shutil, socket, sys, tempfile, unittest
 from unittest import mock
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -18,6 +20,7 @@ sys.path.insert(0, ROOT)
 sys.path.insert(0, os.path.join(ROOT, "tests"))
 
 import synthetic_sessions  # noqa: E402  (made up by rule: no recording)
+from verdict_cases import IPHONE  # noqa: E402
 from test_collect_replay import GZIP_FROM  # noqa: E402
 from agentcake import collect, config, judging, store  # noqa: E402
 from agentcake.detect import model, verdict  # noqa: E402
@@ -235,6 +238,46 @@ class ModelVersion(JudgingCase):
         self.assertEqual(self.row("model_version"), (judging.model_version(),))
         self.assertFalse(judging.on_open(SID, T0 + self.quiet_ms + 2 * S), "this judge's, nothing new: not again")
 
+    def test_a_real_phone_an_older_judge_left_on_limited_evidence_is_made_a_human_when_opened_and_by_the_round(self):
+        """After an upgrade: the verdicts already kept get the rule for a real phone or tablet too."""
+        iphone = {"userAgent": IPHONE, "platform": "iPhone", "anyPointer": ["coarse"], "maxTouchPoints": 5,
+                  "uaData": None, "screen": {"w": 390, "h": 844}, "dpr": 3}
+        opened, by_the_round = "a" * 32, "b" * 32
+        for n, sid in enumerate((opened, by_the_round)):
+            body = visit_batch(0, T0 + n * S, clicks(4, T0 + n * S), ua=IPHONE, sid=sid)
+            body["x"].append({"t": T0 + n * S + 5, "ty": "env", "env": iphone})
+            self.post(body, T0 + n * S)
+        final = T0 + S + self.quiet_ms
+        self.assertEqual(judging.tick(final), 2)
+        self.con.execute("UPDATE sessions SET model_version='older', verdict_class='too_little_data', verdict='unsure'")
+        self.con.commit()
+        self.assertTrue(judging.on_open(opened, final + S))
+        self.assertEqual(judging.tick(final + 2 * S), 1)
+        for sid in (opened, by_the_round):
+            self.assertEqual(self.row("verdict_class", "verdict", "model_version", sid=sid),
+                             ("human", "human", judging.model_version()))
+
+    def test_a_phone_an_older_judge_kept_on_limited_evidence_gets_the_checks_it_failed_when_judged_anew(self):
+        """After an upgrade: a phone whose record has no screen says so, when opened and by the round alike."""
+        phone = {"userAgent": IPHONE, "platform": "iPhone", "anyPointer": ["coarse"], "maxTouchPoints": 5, "uaData": None}
+        opened, by_the_round = "a" * 32, "b" * 32
+        for n, sid in enumerate((opened, by_the_round)):
+            body = visit_batch(0, T0 + n * S, clicks(4, T0 + n * S), ua=IPHONE, sid=sid)
+            body["x"].append({"t": T0 + n * S + 5, "ty": "env", "env": phone})
+            self.post(body, T0 + n * S)
+        final = T0 + S + self.quiet_ms
+        self.assertEqual(judging.tick(final), 2)
+        for sid in (opened, by_the_round):
+            kept = [r for r in json.loads(self.row("reasons", sid=sid)[0]) if not r["id"].startswith("behavior.touch-")]
+            self.con.execute("UPDATE sessions SET model_version='older', reasons=? WHERE id=?", (json.dumps(kept), sid))
+        self.con.commit()
+        self.assertTrue(judging.on_open(opened, final + S))
+        self.assertEqual(judging.tick(final + 2 * S), 1)
+        for sid in (opened, by_the_round):
+            self.assertIn("behavior.touch-no-screen", [r["id"] for r in json.loads(self.row("reasons", sid=sid)[0])])
+            self.assertEqual(self.row("verdict_class", "model_version", sid=sid),
+                             ("too_little_data", judging.model_version()))
+
     def test_a_freed_replays_verdict_stands_neither_the_round_nor_opening_judges_it(self):
         self.post(visit_batch(0, T0, clicks(4, T0)), T0)
         self.assertEqual(judging.tick(T0 + self.quiet_ms), 1)
@@ -245,6 +288,63 @@ class ModelVersion(JudgingCase):
         self.assertEqual(judging.tick(T0 + self.quiet_ms + S), 0)
         self.assertFalse(judging.on_open(SID, T0 + self.quiet_ms + 2 * S))
         self.assertEqual(self.row("verdict_class", "reasons", "segs", "model_version"), (*kept, "older"))
+
+
+# The modules the judge's code imports that read what it judges, keep what it decided or word it, and decide no
+# verdict: a change to one is no new judge. Every other module it imports is part of the fingerprint.
+JUDGE_SUPPORT = {
+    "activity": "the first and last recorded action a session's length is made of, written beside the verdict",
+    "addresses": "an address read without failing; the path it gives goes into the signals unchanged",
+    "config": "the owner's settings: changing one makes no new judge",
+    "datafiles": "the loader of the data files, which the fingerprint holds themselves (data/)",
+    "downloads": "the lists' downloads for `agentcake lists update` (detect/lists_build.py); judging downloads nothing",
+    "geoip": "address_check.current() only, the dashboard's and doctor's warning; judging calls check()",
+    "paths": "where the package and its data folder are",
+    "session_replay": "the session's stored rrweb events, read",
+    "store": "the database's tables, which the verdict is written into",
+    "storage_config": "the clock",
+    "streams": "the session's stored raw events, read",
+    "units": "units of time and of percent",
+    "visit_batches": "the session's stored uploads and collect requests, read",
+    "wording": "the product's name in the reasons' words",
+}
+
+
+def imported_modules(root, names):
+    """The agentcake modules the given files of the package import, as dotted names under agentcake."""
+    found = set()
+    for name in names:
+        with open(os.path.join(root, name), encoding="utf-8") as handle:
+            tree = ast.parse(handle.read(), name)
+        for node in ast.walk(tree):
+            if isinstance(node, ast.ImportFrom) and node.module == "agentcake":
+                found.update(alias.name for alias in node.names)
+            elif isinstance(node, ast.ImportFrom) and (node.module or "").startswith("agentcake."):
+                found.add(node.module.removeprefix("agentcake."))
+            elif isinstance(node, ast.Import):
+                found.update(alias.name.removeprefix("agentcake.") for alias in node.names
+                             if alias.name.startswith("agentcake."))
+    return found
+
+
+class TheJudgesCode(unittest.TestCase):
+    """What the judge's code imports from the package is part of its fingerprint, or only supports it (JUDGE_SUPPORT):
+    a module that comes to decide verdicts, as web_device.py did through detect/touch_device.py, is not left out."""
+
+    def test_every_module_the_judges_code_imports_is_fingerprinted_or_only_supports_it(self):
+        root = os.path.dirname(judging.__file__)
+        files = judging.model_files(root)
+        imported = imported_modules(root, [name for name in files if name.endswith(".py")])
+
+        def file_of(module):
+            path = module.replace(".", "/")
+            return f"{path}/__init__.py" if os.path.isdir(os.path.join(root, path)) else f"{path}.py"
+        left_out = sorted(module for module in imported if file_of(module) not in files and module not in JUDGE_SUPPORT)
+        self.assertEqual(left_out, [], "a module the judge imports is neither fingerprinted nor only a support")
+        self.assertEqual(sorted(set(JUDGE_SUPPORT) - imported), [], "JUDGE_SUPPORT names a module the judge no longer "
+                         "imports")
+        self.assertEqual(sorted(module for module in JUDGE_SUPPORT if file_of(module) in files), [],
+                         "a fingerprinted module is no support")
 
 
 class Failures(JudgingCase):

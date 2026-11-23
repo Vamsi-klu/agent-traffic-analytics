@@ -1,7 +1,7 @@
 {
-  "$comment": "AgentCake's environment layer: each rule reads one trace of automation, of a named agent product, of a cloud machine or of an extension acting on the page. agentcake/detect/env_rules.py evaluates `match` (grammar in its docstring) against the signals env_signals.py builds; a hit carries id, layer, kind, half, strength, grade and the value that matched. `scope`: page = on each page view, landing = the first page view only, session = the session as a whole. `botscent`: the botscent page-half reasons a rule stands for, so the two can be compared on recorded sessions. `names`: the agent product or automation tool a rule names; `suggests`: a name a rule hints at without proving it. `enabled`: the default; the user's config can switch any rule. `setting`: on a rule that is off by default, the page-script setting that turns it on: the rule runs on a visit recorded with that setting on, as the visit's page records say (signals.script_settings names the page record fields that say how the site owner had set cake.js). `date`: when the evidence was taken; product rules follow one product's build and must be re-checked when it changes. `family`: the rules that are one kind of evidence together (legend.families; the verdict counts them as one, verdict.json families). Rule definitions and collision notes taken from botscent 1.2.0 and BotD 2.0.0 (both MIT), and the conditions of fpscanner's checks (MIT), are credited in source_refs and THIRD_PARTY.md.",
+  "$comment": "AgentCake's environment layer: each rule reads one trace of automation, of a named agent product, of a cloud machine or of an extension acting on the page. agentcake/detect/env_rules.py evaluates `match` (grammar in its docstring) against the signals env_signals.py builds, and a session-scope rule also against `touch` (whether the browser says it is a phone or tablet); a hit carries id, layer, kind, half, strength, grade and the value that matched. `scope`: page = on each page view, landing = the first page view only, session = the session as a whole. `botscent`: the botscent page-half reasons a rule stands for, so the two can be compared on recorded sessions. `names`: the agent product or automation tool a rule names; `suggests`: a name a rule hints at without proving it. `enabled`: the default; the user's config can switch any rule. `setting`: on a rule that is off by default, the page-script setting that turns it on: the rule runs on a visit recorded with that setting on, as the visit's page records say (signals.script_settings names the page record fields that say how the site owner had set cake.js). `date`: when the evidence was taken; product rules follow one product's build and must be re-checked when it changes. `family`: the rules that are one kind of evidence together (legend.families; the verdict counts them as one, verdict.json families). Rule definitions and collision notes taken from botscent 1.2.0 and BotD 2.0.0 (both MIT), and the conditions of fpscanner's checks (MIT), are credited in source_refs and THIRD_PARTY.md.",
   "version": 1,
-  "updated": "2026-11-19",
+  "updated": "2026-11-22",
   "legend": {
     "kinds": {
       "automation": "A trace of an automation driver, or of the flags it launches the browser with: an automated browser.",
@@ -772,16 +772,19 @@
       "id": "env.ext.viewport-shrink", "layer": "env", "kind": "extension", "half": "page", "scope": "session", "strength": "weak", "enabled": true,
       "title": "The visible page area became shorter. Chrome's debugging bar can cause this.",
       "detail": "The viewport became 40-72 pixels shorter with the same width. Chrome's \"started debugging this browser\" bar takes up this space when it appears.",
-      "match": {"some": "viewport_changes", "where": {"all": [
-        {"path": "dw", "eq": 0},
-        {"path": "dh", "gte": -72},
-        {"path": "dh", "lte": -40},
-        {"any": [{"path": "doh", "eq": 0}, {"not": {"path": "doh", "exists": true}}]}
-      ]}},
+      "match": {"all": [
+        {"some": "viewport_changes", "where": {"all": [
+          {"path": "dw", "eq": 0},
+          {"path": "dh", "gte": -72},
+          {"path": "dh", "lte": -40},
+          {"any": [{"path": "doh", "eq": 0}, {"not": {"path": "doh", "exists": true}}]}
+        ]}},
+        {"not": {"path": "touch", "eq": true}}
+      ]},
       "grade": "measured", "date": "2026-11-11",
       "evidence": "Lab 2026-11-11: cic-01's open tab went from 958 to 902 px (56 px) when the debugger attached for the next run. Lab 2026-11-09: the user's own tab shrank the same way while Claude in Chrome ran in another tab.",
       "sources": ["audit:sig-047", "lab"],
-      "collisions": "The bar belongs to the whole browser: a person's own tab in that browser shrinks too. A toolbar of similar height appearing would match."
+      "collisions": "The bar belongs to the whole browser: a person's own tab in that browser shrinks too. A toolbar of similar height appearing would match. On a phone or tablet, the browser's address bar hides and shows as the page scrolls and changes the viewport height the same way, so the rule isn't read when the browser says it is a phone or tablet."
     },
     {
       "id": "env.ext.cross-site-landing", "layer": "env", "kind": "extension", "half": "server", "scope": "landing", "strength": "weak", "enabled": true,

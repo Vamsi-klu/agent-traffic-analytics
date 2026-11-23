@@ -19,8 +19,12 @@ changes a verdict (a guessed pattern never makes a Bot or an Agent).
                      was removed: humans step that way as often as agents do, so it only
                      wrote "like a script" into humans' replays
 The keyboard and assistive-tool guard is the verdict's own (the reason behavior.assistive). The address's
-country comes from the load balancer (server mode); in local mode the first two have nothing to compare. Thresholds
-and the header anchors: agentcake/data/verdict.json "weak".
+country is the city database's for the visitor's address, looked up on a server (geoip.place, through
+netfacts.look_up); in local mode, and on a server without the database, the first two have nothing to compare.
+Thresholds and the header anchors: agentcake/data/verdict.json "weak". The first two are after bot-signal's
+timezone-mismatch and accept-language-geo-mismatch (isTimezoneMismatch and isAcceptLanguageGeoMismatch in
+src/server/timezone.ts, github.com/okasi/bot-signal 25a4e7b0159f, MIT): the ideas only, no code copied; the time zone is
+compared with the zones the country uses, not by its offset.
 
 signals: env_signals' dict; requests: the visit's request facts (oldest first); raw: the raw stream's records; local:
 the uploads reached this computer's own listener straight from the browser (evidence.py: local mode).

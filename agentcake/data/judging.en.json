@@ -9,7 +9,7 @@
   },
   "unsure": {"label": "Unknown", "about": "The behavior model couldn't classify the actions in this part of the session. This part isn't counted in the session's classification."},
   "evidence": {
-    "thin": {"label": "Limited evidence", "about": "This session is counted as Human, but the evidence is limited. For example, it has too few actions, comes from a phone or tablet, or has conflicting signals. Its reasons show which one applies."}
+    "thin": {"label": "Limited evidence", "about": "This session is counted as Human, but the evidence is limited. For example, it has too few actions, comes from a phone or tablet that can't be confirmed, or has conflicting signals. Its reasons show which one applies."}
   },
   "turns": {
     "agent_only": {"label": "Agent only", "about": "An agent acted from start to finish."},

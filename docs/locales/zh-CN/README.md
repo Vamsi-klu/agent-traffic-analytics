@@ -9,7 +9,7 @@
 <div align="left">
 
 ```text
-请为此网站设置 AgentCake 0.6.0。请使用 curl 或 GitHub CLI 下载 https://raw.githubusercontent.com/tartini-ai/agent-traffic-analytics/v0.6.0/INSTALL.md 中的指南，然后按照指南逐步操作。如果下载失败，请申请网络访问权限。
+请为此网站设置 AgentCake 0.6.1。请使用 curl 或 GitHub CLI 下载 https://raw.githubusercontent.com/tartini-ai/agent-traffic-analytics/v0.6.1/INSTALL.md 中的指南，然后按照指南逐步操作。如果下载失败，请申请网络访问权限。
 ```
 
 </div>
@@ -128,7 +128,7 @@ HUMAN Security 发现，[来自 AI agent 和 agentic 浏览器的流量同比增
 如果网站在 Shopify 等平台上运行，请改为在新的空文件夹中执行相同的操作。
 
 ```text
-请为此网站设置 AgentCake 0.6.0。请使用 curl 或 GitHub CLI 下载 https://raw.githubusercontent.com/tartini-ai/agent-traffic-analytics/v0.6.0/INSTALL.md 中的指南，然后按照指南逐步操作。如果下载失败，请申请网络访问权限。
+请为此网站设置 AgentCake 0.6.1。请使用 curl 或 GitHub CLI 下载 https://raw.githubusercontent.com/tartini-ai/agent-traffic-analytics/v0.6.1/INSTALL.md 中的指南，然后按照指南逐步操作。如果下载失败，请申请网络访问权限。
 ```
 
 - 智能体将推荐部署方式，并列出[各项月费和总费用](../../hosting.md)。AgentCake 是免费的，但公开网站需要服务器来记录访问。

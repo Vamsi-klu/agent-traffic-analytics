@@ -20,7 +20,8 @@ import type { AddressCheck } from "./health-types"
 import type { WebDimension } from "./web-types"
 
 export type Verdict = "human" | "agent" | "bot"
-/** A Human session cake couldn't tell (too few actions, a phone or tablet, evidence too weak or pointing both ways). */
+/** A Human session cake couldn't tell (too few actions, a phone or tablet it can't confirm, evidence too weak or
+ *  pointing both ways). */
 export type Evidence = "thin"
 /** Who acted during one stretch of a session or in one action ("unsure": the behavior model couldn't tell). */
 export type Actor = "human" | "agent" | "unsure"
@@ -237,7 +238,7 @@ export type SessionDetail = {
   summary: string
   /** How sure cake is of the verdict, in whole percents (1–99, calibrated): Human that a human acted, Agent that an
    *  agent did, Unknown that an agent did, Bot how far its name is verified; null when it doesn't say (judged before
-   *  the percent was kept). */
+   *  the percent was kept, or a phone or tablet shown as Human: the behavior model isn't used there). */
   percent: number | null
   timeline: Timeline
   /** The pages in the order they opened; never empty. */

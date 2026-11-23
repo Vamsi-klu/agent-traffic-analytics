@@ -15,7 +15,7 @@ import re
 import unittest
 
 from cake_server import SERVER_MD, read
-from test_install_docs import AGENTS_MD, INSTALL_MD, SECRET_COMMAND, code_blocks, part, section
+from test_install_docs import AGENTS_MD, INSTALL_MD, SECRET_COMMAND, code_blocks, part, release_tag, section
 
 HOW_TO_WORK, STEP_4 = "How to work", "Step 4. Propose a plan"
 STEP_5, STEP_7, PROVIDERS = "Step 5. Install", "Step 7. Finish the setup", "Provider guides"
@@ -221,12 +221,13 @@ class CreatingAndChanging(unittest.TestCase):
     def test_every_copy_checks_both_destination_names_even_on_retry(self):
         transfer = flat(self.server.split("#### Start AgentCake on the server", 1)[-1])
         check = "Before each copy, including a retry"
+        archive = f"agentcake-{release_tag()[0]}.tar.gz"  # the release folder of this version
         self.assertIn(check, transfer)
-        guard = transfer[transfer.index(check):transfer.index("scp agentcake-0.6.0.tar.gz")]
-        for expected in ("ls -A", "`agentcake-0.6.0.tar.gz`", "`SHA256SUMS`", "is already there", "site owner",
+        guard = transfer[transfer.index(check):transfer.index(f"scp {archive}")]
+        for expected in ("ls -A", f"`{archive}`", "`SHA256SUMS`", "is already there", "site owner",
                          "If the listing fails"):
             self.assertIn(expected, guard)
-        self.assertLess(self.server.index(check), self.server.index("gcloud compute scp agentcake-0.6.0.tar.gz"))
+        self.assertLess(self.server.index(check), self.server.index(f"gcloud compute scp {archive}"))
 
     def test_only_the_new_subdomains_record_is_added(self):
         dns = flat(self.server.split("#### Add the DNS record")[1].split("####")[0])

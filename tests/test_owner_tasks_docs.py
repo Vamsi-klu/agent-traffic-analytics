@@ -8,7 +8,7 @@ monthly cost and approved it, the agent creates the server, adds the subdomain's
 pastes the script tag in a site builder, with each provider's command-line tool or its own browser tool. The site owner
 signs in to their accounts, pays, accepts terms and registers on the local page. README.md and its Chinese
 translation, SERVER.md's first two steps, the note under the prompt on the Connect your website page
-(web/src/lib/words.ts) and the newest release notes (CHANGELOG.md) say the same; `agentcake setup --print --site`
+(web/src/lib/words.ts) and the release notes of 0.6.0 (CHANGELOG.md), which brought it, say the same; `agentcake setup --print --site`
 says it in its own steps (test_site_setup.py). No document still says that only the site owner creates the server or
 adds the DNS record while the agent explains the steps.
 """
@@ -23,6 +23,7 @@ from cake_server import ROOT, SERVER_MD, read  # noqa: E402  (needs the path abo
 from test_install_docs import AGENTS_MD, INSTALL_MD, README_MD, README_ZH, section  # noqa: E402
 
 CHANGELOG_MD = os.path.join(ROOT, "CHANGELOG.md")
+CHANGES_CAME_IN = "0.6.0"  # the release whose notes Changelog reads: the one that brought the division
 COPY_JSON = os.path.join(ROOT, "agentcake", "data", "copy.en.json")
 WORDS_TS = os.path.join(ROOT, "web", "src", "lib", "words.ts")
 DOCS = os.path.join(ROOT, "docs")
@@ -102,6 +103,11 @@ def step(markdown, number):
 def newest_release(changelog):
     """CHANGELOG.md's newest `## <version>` section."""
     return re.search(r"^## \S+\n(.*?)(?=^## \S+$|\Z)", changelog, re.M | re.S).group(1)
+
+
+def release_entry(changelog, version):
+    """CHANGELOG.md's `## <version>` section."""
+    return re.search(rf"^## {re.escape(version)}\n(.*?)(?=^## \S+|\Z)", changelog, re.M | re.S).group(1)
 
 
 def task_rows(markdown):
@@ -203,11 +209,11 @@ class WordsTs(unittest.TestCase):
 
 
 class Changelog(unittest.TestCase):
-    """The newest release notes say what changed for the site owner."""
+    """The release notes of 0.6.0, where these changes came in, say what changed for the site owner."""
 
     @classmethod
     def setUpClass(cls):
-        cls.release = newest_release(read(CHANGELOG_MD))
+        cls.release = release_entry(read(CHANGELOG_MD), CHANGES_CAME_IN)
         cls.blocks = paragraphs(cls.release)
 
     def test_with_approval_the_agent_creates_the_server_and_adds_the_record(self):

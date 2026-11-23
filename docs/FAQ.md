@@ -47,8 +47,11 @@ number is counted and where it falls short.
 
 ## What do Human, Agent, and Script bot mean?
 
-- **Human:** A human acting alone. A session AgentCake can't tell (too few actions, a phone or tablet, or evidence too
-  weak or pointing both ways) also counts as Human and is marked limited evidence, with the reason.
+- **Human:** A human acting alone. The behavior model isn't used on a phone or tablet: such a visit counts as Human
+  when its screen and touch support match the device and the other layers find nothing. A session AgentCake can't tell
+  (too few actions, a phone or tablet it can't confirm, or evidence too weak or pointing both ways) also counts as
+  Human and is marked limited evidence, with the reason. For such a session whose browser reports a phone or
+  tablet that AgentCake can't confirm, the reasons say which checks failed, such as touch points or the screen size.
 - **Agent:** An AI agent or an automation tool. Agent only means it acted from start to finish; human + agent means a
   human and an agent took turns, and the timeline marks each hand-off.
 - **Script bot:** A program on the bot list that ran the page script, such as a search engine, a monitor, or a link

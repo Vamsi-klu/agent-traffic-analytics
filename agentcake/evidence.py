@@ -16,7 +16,11 @@ half:
                server: a page request's Signature-Agent, a claim only (the token keeps no signature to check)
   network      the lists.match_ip() fields kept with the visit's requests: the latest that had an address
   visits       when the earlier sessions from the same network began (the requests' net_hash)
-  touch        the environment record says mobile, or there is a coarse pointer and no fine one
+  touch        touch_device.claimed() of the signals' pages: the browser says it is a phone or tablet (its
+               environment record says mobile, or there is a coarse pointer and no fine one)
+  touch_fits   touch_device.fits() of them: every environment record is a real phone's or tablet's
+  touch_failed touch_device.failed_checks() of them: the checks of a real phone or tablet the records fail, with
+               their facts (what the verdict says of a phone that stays a Human on limited evidence)
   mode         "server" when server mode is on (public_listen), else "local": every visit comes from 127.0.0.1
   weak         weak.facts() of the signals, requests and raw records, with how many sessions came from the same
                address (its salted ip_hash) within the weak same_address window
@@ -34,7 +38,8 @@ import json
 from agentcake import address_check, session_replay, streams, visit_batches
 from agentcake.config import load_cfg
 from agentcake.datafiles import load
-from agentcake.detect import env_rules, env_signals, httpsig, markers, verdict_identity, weak, webbotauth
+from agentcake.detect import (env_rules, env_signals, httpsig, markers, touch_device, verdict_identity, weak,
+                              webbotauth)
 from agentcake.storage_config import now_ms as clock_ms
 from agentcake.units import MS_PER_S
 
@@ -50,7 +55,6 @@ WEB_BOT_AUTH = "wba"  # the request facts key collect.py keeps a Web Bot Auth re
 VERIFICATION_FIELDS = ("outcome", "code", "signer", "keyid", "label", "via", "claimed", "facts")
 PAGE_RECORD = "page"
 PRERENDER_NAV = "prerender"  # protocol: the page record's nav (PerformanceNavigationTiming.type) of a prerender
-COARSE, FINE = "coarse", "fine"  # protocol: CSS any-pointer values
 SHOWN = 1  # protocol: cake.js's vs field, 1 while the page is visible
 SERVER_MODE, LOCAL_MODE = "server", "local"
 RAW_TIME, RRWEB_TIME = "t", "timestamp"  # protocol: the time field of a raw record (cake.js) and of an rrweb event
@@ -85,7 +89,9 @@ def session_evidence(con, session_id, c=None, now_s=None):
                 "signatures": _signatures(facts, halves, now_s if now_s is not None else clock_ms() / MS_PER_S),
                 "network": network, "rdns": None, "env": env_rules.evaluate(signals),
                 "marks": markers.turn_spans(signals),
-                "touch": _touch(signals), "visits": [] if doubted else _visits(con, session_id, facts),
+                "touch": touch_device.claimed(signals["pages"]), "touch_fits": touch_device.fits(signals["pages"]),
+                "touch_failed": touch_device.failed_checks(signals["pages"]),
+                "visits": [] if doubted else _visits(con, session_id, facts),
                 "address_check": checked,
                 "weak": dict(found, address_sessions=None if doubted else _address_sessions(con, session_id, facts))}
     return evidence, raw, rrweb
@@ -190,12 +196,3 @@ def _address_sessions(con, session_id, facts):
     return con.execute("SELECT COUNT(DISTINCT session_id) FROM requests WHERE json_extract(facts, '$.ip_hash') = ? "
                        "AND recv_ms >= (SELECT end_ms FROM sessions WHERE id = ?) - ?",
                        (ip_hash, session_id, window_ms)).fetchone()[0]
-
-
-def _touch(signals):
-    for page in signals.get("pages") or []:
-        env = page.get("env") or {}
-        pointers = env.get("anyPointer") or []
-        if (env.get("uaData") or {}).get("mobile") or (COARSE in pointers and FINE not in pointers):
-            return True
-    return False

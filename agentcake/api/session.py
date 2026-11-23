@@ -10,8 +10,10 @@ prefetch) is a 404. SessionDetail:
                actions, a phone or tablet whatever its number of actions, or evidence that can't tell)
     percent    how sure cake is of the verdict, 1 to 99 (detect/confidence.py, calibrated: Human that a human acted,
                a Human session on thin evidence too, Agent that an agent did, Bot by how its name was checked); None
-               for a session judged before verdicts kept it. It is the page's one word on how sure the verdict is: the
-               summary says no other (one conclusion, one measure, as a bot score is one number)
+               for a session judged before verdicts kept it, and for a phone or tablet shown as a Human, on thin
+               evidence or not (the behaviour model does not run there, so no layer measured how sure: the owner's
+               rule of 2026-11-22; an Agent or a Bot on one keeps its percent). It is the page's one word on how sure
+               the verdict is: the summary says no other (one conclusion, one measure, as a bot score is one number)
     summary    what happened, who and why, in the page's words (summary()): who acted when, turn by turn (the
                timeline's runs, on its clock: a hand-off at the moment the timeline marks it), else the reason that
                decided the verdict (the first in its tone: data/api.json "summary"); then the layers that point to the
@@ -44,7 +46,7 @@ from agentcake.detect import timeline as behavior_timeline
 PREFIX = "/api/session/"
 REPLAY_SUFFIX = "/replay"
 HUMAN_AGENT, UNSURE, HUMAN, BOT, THIN = "human_agent", "unsure", "human", "bot", "thin"
-TOO_LITTLE, TOUCH = "too_little_data", "touch"  # verdict.py's class, and detect/model.py's reason for a phone or tablet
+TOO_LITTLE, TOUCH = "too_little_data", "touch"  # verdict.py's class, and behavior.run()'s reason for a phone or tablet
 
 
 @answers.view
@@ -89,11 +91,11 @@ def _detail(con, session_id, summary):
     listed = visit.listed(length)
     layers = reasons.layers(layers_json, reasons_json, epoch, turns == HUMAN_AGENT, verdict)
     story = Story(epoch, runs if verdict != BOT else [], summary["agent"], layers, judged, found)
+    why = _behavior_why(layers_json)
     return {"session": dict(summary, duration_ms=length, pages=len(listed), share=actions.share(found)),
-            "title": title(verdict, turns, verdict_class, summary["agent"], runs, evidence, judged,
-                           why=_behavior_why(layers_json)),
+            "title": title(verdict, turns, verdict_class, summary["agent"], runs, evidence, judged, why=why),
             "summary": verdict_summary(verdict, turns or evidence, detail.get("judging"), kept, story),
-            "percent": detail.get("percent"),
+            "percent": None if (verdict == HUMAN and why == TOUCH) else detail.get("percent"),
             "timeline": {"duration_ms": length, "segments": visits.relative(runs, epoch, length),
                          "handoffs": [{"at_ms": int(min(length, max(0, handoff["t"] - epoch))), "to": handoff["to"]}
                                       for handoff in handoffs] if turns == HUMAN_AGENT else []},
