@@ -47,7 +47,10 @@ def _measurement(m, unit):
     if not m["n"]:
         return f"{m['source']}: no samples" + (f" ({left_out})" if left_out else "")
     if "count" in m:
-        tail = f"; {left_out}" if left_out else ""
+        notes = [f"{details['mixed']} mixed"] if details.get("mixed") else []
+        if left_out:
+            notes.append(left_out)
+        tail = "".join(f"; {note}" for note in notes)
         return f"{m['source']}: {_number(m['value'], unit)} ({m['count']}/{m['n']}{tail})"
     value, extra = _number(m["value"]), ""
     if "every_handoff" in details:

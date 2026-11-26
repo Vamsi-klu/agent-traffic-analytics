@@ -4,7 +4,7 @@
     lab_signals(path, settings) -> [labelled signals]       the lab's environment signals of 2026-11-09 and 11-11
     cakejs_uploads(folder) -> {name: [{"headers", "batch"}]}   real cake.js uploads of automated browsers
     recordings(folder, truth_path, settings) -> [clean human recording]   the recorder's clean human sessions in truth_manual
-    recorded(folder, truth_path, settings) -> [agent or hand-off recording]   the same folder's sessions in
+    recorded(folder, truth_path, settings, human_labels=()) -> [labelled recording]   the same folder's sessions in
                                                             truth_recordings (the data-collection kit), or a
                                                             recorder copy's in the list of our own runs
     posthog(folder, settings) -> {"units", "mixed"}          the local PostHog dataset and its mixed replays
@@ -21,7 +21,7 @@ gate never does (threshold A1 counts our own clean recordings only). A lab sessi
 "class", "row", "raw", "rrweb"}, the group and the answer coming from data/eval.json "lab". A recording: {"h", "raw",
 "rrweb", "payloads", "requests"}: the lab collectors' reports in arrival order and the recorder server's log rows of the
 run, which env_signals.from_lab reads, up to its line's until_ms when it has one (the recorder's "I'm done" plus its
-grace: what reached the recorder later was left out of its verdict, eval/README.md); an agent's or a hand-off's adds its
+grace: what reached the recorder later was left out of its verdict, eval/README.md); a labelled recording adds its
 answer: "label", "truth", "mode", "task" and "stretches" [(from_ms, to_ms, who)]. A PostHog unit is the dataset's units/<h>.json with "start" (where its first rrweb
 event lies, ms after the session start) and "session" (its session's short hash). A mixed replay rebuilds one of the
 site owner's sessions from its units: the events of all of them, and "agent_at" (t -> whether t lies in one of its
@@ -104,13 +104,14 @@ def recordings(folder, truth_path, settings):
             for item in _recorder_sessions(folder, _cutoffs(lines), settings)]
 
 
-def recorded(folder, truth_path, settings):
-    """The agent and hand-off recordings the recordings' list names, found in the same folder by their hash, each
-    with its line's answer: label, truth (agent or mixed), mode, task, and a hand-off's stretches. The recordings we
-    ran ourselves are read the same way from their own folder and list; a line may name its variant (the model
-    that drove the agent, or the mouse algorithm)."""
+def recorded(folder, truth_path, settings, *, human_labels=()):
+    """The recordings named by hash in the truth list: agents, hand-offs, and explicitly labelled human cohorts.
+    Each line gives the label, truth, mode, task and the stretches of a hand-off. Our own runs use the same format
+    in a separate folder and list. A line may give the model or mouse algorithm as its variant."""
     words = settings["truth"]
-    lines = {row["h"]: row for row in jsonl(truth_path) if row.get("truth") in (words["agent"], words["mixed"])}
+    lines = {row["h"]: row for row in jsonl(truth_path)
+             if row.get("truth") in (words["agent"], words["mixed"])
+             or (row.get("truth") == words["human"] and row.get("label") in human_labels)}
     out = []
     for item in _recorder_sessions(folder, _cutoffs(lines), settings):
         line = lines[item["h"]]

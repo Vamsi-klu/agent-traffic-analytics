@@ -64,6 +64,28 @@ session; the session id never appears.
 
 In `sources.json`, the keys are `site_home` and `truth_site`.
 
+## Recording Antigravity modes
+
+Use the same interactive tasks on the test shop and lab page for manual and agent sessions. In the recorder's
+truth list (pass it with `--truth-recordings`), supply a short recording hash `h`, a `label`, the known
+`truth` and the browser surface in `mode`. The recording hash is
+`sha256("cake-s1.5|" + recorder run id)[:12]`.
+
+| Label | Truth | Mode | What the operator used |
+|---|---|---|---|
+| `agy-human` | `human` | `in-app` | A person manually operating the Antigravity side-panel browser |
+| `agy-browser` | `agent` | `in-app` | Antigravity's browser agent operating the side-panel browser |
+| `agy-cu` | `agent` | `in-app` or `own-chrome` | Confirmed computer use through native pointer and keyboard input |
+
+Check the browser actuation setting before recording. Antigravity can also use an external Chrome or fetch a page
+as text. Save the app version, task and observed tool mode with the recording.
+[Antigravity browser documentation](https://antigravity.google/docs/browser)
+
+The historic `agy` label has its own line. Its mode is unverified. A1 and A8 show the new human cohort as a
+reference, and A2 shows the two new agent cohorts. Use the session rows in `eval.json` to count all recordings,
+including thin sessions, and to check the selected name. Group computer-use rows by `truth.mode`. Count both
+`agent` and `mixed` as false positives in the human cohort. The new cohorts are excluded from calibration.
+
 ## What the report says
 
 One line per measure it could run, with its data set, the number of sessions, the result and, with `--gate`, the

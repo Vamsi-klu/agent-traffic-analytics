@@ -29,6 +29,12 @@ def collect(results, settings, limit_s):
     out.append(_ratio("A7", "named", sum(1 for r in named if sessions.right(r)), len(named),
                       "named User-Agents with the right list id and class"))
     out += [_a8(source, rows.get(source, [])) for source in ("lab", "recordings", RECORDED, "store", "posthog")]
+    recorded = rows.get(RECORDED, [])
+    for label in settings["recorded"].get("reference_human_labels", ()):
+        cohort = [r for r in recorded if r["group"] == label and r["truth"].get("class") == "human"]
+        if cohort:
+            source = f"{RECORDED}/{label}"
+            out.extend((_a1(source, cohort), _a8(source, cohort)))
     out.append(_a9(results["bots"]["t22"]))
     out.append(_n1(results.get("store_sessions", [])))
     return out

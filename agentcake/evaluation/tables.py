@@ -102,7 +102,7 @@ def _recorded_handoffs(items, rows, limit_s):
     evidence = {r["id"]: r["evidence"] for r in rows}
     return [takeovers.session_row(evidence[item["h"]], _who_at(item["stretches"]), splice.boundaries(item["stretches"]),
                                   limit_s)
-            for item in items if item["stretches"]]
+            for item in items if item["stretches"] and item["truth"] != "human"]
 
 
 def _posthog_takeovers(lab, posthog, settings, limit_s):
