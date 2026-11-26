@@ -837,7 +837,7 @@ computer. It is the only place AgentCake writes: the service may write nowhere e
 | `config.json` | the settings |
 | `cake.db` | the database (SQLite in WAL mode, with `cake.db-wal` and `cake.db-shm` beside it): sessions, classifications, events, the index of the replay chunks, the server middleware's tokens |
 | `replays/` | replays as compressed 10-second chunks, appended to `replays/<date>/<hour>.bin` (UTC) |
-| `backups/` | the copy of `cake.db` that `agentcake migrate` makes before it changes anything |
+| `backups/` | copies of `cake.db`: the one `agentcake migrate` makes before it changes anything, and the one AgentCake makes after an upgrade from a version before 0.6.2, before it joins older sessions' tabs into sessions. They are not counted in the disk budget and are not deleted by age: delete them once you no longer need them. `agentcake delete` deletes a session from them too. |
 | `srv_secret` | the server middleware's secret, readable by its owner only |
 | `cake.log`, `cake.pid` | only with `agentcake start` on your own computer; the service logs to the journal |
 | `lists/` | This folder holds the name and address lists that AgentCake downloads once a month or when you run `agentcake lists update`. Without these lists, AgentCake uses the lists that come with the release. |
@@ -955,6 +955,14 @@ file. Then install the file again and run `sudo systemctl reload caddy`.
 
 A newer AgentCake brings an older database up to date when it opens it. The way back is the previous program together
 with the backup, not the previous program alone.
+
+Coming from a version before 0.6.2, which counted each tab as a session of its own: after it starts, AgentCake joins
+the tabs of the sessions it already has into sessions across tabs, in the background. First it copies `cake.db` to
+`backups/`, which needs free disk of 1.1 times the size of `cake.db` and its `-wal` (without it, AgentCake says so once
+in its log and tries again every 30 seconds). While it copies, new uploads wait and none is lost. Then it joins for up
+to 5 seconds every 30 seconds; 100,000 tab sessions took about a minute of that work on our test computer. Until it is
+done, the dashboard and the session list count each older tab as a session of its own, so the numbers change as it
+goes: fewer sessions, more pages per session and longer active time, the same visitors and page views.
 
 Coming from 0.3.4, whose replays are rows inside `cake.db`: with the service stopped (`agentcake migrate` refuses to run
 while AgentCake runs on the same data folder), run these, then start it again. The first says what would be done; the

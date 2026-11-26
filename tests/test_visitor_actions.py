@@ -1,5 +1,5 @@
 """agentcake/detect/visitor_actions.py: the visitor's own actions among a session's raw events, one definition for the
-Every action list, the hand-offs and the evaluation's splices (agentcake/data/actions.json).
+All actions list, the hand-offs and the evaluation's splices (agentcake/data/actions.json).
 
     python3 -I -m unittest discover -s tests -p test_visitor_actions.py -v
 

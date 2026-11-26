@@ -2,10 +2,11 @@
 //
 // A site with sign-in may call window.cake.identify(<its own id for the visitor>) once they sign in, and
 // window.cake.reset() when they sign out, so that AgentCake counts them as one visitor on every browser and device
-// they sign in on. That is PostHog's person (posthog-js posthog-core.ts identify() and reset(); PostHog's
-// person-merge-service.ts; MIT): identify() links the anonymous id to the site's id, and the server merges the two,
-// the anonymous id's earlier events included; reset() begins a new anonymous id and a new session, so that the next
-// person to sign in on a shared computer is not merged into the last one.
+// they sign in on. That is PostHog's person (posthog-js packages/browser/src/posthog-core.ts identify() and reset(),
+// Apache-2.0; PostHog's nodejs/src/ingestion/common/persons/person-merge-service.ts, MIT): identify() links the
+// anonymous id to the site's id, and the server merges the two, the anonymous id's earlier events included; reset()
+// begins a new anonymous id and a new session, so that the next person to sign in on a shared computer is not merged
+// into the last one.
 // Unlike posthog-js, the site's id never leaves the browser: cake.js sends only the SHA-256 of the site key, a ":" and
 // the id (CFG.identify), in hexadecimal, made with the browser's SubtleCrypto; the site key makes the same id give
 // another hash on another site. Where SubtleCrypto is missing (a page that is not https or localhost), identify()
@@ -16,8 +17,9 @@
 // distinct id without merging. Like posthog-js, it takes a non-empty string or a number, and refuses the words
 // CFG.identify.refused (placeholders, not ids).
 // Before cake.js starts (data-consent="required" without start() yet, or calls queued before it loaded) nothing is
-// stored or sent: identify() waits for start; reset() deletes the stored visitor id, hash and session id at once, so
-// that start() begins new ones. window.cake.stop() drops whatever is waiting (cake_main.js).
+// stored or sent: identify() waits for start; reset() deletes the stored visitor id, hash and session ids at once (the
+// browser's too: no other tab writes it back), so that start() begins new ones. window.cake.stop() drops whatever is
+// waiting (cake_main.js).
 
 var siteKey = null // set when cake.js starts: the salt of the hash
 var generation = 0 // reset() and stop() raise it: a hash still being made for an identity before them is dropped

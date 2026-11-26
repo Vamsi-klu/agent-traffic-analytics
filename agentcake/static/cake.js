@@ -1,4 +1,4 @@
-/*! AgentCake page script (cake.js), upload format v1, build cbb415564f99. Made by tools/build_js.py from agentcake/static/src/ and agentcake/data/cakejs.json; do not edit. Bundles rrweb record, BotD, botscent page half, whose licences follow. */
+/*! AgentCake page script (cake.js), upload format v1, build b962b026740c. Made by tools/build_js.py from agentcake/static/src/ and agentcake/data/cakejs.json; do not edit. Bundles rrweb record, BotD, botscent page half, whose licences follow. */
 /*! rrweb record 2.0.0-alpha.18 (rrweb-io/rrweb, record UMD build as shipped with cake 0.3.x (local source checked at commit 3339038d)):
 MIT License
 
@@ -73,9 +73,9 @@ SOFTWARE.
   if (window.cake && window.cake.version) return // cake.js is already running on this page
   var STARTED = performance.now() // cake.js reports how long its own first task took
   var TAG = document.currentScript
-  var CFG = {"format_version":1,"collect_path":"collect","attr":{"site":"data-site","consent":"data-consent"},"consent":{"required":"required","commands":{"start":"start","stop":"stop"}},"defaults":{"hook_dom":false,"hide_selectors":""},"storage":{"session":"cake_sid","clock":"cake_clock","page_number":"cake_pn","pending":"cake_pending","frames_done":"cake_frames","visitor":"cake_vid"},"session":{"$comment":"How a tab's session is cut (session.js; the collector applies the same rules, session_split.py): PostHog's time rules (posthog-js packages/browser/src/sessionid.ts: DEFAULT_SESSION_IDLE_TIMEOUT_SECONDS 30 minutes, SESSION_LENGTH_LIMIT_MILLISECONDS 24 hours). Activity is what PostHog counts: its recorder's ACTIVE_SOURCES (lazy-loaded-session-recorder.ts: MouseMove, MouseInteraction, Scroll, ViewportResize, Input, TouchMove, MediaInteraction, Drag), as the raw input records that stand for them (activity_raw; a geometry record whose why is in activity_geo), and a page view, a page load or a new path (activity_signals). The clock is written to sessionStorage at most every persist_every_ms, and when the page is left. record: the signal record that begins a new session on a page, with why it began.","idle_ms":1800000,"max_ms":86400000,"persist_every_ms":1000,"activity_raw":["pointermove","mousemove","pointerdown","pointerup","mousedown","mouseup","click","dblclick","contextmenu","focus","blur","touchstart","touchend","scroll","input","change"],"activity_geo":["resize"],"activity_signals":["page","path"],"record":"session","why":{"idle":"idle","max":"max","reset":"reset"},"flush_why":"session"},"navigation":{"$comment":"A single-page app's page view (navigation.js): the record cake.js sends when location.pathname changes within a page load, as posthog-js counts a $pageview (capture_pageview 'history_change': the path, not the query string or the fragment).","record":"path"},"visitor":{"$comment":"The visitor id (visitor.js): kept in localStorage for max_age_ms after its last use, as PostHog's anonymous id is kept for cookie_expiration 365 days (posthog-js posthog-core.ts).","max_age_ms":31536000000},"identify":{"$comment":"window.cake.identify(id) and window.cake.reset() (identify.js), as posthog-js's identify() and reset() (posthog-core.ts). The browser sends only algorithm(site key + separator + id) in hexadecimal (the header's idh), never the id. An id is a non-empty string or a number, and not one of refused (posthog-js's _validateIdentifyId and isDistinctIdStringLike: placeholders, compared ignoring case). commands: the names a queued call (window.cake.push) uses. fault: where cake.js notes why an identify() did nothing (an 'err' record), with not_an_id or no_crypto as the message, never the value.","algorithm":"SHA-256","separator":":","refused":["undefined","null","distinct_id","distinctid"],"commands":{"identify":"identify","reset":"reset"},"fault":"identify","not_an_id":"identify() needs a non-empty string or a number as the id","no_crypto":"identify() needs the browser's SubtleCrypto (a page on https or localhost)"},"source":{"$comment":"Where a page view came from (source.js), as posthog-js event-utils.ts reads it: the campaign parameters PostHog's channel rules read (CAMPAIGN_PARAMS: the five UTM parameters and gad_source), each value cut to max_chars, and the ad-click parameters whose presence only is sent (PERSONAL_DATA_CAMPAIGN_PARAMS).","campaign":["utm_source","utm_medium","utm_campaign","utm_content","utm_term","gad_source"],"click_ids":["gclid","gclsrc","dclid","gbraid","wbraid","fbclid","msclkid","twclid","li_fat_id","igshid","ttclid","rdt_cid","epik","qclid","sccid","oppref","bfcid","irclid","_kx"],"max_chars":200},"id_bytes":16,"time_precision":10,"idle_timeout_ms":1000,"idle_gap_ms":50,"content_type":"text/plain","gzip_query":"?z=gzip","token":{"entry":"cake"},"batch":{"max_bytes":51200,"interval_min_ms":2000,"interval_max_ms":10000,"interval_growth":2,"keepalive_max_bytes":60000,"compress_min_bytes":2048,"pending_max_bytes":1048576,"max_record_bytes":4194304,"retry_statuses":[408,429,500,502,503,504]},"limits":{"records_per_page":{"e":100000,"r":200000,"x":5000},"error_chars":200},"rrweb":{"sampling":{"mousemove":50,"scroll":150,"input":"last"}},"raw":{"events":["pointermove","pointerdown","pointerup","pointerover","mousemove","mousedown","mouseup","mouseover","click","dblclick","contextmenu","wheel","keydown","keyup","input","change","focus","blur","touchstart","touchend"],"target_events":["pointerdown","pointerup","click","mouseover","focus","blur","input","keydown","keyup","mousedown","mouseup","change","dblclick","contextmenu","wheel"],"target_selector":"a,button,input,select,textarea,label,summary,[role=button],[role=link]","geo_poll_ms":500,"dom_scan_delay_ms":5000,"dom_attr_names_max":8},"env":{"frame_history_writes":300,"frame_burst_writes":50,"frame_burst_gap_ms":20,"probe_attr":"data-cake-probe","cdp_rounds":3,"cdp_message":"cake probe","cdp_round_ms":100,"cdp_name_lookups_per_round":1.5,"stack_chars":400,"distinctive_globals":{"awesomium":["awesomium"],"cef":["RunPerfTest"],"cefsharp":["CefSharp"],"coachjs":["emit"],"fminer":["fmget_targets"],"geb":["geb"],"nightmare":["__nightmare","nightmare"],"phantomas":["__phantomas"],"phantomjs":["callPhantom","_phantom"],"rhino":["spawn"],"selenium":["_Selenium_IDE_Recorder","_selenium","calledSelenium"],"wdio":["wdioElectron"],"webdriver":["webdriver","__webdriverFunc","__lastWatirAlert","__lastWatirConfirm","__lastWatirPrompt","_WEBDRIVER_ELEM_CACHE","ChromeDriverw","__driver_evaluate","__webdriver_evaluate","__selenium_evaluate","__fxdriver_evaluate","__driver_unwrapped","__webdriver_unwrapped","__selenium_unwrapped","__fxdriver_unwrapped","__webdriver_script_func","__webdriver_script_fn"],"domAutomation":["domAutomation","domAutomationController"]},"global_patterns":{"selenium_cdc_window":["^cdc_|^\\$cdc_|^([a-z]){3}_.*_(Array|Promise|Symbol)$",""],"selenium_cdc_document":["^\\$cdc_|^\\$wdc_|selenium|webdriver|driver",""],"playwright":["^__pw|playwright","i"],"puppeteer":["^puppeteer_|^__puppeteer","i"]},"hook":{"methods":["getElementById","querySelector","querySelectorAll","getElementsByClassName"],"markers":{"pptr":"pptr:","utilityScript":"UtilityScript.","puppeteerEval":"__puppeteer_evaluation_script__"},"checks_max":2000,"hits_max":20,"arg_chars":60,"stack_frames":5}},"probes":{"timeout_ms":3000,"source_chars":60,"high_entropy_hints":["fullVersionList","platformVersion","architecture","model","bitness"],"native_getters":{"Navigator":["webdriver","userAgent","platform","languages","plugins","hardwareConcurrency"]},"native_methods":{"Permissions":["query"],"WebGLRenderingContext":["getParameter"],"Function":["toString"]},"fonts":["Ubuntu","Droid Sans","Cambria","DejaVu Sans","Liberation Sans"],"font_bases":["monospace","serif","sans-serif"],"font_sample":"mmmmmmmmmmlli0123456789","font_px":32,"system_font_names":{"keywords":["-apple-system","BlinkMacSystemFont"],"apple_claim":"Macintosh|iPhone|iPad|iPod|MacIntel|Mac OS X","other_claim":"Windows NT|Win32|Win64|X11|Linux|Android|CrOS"}},"botscent":{"sample_ms":3000},"privacy":{"mask_all_inputs":true,"private_selector":"[data-cake-private], input[type=password], [autocomplete^=\"cc-\"]","mask_text_selector":"[contenteditable]:not([contenteditable=\"false\"])","private_dropped_events":["keydown","keyup","input","change"],"private_dropped_fields":["s","r"],"key_classes":{"single_character":[{"class":"digit","pattern":"\\d","flags":""},{"class":"space","pattern":"\\s","flags":""},{"class":"letter","pattern":"[a-z]","flags":"i"}],"single_character_other":"symbol","named":{"Backspace":"delete","Delete":"delete","Enter":"enter","Tab":"tab","Shift":"modifier","Control":"modifier","Alt":"modifier","Meta":"modifier","CapsLock":"modifier","Unidentified":"unidentified","":"unidentified"},"prefixes":{"Arrow":"arrow"},"other":"other"}},"markers":{"version":"2026-11-13","every_ms":250,"host":{"tag":"DIV","parents":["body","html"],"display":"contents"},"attributes":["id","rel","href","data-codex-favicon-badge","data-browser-use-highlight","data-browser-use-interaction-highlight","data-browser-use-coordinate-highlight","data-stagehand-mask","data-skyvern-otp-box","unique_id"],"markers":[{"id":"claude-chrome.working","spots":[{"x":0.5,"top":12},{"x":0.5,"bottom":12}]},{"id":"claude-chrome.waiting","spots":[{"x":0.5,"top":56}]},{"id":"claude-chrome.bottom","spots":[{"x":0.5,"bottom":52}]},{"id":"claude-chrome.page-dom","ids":["claude-agent-stop-container","claude-agent-stop-button","claude-agent-glow-border","claude-phantom-cursor","claude-static-indicator-container"]},{"id":"claude-chrome.styles","ids":["claude-agent-animation-styles"]},{"id":"comet.overlay","selector":"[id^=\"pplx-agent\"]"},{"id":"chatgpt-chrome.badge","selector":"head [data-codex-favicon-badge], head link[rel~=\"icon\"][href*=\"data-codex-favicon-badge\"]"},{"id":"fellou.highlight","ids":["eko-highlight-container"]},{"id":"browser-use.highlight","ids":["browser-use-debug-highlights","browser-use-demo-panel"],"selector":"[data-browser-use-highlight], [data-browser-use-interaction-highlight], [data-browser-use-coordinate-highlight]"},{"id":"stagehand.overlay","ids":["__v3_cursor_overlay__"],"selector":"[data-stagehand-mask]"},{"id":"skyvern.overlay","ids":["boundingBoxContainer"],"selector":"[data-skyvern-otp-box]"},{"id":"skyvern.ids","selector":"[unique_id]"}]}}
+  var CFG = {"format_version":1,"collect_path":"collect","attr":{"site":"data-site","consent":"data-consent"},"consent":{"required":"required","commands":{"start":"start","stop":"stop"}},"defaults":{"hook_dom":false,"hide_selectors":""},"storage":{"session":"cake_sid","clock":"cake_clock","page_number":"cake_pn","pending":"cake_pending","frames_done":"cake_frames","visitor":"cake_vid","browser_session":"cake_bsid","browser_clock":"cake_bclock","window":"cake_wid","window_open":"cake_wopen"},"session":{"$comment":"How sessions are cut (session.js; the collector applies the same rules to a tab's uploads from scripts that do not, session_split.py): PostHog's time rules (posthog-js packages/browser/src/sessionid.ts: DEFAULT_SESSION_IDLE_TIMEOUT_SECONDS 30 minutes, SESSION_LENGTH_LIMIT_MILLISECONDS 24 hours), for the browser's session, which every tab of the site shares through localStorage, and for each tab's own part of it. Activity is what PostHog counts: its recorder's ACTIVE_SOURCES (lazy-loaded-session-recorder.ts: MouseMove, MouseInteraction, Scroll, ViewportResize, Input, TouchMove, MediaInteraction, Drag), as the raw input records that stand for them (activity_raw; a geometry record whose why is in activity_geo), and a page view, a page load or a new path (activity_signals). The clocks are written at most every persist_every_ms, and when the page is left; a tab reads the browser's clock again at most every persist_every_ms of its own activity, and always before ending the browser's session for idleness. record: the signal record that begins a new session on a page, with why it began: idle and max by the rules, reset for window.cake.reset(), tab when another tab began the browser's next session.","idle_ms":1800000,"max_ms":86400000,"persist_every_ms":1000,"activity_raw":["pointermove","mousemove","pointerdown","pointerup","mousedown","mouseup","click","dblclick","contextmenu","focus","blur","touchstart","touchend","scroll","input","change"],"activity_geo":["resize"],"activity_signals":["page","path"],"record":"session","why":{"idle":"idle","max":"max","reset":"reset","tab":"tab"},"flush_why":"session"},"navigation":{"$comment":"A single-page app's page view (navigation.js): the record cake.js sends when location.pathname changes within a page load, as posthog-js counts a $pageview (capture_pageview 'history_change': the path, not the query string or the fragment).","record":"path"},"visitor":{"$comment":"The visitor id (visitor.js): kept in localStorage for max_age_ms after its last use, as PostHog's anonymous id is kept for cookie_expiration 365 days (posthog-js posthog-core.ts).","max_age_ms":31536000000},"identify":{"$comment":"window.cake.identify(id) and window.cake.reset() (identify.js), as posthog-js's identify() and reset() (posthog-core.ts). The browser sends only algorithm(site key + separator + id) in hexadecimal (the header's idh), never the id. An id is a non-empty string or a number, and not one of refused (posthog-js's _validateIdentifyId and isDistinctIdStringLike: placeholders, compared ignoring case). commands: the names a queued call (window.cake.push) uses. fault: where cake.js notes why an identify() did nothing (an 'err' record), with not_an_id or no_crypto as the message, never the value.","algorithm":"SHA-256","separator":":","refused":["undefined","null","distinct_id","distinctid"],"commands":{"identify":"identify","reset":"reset"},"fault":"identify","not_an_id":"identify() needs a non-empty string or a number as the id","no_crypto":"identify() needs the browser's SubtleCrypto (a page on https or localhost)"},"source":{"$comment":"Where a page view came from (source.js), as posthog-js event-utils.ts reads it: the campaign parameters PostHog's channel rules read (CAMPAIGN_PARAMS: the five UTM parameters and gad_source), each value cut to max_chars, and the ad-click parameters whose presence only is sent (PERSONAL_DATA_CAMPAIGN_PARAMS).","campaign":["utm_source","utm_medium","utm_campaign","utm_content","utm_term","gad_source"],"click_ids":["gclid","gclsrc","dclid","gbraid","wbraid","fbclid","msclkid","twclid","li_fat_id","igshid","ttclid","rdt_cid","epik","qclid","sccid","oppref","bfcid","irclid","_kx"],"max_chars":200},"id_bytes":16,"time_precision":10,"idle_timeout_ms":1000,"idle_gap_ms":50,"content_type":"text/plain","gzip_query":"?z=gzip","token":{"entry":"cake"},"batch":{"max_bytes":51200,"interval_min_ms":2000,"interval_max_ms":10000,"interval_growth":2,"keepalive_max_bytes":60000,"compress_min_bytes":2048,"pending_max_bytes":1048576,"max_record_bytes":4194304,"retry_statuses":[408,429,500,502,503,504]},"limits":{"records_per_page":{"e":100000,"r":200000,"x":5000},"error_chars":200},"rrweb":{"sampling":{"mousemove":50,"scroll":150,"input":"last"}},"raw":{"events":["pointermove","pointerdown","pointerup","pointerover","mousemove","mousedown","mouseup","mouseover","click","dblclick","contextmenu","wheel","keydown","keyup","input","change","focus","blur","touchstart","touchend"],"target_events":["pointerdown","pointerup","click","mouseover","focus","blur","input","keydown","keyup","mousedown","mouseup","change","dblclick","contextmenu","wheel"],"target_selector":"a,button,input,select,textarea,label,summary,[role=button],[role=link]","geo_poll_ms":500,"dom_scan_delay_ms":5000,"dom_attr_names_max":8},"env":{"frame_history_writes":300,"frame_burst_writes":50,"frame_burst_gap_ms":20,"probe_attr":"data-cake-probe","cdp_rounds":3,"cdp_message":"cake probe","cdp_round_ms":100,"cdp_name_lookups_per_round":1.5,"stack_chars":400,"distinctive_globals":{"awesomium":["awesomium"],"cef":["RunPerfTest"],"cefsharp":["CefSharp"],"coachjs":["emit"],"fminer":["fmget_targets"],"geb":["geb"],"nightmare":["__nightmare","nightmare"],"phantomas":["__phantomas"],"phantomjs":["callPhantom","_phantom"],"rhino":["spawn"],"selenium":["_Selenium_IDE_Recorder","_selenium","calledSelenium"],"wdio":["wdioElectron"],"webdriver":["webdriver","__webdriverFunc","__lastWatirAlert","__lastWatirConfirm","__lastWatirPrompt","_WEBDRIVER_ELEM_CACHE","ChromeDriverw","__driver_evaluate","__webdriver_evaluate","__selenium_evaluate","__fxdriver_evaluate","__driver_unwrapped","__webdriver_unwrapped","__selenium_unwrapped","__fxdriver_unwrapped","__webdriver_script_func","__webdriver_script_fn"],"domAutomation":["domAutomation","domAutomationController"]},"global_patterns":{"selenium_cdc_window":["^cdc_|^\\$cdc_|^([a-z]){3}_.*_(Array|Promise|Symbol)$",""],"selenium_cdc_document":["^\\$cdc_|^\\$wdc_|selenium|webdriver|driver",""],"playwright":["^__pw|playwright","i"],"puppeteer":["^puppeteer_|^__puppeteer","i"]},"hook":{"methods":["getElementById","querySelector","querySelectorAll","getElementsByClassName"],"markers":{"pptr":"pptr:","utilityScript":"UtilityScript.","puppeteerEval":"__puppeteer_evaluation_script__"},"checks_max":2000,"hits_max":20,"arg_chars":60,"stack_frames":5}},"probes":{"timeout_ms":3000,"source_chars":60,"high_entropy_hints":["fullVersionList","platformVersion","architecture","model","bitness"],"native_getters":{"Navigator":["webdriver","userAgent","platform","languages","plugins","hardwareConcurrency"]},"native_methods":{"Permissions":["query"],"WebGLRenderingContext":["getParameter"],"Function":["toString"]},"fonts":["Ubuntu","Droid Sans","Cambria","DejaVu Sans","Liberation Sans"],"font_bases":["monospace","serif","sans-serif"],"font_sample":"mmmmmmmmmmlli0123456789","font_px":32,"system_font_names":{"keywords":["-apple-system","BlinkMacSystemFont"],"apple_claim":"Macintosh|iPhone|iPad|iPod|MacIntel|Mac OS X","other_claim":"Windows NT|Win32|Win64|X11|Linux|Android|CrOS"}},"botscent":{"sample_ms":3000},"privacy":{"mask_all_inputs":true,"private_selector":"[data-cake-private], input[type=password], [autocomplete^=\"cc-\"]","mask_text_selector":"[contenteditable]:not([contenteditable=\"false\"])","private_dropped_events":["keydown","keyup","input","change"],"private_dropped_fields":["s","r"],"key_classes":{"single_character":[{"class":"digit","pattern":"\\d","flags":""},{"class":"space","pattern":"\\s","flags":""},{"class":"letter","pattern":"[a-z]","flags":"i"}],"single_character_other":"symbol","named":{"Backspace":"delete","Delete":"delete","Enter":"enter","Tab":"tab","Shift":"modifier","Control":"modifier","Alt":"modifier","Meta":"modifier","CapsLock":"modifier","Unidentified":"unidentified","":"unidentified"},"prefixes":{"Arrow":"arrow"},"other":"other"}},"markers":{"version":"2026-11-13","every_ms":250,"host":{"tag":"DIV","parents":["body","html"],"display":"contents"},"attributes":["id","rel","href","data-codex-favicon-badge","data-browser-use-highlight","data-browser-use-interaction-highlight","data-browser-use-coordinate-highlight","data-stagehand-mask","data-skyvern-otp-box","unique_id"],"markers":[{"id":"claude-chrome.working","spots":[{"x":0.5,"top":12},{"x":0.5,"bottom":12}]},{"id":"claude-chrome.waiting","spots":[{"x":0.5,"top":56}]},{"id":"claude-chrome.bottom","spots":[{"x":0.5,"bottom":52}]},{"id":"claude-chrome.page-dom","ids":["claude-agent-stop-container","claude-agent-stop-button","claude-agent-glow-border","claude-phantom-cursor","claude-static-indicator-container"]},{"id":"claude-chrome.styles","ids":["claude-agent-animation-styles"]},{"id":"comet.overlay","selector":"[id^=\"pplx-agent\"]"},{"id":"chatgpt-chrome.badge","selector":"head [data-codex-favicon-badge], head link[rel~=\"icon\"][href*=\"data-codex-favicon-badge\"]"},{"id":"fellou.highlight","ids":["eko-highlight-container"]},{"id":"browser-use.highlight","ids":["browser-use-debug-highlights","browser-use-demo-panel"],"selector":"[data-browser-use-highlight], [data-browser-use-interaction-highlight], [data-browser-use-coordinate-highlight]"},{"id":"stagehand.overlay","ids":["__v3_cursor_overlay__"],"selector":"[data-stagehand-mask]"},{"id":"skyvern.overlay","ids":["boundingBoxContainer"],"selector":"[data-skyvern-otp-box]"},{"id":"skyvern.ids","selector":"[unique_id]"}]}}
   var RUNTIME = /*cake:runtime*/{}/*cake:runtime*/
-  var BUILD = "cbb415564f99"
+  var BUILD = "b962b026740c"
   var C = {}
   var SCOPE = {}
   // ---- static/rrweb-record.min.js
@@ -1010,7 +1010,7 @@ var index = { load };
 //   BUILD    a short hash of the sources, sent with every page so data can be traced to the script that made it
 //   STARTED  performance.now() when cake.js began to run
 //
-// The helpers here read clocks and sessionStorage and keep the list of everything stop() must undo.
+// The helpers here read clocks, sessionStorage and localStorage and keep the list of everything stop() must undo.
 
 var HEX_RADIX = 16 // protocol: hexadecimal digits of an id
 var HEX_DIGITS_PER_BYTE = 2 // protocol: one byte is two hexadecimal digits
@@ -1058,33 +1058,47 @@ C.randomId = function () {
   return C.hex(crypto.getRandomValues(new Uint8Array(CFG.id_bytes)))
 }
 
-// sessionStorage can be missing or throw (private windows, storage turned off). Then cake.js keeps working without
-// it: a page simply starts a new visit id and nothing is parked for the next page.
-C.store = {
-  get: function (key) {
-    try {
-      return sessionStorage.getItem(key)
-    } catch (e) {
-      return null
-    }
-  },
-  set: function (key, value) {
-    try {
-      sessionStorage.setItem(key, value)
+// sessionStorage and localStorage can be missing or throw (private windows, storage turned off, a full quota; even
+// reading the property can throw, so `open` is called inside the try). Then cake.js keeps working without them: a
+// page simply starts new ids of its own and nothing is parked for the next page.
+function storage(open) {
+  return {
+    get: function (key) {
+      try {
+        return open().getItem(key)
+      } catch (e) {
+        return null
+      }
+    },
+    /** Returns whether the value was stored. */
+    set: function (key, value) {
+      try {
+        open().setItem(key, value)
+        return true
+      } catch (e) {
+        return false
+      }
+    },
+    remove: function (key) {
+      try {
+        open().removeItem(key)
+      } catch (e) {
+        return false
+      }
       return true
-    } catch (e) {
-      return false
     }
-  },
-  remove: function (key) {
-    try {
-      sessionStorage.removeItem(key)
-    } catch (e) {
-      return false
-    }
-    return true
   }
 }
+
+/** This tab's storage (sessionStorage): the tab's id, its session, its page count, parked uploads. */
+C.store = storage(function () {
+  return sessionStorage
+})
+
+/** The storage every tab of the site shares (localStorage): the browser's session (session.js). */
+C.shared = storage(function () {
+  return localStorage
+})
 
 /** Records one of cake.js's own failures (where, and the message only) so a broken probe shows up in cake. */
 C.fault = function (where, error) {
@@ -1138,50 +1152,85 @@ C.stopAll = function () {
   }).call(SCOPE)
   // ---- static/src/session.js
   ;(function () {
-// AgentCake page script, part: the session id, one per browser tab, cut by PostHog's time rules.
+// AgentCake page script, part: the session ids. A browser's tabs of a site share one session, cut by PostHog's time
+// rules; each tab also has an id and a session of its own, the part of the browser's session AgentCake judges, replays
+// and stores.
 //
-// A session is what one tab did with no more than CFG.session.idle_ms (30 minutes) between two moments of activity,
-// and at most CFG.session.max_ms (24 hours) long: the rules of posthog-js's packages/browser/src/sessionid.ts
-// (DEFAULT_SESSION_IDLE_TIMEOUT_SECONDS, SESSION_LENGTH_LIMIT_MILLISECONDS; posthog-js, MIT). Unlike PostHog, which
-// shares one session between the tabs of a site, each tab keeps its own in sessionStorage, as cake.js always has: a
-// human in one tab and an agent in another never share a timeline.
+// The rules are posthog-js's (packages/browser/src/sessionid.ts at commit c8f17c66, SessionIdManager and its
+// checkAndGetSessionAndWindowId; posthog-js, Apache-2.0), written here in cake.js's own code:
+// - The browser's session (`bs` in every batch) is kept in localStorage, so that every tab of the site has the same
+//   one: its id alone (CFG.storage.browser_session, which a site's consent code can read as it is) and its clock, when
+//   it began and when any tab last saw activity (CFG.storage.browser_clock, naming the session it belongs to). It ends
+//   once no tab has seen activity for CFG.session.idle_ms (30 minutes), or once it has lasted CFG.session.max_ms
+//   (24 hours): the next activity, in any tab, begins the next one. A tab reads the stored session again at most
+//   every CFG.session.persist_every_ms of its activity, and always before ending it for idleness (posthog-js reads its
+//   storage again then): another tab's activity keeps the session going, and a session another tab began is taken.
+// - The tab's id (`w`, posthog-js's window id) is kept in sessionStorage (CFG.storage.window). A tab that begins the
+//   browser's next session gets a new id with it, as posthog-js gives a new window id with a new session id; a tab
+//   that takes another tab's session keeps its own. A tab that is a copy of another (duplicated, or opened by
+//   window.open with an opener, which copy sessionStorage) is told apart by posthog-js's "primary window exists" mark
+//   (CFG.storage.window_open): a page sets it when it starts and removes it when it is left, so a page that finds it
+//   set holds a copy of a live page's sessionStorage, and takes a new id and session. posthog-js removes the mark at
+//   beforeunload; cake.js at pagehide, which keeps the page fit for the back-forward cache, and sets it again when the
+//   page comes back from it. The mark holds the page's own random value, so a page removes no other page's mark.
+// - The tab's session (`s`) is cut as cake.js has always cut it, by the same rules on the tab's own clock
+//   (sessionStorage CFG.storage.session and CFG.storage.clock), and also ends whenever the browser's session changes:
+//   each tab session belongs to one browser session, which its clock names. One kept by an older cake.js, which
+//   belongs to none, is not continued.
+// A session that is gone from localStorage while this page had it there (another tab's window.cake.stop() or reset(),
+// or storage cleared) is never written back: the page's next activity begins the next one, as posthog-js begins a new
+// session when the id it stored is gone. Where localStorage takes no writes (a full quota) but sessionStorage does, the
+// browser's session is the tab's own, kept in sessionStorage under the same names: the tab's pages go on with it and
+// with the tab's session, one session per tab. Where neither can be used (a private window, storage turned off), it
+// lives only as long as the page, as posthog-js's does in memory: each such page view is a session of its own. Where
+// sessionStorage cannot be used, the same holds for the tab's id and session.
 //
 // Activity is what PostHog counts: its recorder's user interactions (lazy-loaded-session-recorder.ts, ACTIVE_SOURCES:
 // mouse moves and clicks, scrolling, a resized window, input, touch), read here from the raw input records that stand
 // for them (CFG.session.activity_raw, and a geometry record made by a resize), and a page view (PostHog's $pageview).
-// The first activity after the idle time, or after the session has lasted max_ms, starts a new session: what is
-// buffered goes first under the old id, then the new id is kept, its first record says why it began (a "session"
-// record, with the page's source fields: PostHog takes a session's entry properties from its first event), and the
-// replay starts over with a full snapshot, as PostHog's recorder restarts on a new session id. While the tab is idle,
-// replay events are dropped, as PostHog's recorder drops them while idle (they show a page nobody acts on, and the
-// next session's snapshot shows the page again); signal records still go, under the session they belong to.
-// window.cake.reset() begins a new session the same way at once, its record saying "reset" (identify.js).
-// The page number and the once-per-visit frame check start over with a new session. AgentCake's collector applies
-// the same rules to uploads from scripts that do not (session_split.py), from the same settings.
+// When an activity ends the tab's session: what is buffered goes first under the old ids, then the new ids are kept,
+// the new session's first record says why it began (a "session" record, with the page's source fields: PostHog takes a
+// session's entry properties from its first event), and the replay starts over with a full snapshot, as PostHog's
+// recorder restarts on a new session id. While the tab is idle, replay events are dropped, as PostHog's recorder drops
+// them while idle (they show a page nobody acts on, and the next session's snapshot shows the page again); signal
+// records still go, under the session they belong to. window.cake.reset() begins the browser's next session the same
+// way at once, its record saying "reset" (identify.js); the other tabs take it at their next activity. The page number
+// and the once-per-tab-session frame check start over with a new tab session. AgentCake's collector cuts the tab
+// sessions of uploads from scripts that do not cut their own by the same rules, from the same settings
+// (session_split.py).
 
-var current = null // { id, start, last }: the session and its activity clock, epoch ms
-var written = 0 // when the clock was last written to sessionStorage
+var KEY = CFG.storage
+var tab = null // { id, start, last }: this tab's session and its clock, epoch ms
+var browser = null // { id, start, last }: the browser's session, as this page last saw it
+var windowId = null // this tab's id
+var mark = null // this page's value of the mark that it is the tab's live page
+var shared = true // false once localStorage refused the browser's session: it is the tab's own from then on
+var inShared = false // the browser's session was in localStorage as this page had it: read there, or written there
+var synced = 0 // the time of the activity at which the browser's session was last read from localStorage
+var tabWritten = 0 // the tab's last activity as last written to sessionStorage
+var browserWritten = 0 // the browser's last activity as last written to localStorage
 var activeRaw = {}
 CFG.session.activity_raw.forEach(function (type) {
   activeRaw[type] = true
 })
 
-function readClock() {
+function parse(text) {
   try {
-    var clock = JSON.parse(C.store.get(CFG.storage.clock) || 'null')
-    return clock && typeof clock.s === 'number' && typeof clock.l === 'number' ? clock : null
+    return JSON.parse(text || 'null')
   } catch (e) {
     return null
   }
 }
 
-function writeClock() {
-  written = current.last
-  C.store.set(CFG.storage.clock, JSON.stringify({ s: current.start, l: current.last }))
+function isClock(value) {
+  return !!value && typeof value.s === 'number' && typeof value.l === 'number'
 }
 
-function expired(t) {
-  return t - current.last > CFG.session.idle_ms || t - current.start > CFG.session.max_ms
+/** Why a session ({ start, last }) has ended by `t`: idle or max, or null while it lasts. */
+function ended(session, t) {
+  if (t - session.last > CFG.session.idle_ms) return CFG.session.why.idle
+  if (t - session.start > CFG.session.max_ms) return CFG.session.why.max
+  return null
 }
 
 function isActivity(stream, record) {
@@ -1191,67 +1240,227 @@ function isActivity(stream, record) {
   return stream === 'x' && CFG.session.activity_signals.indexOf(record.ty) >= 0
 }
 
-// What starts over with a session: its id, its clock, its page count and its frame check.
+/** The browser's session as localStorage holds it (store: as the tab holds its own, in sessionStorage), or null. A
+ * clock that names another session (read between another tab's two writes as it began one) is no clock: the session
+ * goes on from `t`, as posthog-js starts the clock of a session id stored without one. */
+function storedBrowser(t, store) {
+  store = store || C.shared
+  var id = store.get(KEY.browser_session)
+  if (!id) return null
+  var clock = parse(store.get(KEY.browser_clock))
+  return isClock(clock) && clock.b === id ? { id: id, start: clock.s, last: clock.l } : { id: id, start: t, last: t }
+}
+
+/** Takes another tab's view of the same session: an earlier start (this page read the id before its clock), later
+ * activity. */
+function merge(stored) {
+  if (stored.start < browser.start) browser.start = stored.start
+  if (stored.last > browser.last) browser.last = stored.last
+}
+
+function writeBrowser() {
+  browserWritten = browser.last
+  var clock = JSON.stringify({ b: browser.id, s: browser.start, l: browser.last })
+  if (shared && C.shared.set(KEY.browser_session, browser.id) && C.shared.set(KEY.browser_clock, clock)) {
+    inShared = true
+    return
+  }
+  shared = false // localStorage refused it: from now on the browser's session is the tab's own, in sessionStorage
+  C.store.set(KEY.browser_session, browser.id)
+  C.store.set(KEY.browser_clock, clock)
+}
+
+/** The browser's clock goes to localStorage, unless another tab has begun a session that still lasts (this page takes
+ * that one at its next activity) or the session is gone from there (the next activity begins the next one). What
+ * another tab stored of this session is kept (merge). Where localStorage takes no writes, to the tab's own. */
+function persistBrowser() {
+  if (!shared) return writeBrowser()
+  var stored = storedBrowser(browser.last)
+  if (stored && stored.id !== browser.id && !ended(stored, browser.last)) return
+  if (!stored && inShared) return
+  if (stored && stored.id === browser.id) merge(stored)
+  writeBrowser()
+}
+
+function setWindow(id) {
+  windowId = id
+  C.store.set(KEY.window, id)
+}
+
+/** Begins the browser's next session at `t`, from this tab, which gets a new id with it. */
+function beginBrowser(t) {
+  browser = { id: C.randomId(), start: t, last: t }
+  setWindow(C.randomId())
+  writeBrowser()
+}
+
+/** The browser's session for an activity at `t` (posthog-js checkAndGetSessionAndWindowId): one another tab began and
+ * that lasts is taken; one gone from localStorage does not go on (this tab begins the next); else this one goes on,
+ * kept going by every tab's activity, until it has ended, when this tab begins the next. Returns why the tab's session
+ * ends with it: idle or max (the session this page had ended), tab (another tab began the next one before this one
+ * ended, or ended it), or null when it goes on. */
+function checkBrowser(t) {
+  if (shared && (t < synced || t - synced >= CFG.session.persist_every_ms || ended(browser, t))) {
+    synced = t
+    var stored = storedBrowser(t)
+    if (stored && stored.id === browser.id) merge(stored)
+    else if (stored && !ended(stored, t)) {
+      var had = browser
+      browser = stored
+      inShared = true
+      return ended(had, t) || CFG.session.why.tab
+    } else if (!stored && inShared) {
+      var gone = browser
+      beginBrowser(t)
+      return ended(gone, t) || CFG.session.why.tab
+    }
+  }
+  var why = ended(browser, t)
+  if (why) beginBrowser(t)
+  return why
+}
+
+function writeClock() {
+  tabWritten = tab.last
+  C.store.set(KEY.clock, JSON.stringify({ s: tab.start, l: tab.last, b: browser.id }))
+}
+
+// What starts over with a tab's session: its id, its clock, its page count and its frame check.
 function fresh(t) {
-  current = { id: C.randomId(), start: t, last: t }
-  C.store.set(CFG.storage.session, current.id)
-  C.store.remove(CFG.storage.page_number)
-  C.store.remove(CFG.storage.frames_done)
+  tab = { id: C.randomId(), start: t, last: t }
+  C.store.set(KEY.session, tab.id)
+  C.store.remove(KEY.page_number)
+  C.store.remove(KEY.frames_done)
   writeClock()
+}
+
+function ids() {
+  return { s: tab.id, bs: browser.id, w: windowId }
+}
+
+// Another tab may have changed the visitor id or its identify hash (window.cake.reset() or identify() there, which
+// begins the session this tab takes): the tab's next session carries the stored ones, as posthog-js's tabs take a new
+// distinct id from the persistence they share.
+function followVisitor(t) {
+  var taken = C.visitor.follow(t)
+  if (!taken) return
+  C.transport.visitor(taken.id)
+  if (taken.h) C.transport.identity(taken.h)
 }
 
 // between: what changes after the old session's last batch and before the new one's first (reset(): the visitor id).
 function rotate(t, why, between) {
   C.flush(CFG.session.flush_why) // what is buffered belongs to the session that ends
+  followVisitor(t)
   if (between) between()
+  // a later page of this tab may have begun a newer tab id (this page is back from the back-forward cache)
+  windowId = C.store.get(KEY.window) || windowId
   fresh(t)
-  C.transport.session(current.id)
+  C.transport.session(ids())
   C.push('x', Object.assign({ t: t, ty: CFG.session.record, why: why }, C.source.fields()))
   C.replay.snapshot()
 }
 
 function touch(t) {
-  if (t > current.last) current.last = t
-  if (current.last - written >= CFG.session.persist_every_ms) writeClock()
+  if (t > tab.last) tab.last = t
+  if (t > browser.last) browser.last = t
+  if (tab.last - tabWritten >= CFG.session.persist_every_ms) writeClock()
+  if (browser.last - browserWritten >= CFG.session.persist_every_ms) persistBrowser()
+}
+
+/** This page is the tab's live page (posthog-js's "primary window exists"). */
+function holdTab() {
+  mark = mark || C.randomId()
+  C.store.set(KEY.window_open, mark)
+}
+
+/** The page is left: its mark goes, unless another page of the tab has put its own there. */
+function releaseTab() {
+  if (C.store.get(KEY.window_open) === mark) C.store.remove(KEY.window_open)
+}
+
+/** Whether this page's sessionStorage is a copy of a live page's (see the top); marks the tab as this page's. A page
+ * being prerendered holds a copy of its own tab's sessionStorage, which becomes the tab's when the page is shown (what
+ * it wrote meanwhile is dropped): it is no copy of another tab, and marks the tab and writes its ids once shown. */
+function takeTab() {
+  C.listen(window, 'pagehide', releaseTab)
+  C.listen(window, 'pageshow', function (event) {
+    if (event.persisted) holdTab() // back from the back-forward cache: the tab's live page again
+  })
+  if (document.prerendering) {
+    C.listen(document, 'prerenderingchange', function () {
+      holdTab()
+      setWindow(windowId)
+      C.store.set(KEY.session, tab.id)
+      writeClock()
+    })
+    return false
+  }
+  var copy = C.store.get(KEY.window_open) !== null
+  holdTab()
+  return copy
 }
 
 C.session = {
-  /** The tab's session id when a page view begins at `now`, a new one when there is none or it has run out. A
-   * session kept by an older cake.js has no clock: it goes on from now, as PostHog starts the clock of a session id
-   * stored without one. */
+  /** The ids a page view begins with at `now`: { s, bs, w }. The stored ones while they last; new ones in a copied tab,
+   * after the time rules, and where nothing is stored. */
   begin: function (now) {
-    var id = C.store.get(CFG.storage.session)
-    var clock = readClock() || { s: now, l: now }
-    current = id ? { id: id, start: clock.s, last: clock.l } : null
-    if (!current || expired(now)) fresh(now)
-    return current.id
+    if (takeTab()) {
+      C.store.remove(KEY.window)
+      C.store.remove(KEY.session)
+      C.store.remove(KEY.clock)
+    }
+    windowId = C.store.get(KEY.window)
+    synced = now
+    var stored = storedBrowser(now)
+    var own = storedBrowser(now, C.store) // kept by an earlier page of the tab where localStorage took no writes
+    if (stored && !ended(stored, now)) {
+      browser = stored
+      inShared = true
+    } else if (own && !ended(own, now)) browser = own
+    else beginBrowser(now)
+    if (!windowId) setWindow(C.randomId())
+    var id = C.store.get(KEY.session)
+    var clock = parse(C.store.get(KEY.clock))
+    tab = id && isClock(clock) && clock.b === browser.id ? { id: id, start: clock.s, last: clock.l } : null
+    if (!tab || ended(tab, now)) fresh(now)
+    return ids()
   },
-  /** Whether a record may be buffered; an activity record may first start a new session (see the top). */
+  /** Whether a record may be buffered; an activity record may first end the tab's session (see the top). */
   admit: function (stream, record) {
-    if (!current) return true
+    if (!tab) return true
     if (isActivity(stream, record)) {
-      if (expired(record.t)) {
-        rotate(record.t, record.t - current.last > CFG.session.idle_ms ? CFG.session.why.idle : CFG.session.why.max)
-      }
+      var own = ended(tab, record.t) // the tab's own clock first: its session is cut as it always was
+      var changed = checkBrowser(record.t) // always: the browser's session may go on, be taken or begin anew
+      var why = own || changed
+      if (why) rotate(record.t, why)
       touch(record.t)
       return true
     }
-    return stream !== 'e' || C.now() - current.last <= CFG.session.idle_ms
+    return stream !== 'e' || C.now() - tab.last <= CFG.session.idle_ms
   },
-  /** Ends the session at `t` and begins the next one, as the idle time does, for `why` (window.cake.reset(), as
-   * posthog-js's reset() calls resetSessionId()): what is buffered goes under the old id, then between() runs. */
+  /** Begins the browser's next session at `t` from this tab, for `why` (window.cake.reset(), as posthog-js's reset()
+   * calls resetSessionId()): what is buffered goes under the old ids, then between() runs. */
   restart: function (t, why, between) {
-    if (current) rotate(t, why, between)
+    if (!tab) return
+    beginBrowser(t)
+    rotate(t, why, between)
   },
-  /** The clock goes to sessionStorage now (the page is being left). */
+  /** The clocks are written now (the page is being left). */
   save: function () {
-    if (current) writeClock()
+    if (!tab) return
+    writeClock()
+    persistBrowser()
   },
-  /** Forgets the session and its clock (the visitor said no). */
+  /** Forgets the ids and their clocks (the visitor said no). */
   forget: function () {
-    current = null
-    C.store.remove(CFG.storage.session)
-    C.store.remove(CFG.storage.clock)
+    tab = null
+    var own = [KEY.session, KEY.clock, KEY.window, KEY.window_open, KEY.browser_session, KEY.browser_clock]
+    own.forEach(function (key) {
+      C.store.remove(key)
+    })
+    C.shared.remove(KEY.browser_session)
+    C.shared.remove(KEY.browser_clock)
   }
 }
   }).call(SCOPE)
@@ -1259,13 +1468,13 @@ C.session = {
   ;(function () {
 // AgentCake page script, part: the visitor id, which AgentCake counts visitors by, and the identify hash kept with it.
 //
-// As PostHog does (posthog-js's posthog-core.ts: an anonymous id persisted with 'localStorage+cookie' for
-// cookie_expiration 365 days, renewed whenever it is written; posthog-js, MIT), the browser keeps a random id, made
-// from nothing about the device or the visitor, for CFG.visitor.max_age_ms (365 days) after its last page view on
-// the site. Only in localStorage: PostHog's cookie half exists so that sibling subdomains and the site's own server
-// can read the id, which AgentCake needs neither for, and a cookie would go to the site's server with every request;
-// the page script reads and sets no cookie. localStorage has no expiry of its own, so the id is kept with the time of
-// its last use and replaced once that is older than a year.
+// As PostHog does (posthog-js's packages/browser/src/posthog-core.ts: an anonymous id persisted with
+// 'localStorage+cookie' for cookie_expiration 365 days, renewed whenever it is written; posthog-js, Apache-2.0), the
+// browser keeps a random id, made from nothing about the device or the visitor, for CFG.visitor.max_age_ms (365 days)
+// after its last page view on the site. Only in localStorage: PostHog's cookie half exists so that sibling subdomains
+// and the site's own server can read the id, which AgentCake needs neither for, and a cookie would go to the site's
+// server with every request; the page script reads and sets no cookie. localStorage has no expiry of its own, so the id
+// is kept with the time of its last use and replaced once that is older than a year.
 // Where localStorage cannot be used (a private window, storage turned off), the id lives only as long as the page,
 // as PostHog's id does in memory: each such page view counts as a visitor of its own.
 // After the site calls window.cake.identify(), the same entry also holds the identify hash (identify.js), as
@@ -1315,6 +1524,16 @@ C.visitor = {
     entry.t = now
     write()
   },
+  /** The stored id and hash, when another tab has changed them since this page took its copy (window.cake.reset() or
+   * identify() there): this page takes them, as posthog-js's tabs take a new distinct id from the persistence they
+   * share (session.js asks when the tab's session begins anew). Returns the entry taken, or null when nothing changed
+   * or nothing is stored (storage refused, or emptied by window.cake.stop() in another tab). */
+  follow: function (now) {
+    var stored = read(now)
+    if (!stored || !entry || (stored.id === entry.id && stored.h === entry.h)) return null
+    entry = stored
+    return entry
+  },
   /** A new id, without a hash, in place of the old one (window.cake.reset()); returns it. */
   renew: function (now) {
     entry = { id: C.randomId(), t: now }
@@ -1339,10 +1558,11 @@ C.visitor = {
 //
 // A site with sign-in may call window.cake.identify(<its own id for the visitor>) once they sign in, and
 // window.cake.reset() when they sign out, so that AgentCake counts them as one visitor on every browser and device
-// they sign in on. That is PostHog's person (posthog-js posthog-core.ts identify() and reset(); PostHog's
-// person-merge-service.ts; MIT): identify() links the anonymous id to the site's id, and the server merges the two,
-// the anonymous id's earlier events included; reset() begins a new anonymous id and a new session, so that the next
-// person to sign in on a shared computer is not merged into the last one.
+// they sign in on. That is PostHog's person (posthog-js packages/browser/src/posthog-core.ts identify() and reset(),
+// Apache-2.0; PostHog's nodejs/src/ingestion/common/persons/person-merge-service.ts, MIT): identify() links the
+// anonymous id to the site's id, and the server merges the two, the anonymous id's earlier events included; reset()
+// begins a new anonymous id and a new session, so that the next person to sign in on a shared computer is not merged
+// into the last one.
 // Unlike posthog-js, the site's id never leaves the browser: cake.js sends only the SHA-256 of the site key, a ":" and
 // the id (CFG.identify), in hexadecimal, made with the browser's SubtleCrypto; the site key makes the same id give
 // another hash on another site. Where SubtleCrypto is missing (a page that is not https or localhost), identify()
@@ -1353,8 +1573,9 @@ C.visitor = {
 // distinct id without merging. Like posthog-js, it takes a non-empty string or a number, and refuses the words
 // CFG.identify.refused (placeholders, not ids).
 // Before cake.js starts (data-consent="required" without start() yet, or calls queued before it loaded) nothing is
-// stored or sent: identify() waits for start; reset() deletes the stored visitor id, hash and session id at once, so
-// that start() begins new ones. window.cake.stop() drops whatever is waiting (cake_main.js).
+// stored or sent: identify() waits for start; reset() deletes the stored visitor id, hash and session ids at once (the
+// browser's too: no other tab writes it back), so that start() begins new ones. window.cake.stop() drops whatever is
+// waiting (cake_main.js).
 
 var siteKey = null // set when cake.js starts: the salt of the hash
 var generation = 0 // reset() and stop() raise it: a hash still being made for an identity before them is dropped
@@ -1444,7 +1665,7 @@ C.identity = {
 // AgentCake page script, part: where a page view came from, and the browser's language and time zone.
 //
 // The fields PostHog's web analytics groups sessions by (posthog-js's packages/browser-common/src/utils/
-// event-utils.ts; posthog-js, MIT), sent with each page record and with the record that begins a new session:
+// event-utils.ts; posthog-js, Apache-2.0), sent with each page record and with the record that begins a new session:
 //   rd    the referring domain: the host of document.referrer, never the address itself ("" when there is none,
 //         PostHog's $direct); PostHog's $referring_domain
 //   utm   the page address's campaign parameters that are there, each cut to CFG.source.max_chars: the five UTM
@@ -1696,16 +1917,18 @@ C.transport = {
     })
     timer = setTimeout(tick, interval)
   },
-  /** From now on batches carry this session id (a new session began on this page: session.js). */
-  session: function (id) {
-    header.s = id
+  /** From now on batches carry these session ids, { s, bs, w } (a new session began on this page: session.js). */
+  session: function (ids) {
+    Object.assign(header, ids)
   },
-  /** From now on batches carry this visitor id and no identify hash (window.cake.reset(): identify.js). */
+  /** From now on batches carry this visitor id and no identify hash (window.cake.reset(): identify.js; another tab's
+   * reset() followed: session.js). */
   visitor: function (id) {
     header.vid = id
     delete header.idh
   },
-  /** From now on batches carry this identify hash (window.cake.identify(): identify.js). */
+  /** From now on batches carry this identify hash (window.cake.identify(): identify.js; another tab's identify()
+   * followed: session.js). */
   identity: function (hash) {
     header.idh = hash
   },
@@ -2358,7 +2581,7 @@ function probeRound() {
 // A burst of history writes makes Chrome's browser process queue them, and any synchronous call into it meanwhile
 // (navigator.plugins, Notification.permission, the site's own document.cookie) waits, ~0.1 s for 300 at once. So
 // the writes go in short bursts (CFG.env.frame_burst_writes every frame_burst_gap_ms), still well inside Chrome's
-// counting window, and cake_main.js runs this once per visit, when idle. The frame is marked, so raw.js does not
+// counting window, and cake_main.js runs this once per tab session, when idle. The frame is marked, so raw.js does not
 // report it and rrweb records only an empty placeholder for it; calls done(record) when finished.
 function frameChecks(done) {
   var frame = document.createElement('iframe')
@@ -3212,17 +3435,17 @@ C.detectors = {
 //
 // As in cake 0.3.3, a site adds one line:
 // <script src="https://<cake>/cake.js" data-site="<key>" defer></script>.
-// cake.js sends to the address it was loaded from (…/cake.js → …/collect), keeps the session id in sessionStorage
-// (one per tab, cut after 30 minutes without activity or 24 hours: session.js) and the visitor id in localStorage
-// (visitor.js).
-// Consent, as PostHog 1.0 left it to the site: a site that asks first either adds the tag
-// only after the visitor agreed, or adds it with data-consent="required" and calls window.cake.start() once they
-// agree; until then cake.js does nothing at all (no listener, no storage, no request). window.cake.stop() (the
-// visitor said no) ends recording and sending on this page for good, drops what was not sent yet and forgets the
-// session id, the visitor id and its identify hash. window.cake.identify(id) and window.cake.reset() are the sign-in
-// and sign-out calls of identify.js. Code that may run before cake.js has loaded can queue the calls, as with
-// posthog-js's snippet: window.cake = window.cake || []; window.cake.push('start') (or 'stop', 'reset',
-// ['identify', id]); window.cake.push does the same once cake.js runs.
+// cake.js sends to the address it was loaded from (…/cake.js → …/collect), keeps the browser's session in localStorage
+// (shared by the site's tabs, ended after 30 minutes without activity in any of them or 24 hours), the tab's id and its
+// own session in sessionStorage (session.js), and the visitor id in localStorage (visitor.js).
+// Consent, as PostHog 1.0 left it to the site: a site that asks first either adds the tag only after the visitor
+// agreed, or adds it with data-consent="required" and calls window.cake.start() once they agree; until then cake.js
+// does nothing at all (no listener, no storage, no request). window.cake.stop() (the visitor said no) ends recording
+// and sending on this page for good, drops what was not sent yet and forgets the session ids and their clocks, the tab
+// id, the visitor id and its identify hash (no other tab writes them back). window.cake.identify(id) and
+// window.cake.reset() are the sign-in and sign-out calls of identify.js. Code that may run before cake.js has loaded
+// can queue the calls, as with posthog-js's snippet: window.cake = window.cake || []; window.cake.push('start') (or
+// 'stop', 'reset', ['identify', id]); window.cake.push does the same once cake.js runs.
 // A site must not get slower for having cake.js: when it starts, it only reads its settings and hooks its
 // listeners; the replay's first snapshot is the next task; every detector waits for the page's load event and runs
 // as one task per idle period (schedule.js).
@@ -3302,7 +3525,8 @@ function step(name, fn) {
   }
 }
 
-// The frame checks (automation.js) once per visit, on the first page view that finishes them; then the tasks record.
+// The frame checks (automation.js) once per tab session, on its first page view that finishes them; then the tasks
+// record.
 function framesThenReport() {
   var report = function () {
     C.push('x', C.schedule.report())
@@ -3377,10 +3601,13 @@ function begin() {
   var key = siteKey()
   if (!url || !key) return
   var now = C.now()
+  var ids = C.session.begin(now)
   var header = {
     v: CFG.format_version,
     k: key,
-    s: C.session.begin(now),
+    s: ids.s,
+    bs: ids.bs,
+    w: ids.w,
     vid: C.visitor.id(now),
     pv: C.randomId(),
     ua: navigator.userAgent,

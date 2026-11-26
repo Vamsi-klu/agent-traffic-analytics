@@ -11,7 +11,7 @@ Rules: [`../DESIGN.md`](../DESIGN.md). Users never need Node: a release runs `np
     npm test               # node --test on scripts/*.test.mjs and tests/*.test.mjs: the schema checker, the fixture /api, check:dist,
                            # and the pages in Chromium (tests/: home, dashboard, the session list, the session and replay pages,
                            # the registration card, light under a dark system)
-    npm run visual         # pixel diff of the component overview + 8 pages against visual/baseline/
+    npm run visual         # pixel diff of the component overview + 9 pages against visual/baseline/
     npm run visual:update  # accept the current look as the baseline (commit it with the change)
     npm run shots -- <dir> # 1280px and 485px screenshots of every page, fails on horizontal scroll
     node scripts/replay-fixtures.mjs  # re-records the sample replays in the test site's shop (tests/site; a scratch AgentCake, ~3 min)
@@ -43,9 +43,9 @@ if it doesn't (`src/components/cake/page-state.tsx`). The contract has three par
 |---|---|---|
 | `GET /api/overview?range=24h\|7d\|30d\|all` | `Overview`: counts, the human + agent top block, the agents seen, page views and pages per session, the latest Agent sessions, disk use, the coverage table's wording | `overview` |
 | `GET /api/web?range=24h\|7d\|30d\|all` | `WebAnalytics`: visitors and page views (all and by verdict), active time spent (all and by verdict), the Trends chart's five metrics for Human and Agent by hour or day, and the time zone they're in, the same five for each agent (Top agents), the Paths table, and the Sources, Devices and Geography tables (a row per value of each breakdown) | `web` |
-| `GET /api/sessions?verdict=&agent=&range=&cursor=` | `SessionsPage`: counts per group, the names of the two kinds of agent, agent names, one page of sessions (newest first), `next` cursor | `sessions` |
-| `GET /api/session/<id>` | `SessionDetail`: the session, title, summary, timeline, the pages in the order they opened, four reason layers, actions, replay (chunks, the session's clock `epoch_ms`, `handoff_lead_ms`, why it is `missing`), server half; 404 if unknown | `session` |
-| `GET /api/session/<id>/replay?chunk=<n>` | `ReplayChunk`: the rrweb events of chunk n (one per 10 s, as listed in the session); the replay page asks for a chunk only when it needs it | `replay` |
+| `GET /api/sessions?verdict=&agent=&range=&cursor=` | `SessionsPage`: counts per group, the names of the two kinds of agent, agent names, one page of sessions (newest first; a session of more than one tab with its tabs' lines), `next` cursor | `sessions` |
+| `GET /api/session/<id>` | `SessionDetail`: the session, title, summary, timeline, the pages in the order they opened, four reason layers, actions, replay (chunks, the session's clock `epoch_ms`, `handoff_lead_ms`, why it is `missing`), server half; for a session of more than one tab also each tab (`tabs`), the tab to follow at each moment (`follow`), the tab the verdict rests on, and the tab an older address named; `<id>` may be a tab's own id; 404 if unknown | `session` |
+| `GET /api/session/<id>/replay?chunk=<n>&tab=<id>` | `ReplayChunk`: the rrweb events of chunk n (one per 10 s, as listed in the session, or in its tab `tab` of a session of more than one tab), on the session's clock; the replay page asks for a chunk only when it needs it | `replay` |
 | `GET /api/settings` | `Settings` | `settings` |
 | `POST /api/settings` (JSON, only the fields to change) | the whole `Settings`; 400 with an error body for a bad value | `settings-update` (body) |
 | `GET /api/timezones` | `Timezones`: the time zones Settings lists, UTC first, each with its offset from UTC now | `timezones` |

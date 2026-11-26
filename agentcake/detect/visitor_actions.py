@@ -1,4 +1,4 @@
-"""The visitor's own actions among a session's raw events: what the Every action list shows, where a hand-off is and
+"""The visitor's own actions among a session's raw events: what the All actions list shows, where a hand-off is and
 what a stretch of the evaluation's splices spans, one definition for all of them (agentcake/data/actions.json says
 which events and why).
 

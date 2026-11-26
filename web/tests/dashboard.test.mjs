@@ -34,8 +34,8 @@ const NO_AGENTS = { ...overview, counts: { ...overview.counts, agent: 0, agent_o
 /** setupAnswer: /api/setup's answer, by default one with the website's sessions recorded (with nothing recorded the
  *  dashboard is the onboarding); webAnswer: /api/web's, by default the sample; query: the dashboard's address after
  *  its path ("?range=24h"). */
-async function open({ answer, webAnswer, setupAnswer = RECORDED, width, query = "" } = {}) {
-  const tab = await openTab(app, { width })
+async function open({ answer, webAnswer, setupAnswer = RECORDED, width, query = "", style } = {}) {
+  const tab = await openTab(app, { width, style })
   if (answer) await tab.page.route("**/api/overview**", (route) => route.fulfill({ json: answer }))
   if (webAnswer) await tab.page.route("**/api/web**", (route) => route.fulfill({ json: webAnswer }))
   await tab.page.route("**/api/setup", (route) => route.fulfill({ json: setupAnswer }))
@@ -226,8 +226,8 @@ test("every Deep dive card's title has its icon before it, as Top agents and Tre
   } finally { await tab.close() }
 })
 
-test("every dropdown is a pill 32 px tall, and the All / Agent / Human chips beside a table's dropdown are too", async () => {
-  const tab = await open()
+test("in Cake, every dropdown is a pill 32 px tall, and the All / Agent / Human chips beside a table's dropdown are too", async () => {
+  const tab = await open({ style: "cake" })
   try {
     const shapes = (selector) => tab.page.locator(selector).evaluateAll((els) => els.map((el) => {
       const box = el.getBoundingClientRect()

@@ -15,6 +15,8 @@ import unittest
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, HERE)
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import visit_rows  # noqa: E402
 from agentcake import config  # noqa: E402
 from agentcake.api import overview, visits  # noqa: E402
 
@@ -31,12 +33,13 @@ class SessionsByPage(unittest.TestCase):
         self.addCleanup(self.con.close)
 
     def visit(self, sid, verdict_class, *views):
-        """A session and its page views, each (page view, path) as cake.js's batches carry them."""
+        """A session of one tab and its page views, each (page view, path) as cake.js's batches carry them."""
         self.con.execute("INSERT INTO sessions(id, start_ms, end_ms, origin, is_test, verdict_class) "
                          "VALUES(?, ?, ?, 'site', 0, ?)", (sid, T0, T0 + 1000, verdict_class))
         for seq, (pv, path) in enumerate(views):
             self.con.execute("INSERT INTO batches(session_id, pv, seq, recv_ms, t, url, n_rrweb, n_raw, n_env) "
                              "VALUES(?, ?, ?, ?, ?, ?, 0, 0, 0)", (sid, pv, seq, T0, T0 + seq, SHOP + path))
+        visit_rows.alone(self.con)
 
     def views(self):
         return overview.page_views(self.con, visits.Scope())

@@ -35,7 +35,9 @@ A JSON object: a header and three record arrays.
 |---|---|---|---|
 | `v` | integer | | Format version: `1` (`CFG.format_version`). |
 | `k` | string | | Site key: the script tag's `data-site`, else the key AgentCake filled in when it served cake.js. |
-| `s` | string, 32 hex digits | | Session id: random, kept in the tab's `sessionStorage` (`cake_sid`, with its clock in `cake_clock`) until the tab is closed or `window.cake.stop()` is called. The tab's first activity after `CFG.session.idle_ms` (30 minutes) without activity, or once the session has lasted `CFG.session.max_ms` (24 hours), begins a new one ("Sessions", below). |
+| `s` | string, 32 hex digits | | Tab session id: the tab's part of the browser session `bs`, which AgentCake judges, replays and stores. Random, kept in the tab's `sessionStorage` (`cake_sid`, with its clock in `cake_clock`) until the tab is closed or `window.cake.stop()` is called. The tab's first activity after `CFG.session.idle_ms` (30 minutes) without activity in the tab, or once its session has lasted `CFG.session.max_ms` (24 hours), begins a new one ("Sessions", below); so does every change of `bs`, and a tab that is a copy of another (see `w`) begins its own. |
+| `bs` | string, 32 hex digits, optional | | Browser session id: random, kept in `localStorage` (`cake_bsid`, the id alone, with its clock in `cake_bclock`), so every tab of the site in the browser has the same one, as posthog-js shares its session id. It ends once no tab has seen activity for `CFG.session.idle_ms` (30 minutes), or once it has lasted `CFG.session.max_ms` (24 hours): the next activity in any tab begins the next one, and the other tabs take it at their next activity (with the visitor id and identify hash that tab keeps). `window.cake.reset()` begins the next one at once. One that is gone from `localStorage` (`window.cake.stop()` or `reset()` in another tab, or storage cleared) is never written back: the tab's next activity begins the next one, as posthog-js begins a new session when the id it stored is gone. Where `localStorage` takes no writes but `sessionStorage` does, the tab's own, kept there under the same names: one per tab; only this page view's own where neither can be used. Missing from cake.js before 0.6.2. |
+| `w` | string, 32 hex digits, optional | | Tab id (posthog-js's window id): random, kept in the tab's `sessionStorage` (`cake_wid`). It lasts as long as the tab and the browser session: a tab that begins the next `bs` gets a new one, a tab that takes another tab's `bs` keeps its own. A tab that is a copy of another (a duplicated tab, or one opened by `window.open` with an opener: both copy `sessionStorage`) gets a new one, and a new `s`: a page marks the tab as its own while it runs (`cake_wopen`, removed at `pagehide`), and a page that finds another page's mark holds a copy. Missing from cake.js before 0.6.2. |
 | `vid` | string, 32 hex digits | | Visitor id: random, kept in `localStorage` (`cake_vid`, with when it was last used) and replaced once it was not used for `CFG.visitor.max_age_ms` (365 days); only this page's own where `localStorage` cannot be used. Removed by `window.cake.stop()`; replaced by a new one by `window.cake.reset()`. |
 | `idh` | string, 64 hex digits, optional | | Identify hash, only after the site called `window.cake.identify(id)`: the SHA-256 of the site key, `:` and the id (`CFG.identify`), in lowercase hexadecimal, made in the browser with SubtleCrypto; the id itself is never sent. Kept with the visitor id in `cake_vid` and sent with every batch from then on, on every later page view in this browser. Removed by `window.cake.reset()` and `window.cake.stop()`. AgentCake keeps it only when it is 64 lowercase hex digits. |
 | `pv` | string, 32 hex digits | | Page view id: random, new for every page load. |
@@ -98,16 +100,16 @@ Every record has `t` and `ty`.
 |---|---|---|
 | `page` | once per page view, first | `n` page number in this tab's session; `build` the script's build id; `nav` navigation type (`navigate`, `reload`, `back_forward`, `prerender`); `t0` `performance.timeOrigin` (epoch ms); `ran` ms from navigation start to cake.js starting; `prerendering`; `vis`; `hf`; `hist` `history.length`; `hook_dom`; `consent`: `load` (recording began when cake.js loaded) or `start` (the page asked first and called `window.cake.start()`); `p` `location.pathname`; and the source fields: `rd` the referring domain (the host of `document.referrer`, `""` without one; never the address), `utm` the page address's campaign parameters that are there (`CFG.source.campaign`: the five UTM parameters and `gad_source`, each cut to `CFG.source.max_chars`), `ck` the names of the ad-click parameters the address carries (`CFG.source.click_ids`; never their values), `lang` `navigator.language`, `tzo` `Date.getTimezoneOffset()`. (Before 0.4.2 it sent `ref`, the whole `document.referrer`.) |
 | `path` | `location.pathname` changed since the last page view (a single-page app's navigation, seen with the next record) | `p`: the new path. A page view, as PostHog counts one; a new query string or fragment alone makes none. |
-| `session` | a new session began on this page (see "Sessions"), its first record | `why`: `idle` (`CFG.session.idle_ms` without activity), `max` (the session lasted `CFG.session.max_ms`) or `reset` (the site called `window.cake.reset()`); the source fields of the page as it is now (`rd`, `utm`, `ck`, `lang`, `tzo`, as in `page`). |
+| `session` | a new session began on this page (see "Sessions"), its first record | `why`: `idle` (`CFG.session.idle_ms` without activity), `max` (the session lasted `CFG.session.max_ms`), `reset` (the site called `window.cake.reset()` on this page) or `tab` (another tab began the browser's next session while this tab's had not ended: its `reset()`, or two tabs that began one at the same moment; or the session was gone from `localStorage`: another tab's `stop()` or `reset()` removed it); the source fields of the page as it is now (`rd`, `utm`, `ck`, `lang`, `tzo`, as in `page`). |
 | `env` | once per page view, after the load event, made in three idle tasks | `env`: webdriver and its property descriptor, navigator's own properties, user agent and `userAgentData` (brands, platform, mobile), languages, platform, cores, memory, plugin and MIME type counts, PDF viewer, `doNotTrack`, touch points, screen, window and viewport sizes, pixel ratio, time zone and offset, WebGL vendor and renderer, notification permission, `window.chrome` (type, runtime, keys), focus, visibility, history length, the referring domain (`referringDomain`; before 0.4.2 `referrer`, the whole address), `any-pointer`, `any-hover`, colour scheme, connection RTT, `window.external`, `eval` source length, `typeof process`. |
 | `auto` | with `env` | `globalsAtLoad` (automation globals: BotD's distinctive properties found as `botdprop_<kind>`, `selenium_cdc`, `playwright_globals`, `puppeteer_globals`, `exposed_installed` (functions marked by Playwright's `exposeFunction`), `unnamed_native_globals` (nameless native functions, as CDP bindings leave them)), `errorStack` (a stack trace made in cake.js), `docInterception` (the navigation entry's `nextHopProtocol`, `transferSize`, `deliveryType`, `workerStart`, and `intercepted`: no network hop, no service worker, yet bytes transferred). |
-| `frames` | once per visit, when the browser is idle, on the first page view that gets that far (`cake_frames` in `sessionStorage` remembers it) | `iframeSharesRealm` (a fresh hidden frame's `Navigator` is this window's); `ipcFlooding`: of `CFG.env.frame_history_writes` (300) history writes in that frame, how many went through (`applied`), the error that stopped them (`error`) and whether all 300 did (`all300`: Chrome's IPC flooding protection is off, as Puppeteer and Playwright launch it); the writes go in bursts of `CFG.env.frame_burst_writes` every `frame_burst_gap_ms`, `longest_burst_ms` is the longest burst. |
+| `frames` | once per tab session, when the browser is idle, on the first page view that gets that far (`cake_frames` in `sessionStorage` remembers it) | `iframeSharesRealm` (a fresh hidden frame's `Navigator` is this window's); `ipcFlooding`: of `CFG.env.frame_history_writes` (300) history writes in that frame, how many went through (`applied`), the error that stopped them (`error`) and whether all 300 did (`all300`: Chrome's IPC flooding protection is off, as Puppeteer and Playwright launch it); the writes go in bursts of `CFG.env.frame_burst_writes` every `frame_burst_gap_ms`, `longest_burst_ms` is the longest burst. |
 | `cdp` | after the CDP probe (up to `CFG.env.cdp_rounds` rounds, `CFG.env.cdp_round_ms` apart, stopping at the first sign; each round logs in a hidden frame of its own, made and removed within the round) | `runtimeEnableLeak`: `rounds`; per logged error, how often `Error.prepareStackTrace` ran for it (`prepareStackTraceCount`), its `name` was read (`nameGetterCount`) and its `stack` was read (`stackLookupCount`); `firstHitRound` (null when never); `console`: `frame` (the rounds logged in their own frames, which no page script reaches) or `none` (no frame could be used, as on a page with a sandbox policy; no round ran, and `error` names why). Records without `console` come from cake.js before 2026-11-16, which logged through the page's own console. Chromium 1228 driven by Playwright: 1 formatting and 2 name reads per round. |
 | `probes` | when every asynchronous probe has answered (each within `CFG.probes.timeout_ms`), or at exit with what has | `permissions` (notification permission vs Permissions API), `workerConsistency` (navigator facts in a worker that differ), `nativeTampering` (getters and methods that are not native any more), `uaFullVersion` (high-entropy client hints), `mediaDevices` (device count per kind, no labels), `fonts` (installed or not, for `CFG.probes.fonts`), `systemFontNames` (`disagree`, `agree` or `unknown`: whether the browser maps a system font name only Apple's systems map while its user agent and platform name another system; only this answer is sent), `pending` (probes that had not answered). A probe that failed has `{error}`. |
 | `botd` | when BotD has run | `result` (`{bot, botKind}`), `detections` (per detector), or `error`. |
 | `botscent` | when botscent starts, when its verdict changes, after `CFG.botscent.sample_ms` and at exit | `why` (`start`, `change`, `later`, `exit`), `type` (`human` or `agent`), `agent` (name or null), `reasons`, `probes` (per-probe status), `transport`, `ver`. |
 | `globals` | at exit | `globalsAtEnd` (the same scan again: frameworks add theirs late); when the site owner turned on `hook_dom`: `hookHits` (page DOM lookups with an automation framework's frames on the call stack: `fn`, `arg`, `t`, `pptr`, `utilityScript`, `puppeteerEval`, `stack`) and `lookups` (`total` lookups, `checked` of them). |
-| `tasks` | when the detectors have finished (after the frame checks on the visit's first page) | `took_ms`: ms per task (`start` = cake.js's own first task, `rrweb` = the first snapshot, then the idle tasks after load: `parked`, `markers`, `env`, `webgl`, `tz`, `auto`, `cdp`, `botscent`, `probes`, `botd`, `frames`); `longest_ms`; `after_load_ms`: how long after the load event this record was made. |
+| `tasks` | when the detectors have finished (after the frame checks on the tab session's first page) | `took_ms`: ms per task (`start` = cake.js's own first task, `rrweb` = the first snapshot, then the idle tasks after load: `parked`, `markers`, `env`, `webgl`, `tz`, `auto`, `cdp`, `botscent`, `probes`, `botd`, `frames`); `longest_ms`; `after_load_ms`: how long after the load event this record was made. |
 | `markers` | when the watch on agent marks starts (an idle task after load), and at exit (see "Agent marks") | At the start: `why: "start"`, `list` (the mark table's version, `CFG.markers.version`), `every_ms` (how often it looks, `CFG.markers.every_ms`, 250). At exit: `why: "exit"`, `looks` (looks so far), `ms` (the time all of the watch's work took so far: its looks and its checks of DOM changes), `longest_ms` (its longest piece of work). |
 | `marker` | an agent product's mark appeared or went away, as seen at a look | `m`: the mark's id in the mark table (for example `claude-chrome.working`); `on`: 1 it appeared (or lit up), 0 it went away. Nothing of the page. |
 | `leave` | at exit | `why`: `pagehide` or `hidden`. |
@@ -163,7 +165,7 @@ AgentCake sends separate records; joining them per page view gives the lab's lay
 | `snap.auto.globalsAtLoad`, `globalsAtEnd` | `auto` record `globalsAtLoad`; `globals` record `globalsAtEnd` |
 | `snap.auto.errorStack`, `docInterception` | `auto` record |
 | `snap.auto.runtimeEnableLeak` | `cdp` record `runtimeEnableLeak` |
-| `snap.auto.ipcFlooding` | `frames` record `ipcFlooding` (once per visit: it holds for the visit's every page) |
+| `snap.auto.ipcFlooding` | `frames` record `ipcFlooding` (once per tab session: it holds for its every page) |
 | `snap.auto.nativeTampering.iframeSharesRealm` | `frames` record `iframeSharesRealm` |
 | `snap.auto.nativeTampering.tampered`, `permissions`, `workerConsistency`, `uaFullVersion` | `probes` record |
 | `snap.auto.hookHits` | `globals` record `hookHits` (only lookups with an automation frame; `t` is epoch ms, the lab's `t_ms` was relative) |
@@ -181,11 +183,11 @@ the site's server; format `c1.<base64url JSON>.<HMAC>`).
 cake.js reads it from the navigation entry (`performance.getEntriesByType('navigation')[0].serverTiming`, entry name
 `CFG.token.entry`) and sends it as `st` with every batch of that page until AgentCake answers 2xx to a batch carrying
 it. cake.js never looks inside it. The collector verifies it and keeps it once per token id (0.3.3 `take_token`).
-A page the browser shows from its cache carries the token stored with it (after a 304, the 304's own new
-one; going back to a stored page, that page's earlier one), so the same token can come from several page views of a
-visit: the first keeps it, another page view of the same visit is a reuse (no second server middleware record), another
-visit is a replay. The answer says what happened, as `X-Cake-Token: ok | dup | reuse | replay | stale | bad | off`; it
-is always a 2xx, since a token's fate is no error for the visitor.
+A page the browser shows from its cache carries the token stored with it (after a 304, the 304's own new one; going back
+to a stored page, that page's earlier one), so the same token can come from several page views of a tab session: the
+first keeps it, another page view of the same tab session is a reuse (no second server middleware record), another tab
+session's is a replay. The answer says what happened, as `X-Cake-Token: ok | dup | reuse | replay | stale | bad | off`;
+it is always a 2xx, since a token's fate is no error for the visitor.
 
 ## When records are made and batches are sent
 
@@ -193,7 +195,7 @@ cake.js keeps the page's own loading first. Its first task only reads its settin
 `page` record; rrweb's first snapshot is the next task; everything else waits for the page's load event and runs as one
 task per idle period of the browser (`requestIdleCallback`, else a timer of `CFG.idle_gap_ms`), each well under 50 ms:
 re-sending parked batches, the start of the watch on agent marks (which then looks every 250 ms), the environment
-snapshot (three tasks), `auto`, the CDP probe, botscent, the probes, BotD, and on the visit's first page the frame
+snapshot (three tasks), `auto`, the CDP probe, botscent, the probes, BotD, and on the tab session's first page the frame
 checks (in bursts). The `tasks` record says how long each took and when they
 had all run. A page left before its load event, or before its idle tasks ran, has no `env`, `auto`, `cdp`, `probes`,
 `botd` or `tasks` record: AgentCake reads those as not observed.
@@ -208,16 +210,17 @@ Batches go:
 - as soon as the buffer holds `CFG.batch.max_bytes` (51,200 JSON characters) (`size`);
 - when the page is hidden or left (`exit`): plain JSON with keepalive while the budget lasts. Batches that do not fit,
   and any batch too big for keepalive at other times, are first parked in `sessionStorage` (`cake_pending`, at most
-  `CFG.batch.pending_max_bytes`) and taken out once AgentCake has answered; the next page of the visit sends what is
-  still parked.
+  `CFG.batch.pending_max_bytes`) and taken out once AgentCake has answered; the tab's next page sends what is still
+  parked.
 
 ## Delivery
 
 - **A batch can arrive more than once** (a parked copy sent again, an answer cake.js could not read). The collector
-  keeps one copy per **`(s, pv, seq)`**. The page view id is part of the key because a tab opened from another tab
-  starts with a copy of its `sessionStorage`, so two tabs can send the same visit id `s` with their own numbering.
-  AgentCake keeps each record with its page view, and each stream of a visit up to its per-session limit
-  (`max_events_per_session`); later records are counted, not kept.
+  keeps one copy per **`(s, pv, seq)`**. The page view id is part of the key because two tabs can still send the same
+  tab session id `s`, each with its own numbering: a tab copied from one whose page had just been left (a copy of a
+  live page takes a new `s`, see `w`), or tabs under a cake.js before 0.6.2. AgentCake keeps each record with its page
+  view, and each stream of a tab session up to its limit (`max_events_per_session`); later records are counted, not
+  kept.
 - Batches can arrive out of order; records carry their own times (`t`, rrweb's `timestamp`).
 - A page view's numbers have no gaps unless batches were lost (`dr.b` counts batches cake.js could not keep).
 
@@ -233,30 +236,47 @@ Batches go:
 
 ## Sessions
 
-A session is one tab's activity with no more than `CFG.session.idle_ms` (30 minutes) between two moments of activity,
-and at most `CFG.session.max_ms` (24 hours) long: PostHog's rules (posthog-js `sessionid.ts`), each tab keeping its own
-session. Activity is a raw input record of `CFG.session.activity_raw` (a pointer move, a press, a click, a scroll, a
-focus, an input, a touch), a `geo` record made by a resize, and a page view (`page`, `path`). The first activity after
-the idle time, or after the session has lasted 24 hours, begins a new session on the page: what is buffered is sent
-under the old id, the new id is kept, a `session` record says why, and rrweb takes a full snapshot. While the tab is
-idle, rrweb events are dropped (PostHog's recorder drops them too); other records are sent under the session they
-belong to. The collector applies the same rules, from the same settings, to a script that does not cut its own
-sessions: a batch whose first activity comes after the idle time, or past 24 hours, goes to the tab's next session,
-whose id the collector makes (`session_split.py`). `window.cake.reset()` also begins a new session at once, as
+A session is one visit of a browser to the site: every tab of the site in that browser, until no tab has had activity
+for `CFG.session.idle_ms` (30 minutes) or the session has lasted `CFG.session.max_ms` (24 hours): PostHog's rules
+(posthog-js `sessionid.ts`). Activity is a raw input record of `CFG.session.activity_raw` (a pointer move, a press, a
+click, a scroll, a focus, an input, a touch), a `geo` record made by a resize, and a page view (`page`, `path`). Every
+tab sends the session's id, `bs`, which they share, and its own id, `w`, the same for the tab while the session lasts:
+a tab that begins a new session itself gets a new `w`, and a tab the browser duplicated gets one of its own. Where the
+browser takes no writes into `localStorage` but does into `sessionStorage`, each tab is a session of its own; where it
+lets the script keep nothing across pages, each page is, as posthog-js's in-memory one is.
+
+Each tab's part of a session is a tab session, `s`: the unit AgentCake judges, replays and stores. A tab's session
+follows the same rules on the tab's own activity, and a new `bs` begins a new one too. The first activity after the
+idle time, after 24 hours or under a new `bs` begins a new tab session on the page: what is buffered is sent under the
+old ids, the new ids are kept, a `session` record says why, and rrweb takes a full snapshot. While the tab is idle,
+rrweb events are dropped (PostHog's recorder drops them too); other records are sent under the session they belong to.
+`window.cake.reset()` also begins a new session at once in its tab, which the other tabs take at their next activity, as
 posthog-js's `reset()` does: what is buffered is sent under the old session and visitor ids, then the new visitor id
-(without `idh`) and the new session id go with every later batch, and the new session's `session` record says `reset`.
+(without `idh`) and the new session ids go with every later batch, and the new tab session's `session` record says why.
+
+The collector keeps each tab session in the session its `bs` names: the first `bs` its batches carried. Batches
+without `bs` come from an older cake.js still open in a tab, from a script of your own, and from every visit recorded
+before 0.6.2; for them the collector applies the same rules, from the same settings. It cuts a tab's session when its
+script does not cut its own: a batch whose first activity comes after the idle time, or past 24 hours, goes to the
+tab's next session, whose id the collector makes (`session_split.py`). It joins the tab sessions of one visitor id
+(`vid`) into sessions (`visit_join.py`): in the order their activity began, a tab session joins the session before it
+when it began at most 30 minutes after the latest activity of every tab session before it, and at most 24 hours after
+that session began. A tab session joins whole, by when it began, and one without `vid` is a session of its own. A
+batch that comes late gives the sessions that the same batches give in order.
 
 ## Consent
 
 A site that asks before recording either adds the cake.js line only after the visitor agreed, or adds it with
-`data-consent="required"` (`CFG.attr.consent`) and calls `window.cake.start()` once they agree: until then cake.js
-does nothing (no listener, no `sessionStorage`, no request). `window.cake.stop()` ends recording and sending on that
-page for good: nothing more is sent, unsent records and parked batches are dropped, and the session id, its clock,
-page count and frame-check mark are removed from `sessionStorage` and the visitor id from `localStorage`. An upload already on its way may still arrive; if it fails, it is
-dropped, not parked, so a later `start()` sends nothing from before the refusal. Consent code that may run before cake.js has loaded can queue the
-calls: `window.cake = window.cake || []; window.cake.push('start')` (or `'stop'`). Nothing is sent to say a visitor
-refused (that would be a request after the refusal), so the collector keeps what came before; deleting it is the site
-owner's call (`agentcake delete`).
+`data-consent="required"` (`CFG.attr.consent`) and calls `window.cake.start()` once they agree: until then cake.js does
+nothing (no listener, no `sessionStorage`, no request). `window.cake.stop()` ends recording and sending on that page for
+good: nothing more is sent, unsent records and parked batches are dropped, and the tab's session id and its clock, the
+tab id and its mark, the page count and the frame-check mark (and the tab's own copy of the browser session id and its
+clock, where `localStorage` took no writes) are removed from `sessionStorage`, and the browser session id and its clock
+and the visitor id from `localStorage`; no other tab writes them back. An upload already on its way may still arrive; if
+it fails, it is dropped, not parked, so a later `start()` sends nothing from before the refusal. Consent code that may
+run before cake.js has loaded can queue the calls: `window.cake = window.cake || []; window.cake.push('start')` (or
+`'stop'`). Nothing is sent to say a visitor refused (that would be a request after the refusal), so the collector keeps
+what came before; deleting it is the site owner's call (`agentcake delete`).
 
 ## What a batch never holds
 
@@ -275,7 +295,8 @@ collector ignores fields it does not know.
 ## Example (shortened)
 
 ```json
-{"v":1,"k":"9f3c…","s":"5b0e6c2f0d8a4a61b7f4c0b1e2d3a4f5","vid":"aa11…","pv":"c2a8…","seq":0,"t":1794518371369.5,
+{"v":1,"k":"9f3c…","s":"5b0e6c2f0d8a4a61b7f4c0b1e2d3a4f5","bs":"e41d…","w":"07b2…","vid":"aa11…","pv":"c2a8…",
+ "seq":0,"t":1794518371369.5,
  "u":"https://shop.example.com/demo","why":"snapshot","st":"c1.eyJ…","ua":"Mozilla/5.0 …","wd":false,
  "e":[{"type":4,"data":{"href":"https://shop.example.com/demo","width":1280,"height":900},"timestamp":1794518371301},
       {"type":2,"data":{"node":{…},"initialOffset":{"left":0,"top":0}},"timestamp":1794518371304}],

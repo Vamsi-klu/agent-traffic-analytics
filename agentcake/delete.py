@@ -1,11 +1,12 @@
-"""Deleting visits: every trace of a session, so that nothing of it can be found afterwards.
+"""Deleting sessions: every trace of a session, every tab of it, so that nothing of it can be found afterwards.
 
 delete_sessions(ids, now_ms) is the one way to delete, run by the process that owns the data folder: the command line
 calls it when cake is not running (delete_command.py), and the running cake calls it for POST /api/delete
 (api/deletion.py), which the settings page and `agentcake delete` use while it runs. It holds store.LOCK, so collect,
-the judging and the maintenance thread wait until it is done. For the given ids, and the sessions the collector cut
-from a tab one of them names (session_split.with_continuations: an id kept in the visitor's browser names them all),
-it:
+the judging and the maintenance thread wait until it is done. A visit goes whole: for the given ids, it takes
+every tab session of each visit one of them names (visit_join.whole_visits: a session id the dashboard shows, the id of
+any of its tab sessions, or an id kept in the visitor's browser, which also names the sessions the collector cut from
+a tab after 30 minutes or 24 hours), and:
 
 1. checks that each chunk the chunks table gives a visit is that visit's (the chunk's header names it), then
    overwrites those bytes with zeros where they are. A chunk file is otherwise only appended to; the zeros are dead
@@ -14,18 +15,18 @@ it:
 2. deletes its rows in one transaction with SQLite's secure_delete on (a deleted cell is zeroed, not only unlinked):
    chunks rows, open windows and 0.3.4 replay rows only through streams.drop_replay(), then every row of every other
    table with a session_id column (store.SESSION_TABLES: a table that keeps a session's rows names that column
-   session_id) and the sessions row; in the database's own settings (what `agentcake migrate` recorded) the id
-   becomes DELETED_MARK;
+   session_id), the sessions row and the visit's row (visits); in the database's own settings (what `agentcake migrate`
+   recorded) the id becomes DELETED_MARK;
 3. gives the space back the way the chunk files are compacted: space.reclaim_if_due() runs recompress.reclaim(), which deletes a file nothing
    live is in, compacts a mostly dead one and drops the stylesheets no chunk refers to (this hour's file stays; its
    dead bytes are the zeros of step 1);
 4. rewrites the database file (VACUUM) and empties the write-ahead log (wal_checkpoint TRUNCATE). secure_delete does
    not reach the copies a b-tree page split leaves in unused page space, nor a deleted key kept as a divider in an
    index page; a rewritten file has neither. On a large database this takes a while;
-5. deletes the same rows from each backup `agentcake migrate` made (backups/), and the stylesheets no chunk of it
-   refers to any more, and rewrites it the same way;
-6. removes the lines of cake.log that name the id, rewriting the file in place: `agentcake start` points the running
-   cake's output at that file in append mode, so it goes on writing to it.
+5. deletes the same rows from each backup `agentcake migrate` or the upgrade to visits made (backups/), and the
+   stylesheets no chunk of it refers to any more, and rewrites it the same way;
+6. removes the lines of cake.log that name the ids, the visits' included, rewriting the file in place: `agentcake
+   start` points the running cake's output at that file in append mode, so it goes on writing to it.
 
 Running it again finishes a run that was cut short: wiped chunks are recognised and each step looks again at what is
 left. preview(ids) counts what delete_sessions(ids) would remove and changes nothing (`agentcake delete --dry-run`).
@@ -37,7 +38,7 @@ import os
 import re
 import sqlite3
 
-from agentcake import paths, replay_chunks, session_split, space, store, streams, styles
+from agentcake import paths, replay_chunks, space, store, streams, styles, visit_join
 from agentcake.config import load_cfg
 from agentcake.datafiles import sizes
 from agentcake.storage_config import SETTINGS, now_ms as clock_ms
@@ -66,15 +67,16 @@ def delete_sessions(ids, now_ms=None, cfg=SETTINGS):
         con = store.db()
         try:
             con.execute("PRAGMA secure_delete=ON")
-            ids = session_split.with_continuations(con, ids)
-            found = _delete_rows(con, ids, now_ms, cfg)
+            ids = visit_join.whole_visits(con, ids)
+            visits = _visits_of(con, ids)
+            found = _delete_rows(con, ids, visits, now_ms, cfg)
             reclaim = space.reclaim_if_due(con, now_ms, cfg)
             database = _rewrite(con)
         finally:
             con.close()
-    backups = [_clean_backup(path, ids) for path in _backups(cfg)]
+    backups = [_clean_backup(path, ids, visits) for path in _backups(cfg)]
     return {"sessions": found, "reclaim": reclaim, "database": database, "backups": backups,
-            "log_lines": scrub_log(paths.log_file(), ids)}
+            "log_lines": scrub_log(paths.log_file(), _named(ids, visits))}
 
 
 def preview(ids, cfg=SETTINGS):
@@ -82,7 +84,8 @@ def preview(ids, cfg=SETTINGS):
     ids = _checked(ids)
     con = store.db()
     try:
-        ids = session_split.with_continuations(con, ids)
+        ids = visit_join.whole_visits(con, ids)
+        visits = _visits_of(con, ids)
         found = [_found(con, sid, _chunk_refs(con, sid)) for sid in ids]
     finally:
         con.close()
@@ -90,10 +93,11 @@ def preview(ids, cfg=SETTINGS):
     for path in _backups(cfg):
         backup = sqlite3.connect(path)
         try:
-            backups.append({"file": _relative(path), "rows": sum(sum(_row_counts(backup, sid).values()) for sid in ids)})
+            backups.append({"file": _relative(path), "rows": sum(sum(_row_counts(backup, sid).values()) for sid in ids)
+                            + _visit_rows(backup, ids, visits, delete=False)})
         finally:
             backup.close()
-    lines = _lines_naming(paths.log_file(), _id_pattern(ids, bytes))
+    lines = _lines_naming(paths.log_file(), _id_pattern(_named(ids, visits), bytes))
     return {"sessions": found, "reclaim": None, "database": None, "backups": backups, "log_lines": lines}
 
 
@@ -125,8 +129,9 @@ def _checked(ids):
     return ids
 
 
-def _delete_rows(con, ids, now_ms, cfg):
-    """Steps 1 and 2 for every id in one transaction; returns what was found of each."""
+def _delete_rows(con, ids, visits, now_ms, cfg):
+    """Steps 1 and 2 for every id, and the rows of these visits, in one transaction; returns what was found of each
+    id."""
     con.execute("BEGIN IMMEDIATE")  # the write lock first: no other writer between the checks and the deletes
     try:
         refs = {sid: _chunk_refs(con, sid) for sid in ids}
@@ -136,7 +141,8 @@ def _delete_rows(con, ids, now_ms, cfg):
         for sid in ids:
             _wipe(refs[sid], cfg)
             _drop(con, sid, cfg)
-        _scrub_settings(con, ids, now_ms)
+        _visit_rows(con, ids, visits)
+        _scrub_settings(con, _named(ids, visits), now_ms)
         if any(item["found"] for item in found):
             store.mark_reclaim_due(con, now_ms)
         con.commit()
@@ -241,6 +247,37 @@ def _delete_plain(con, sid, skip=()):
         con.execute("DELETE FROM sessions WHERE id=?", (sid,))
 
 
+def _visits_of(con, ids):
+    """The ids of the visits these tab sessions belong to, each once."""
+    if not _has_table(con, "visits"):
+        return []
+    found = []
+    for part in store.parts(ids):
+        found += [visit_id for (visit_id,) in con.execute(
+            f"SELECT DISTINCT visit_id FROM session_web WHERE visit_id IS NOT NULL AND session_id IN "
+            f"({','.join('?' * len(part))})", part)]
+    return list(dict.fromkeys(found))
+
+
+def _visit_rows(con, ids, visits, delete=True):
+    """Delete (or with delete=False only count) the visits rows of a database that are these visits, or that are named
+    after one of these tab sessions (a backup made before a late upload joined two visits). 0 without a visits table."""
+    if not _has_table(con, "visits"):
+        return 0
+    count = 0
+    for part in store.parts(_named(ids, visits)):
+        where = f"id IN ({','.join('?' * len(part))})"
+        count += con.execute(f"SELECT COUNT(*) FROM visits WHERE {where}", part).fetchone()[0]
+        if delete:
+            con.execute(f"DELETE FROM visits WHERE {where}", part)
+    return count
+
+
+def _named(ids, visits):
+    """The tab sessions' ids, then the visits' (a browser session id names a visit and no tab session)."""
+    return list(dict.fromkeys(list(ids) + list(visits)))
+
+
 def _scrub_settings(con, ids, now_ms):
     if not _has_table(con, "settings"):
         return
@@ -271,12 +308,13 @@ def _backups(cfg):
             if os.path.isfile(path) and _is_database(path)]
 
 
-def _clean_backup(path, ids):
-    """Step 5 for one backup: its rows of these sessions, deleted and the file rewritten; {file, rows, error}."""
+def _clean_backup(path, ids, visits):
+    """Step 5 for one backup: its rows of these sessions and visits, deleted and the file rewritten; {file, rows,
+    error}."""
     con = sqlite3.connect(path, timeout=load_cfg()["db_timeout_s"])
     try:
         con.execute("PRAGMA secure_delete=ON")
-        rows = sum(sum(_row_counts(con, sid).values()) for sid in ids)
+        rows = sum(sum(_row_counts(con, sid).values()) for sid in ids) + _visit_rows(con, ids, visits)
         for sid in ids:
             _delete_plain(con, sid)
         if _has_table(con, "styles") and _has_table(con, "chunks"):

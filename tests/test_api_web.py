@@ -18,6 +18,7 @@ import time
 import unittest
 from unittest import mock
 
+import visit_rows
 from api_client import Client, contract_problems
 from web_uploads import MINUTE_MS, T0, UA_IPHONE, WebCase, upload
 from agentcake.api import periods, web
@@ -32,16 +33,17 @@ class Answers(WebCase):
             pv = f"{n + 1:032x}"
             body = upload(0, T0 + n * MINUTE_MS, tab=tab, pv=pv, visitor=visitor, page=page if n == 0 else {},
                           url=f"https://shop.example.com/p{n}", **({"ua": ua} if ua else {}))
+            body["bs"] = tab  # a session of its own: one visitor's sessions at one time would join
             self.post(body)
         self.con.execute("UPDATE sessions SET verdict_class=?, judged_ms=end_ms + 1 WHERE id=?", (verdict, tab))
         if agent:
             self.name(tab, agent)
-        self.con.commit()
+        visit_rows.refreshed(self.con)
 
     def name(self, tab, agent):
         """The name the judge gave the session's agent or bot."""
         self.con.execute("UPDATE sessions SET verdict_detail=? WHERE id=?", (json.dumps({"display_name": agent}), tab))
-        self.con.commit()
+        visit_rows.refreshed(self.con)
 
     def setUp(self):
         super().setUp()
@@ -193,7 +195,7 @@ class Answers(WebCase):
         """/api/web's trends at now, the sessions moved to start at {tab: local time fields}."""
         for tab, fields in starts.items():
             self.con.execute("UPDATE sessions SET start_ms=? WHERE id=?", (self.local(*fields), tab))
-        self.con.commit()
+        visit_rows.refreshed(self.con)
         with mock.patch.object(periods, "now_ms", return_value=now):
             answer = Client().get("/api/web", range=range_key)
         self.assertEqual(answer.status, 200)

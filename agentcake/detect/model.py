@@ -35,9 +35,9 @@ is no movement to measure, which says
 nothing about who held it (after agent-detector's "missing is not negative"); nor has a click
 the keyboard, a finger or a pen made an approach to read. Otherwise the session is a human's when any of its
 segments is, and unsure when none is either: segments nobody can tell count for neither side (human + unknown is human, agent + unknown is agent, human + agent + unknown is agent). Without hard evidence
-(an untrusted event), an agent verdict also needs evidence of two independent kinds (each rule's kind: how the
-pointer reaches its clicks, where clicks land, how it moves, typing, the input events themselves, scrolling, page
-focus; after agent-detector
+(a device event a script dispatched: features.py untrusted), an agent verdict also needs evidence of two independent
+kinds (each rule's kind: how the pointer reaches its clicks, where clicks land, how it moves, typing, the input events
+themselves, scrolling, page focus; after agent-detector
 and HABITS): one ambiguous click approach that the HMM spreads over a short session is how people were taken for
 agents. An rrweb-only recording can show two kinds at most, so there evidence on two actions (segments where an agent
 rule fired, and the session's pointer movement when it moves too seldom) stands in for the second kind. An

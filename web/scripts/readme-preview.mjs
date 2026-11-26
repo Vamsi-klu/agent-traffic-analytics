@@ -11,7 +11,7 @@
 // `agentcake serve`); without such a session it says so before taking any picture. It refuses every request that would
 // leave that AgentCake, so a session's replay never reaches the site it was recorded on. --out writes the pictures to
 // another folder than README's. --style minimal takes the same pictures in the Minimal style (shots.mjs STYLES), named
-// preview-*-minimal.png, for README's folded Minimal style block; Cake is the default.
+// preview-*-minimal.png, for README's folded Minimal style block; without it they are in Cake.
 //   cd web && npm run build && node scripts/readme-preview.mjs --origin http://127.0.0.1:<port>/ [--out <folder>] [--style minimal]
 // It finds the parts by the icons of their cards' titles (lucide's classes) and the page's structure, never by
 // words, so new interface words do not change it.
@@ -47,8 +47,8 @@ export const SLIDES = [
 ]
 const SESSION_ROW = 'main a[href^="#/sessions/"]' // a row of the session list
 const option = (name) => { const at = process.argv.indexOf(name); return at > 0 ? process.argv[at + 1] : undefined }
-const STYLE = option("--style") ?? STYLES[0] // the pages' style the pictures show; the default style keeps README's names
-/** A picture's file name in STYLE: the default style's as SLIDES gives it, another's with the style before .png. */
+const STYLE = option("--style") ?? STYLES[0] // the pages' style the pictures show; Cake's keep README's names
+/** A picture's file name in STYLE: Cake's as SLIDES gives it, Minimal's with the style before .png. */
 const named = (file) => (STYLE === STYLES[0] ? file : file.replace(/\.png$/, `-${STYLE}.png`))
 
 /** In the page: where a part lies (page px), { top, bottom, startY }: from the block holding its first icon (or the

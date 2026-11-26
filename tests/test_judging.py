@@ -306,6 +306,7 @@ JUDGE_SUPPORT = {
     "streams": "the session's stored raw events, read",
     "units": "units of time and of percent",
     "visit_batches": "the session's stored uploads and collect requests, read",
+    "visit_verdict": "the verdict of the visit the session is a tab of, merged after the session's own is written",
     "wording": "the product's name in the reasons' words",
 }
 

@@ -1,21 +1,22 @@
 // The top bar's Style menu (DESIGN.md §17), in Chromium against the built app: a browser that picked nothing opens in
-// Cake; the menu lists Cake and Minimal, each with its preview, the one in use checked; choosing one changes the page at
-// once, without loading it again, and the next visit opens in it; a browser that keeps no site data, or keeps something
-// else under the style's key, opens in Cake, and the menu still changes the page. Usage: node --test tests/
+// Minimal, the default, and one that picked a style opens in it; the menu lists Minimal and Cake, each with its preview,
+// the one in use checked; choosing one changes the page at once, without loading it again, and the next visit opens in
+// it; a browser that keeps no site data, or keeps something else under the style's key, opens in Minimal, and the menu
+// still changes the page. Usage: node --test tests/
 import assert from "node:assert/strict"
 import { after, before, test } from "node:test"
 import { startApp } from "./app.mjs"
-import { shoot } from "../scripts/shots.mjs"
+import { pickStyle, shoot } from "../scripts/shots.mjs"
 
 const ROUTE = "#/dashboard"
 let app
 before(async () => { app = await startApp() })
 after(() => app?.close())
 
-/** A page of a fresh browser at 1280 wide; `setup` runs in every document before the app (an init script). */
-async function open(setup) {
+/** A page of a fresh browser at 1280 wide; `prepare` readies its context before the page opens (what it keeps). */
+async function open(prepare) {
   const context = await app.browser.newContext({ viewport: { width: 1280, height: 900 }, colorScheme: "light", reducedMotion: "reduce" })
-  if (setup) await context.addInitScript(setup)
+  if (prepare) await prepare(context)
   const page = await context.newPage()
   await shoot(page, app.url(ROUTE))
   return { page, context }
@@ -30,22 +31,45 @@ async function choose(page, name) {
   await page.getByRole("menuitemradio", { name }).click()
 }
 
-test("a browser that picked no style opens in Cake, and the button names it", async () => {
+test("a browser that picked no style opens in Minimal, and the button names it", async () => {
   const { page, context } = await open()
   try {
-    assert.equal(await shown(page), "cake")
-    assert.equal(await button(page).getAttribute("aria-label"), "Style: Cake")
+    assert.equal(await shown(page), "minimal")
+    assert.equal(await button(page).getAttribute("aria-label"), "Style: Minimal")
   } finally {
     await context.close()
   }
 })
 
-test("the menu lists Cake and Minimal, each with its preview, and checks the style in use", async () => {
+for (const [style, name] of [["cake", "Cake"], ["minimal", "Minimal"]]) {
+  test(`a browser that picked ${name} before opens in ${name}, and the button names it`, async () => {
+    const { page, context } = await open((context) => pickStyle(context, style))
+    try {
+      assert.equal(await shown(page), style)
+      assert.equal(await button(page).getAttribute("aria-label"), `Style: ${name}`)
+    } finally {
+      await context.close()
+    }
+  })
+}
+
+test("before the app's script runs, the page is already in Minimal, so a fresh browser sees no Cake first", async () => {
+  const context = await app.browser.newContext({ javaScriptEnabled: false })
+  try {
+    const page = await context.newPage()
+    await page.goto(app.url(ROUTE))
+    assert.equal(await shown(page), "minimal")
+  } finally {
+    await context.close()
+  }
+})
+
+test("the menu lists Minimal and Cake, each with its preview, and checks the style in use", async () => {
   const { page, context } = await open()
   try {
     await button(page).click()
     const items = page.getByRole("menuitemradio")
-    assert.deepEqual(await items.allTextContents(), ["Cake", "Minimal"])
+    assert.deepEqual(await items.allTextContents(), ["Minimal", "Cake"])
     assert.deepEqual(await items.evaluateAll((all) => all.map((item) => item.getAttribute("aria-checked"))), ["true", "false"])
     const previews = await items.locator("img").evaluateAll((all) => all.map((img) => [img.complete, img.naturalWidth, img.naturalHeight]))
     assert.deepEqual(previews, [[true, 480, 300], [true, 480, 300]], "each item shows its 480 x 300 preview")
@@ -54,43 +78,41 @@ test("the menu lists Cake and Minimal, each with its preview, and checks the sty
   }
 })
 
-test("choosing Minimal changes the page at once, the next visit opens in it, and choosing Cake goes back", async () => {
+test("choosing Cake changes the page at once, the next visit opens in it, and choosing Minimal goes back", async () => {
   const { page, context } = await open()
   try {
     await page.evaluate(() => { window.notReloaded = true })
-    await choose(page, "Minimal")
-    assert.equal(await shown(page), "minimal")
+    await choose(page, "Cake")
+    assert.equal(await shown(page), "cake")
     assert.equal(await page.evaluate(() => window.notReloaded), true, "the page was not loaded again")
-    assert.equal(await button(page).getAttribute("aria-label"), "Style: Minimal")
+    assert.equal(await button(page).getAttribute("aria-label"), "Style: Cake")
     await page.reload({ waitUntil: "networkidle" }) // the next visit
+    assert.equal(await shown(page), "cake")
+    await choose(page, "Minimal")
+    await page.reload({ waitUntil: "networkidle" })
+    assert.equal(await shown(page), "minimal")
+  } finally {
+    await context.close()
+  }
+})
+
+test("a browser that keeps no site data opens in Minimal, and the menu still changes the page", async () => {
+  const { page, context } = await open((context) => context.addInitScript(() => {
+    Object.defineProperty(window, "localStorage", { get() { throw new DOMException("site data is turned off", "SecurityError") } })
+  }))
+  try {
     assert.equal(await shown(page), "minimal")
     await choose(page, "Cake")
-    await page.reload({ waitUntil: "networkidle" })
     assert.equal(await shown(page), "cake")
   } finally {
     await context.close()
   }
 })
 
-test("a browser that keeps no site data opens in Cake, and the menu still changes the page", async () => {
-  const { page, context } = await open(() => {
-    Object.defineProperty(window, "localStorage", { get() { throw new DOMException("site data is turned off", "SecurityError") } })
-  })
+test("a browser that keeps something else under the style's key opens in Minimal", async () => {
+  const { page, context } = await open((context) => pickStyle(context, "dark"))
   try {
-    assert.equal(await shown(page), "cake")
-    await choose(page, "Minimal")
     assert.equal(await shown(page), "minimal")
-  } finally {
-    await context.close()
-  }
-})
-
-test("a browser that keeps something else under the style's key opens in Cake", async () => {
-  const { page, context } = await open(() => {
-    if (location.protocol.startsWith("http")) localStorage.setItem("agentcake-style", "dark")
-  })
-  try {
-    assert.equal(await shown(page), "cake")
   } finally {
     await context.close()
   }

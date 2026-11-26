@@ -1,4 +1,4 @@
-"""'Every action' of a session (the session page lists it): the pages opened and what the visitor did, never what was typed.
+"""'All actions' of a session (the session page lists it): the pages opened and what the visitor did, never what was typed.
 
 An action is a page opened (cake.js's page record, kept per page view; the rrweb Meta event of a cake 0.3.x recording)
 or one of the visitor's own actions in the raw stream, as data/actions.json defines them for the whole of AgentCake
@@ -15,11 +15,13 @@ max_actions, the earliest; the pages section counts them all.
     recorded(con, session_id, runs, whole, views) -> [Action]   every action, in time order, with who took it; a
                                                                   cake 0.3.x recording adds its pages' addresses to
                                                                   views (pages.views)
-    listed(found, path_of, epoch) -> [contract Action]            "Every action": the first max_actions; path_of(action)
+    listed(found, path_of, epoch) -> [contract Action]            "All actions": the first max_actions; path_of(action)
                                                                   is the address of the page it was taken on
     who_at(runs, whole) -> who(t)                                 who acted at a moment
     share(found) -> {human, agent, unsure}                        each actor's share of the actions, whole percents
-    session_share(con, session_id, verdict, turns, runs)          share() of one session, as its page counts it
+    taken(con, session_id, verdict, turns, runs) -> [Action]      every action of one tab session, as its page
+                                                                  finds them (a session's share counts all its
+                                                                  tabs' together: rows.py)
 """
 import json
 from collections import namedtuple
@@ -45,17 +47,17 @@ Action = namedtuple("Action", "t kind target view who")
 
 
 def share(found):
-    """Each actor's share of the session's actions (Every action's, without the pages opened), whole percents that add up
-    to 100; all 0 for a session with no action."""
+    """Each actor's share of the session's actions (the ones All actions lists, without the pages opened), whole
+    percents that add up to 100; all 0 for a session with no action."""
     taken = [action.who for action in found if action.kind != OPEN]
     return dict(zip(visits.WHO, visits.whole_percents([taken.count(who) for who in visits.WHO])))
 
 
-def session_share(con, session_id, verdict, turns, runs):
-    """share() of one session's actions, found as its page finds them (the session list's share is the page's):
-    turns, its agent_turns; runs, its stored segments (t_start, t_end, actor)."""
+def taken(con, session_id, verdict, turns, runs):
+    """recorded() of one tab session, found as its page finds them (the session list's share is the page's): verdict
+    and turns, its own verdict and agent_turns; runs, its stored segments (t_start, t_end, actor)."""
     whole = None if turns == HUMAN_AGENT else verdict  # a Human + agent session's input outside every run is unsure
-    return share(recorded(con, session_id, runs, whole, pages.views(con, session_id)))
+    return recorded(con, session_id, runs, whole, pages.views(con, session_id))
 
 
 def recorded(con, session_id, runs, whole, views):
@@ -75,7 +77,7 @@ def recorded(con, session_id, runs, whole, views):
 
 
 def listed(found, path_of, epoch):
-    """The first max_actions of found as "Every action" lists them: when (ms from epoch), who, what, which page."""
+    """The first max_actions of found as "All actions" lists them: when (ms from epoch), who, what, which page."""
     return [{"at_ms": max(0, round(action.t - epoch)), "who": action.who, "what": _what(action, path_of),
              "page": path_of(action)} for action in found[:numbers()["max_actions"]]]
 

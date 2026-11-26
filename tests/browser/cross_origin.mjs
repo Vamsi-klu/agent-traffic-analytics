@@ -178,6 +178,8 @@ async function visit(browser, cake, front, site, [name, host], collectPath) {
   const passedOn = atTheDoor.map((r) => r.batch).filter(Boolean)
   const session = stored.session
   const kept = cake.rows("SELECT origin FROM sessions WHERE id = ?", [session])
+  // the session the tab session is in (a visit's id; its own id while it is in none) is what the list shows
+  const [[visit] = [session]] = cake.rows("SELECT COALESCE(visit_id, session_id) FROM session_web WHERE session_id = ?", [session])
   const listed = (await cake.get("/api/sessions")).results.map((row) => row.id)
   return {
     name, page: origin, script_src: scriptSrc,
@@ -198,7 +200,7 @@ async function visit(browser, cake, front, site, [name, host], collectPath) {
       batches: passedOn.length,
       copies_of_a_batch_already_sent: passedOn.length - new Set(passedOn).size,
     },
-    agentcake: { session_kept: kept.length === 1, origin: kept.length ? kept[0][0] : null, in_the_session_list: listed.includes(session) },
+    agentcake: { session_kept: kept.length === 1, origin: kept.length ? kept[0][0] : null, in_the_session_list: listed.includes(visit) },
   }
 }
 

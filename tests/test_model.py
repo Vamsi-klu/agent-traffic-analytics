@@ -16,6 +16,7 @@ from unittest import mock
 TESTS = os.path.dirname(os.path.abspath(__file__))
 sys.path[:0] = [os.path.dirname(TESTS), TESTS]
 
+import beside_editor  # noqa: E402  (made up by rule: no recording)
 from agentcake.detect import features, model, timeline  # noqa: E402
 
 NO_EVIDENCE = dict.fromkeys(features.FEATURES)
@@ -239,6 +240,14 @@ class VerdictTest(unittest.TestCase):
         result = model.judge_session(events)
         self.assertEqual(result["verdict"], "human")
         self.assertNotIn("few_moves_before_click", result["evidence"]["rule_hits"])
+
+    def test_scrolling_and_hovering_a_window_without_focus_is_no_agent_evidence(self):
+        """11/24: a person who works in their editor scrolls and hovers the browser beside it. WebKit then sends a
+        move where the pointer rests after each scroll, and every event reports no focus; neither is an agent's."""
+        result = model.judge_session(beside_editor.session())
+        self.assertEqual(result["verdict"], "human")
+        for rule in ("no_focus", "zero_movement"):
+            self.assertNotIn(rule, result["evidence"]["rule_hits"])
 
     def test_no_evidence_either_way_is_unsure(self):
         result = model.judge_session(straight_glides_and_scrolls(4), raw_input=False)

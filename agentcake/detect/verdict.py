@@ -17,11 +17,15 @@ the specification and tests/test_verdict.py pins it rule by rule (the browser na
     by hand only names it. Soft traces count only with company: another trace that is not weak (a family of rules is
     one kind and needs a trace of another: verdict_soft.py), or the behaviour model judging an agent; alone, human
     behaviour gives Human and anything else Not sure. Weak traces only go in reasons.
- 5  Behaviour (the behaviour model through behavior.py): with agent evidence, a long enough human run (verdict.json "mixed")
-    makes the session Mixed; without any, Mixed needs long enough runs of both (a hand-off lies between them, and
-    the timeline marks it). Behaviour alone judging an agent is "possibly an agent on the visitor's own computer":
-    AI in a real browser, no name. Assistive-tool signs keep the behaviour's agent judgement from counting (Not
-    sure). Only weak signals: Human. A phone or tablet, which the model does not run on: verdict_touch.py.
+ 5  Behaviour (the behaviour model through behavior.py): with agent evidence (a name, a signature, a trace), a long
+    enough human run (verdict.json "mixed") makes the session Mixed, whatever the agent did there (a page whose agent
+    took no action of its own says the agent was in the browser: api/session.py); without any, Mixed needs both a
+    long enough human run and an agent's part with enough clicks or inputs of its own, and the session is a Human when
+    the agent's part has not (its scrolling and pointer movement alone never make one); a hand-off lies between them,
+    and the timeline marks it. Behaviour alone judging an agent is
+    "possibly an agent on the visitor's own computer": AI in a real browser, no name. Assistive-tool signs keep the
+    behaviour's agent judgement from counting (Not sure). Only weak signals: Human. A phone or tablet, which the
+    model does not run on: verdict_touch.py.
  6  Confidence (verdict.json "confidence"): certain, likely, possible or unsure.
  7  Crawler-like patterns (crawler.py) and the other weak signals (weak.py) only add reasons.
  8  Each of the interface's four layers gets a state; a layer that did not run says why. The name layer's is the
@@ -69,7 +73,7 @@ import dataclasses
 
 from agentcake import datafiles
 from agentcake.detect import (attribute, behavior, confidence, crawler, lists, model as behavior_model,
-                              verdict_identity, verdict_marks, verdict_soft, verdict_touch, weak)
+                              verdict_identity, verdict_marks, verdict_runs, verdict_soft, verdict_touch, weak)
 from agentcake.detect.verdict_identity import IMPERSONATION, SELF_REPORTED, VERIFIED
 from agentcake.detect.verdict_text import reason
 from agentcake.units import MS_PER_S, PERCENT
@@ -221,10 +225,8 @@ class _Case:
         return ((self.result or {}).get("timeline") or {}).get("handoffs") or []
 
     def long_runs(self, who):
-        """The runs of `who` long enough to count as one side of a Mixed session (verdict.json "mixed")."""
-        rule = self.settings["mixed"]
-        return [r for r in self.runs if r["who"] == who and r["n"] >= rule["min_actions"]
-                and (r["end"] - r["start"]) / MS_PER_S >= rule["min_span_s"]]
+        """The runs of `who` that count as one side of a Mixed session (verdict_runs.py, verdict.json "mixed")."""
+        return verdict_runs.long_runs(self.runs, who, self.settings["mixed"])
 
     def _classify(self):
         identity, says_agent = self.identity, self.verdict == AGENT and not self.assistive
@@ -268,8 +270,8 @@ class _Case:
         verdict = self.verdict
         if self.assistive and verdict == AGENT:
             return NOT_SURE, None, []
-        if self.long_runs(HUMAN) and verdict == AGENT:  # a confirmed agent part beside a human's (11/13)
-            return MIXED, AI_ROW, ["behavior"]
+        if self.long_runs(HUMAN) and verdict == AGENT:  # beside a human's, a confirmed agent part that acted
+            return (MIXED, AI_ROW, ["behavior"]) if self.long_runs(AGENT) else (HUMAN, None, ["behavior"])
         if verdict == AGENT:
             return AGENT, AI_ROW, ["behavior"]
         if verdict == HUMAN or self.real_touch:  # the model judged nothing on a phone or tablet: no behaviour kind
@@ -304,10 +306,7 @@ class _Case:
             out += [reason("behavior.handoff", PAGE, h["t"], to=h["to"], at=round((h["t"] - start) / MS_PER_S),
                            **{"from": h["from"]}) for h in self.handoffs]
         elif self.cls in (AGENT, HUMAN):
-            short = [r for r in self.runs if r["who"] in (HUMAN, AGENT) and r["who"] != self.cls
-                     and r not in self.long_runs(r["who"])]
-            out += [reason("behavior.short-run", PAGE, r["n"], who=r["who"], n=r["n"],
-                           span=round((r["end"] - r["start"]) / MS_PER_S, 1)) for r in short]
+            out += verdict_runs.short_reasons(self.runs, self.cls, self.settings["mixed"])
         return out
 
     def _indicator_reasons(self, result):

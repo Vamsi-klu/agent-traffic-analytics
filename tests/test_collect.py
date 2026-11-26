@@ -178,10 +178,11 @@ class Streams(CollectCase):
         self.assertEqual(len(self.stream("rrweb")), 50)
 
     def test_a_session_pruned_by_retention_takes_its_batches_along(self):
-        self.post(batch(sid="oldvisit"))
-        self.post(batch(sid="newvisit"))
-        self.con.execute("UPDATE sessions SET end_ms=? WHERE id='oldvisit'", (T0 - 31 * MS_PER_DAY,))
-        store.prune(self.con, 30)
+        with mock.patch.object(collect, "clock_ms", return_value=T0 - 31 * MS_PER_DAY):  # it ended 31 days ago
+            self.post(batch(sid="oldvisit"))
+        with mock.patch.object(collect, "clock_ms", return_value=T0):
+            self.post(batch(sid="newvisit"))
+        store.prune(self.con, 30, T0)
         self.assertEqual([r[0] for r in self.con.execute("SELECT DISTINCT session_id FROM batches")], ["newvisit"])
 
     def test_records_without_a_time_are_left_out_and_counted(self):

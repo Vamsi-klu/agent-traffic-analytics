@@ -6,7 +6,7 @@ import os from "node:os"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 import { build } from "vite"
-import { launch, serve } from "../scripts/shots.mjs"
+import { launch, pickStyle, serve } from "../scripts/shots.mjs"
 
 const web = path.join(path.dirname(fileURLToPath(import.meta.url)), "..")
 const fixtures = path.join(web, "src", "data", "fixtures")
@@ -59,9 +59,11 @@ export const unsureGrey = (page) => page.evaluate(() => {
  *  closes on it (Radix closes tooltips on scroll), so a test focuses a trigger only after this. */
 export const scrolled = (page) => page.evaluate(() => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done))))
 
-/** A fresh tab at `width` (light, still: reduced motion), with every request it makes noted. */
-export async function openTab(app, { width = 1280 } = {}) {
+/** A fresh tab at `width` (light, still: reduced motion), with every request it makes noted; in `style` when given, as
+ *  the Style menu leaves it, else in the default a browser that picked nothing shows. */
+export async function openTab(app, { width = 1280, style } = {}) {
   const context = await app.browser.newContext({ viewport: { width, height: 900 }, colorScheme: "light", reducedMotion: "reduce" })
+  if (style) await pickStyle(context, style)
   const page = await context.newPage()
   const requests = []
   page.on("request", (request) => requests.push(request.url()))

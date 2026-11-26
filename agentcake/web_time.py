@@ -28,9 +28,21 @@ session (only then are its stored records read).
                                            record, page view) triples, oldest first; rows, its batches' (page view,
                                            url) in order; url, its landing address
     active(first_t, last_t, hidden_ms, hidden_since) -> (active_ms, total_ms) or None without a time
+    session_active(con, tabs) -> (active_ms, total_ms) or None: a session's over its tabs, each tab
+                                           (session_id, first_t, last_t, hidden_ms, hidden_since): the union of the
+                                           time each was shown, the time the website was in front (never their sum),
+                                           and the time from the first record of any to the last; one tab's active()
+    visible_spans(con, session_id, first_t, last_t) -> [(from, to)]: when its page was shown, followed again from
+                                           every change kept of it (their lengths add up to active()'s active time)
+    union_ms(spans) -> how long the (from, to) spans of any number of tabs cover together
+
+session_active and visible_spans only read: the database through the connection they are given, and the chunk files
+under the data folder (paths.home(), CAKE_HOME), as streams.read_events reads every replay; they write nothing and open
+no connection of their own (no store.db()). To count a database in another folder (agentcake session-counts --db),
+point CAKE_HOME at that folder while it reads, as evaluation/store.py does.
 """
 import json
-from collections import Counter
+from collections import Counter, namedtuple
 
 from agentcake import addresses, streams
 from agentcake.datafiles import load
@@ -92,6 +104,63 @@ def active(first_t, last_t, hidden_ms, hidden_since):
     total = max(0, last_t - first_t)
     hidden = (hidden_ms or 0) + (max(0, last_t - hidden_since) if hidden_since is not None else 0)
     return max(0, total - hidden), total
+
+
+TabTime = namedtuple("TabTime", "session_id first_t last_t hidden_ms hidden_since")  # a tab's session_web columns
+
+
+def session_active(con, tabs):
+    """(active_ms, total_ms) of a session over its tabs (see the module docstring); None without a time. A session of
+    one tab is active() of it; tabs whose times never overlap are read no further, since the union of what they showed
+    is then the sum of their active times; otherwise each tab's stretches are followed again (visible_spans)."""
+    listed = [TabTime(*tab) for tab in tabs]
+    if len(listed) == 1:
+        one = listed[0]
+        return active(one.first_t, one.last_t, one.hidden_ms, one.hidden_since)
+    timed = sorted((tab for tab in listed if tab.first_t is not None and tab.last_t is not None),
+                   key=lambda tab: tab.first_t)
+    if not timed:
+        return None
+    total = max(tab.last_t for tab in timed) - timed[0].first_t
+    if all(before.last_t <= after.first_t for before, after in zip(timed, timed[1:])):
+        shown = sum(active(tab.first_t, tab.last_t, tab.hidden_ms, tab.hidden_since)[0] for tab in timed)
+    else:
+        shown = union_ms([span for tab in timed
+                          for span in visible_spans(con, tab.session_id, tab.first_t, tab.last_t)])
+    return max(0, shown), max(0, total)
+
+
+def visible_spans(con, session_id, first_t, last_t):
+    """[(from, to)] of first_t … last_t while the session's page was shown: every change kept of it followed from the
+    start, as _follow_changes() follows them, the stretches it was hidden left out (a page still hidden at the end is
+    hidden until last_t). Their lengths add up to active()'s active time of the same session."""
+    if first_t is None or last_t is None:
+        return []
+    kept = _changes((stream, text, page) for _, stream, text, page in
+                    streams.read_events(con, session_id, [SIGNALS, RAW], with_page=True))
+    hidden, since, _ = _hidden(kept, None, None)
+    if since is not None:
+        hidden.append((since, last_t))
+    spans, at = [], first_t
+    for start, end in hidden:
+        start, end = min(start, last_t), min(max(start, end), last_t)  # one that closed before it opened hides nothing
+        if start > at:
+            spans.append((at, start))
+        at = max(at, end)
+    if at < last_t:
+        spans.append((at, last_t))
+    return [(start, end) for start, end in spans if end > start]
+
+
+def union_ms(spans):
+    """How long the (from, to) spans cover together: a moment two tabs were both shown counts once."""
+    covered, until = 0, None
+    for start, end in sorted(spans):
+        if until is None or start > until:
+            covered, until = covered + (end - start), end
+        elif end > until:
+            covered, until = covered + (end - until), end
+    return covered
 
 
 def _add_views(con, session_id, counted):
@@ -157,14 +226,25 @@ def _visibility(record):
 def _follow(changes, hidden_ms, since, shown):
     """The hidden time, since when the tab is hidden, and the page view that is the tab's, after these (time, hidden,
     page view) changes, oldest first (see the module docstring)."""
+    closed, since, shown = _hidden(changes, since, shown)
+    for start, end in closed:
+        hidden_ms += max(0, end - start)
+    return hidden_ms, since, shown
+
+
+def _hidden(changes, since, shown):
+    """The (from, to) stretches the tab was hidden that these (time, hidden, page view) changes close, oldest first,
+    then since when it is still hidden and the page view that is the tab's after them (see the module docstring)."""
+    closed = []
     for t, hidden, page in changes:
         if not hidden:
             shown = page
             if since is not None:
-                hidden_ms, since = hidden_ms + max(0, t - since), None
+                closed.append((since, t))
+                since = None
         elif since is None and shown in (None, page):
             since, shown = t, page
-    return hidden_ms, since, shown
+    return closed, since, shown
 
 
 def _views_from_batches(rows, url):

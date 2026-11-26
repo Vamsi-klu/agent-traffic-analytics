@@ -5,12 +5,15 @@
 Every round seals the windows that went quiet; the heavy night work (recompress, reclaim) runs only at night, on AC
 power, with the computer idle and cake quiet. The clock and the power and load probes are passed in: nothing sleeps.
 """
+import contextlib
+import io
 import json
 import os
 import sys
 import tempfile
 import unittest
 from datetime import datetime
+from unittest import mock
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, HERE)
@@ -89,6 +92,18 @@ class Rounds(unittest.TestCase):
         maintenance.Upkeep(probes=Probes(ac=False, load=1.0)).tick(morning)
         self.assertFalse(os.path.exists(gone))
         self.assertEqual(self.count("SELECT MIN(archived) FROM chunks WHERE session_id='old'"), 0, "no night work")
+
+    def test_a_failing_upgrade_to_visits_holds_back_neither_judging_nor_the_night_work(self):
+        """The upgrade runs in every round until it is done: when it fails, the round still judges and still does
+        the night work, and the failure goes to cake.log."""
+        quiet = self.night + SETTINGS["recompress_quiet_ms"]
+        log = io.StringIO()
+        with mock.patch("agentcake.visit_upgrade.step", side_effect=OSError("a failing upgrade")), \
+                mock.patch("agentcake.judging.tick") as judged, contextlib.redirect_stderr(log):
+            maintenance.Upkeep(probes=Probes()).tick(quiet)
+        judged.assert_called_once_with(quiet)
+        self.assertEqual(self.count("SELECT MIN(archived) FROM chunks WHERE session_id='old'"), 1, "the night work ran")
+        self.assertIn("a failing upgrade", log.getvalue())
 
     def test_the_night_work_is_checked_at_its_own_pace(self):
         upkeep = maintenance.Upkeep(probes=Probes(ac=False))

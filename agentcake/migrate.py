@@ -20,6 +20,8 @@ The 0.3.4 rows stay, for a cake 0.3.4 the person may go back to: session_replay.
 its copy (to judging and the replay page), space.py counts them in the disk budget, and streams.drop_replay() removes
 both together. dry_run says what would be done and changes nothing. Returns the exit code: 0 when everything was
 copied or nothing was to do, 1 otherwise.
+
+backup(db, now_ms) is steps 1 and 2's backup, also the one the upgrade to visits makes first (visit_upgrade.py).
 """
 import os
 import shutil
@@ -35,7 +37,8 @@ _MISSING = object()  # what zip_longest gives when the rows and their copy end a
 
 
 class BackupFailed(RuntimeError):
-    """The backup copy does not match the database: nothing was changed."""
+    """No checked backup: the disk has no room for one, or the copy could not be made or does not match the database
+    (it is removed). Nothing was changed."""
 
 
 def migrate(dry_run=False, now_ms=None, cfg=SETTINGS):
@@ -55,18 +58,14 @@ def migrate(dry_run=False, now_ms=None, cfg=SETTINGS):
     if dry_run:
         print(f"would back up {paths.tilde(db)}, then copy {len(todo)} sessions, {events} replay events into chunks")
         return 0
-    need, free = _database_bytes(db) * cfg["backup_free_space_factor"], shutil.disk_usage(paths.home()).free
-    if free < need:
-        print(f"not enough free disk for the backup: {free:,} bytes free, {int(need):,} needed; nothing was changed")
-        return 1
     try:
-        backup, counts = _backup(db, now_ms, cfg)
+        made, counts = backup(db, now_ms, cfg)
     except BackupFailed as e:
         print(f"{e}; nothing was changed")
         return 1
-    print(f"backup: {paths.tilde(os.path.join(paths.home(), backup))} (checked: "
+    print(f"backup: {paths.tilde(os.path.join(paths.home(), made))} (checked: "
           + ", ".join(f"{n} {table} rows" for table, n in counts.items()) + ")")
-    return _copy_all(todo, backup, now_ms, cfg)
+    return _copy_all(todo, made, now_ms, cfg)
 
 
 def _copy_all(todo, backup, now_ms, cfg):
@@ -153,10 +152,23 @@ def _sessions_to_copy(db):
         con.close()
 
 
+def backup(db, now_ms, cfg=SETTINGS):
+    """The checked backup of steps 1 and 2: when the disk has room for it (the database's size times
+    backup_free_space_factor), _backup(); raises BackupFailed, saying why, having changed nothing."""
+    need, free = _database_bytes(db) * cfg["backup_free_space_factor"], shutil.disk_usage(paths.home()).free
+    if free < need:
+        raise BackupFailed(f"not enough free disk for the backup: {free:,} bytes free, {int(need):,} needed")
+    return _backup(db, now_ms, cfg)
+
+
 def _backup(db, now_ms, cfg):
-    """Copy the database with SQLite's backup API and check the copy; returns (path under home, row counts)."""
+    """Copy the database with SQLite's backup API and check the copy; returns (path under home, row counts). A copy
+    that could not be made (a disk that filled meanwhile) or does not match is removed before BackupFailed."""
     folder = os.path.join(paths.home(), cfg["backup_dir"])
-    os.makedirs(folder, exist_ok=True)
+    try:
+        os.makedirs(folder, exist_ok=True)
+    except OSError as error:
+        raise BackupFailed(f"cannot make the folder {paths.tilde(folder)} for the backup: {error}") from None
     stamp = when(now_ms).strftime("cake-%Y%m%d-%H%M%SZ")
     name, n = f"{stamp}.db", 1
     while os.path.exists(os.path.join(folder, name)):
@@ -169,11 +181,17 @@ def _backup(db, now_ms, cfg):
         counts = {t: source.execute(f"SELECT COUNT(*) FROM {t}").fetchone()[0] for t in CHECKED_TABLES}
         copied = {t: copy.execute(f"SELECT COUNT(*) FROM {t}").fetchone()[0] for t in CHECKED_TABLES}
         healthy = copy.execute("PRAGMA integrity_check").fetchone()[0] == "ok"
+        problem = None if healthy and copied == counts else "does not match the database"
+    except sqlite3.Error as error:
+        problem = f"could not be made: {error}"
     finally:
         copy.close()
         source.close()
-    if not healthy or copied != counts:
-        raise BackupFailed(f"the backup {paths.tilde(path)} does not match the database")
+    if problem:
+        for leftover in (path, path + "-journal", path + "-wal", path + "-shm"):
+            if os.path.exists(leftover):
+                os.remove(leftover)
+        raise BackupFailed(f"the backup {paths.tilde(path)} {problem}; it was removed")
     return f"{cfg['backup_dir']}/{name}", counts
 
 

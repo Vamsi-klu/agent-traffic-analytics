@@ -117,17 +117,28 @@ def _size(screen):
     return f"{screen['w']}x{screen['h']}" if isinstance(screen, dict) and screen.get("w") else None
 
 
+def window_geometry(record):
+    """(size, place) of one of cake.js's geometry records, each a tuple of numbers; None for any other record, or one
+    whose size or place is not numbers (the server keeps what a browser uploaded)."""
+    g = record.get("g") if record.get("ty") == GEO else None
+    if not isinstance(g, list) or len(g) < GEO_POSITION.stop:
+        return None
+    size, place = tuple(g[GEO_SIZE]), tuple(g[GEO_POSITION])
+    numbers = all(isinstance(value, (int, float)) and not isinstance(value, bool) for value in size + place)
+    return (size, place) if numbers else None
+
+
 def _window_jump(raw):
     """The largest move of the window's position between two geo records with the same window size, in px."""
     jumps, previous = [], None
     for record in raw or []:
-        g = record.get("g") if record.get("ty") == GEO else None
-        if not isinstance(g, list) or len(g) < GEO_POSITION.stop:
+        geometry = window_geometry(record)
+        if geometry is None:
             continue
-        if previous and previous[GEO_SIZE] == g[GEO_SIZE]:
-            (x0, y0), (x1, y1) = previous[GEO_POSITION], g[GEO_POSITION]
+        if previous and previous[0] == geometry[0]:
+            (x0, y0), (x1, y1) = previous[1], geometry[1]
             jumps.append(max(abs(x1 - x0), abs(y1 - y0)))
-        previous = g
+        previous = geometry
     return max(jumps) if jumps else None
 
 

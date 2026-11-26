@@ -10,6 +10,8 @@
   "receiving_days": 7,
   "max_actions": 2000,
   "action_merge_ms": 1000,
+  "$follow_activity_ms": "A session with several tabs replays one tab at a time and follows the tab the visitor is active in (agentcake/api/segmenter.py, PostHog's segmenter): an active stretch of a tab ends once it has had no activity for this long (PostHog's ACTIVITY_THRESHOLD_MS).",
+  "follow_activity_ms": 5000,
   "budget_choices_mb": [5120, 10240, 20480, 51200],
 
   "$verdicts": "The verdict (judging.en.json 'verdicts') of each class verdict.py gives and of cake 0.3.4's verdict column (human, agent, unsure): mixed is an Agent session; Not sure and Too little data are Human, marked: evidence 'thin' (a session cake can't tell is counted as human, and marked; the reasons say why), as is a session not judged yet. agent_turns splits an Agent session: Agent only, or Human + agent (a human and an agent took turns). certainty: how sure an agent's or a bot's name is, by attribute.py's certainty (verified names are certain). layer_states: a layer's state as the reasons panel shows it (the behavior layer's mixed: Human + agent).",

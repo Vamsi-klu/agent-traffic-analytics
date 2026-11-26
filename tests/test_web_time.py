@@ -7,7 +7,8 @@ session begun on a page after 30 minutes without activity has none of its own; a
 counted from its batches' paths. Active time is the session's time less the time its page was hidden (Clarity's
 active time spent): from the raw visibility records, and a page that opened hidden, in the order they happened whatever
 order their batches arrive in (an exit batch parked in sessionStorage goes after the next one), also for a session
-kept before that order was followed.
+kept before that order was followed. A session of several tabs counts the union of the time each tab was shown,
+never their sum, and its time from the first record of any tab to the last.
 """
 import unittest
 
@@ -15,6 +16,7 @@ from web_uploads import KEY, MINUTE_MS, T0, TAB, UA_MAC_CHROME, WebCase, page_re
 from agentcake import web_props, web_time
 
 S = 1000  # ms in a second, to write the times below
+OTHER_TAB = "6d1f0e3a2f9c4b72d8e6d2c3f4e5b6a7"  # a second tab's session id, as cake.js makes one
 
 
 def path_record(t, path):
@@ -187,6 +189,98 @@ class ActiveTime(WebCase):
     def test_a_session_without_records_has_no_time(self):
         self.assertIsNone(web_time.active(None, None, 0, None))
 
+
+
+class VisibleSpans(WebCase):
+    """When a session's page was shown: the stretches whose union is a session's active time over all its tabs."""
+
+    def spans(self, session=TAB):
+        first_t, last_t = self.one("SELECT first_t, last_t FROM session_web WHERE session_id=?", session)
+        return web_time.visible_spans(self.con, session, first_t, last_t)
+
+    def active_ms(self, session=TAB):
+        times = self.one("SELECT first_t, last_t, hidden_ms, hidden_since FROM session_web WHERE session_id=?", session)
+        return web_time.active(*times)[0]
+
+    def test_the_page_is_shown_except_while_hidden(self):
+        body = upload(0, T0, page={})
+        body["r"] = [visibility(T0 + 10 * S, False), visibility(T0 + 40 * S, True), click(T0 + 60 * S)]
+        self.post(body)
+        self.assertEqual(self.spans(), [(T0, T0 + 10 * S), (T0 + 40 * S, T0 + 60 * S)])
+
+    def test_a_page_still_hidden_at_the_end_is_shown_until_it_was_hidden(self):
+        body = upload(0, T0, page={})
+        body["r"] = [visibility(T0 + 20 * S, False)]
+        body["x"].append({"t": T0 + 50 * S, "ty": "leave", "why": "hidden"})
+        self.post(body)
+        self.assertEqual(self.spans(), [(T0, T0 + 20 * S)])
+
+    def test_the_spans_add_up_to_the_active_time_whatever_order_the_batches_came_in(self):
+        batches = []
+        for n, (t, shown) in enumerate([(10, False), (40, True), (70, False), (90, True)]):
+            body = upload(n, T0 + (t - 5) * S, page={} if n == 0 else None)
+            body["r"] = [visibility(T0 + t * S, shown)]
+            batches.append(body)
+        batches[-1]["r"].append(click(T0 + 100 * S))
+        for body in (batches[2], batches[0], batches[3], batches[1]):
+            self.post(body)
+        self.assertEqual(sum(end - start for start, end in self.spans()), self.active_ms())
+
+    def test_a_session_without_a_time_has_no_spans(self):
+        self.assertEqual(web_time.visible_spans(self.con, TAB, None, None), [])
+
+
+class UnionOfTabs(unittest.TestCase):
+    def test_a_moment_two_tabs_were_both_shown_counts_once(self):
+        self.assertEqual(web_time.union_ms([(0, 10 * S), (5 * S, 20 * S)]), 20 * S)
+
+    def test_tabs_shown_one_after_the_other_add_up(self):
+        self.assertEqual(web_time.union_ms([(30 * S, 40 * S), (0, 10 * S), (10 * S, 12 * S)]), 22 * S)
+
+    def test_a_tab_shown_inside_another_adds_nothing(self):
+        self.assertEqual(web_time.union_ms([(0, 60 * S), (10 * S, 20 * S)]), 60 * S)
+
+    def test_no_spans_cover_nothing(self):
+        self.assertEqual(web_time.union_ms([]), 0)
+
+
+class SessionActive(WebCase):
+    """web_time.session_active: a session's active time over its tabs, each tab's own row as collect leaves it."""
+
+    def times(self, session):
+        return (session, *self.one("SELECT first_t, last_t, hidden_ms, hidden_since FROM session_web WHERE "
+                                   "session_id=?", session))
+
+    def two_tabs(self, first_raw, second_at, second_raw):
+        first = upload(0, T0, page={})
+        first["r"] = first_raw
+        second = upload(0, second_at, tab=OTHER_TAB, page={})
+        second["r"] = second_raw
+        self.post(first)
+        self.post(second)
+        return web_time.session_active(self.con, [self.times(TAB), self.times(OTHER_TAB)])
+
+    def test_a_session_of_one_tab_is_that_tabs_active_time(self):
+        body = upload(0, T0, page={})
+        body["r"] = [visibility(T0 + 10 * S, False), visibility(T0 + 40 * S, True), click(T0 + 60 * S)]
+        self.post(body)
+        self.assertEqual(web_time.session_active(self.con, [self.times(TAB)]), (30 * S, 60 * S))
+
+    def test_two_tabs_shown_at_once_count_the_time_they_overlap_once(self):
+        # two windows: the first tab is in front from 0 to 30 s, the second from 10 to 50 s; 50 s together, not 70
+        self.assertEqual(self.two_tabs([click(T0 + 30 * S)], T0 + 10 * S, [click(T0 + 50 * S)]), (50 * S, 50 * S))
+
+    def test_a_tab_hidden_behind_the_other_counts_only_while_it_was_in_front(self):
+        # one window: the second tab comes to the front at 10 s and the first again at 50 s
+        found = self.two_tabs([visibility(T0 + 10 * S, False), visibility(T0 + 50 * S, True), click(T0 + 60 * S)],
+                              T0 + 10 * S, [click(T0 + 50 * S)])
+        self.assertEqual(found, (60 * S, 60 * S))
+
+    def test_tabs_never_open_at_once_add_up_and_the_time_runs_from_the_first_to_the_last(self):
+        self.assertEqual(self.two_tabs([click(T0 + 20 * S)], T0 + 30 * S, [click(T0 + 50 * S)]), (40 * S, 50 * S))
+
+    def test_tabs_without_a_time_have_none(self):
+        self.assertIsNone(web_time.session_active(self.con, [("x", None, None, 0, None), ("y", None, None, 0, None)]))
 
 
 class Addresses(unittest.TestCase):

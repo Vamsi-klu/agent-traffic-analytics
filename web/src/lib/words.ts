@@ -114,6 +114,16 @@ export const WORDS = {
   replayWaiting: "Loading the next part…",
   replayNoPage: "No page content was recorded at this point. The replay shows only pointer movements and clicks.",
   replayPosition: "Replay position",
+  /** A session of more than one tab (a visit's tabs are one session): how many, each tab by its number, and what the
+   *  replay shows: the tab the visitor is active in, or one tab picked (DESIGN.md §6.4). */
+  tabCount: (count: string) => `${count} tabs`,
+  tab: (n: number) => `Tab ${n}`,
+  /** A tab whose number another part of the session shares (it went quiet for 30 minutes, then went on): when it began. */
+  tabFrom: (n: number, at: string) => `Tab ${n} from ${at}`,
+  followVisitor: "Follow the visitor",
+  replayTab: "Tab shown in the replay",
+  tabColumn: "Tab",
+  reasonsTab: "Tab classified",
   /** What Crumb's drawing is to a screen reader where it stands for a state. */
   crumb: { loading: "Loading illustration", error: "Error illustration", empty: "Empty state illustration" },
   jumpToHandoff: "Jump to hand-off",

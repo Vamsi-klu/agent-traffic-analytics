@@ -1,6 +1,7 @@
 // The session page's Server middleware (DESIGN.md §6.4): what the site's server saw of each page request, from the tokens that
 // came with the session (SERVER.md), and the network cake.js's uploads came from (server mode only). Data from
-// /api/session/<id> (`server`); with no rows it says why, in cake's words or the interface's.
+// /api/session/<id> (`server`); with no rows it says why, in cake's words or the interface's. In a session of more than
+// one tab, a Tab column says which tab each page was requested in.
 import { Network as NetworkIcon } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -25,6 +26,7 @@ function networkParts(n: Network) {
 }
 
 export function ServerHalfTable({ server }: { server: ServerHalf }) {
+  const tabbed = server.pages.some((p) => p.tab !== undefined)
   if (!server.pages.length) {
     return (
       <Card variant="sunk" size="sm"><CardContent className="text-sm text-muted-foreground">{server.note ?? WORDS.serverHalfNone}</CardContent></Card>
@@ -40,13 +42,14 @@ export function ServerHalfTable({ server }: { server: ServerHalf }) {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Time</TableHead><TableHead>Page</TableHead><TableHead className="max-md:hidden">Sec-Fetch: site/mode/dest/user</TableHead>
+              <TableHead>Time</TableHead>{tabbed && <TableHead>{WORDS.tabColumn}</TableHead>}<TableHead>Page</TableHead><TableHead className="max-md:hidden">Sec-Fetch: site/mode/dest/user</TableHead>
               <TableHead className="max-md:hidden">Signature</TableHead><TableHead>Same network as cake.js</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>{server.pages.map((p, i) => (
             <TableRow key={`${p.at_ms}-${i}`}>
               <TableCell className="font-mono">{clock(p.at_ms)}</TableCell>
+              {tabbed && <TableCell data-tab-cell="">{p.tab}</TableCell>}
               <TableCell className="font-mono whitespace-normal">{p.path}</TableCell>
               <TableCell className="font-mono max-md:hidden">{fetchText(p.fetch)}</TableCell>
               <TableCell className="max-md:hidden">{signatureText(p.signature)}</TableCell>

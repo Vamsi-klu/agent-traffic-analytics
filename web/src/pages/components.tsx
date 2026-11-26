@@ -25,7 +25,7 @@ import { ProjectLink } from "@/components/cake/project-link"
 import { Loaded, PageError, PageLoading } from "@/components/cake/page-state"
 import { DemoShopTag, SessionRow } from "@/components/cake/session-row"
 import { Spotlight, SpotlightEmpty } from "@/components/cake/spotlight"
-import { MiniTimeline, SessionTimeline, segsInTimeOrder, spansOf, timeLabel, timelineView } from "@/components/cake/timeline"
+import { MiniTimeline, SessionTimeline, TabTimeline, segsInTimeOrder, spansOf, timeLabel, timelineView } from "@/components/cake/timeline"
 import { ReplayControls, ReplayStage } from "@/components/cake/replay-stage"
 import { ReasonLayer } from "@/components/cake/reasons"
 import { ServerHalfTable } from "@/components/cake/server-half"
@@ -40,9 +40,9 @@ import { PathsTable, TABLE_ICONS, WebStatsTable } from "@/components/cake/web-st
 import { RegisterCard } from "@/components/cake/register-card"
 import { StyleMenu } from "@/components/cake/style-menu"
 import { UNREACHABLE, api, useApi } from "@/data/api"
-import type { LayerReasons, Overview, Registration, ServerHalf, SessionPage, SessionSummary, Timezones, WebAnalytics } from "@/data/types"
+import type { Overview, Registration, SessionSummary, Timezones, WebAnalytics } from "@/data/types"
 import { NO_VALUE, integer, mbToBytes } from "@/lib/format"
-import type { ReplayState } from "@/lib/use-replay"
+import { EXAMPLE_SITE, LAYER_LOOKS, PAGE_LOOKS, SERVER_LOOKS, TAB_HANDOFFS, nothing, stillReplay, stillTabs } from "@/pages/component-samples"
 import { PRODUCT_NAME } from "@/lib/product"
 import { UNNAMED } from "@/lib/taxonomy"
 import { CLARITY, WORDS } from "@/lib/words"
@@ -67,35 +67,6 @@ const ROW_LOOKS: ((s: SessionSummary) => boolean)[] = [
   (s) => s.evidence === "thin", (s) => s.verdict === "bot",
 ]
 
-/** A layer for each look: a verdict with its reasons, and a layer that is off with no reason given. */
-const LAYER_LOOKS: LayerReasons[] = [
-  { layer: "environment", state: "agent", leans: "agent", percent: 99, reasons: [{ kind: "page", tone: "agent", text: "Automation software controls this browser.", detail: "navigator.webdriver is true" }, { kind: "browser", tone: "none", text: "Real GPU, normal screen.", detail: null }] },
-  { layer: "verify", state: "off", leans: null, percent: null, reasons: [] },
-]
-/** A server half with each kind of row: a plain page request, and a signed one from another network. */
-const SERVER_LOOKS: ServerHalf = {
-  pages: [
-    { at_ms: 0, path: "/", fetch: { site: "none", mode: "navigate", dest: "document", user: "?1" }, signature: null, same_network: true, same_user_agent: true, same_language: true, reuses: 0 },
-    { at_ms: 41250, path: "/pricing", fetch: { site: "same-origin", mode: "navigate", dest: "document", user: null }, signature: { agent: "chatgpt.com", verified: false }, same_network: false, same_user_agent: true, same_language: null, reuses: 1 },
-  ],
-  network: { country: "US", range: "OpenAI ChatGPT-User", ja4: "t13d1516h2_8daaf6152771", protocol: "HTTP/2", attribution: { text: "IP Geolocation by DB-IP", url: "https://db-ip.com" } },
-  note: null,
-}
-/** Pages of each look: who acted on them (a human, both, an agent only) and a page without actions. */
-const PAGE_LOOKS: SessionPage[] = [
-  { path: "/", at_ms: 0, duration_ms: 21300, actions: 3, who: "human" },
-  { path: "/pricing?plan=team", at_ms: 21300, duration_ms: 44700, actions: 7, who: "human_agent" },
-  { path: "/signup", at_ms: 66000, duration_ms: 4000, actions: 0, who: "agent" },
-]
-const nothing = () => undefined
-/** The replay stage and its controls as they look with no player behind them (the session page plays for real). */
-const EXAMPLE_SITE = "https://shop.example.com/"
-
-function stillReplay(address: string, status: ReplayState["status"]): ReplayState {
-  return { status, missing: "freed", error: null, timeMs: 52000, playing: false, waiting: false, noPage: false, speed: 1, address, mount: nothing,
-    play: nothing, pause: nothing, seek: nothing, setSpeed: nothing, jumpTo: nothing, nextHandoff: 80000, jumpToHandoff: nothing, retry: nothing }
-}
-
 export function ComponentsPage() {
   const data = useApi((signal) => Promise.all([api.overview({}, signal), api.registration(signal), api.sessions({}, signal), api.web({}, signal), api.timezones(signal)]), [])
   return (
@@ -113,11 +84,12 @@ function Overview({ overview: o, registration, sessions, web, zones }: {
   const human = sessions.find((s) => s.verdict === "human")
   const demoRow = human && { ...human, id: `${human.id}-demo`, demo_shop: true as const }
   const mixed = rows.find((s) => s.agent_turns === "human_agent")
+  const tabbed = sessions.find((s) => s.tabs)
   const mixedSpans = mixed?.segments && spansOf(mixed.segments, mixed.duration_ms)
   return (
     <>
       <Block name="StyleMenu" use={[
-          "Use the Style menu at the end of the top bar to switch between two styles. Cake is the default style and includes the Crumb mascot. Minimal is a plain style for reports and screenshots.",
+          "Use the Style menu at the end of the top bar to switch between two styles. Minimal is the default style and has a plain look. Cake includes the Crumb mascot.",
           "The menu shows a small preview of each style and a check mark next to the style in use. The selected style applies immediately and is saved in this browser. To see every component on this page in Minimal, choose Minimal in the menu.",
         ]} code="lib/style.ts · data-style minimal on <html> · tokens.css · minimal: variant (index.css) · localStorage agentcake-style">
         <StyleMenu />
@@ -350,6 +322,26 @@ function Overview({ overview: o, registration, sessions, web, zones }: {
           <ReplayStage replay={stillReplay(EXAMPLE_SITE, "missing")} />
           <ReplayControls replay={stillReplay(EXAMPLE_SITE, "ready")} durationMs={96400} />
         </Card>
+      </Block>
+      <Block name="Sessions of several tabs: TabLines · TabTimeline · ReplayControls tab menu" use={[
+          "A session can include more than one tab of the same browser. Its row shows the number of tabs and a line for each tab.",
+          "On the session page, the timeline shows a track for each tab, and the replay shows one tab at a time. By default, the replay follows the tab where the visitor is active. To watch one tab from start to end, select it in the tab menu. The address bar names the tab that the replay shows.",
+          "Pages visited, All actions, and Server middleware add a Tab column. Why this classification shows the reasons for each tab, starting with the tab that the classification is based on.",
+        ]} code="MiniTimeline size xs · /api/sessions tabs · /api/session tabs, follow, verdict_tab · replay?tab=">
+        {tabbed?.tabs && (
+          <div className="flex w-full flex-col gap-4">
+            <SessionRow s={tabbed} />
+            <TabTimeline ticks={timelineView({ duration_ms: tabbed.duration_ms, segments: [], handoffs: [] }).ticks} playhead={30}
+              tracks={tabbed.tabs.map((t, i) => {
+                const { spans, handoffs } = timelineView({ duration_ms: tabbed.duration_ms, segments: t.segments, handoffs: TAB_HANDOFFS[i] ?? [] })
+                return { label: WORDS.tab(i + 1), spans, handoffs, shown: i === 1 }
+              })} />
+            <Card className="w-full max-w-xl gap-0 py-0">
+              <ReplayStage replay={stillTabs("missing")} />
+              <ReplayControls replay={stillTabs("ready")} durationMs={tabbed.duration_ms} />
+            </Card>
+          </div>
+        )}
       </Block>
       <Block name="SessionPages" use="The pages in the replay, in the order they opened, with the entry and exit pages marked. Each row shows when the page opened, the time on it, who acted, and their actions. Selecting a row plays the replay from that page.">
         <div className="w-full max-w-xl"><SessionPages pages={PAGE_LOOKS} onJump={nothing} /></div>

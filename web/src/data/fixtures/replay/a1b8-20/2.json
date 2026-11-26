@@ -1,0 +1,17 @@
+{
+  "chunk": 2,
+  "start_ms": 38011,
+  "end_ms": 38011,
+  "events": [
+    {
+      "type": 3,
+      "data": {
+        "source": 5,
+        "text": "*",
+        "isChecked": false,
+        "id": 87
+      },
+      "timestamp": 1794557096005
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-// The top bar's Style menu (DESIGN.md §17): Cake, the default look with Crumb, and Minimal, the plain look. A palette
+// The top bar's Style menu (DESIGN.md §17): Minimal, the plain default look, and Cake, the look with Crumb. A palette
 // icon and the word, as other products' appearance menus are; the menu lists both styles with a small preview of each
 // and a check at the one in use. Picking a style changes the pages at once, without loading them again, and this
 // browser opens the next visit in it (lib/style.ts).

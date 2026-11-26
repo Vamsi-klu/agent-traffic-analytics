@@ -14,6 +14,7 @@ import unittest
 from unittest import mock
 from zoneinfo import ZoneInfo
 
+import visit_rows
 from api_client import Client, contract_problems
 from web_uploads import MINUTE_MS, WebCase, upload
 from agentcake import config
@@ -46,10 +47,10 @@ class Scratch(WebCase):
         self.tabs = {}
         for name, start in STARTS.items():
             tab = f"{len(self.tabs) + 1:032x}"
-            self.post(upload(0, start, tab=tab, pv=tab))
+            self.post(dict(upload(0, start, tab=tab, pv=tab), bs=tab))  # each a session of its own
             self.con.execute("UPDATE sessions SET start_ms=?, end_ms=?, verdict_class='human', judged_ms=? WHERE id=?",
                              (start, start + MINUTE_MS, NOW, tab))
-            self.con.commit()
+            visit_rows.refreshed(self.con)
             self.tabs[name] = tab
 
     def get(self, path, timezone=None, **query):

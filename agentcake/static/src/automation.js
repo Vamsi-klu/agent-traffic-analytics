@@ -114,7 +114,7 @@ function probeRound() {
 // A burst of history writes makes Chrome's browser process queue them, and any synchronous call into it meanwhile
 // (navigator.plugins, Notification.permission, the site's own document.cookie) waits, ~0.1 s for 300 at once. So
 // the writes go in short bursts (CFG.env.frame_burst_writes every frame_burst_gap_ms), still well inside Chrome's
-// counting window, and cake_main.js runs this once per visit, when idle. The frame is marked, so raw.js does not
+// counting window, and cake_main.js runs this once per tab session, when idle. The frame is marked, so raw.js does not
 // report it and rrweb records only an empty placeholder for it; calls done(record) when finished.
 function frameChecks(done) {
   var frame = document.createElement('iframe')

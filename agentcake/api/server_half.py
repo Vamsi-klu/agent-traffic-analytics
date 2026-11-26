@@ -11,6 +11,8 @@ computer), with the credit DB-IP asks for when it shows a country of its databas
 why page views have no row, when some have none (api.en.json server_half).
 
     table(con, session_id, net_json, epoch, page_views) -> ServerHalf
+    note(rows, page_views) -> why page views have no row, or None (a session of several tabs counts all of
+                              theirs: session_tabs.py)
 """
 import json
 
@@ -27,10 +29,14 @@ def table(con, session_id, net_json, epoch, page_views):
     pages = [_page(epoch, *row) for row in con.execute(
         "SELECT page_ms, path, body, net_match, ua_match, lang_match, reuses FROM srv WHERE session_id=? "
         "ORDER BY page_ms, recv_ms", (session_id,))]
+    return {"pages": pages, "network": _network(net_json), "note": note(len(pages), page_views)}
+
+
+def note(rows, page_views):
+    """Why page views have no row (api.en.json server_half): none has one, or some have none; None when each has."""
     said = words()["server_half"]
-    missing = page_views - len(pages)
-    note = said["none"] if not pages else said["some"].format(missing=missing, pages=page_views) if missing > 0 else None
-    return {"pages": pages, "network": _network(net_json), "note": note}
+    missing = page_views - rows
+    return said["none"] if not rows else said["some"].format(missing=missing, pages=page_views) if missing > 0 else None
 
 
 def _page(epoch, page_ms, path, body, net_match, ua_match, lang_match, reuses):

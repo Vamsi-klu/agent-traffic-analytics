@@ -323,10 +323,26 @@ class Behaviour(unittest.TestCase):
         self.assertEqual((result["class"], result["layers"]["behavior"]["why"]), ("too_little_data", "few_actions"))
         self.assertIn("behavior.too-little-data", ids(result))
 
-    def test_a_confirmed_agent_part_beside_a_long_human_run_is_human_and_agent(self):
+    def test_a_confirmed_agent_part_of_three_clicks_or_inputs_beside_a_long_human_run_is_human_and_agent(self):
+        # however fast: the model confirmed the agent's part, and its run holds verdict.json mixed.min_actions of its
+        # own clicks or inputs, which the page's title and Share of actions count
         result = verdict.decide(evidence(behavior_result=behavior("agent", run("human", 0, 30, 6, 0.1),
-                                                                  run("agent", 31, 40, 2, 0.9))))
-        self.assertEqual(result["class"], "mixed")  # the agent's own run is short: the model confirmed its part
+                                                                  run("agent", 31, 32, 3, 0.9))))
+        self.assertEqual(result["class"], "mixed")
+
+    def test_an_agent_part_without_three_clicks_or_inputs_beside_a_long_human_run_leaves_a_human(self):
+        """11/24: a person scrolled and hovered the browser beside their editor, and the model's agent part held no
+        click or input: Human + agent with an agent share of 0%. Its scrolling and moving alone, or two clicks, never
+        make the agent's side; the model's verdict stays in the reasons, with the agent run too short to count."""
+        for agent in (run("agent", 31, 300, 6, 0.9, acts=0), run("agent", 31, 300, 6, 0.9, acts=2)):
+            with self.subTest(acts=agent["acts"]):
+                result = verdict.decide(evidence(behavior_result=behavior("agent", run("human", 0, 30, 6, 0.1),
+                                                                          agent)))
+                self.assertEqual((result["class"], result["handoffs"]), ("human", []))
+                self.assertIn("behavior.agent", ids(result))
+                short = next(r for r in result["reasons"] if r["id"] == "behavior.short-run")
+                self.assertIn(f"included {agent['acts']} actions", short["detail"])
+                self.assertEqual(result["layers"]["behavior"]["state"], "agent")  # the model's own conclusion
 
     def test_automation_with_the_models_agent_verdict_beside_a_human_looking_run_is_agent_in_every_part(self):
         automation = [hit("env.auto.webdriver"), hit("env.auto.cdp-runtime-leak"), hit("env.auto.chromium-only-brand")]

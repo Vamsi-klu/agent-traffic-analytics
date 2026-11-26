@@ -66,7 +66,28 @@
         "pages": { "$ref": "#/$defs/Count" },
         "share": { "$ref": "#/$defs/Share" },
         "segments": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/Segment" } },
-        "demo_shop": { "description": "Set only on a session an earlier AgentCake's demo shop recorded, not the website.", "const": true }
+        "demo_shop": { "description": "Set only on a session an earlier AgentCake's demo shop recorded, not the website.", "const": true },
+        "tabs": { "description": "Set only on a session of more than one tab session: each tab, Tab 1 first.", "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/TabTrack" } },
+        "agents": { "description": "Set only when its tabs name more than one agent, named ones first.", "type": "array", "minItems": 2, "items": { "$ref": "#/$defs/AgentName" } }
+      }
+    },
+    "TabTrack": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["start_ms", "end_ms", "segments"],
+      "properties": {
+        "start_ms": { "$ref": "#/$defs/Ms" },
+        "end_ms": { "$ref": "#/$defs/Ms" },
+        "segments": { "type": "array", "items": { "$ref": "#/$defs/Segment" } }
+      }
+    },
+    "AgentName": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "certainty"],
+      "properties": {
+        "name": { "type": ["string", "null"], "minLength": 1 },
+        "certainty": { "enum": ["verified", "likely", null] }
       }
     },
     "SessionCounts": {

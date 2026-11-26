@@ -56,6 +56,8 @@
     "unnamed": "An unnamed agent",
     "unnamed_later": "an unnamed agent",
     "unnamed_again": "the agent again",
+  "with_agent": "A human, with {agent} in the browser",
+  "with_unnamed": "A human, with an unnamed agent in the browser",
     "then": "{before}, then {after}",
     "unsure": "Actor not identified",
     "too_little_data": "Not enough actions to classify",

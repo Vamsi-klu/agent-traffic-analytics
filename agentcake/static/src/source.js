@@ -1,7 +1,7 @@
 // AgentCake page script, part: where a page view came from, and the browser's language and time zone.
 //
 // The fields PostHog's web analytics groups sessions by (posthog-js's packages/browser-common/src/utils/
-// event-utils.ts; posthog-js, MIT), sent with each page record and with the record that begins a new session:
+// event-utils.ts; posthog-js, Apache-2.0), sent with each page record and with the record that begins a new session:
 //   rd    the referring domain: the host of document.referrer, never the address itself ("" when there is none,
 //         PostHog's $direct); PostHog's $referring_domain
 //   utm   the page address's campaign parameters that are there, each cut to CFG.source.max_chars: the five UTM

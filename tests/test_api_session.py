@@ -13,7 +13,9 @@ length are whole milliseconds, the hand-off where its agent segment starts. A Hu
 titled by why the behavior layer judged nothing: a phone or tablet, uploaded, judged and opened, is never titled as too
 few actions however many taps it has; too few actions on a computer still is. A phone or tablet whose environment
 record fits a real one is a Human like any other, with no limited-evidence mark; a phone or tablet shown as a Human
-shows no percent, with the mark or without, and an Agent on a phone keeps its percent.
+shows no percent, with the mark or without, and an Agent on a phone keeps its percent. A Human + agent session whose
+agent took no part is titled with the agent in the browser, and its summary tells the human's turns (the page's
+agreement: test_api_session_agree.py).
 """
 import json
 import os
@@ -59,6 +61,38 @@ class Words(unittest.TestCase):
                          "Comet, then a human")
         self.assertEqual(session_api.title("agent", "human_agent", "mixed", "Comet", runs),
                          "Comet, then a human, then Comet again, then the human again", "a verdict kept before")
+
+    def test_a_human_and_agent_session_whose_agent_took_no_action_has_it_in_the_browser(self):
+        """A name, a signature or a trace says whose browser it is, and a human acted in it: the agent has no turn to
+        tell and no action, so the title says it was in the browser."""
+        title = session_api.title
+        self.assertEqual(title("agent", "human_agent", "mixed", "Muse", [(0, 1, "human")], agent_acted=False),
+                         "A human, with Muse in the browser")
+        self.assertEqual(title("agent", "human_agent", "mixed", None, [(0, 1, "human")], agent_acted=False),
+                         "A human, with an unnamed agent in the browser")
+        self.assertEqual(title("agent", "human_agent", "mixed", "Muse", [(0, 1, "human"), (2, 3, "agent")]),
+                         "A human, then Muse", "an agent that acted keeps its turn")
+
+    def test_a_summary_tells_only_the_humans_turns_when_the_agent_took_no_action(self):
+        epoch = 1_794_608_433_697
+        runs = [(epoch + 1_000, epoch + 9_000, "agent"), (epoch + 10_000, epoch + 30_000, "human")]
+        acts = [actions_api.Action(epoch + 12_000, "click", "#a", "pv", "human"),
+                actions_api.Action(epoch + 25_000, "click", "#b", "pv", "human")]
+        story = session_api.Story(epoch, runs, "Claude in Chrome", [], None, acts)
+        self.assertEqual(session_api.verdict_summary("agent", "human_agent", "mixed", [], story),
+                         "A human was active from 0:12 to 0:25.")
+
+    def test_runs_of_different_agents_are_each_told_by_their_own_name_and_again_only_for_the_same_one(self):
+        runs = [(0, 1, "human"), (2, 3, "agent"), (4, 5, "agent"), (6, 7, "agent")]
+        claude, codex, unnamed = ("Claude in Chrome", "Claude in Chrome"), ("Codex", "Codex"), (None, "a third tab")
+        title = session_api.title
+        self.assertEqual(title("agent", "human_agent", "mixed", "Claude in Chrome", runs,
+                               agents=[None, claude, codex, claude]),
+                         "A human, then Claude in Chrome, then Codex, then Claude in Chrome again")
+        self.assertEqual(title("agent", "agent_only", "agent", "Claude in Chrome", runs[1:3], agents=[claude, unnamed]),
+                         "Claude in Chrome, then an unnamed agent")
+        self.assertEqual(title("agent", "agent_only", "agent", "Claude in Chrome", runs[1:3], agents=[claude, claude]),
+                         "Claude in Chrome", "one agent: its name alone, as ever")
 
     def test_an_unnamed_agent_takes_turns_in_words(self):
         self.assertEqual(session_api.title("agent", "human_agent", "mixed", None,
@@ -107,7 +141,7 @@ class Words(unittest.TestCase):
                          "Claude in Chrome was active from 0:08 to 0:40. A human took over at 0:49.")
 
     def test_active_is_the_actors_first_to_last_action_as_every_action_lists_them(self):
-        """One time for the agent on the page: its first action to its last (the times Every action shows), not its
+        """One time for the agent on the page: its first action to its last (the times All actions shows), not its
         run's edges, which its input can start sooner (a pointer move before the first click); the hand-off at the new
         actor's first action."""
         epoch = 1_794_608_433_697

@@ -1,6 +1,6 @@
 {
-  "counts": { "all": 150, "human": 81, "agent": 47, "bot": 22, "agent_only": 38, "human_agent": 9, "thin": 10 },
-  "total": 150,
+  "counts": { "all": 151, "human": 81, "agent": 48, "bot": 22, "agent_only": 38, "human_agent": 10, "thin": 10 },
+  "total": 151,
   "agent_names": ["Claude in Chrome", "Muse", "ChatGPT", "Grok Bot", "Codex in-app browser"],
   "results": [
     { "id": "7f3a-c1", "verdict": "agent", "evidence": null, "agent_turns": "human_agent", "agent": "Claude in Chrome", "certainty": "likely", "when": "Today 09:12", "duration_ms": 96400, "pages": 4,
@@ -39,7 +39,22 @@
     { "id": "6e0f-13", "verdict": "agent", "evidence": null, "agent_turns": "agent_only", "agent": "Codex in-app browser", "certainty": "likely", "when": "Yesterday 16:45", "duration_ms": 48000, "pages": 4,
       "share": { "human": 0, "agent": 94, "unsure": 6 } },
     { "id": "90d4-7b", "verdict": "human", "evidence": null, "agent_turns": null, "agent": null, "certainty": null, "when": "Yesterday 15:02", "duration_ms": 70000, "pages": 2,
-      "share": { "human": 100, "agent": 0, "unsure": 0 } }
+      "share": { "human": 100, "agent": 0, "unsure": 0 } },
+    { "id": "4c2d-71", "verdict": "agent", "evidence": null, "agent_turns": "human_agent", "agent": "Claude in Chrome", "certainty": "likely", "when": "Yesterday 14:40", "duration_ms": 96400, "pages": 8,
+      "share": { "human": 26, "agent": 74, "unsure": 0 },
+      "tabs": [
+        { "start_ms": 0, "end_ms": 96400, "segments": [
+          { "who": "human", "start_ms": 0, "end_ms": 38560 },
+          { "who": "agent", "start_ms": 38560, "end_ms": 80012 },
+          { "who": "unsure", "start_ms": 80012, "end_ms": 83868 },
+          { "who": "human", "start_ms": 83868, "end_ms": 96400 }
+        ] },
+        { "start_ms": 20000, "end_ms": 68000, "segments": [
+          { "who": "unsure", "start_ms": 20000, "end_ms": 22880 },
+          { "who": "agent", "start_ms": 22880, "end_ms": 68000 }
+        ] }
+      ],
+      "agents": [{ "name": "Claude in Chrome", "certainty": "likely" }, { "name": "Codex in-app browser", "certainty": "likely" }] }
   ],
   "next": "sample-page-2",
   "page_size": 20

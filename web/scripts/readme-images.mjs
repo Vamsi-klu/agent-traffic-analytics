@@ -1,7 +1,8 @@
 // Crumb's head as the icon at the top of README (docs/assets/readme/crumb.png), drawn from the favicon's SVG
 // (scripts/favicon.mjs), and the repository's social preview (social-preview.png, the picture a shared link to the
 // repository shows; it is uploaded in the repository's settings, under "Social preview"): the top of the dashboard at the
-// size GitHub asks for, 1280x640 at one pixel per CSS pixel, which keeps it under GitHub's 1 MB. Light theme. By default
+// size GitHub asks for, 1280x640 at one pixel per CSS pixel, which keeps it under GitHub's 1 MB. Light theme, in Cake
+// (the pages' default is Minimal; README and the social preview stay in Cake). By default
 // the dashboard is cake's own answers on the fixed test library at a fixed moment (fixtures/library/, LIBRARY), taken
 // the way the visual baseline is (scripts/visual.mjs), so no visitor, address or folder of any computer can be in it.
 // With --origin <url> it is that running AgentCake's dashboard instead (the maintainers serve a copy of the demo data's
@@ -15,7 +16,7 @@ import path from "node:path"
 import { fileURLToPath } from "node:url"
 import { crumbHeadSvg } from "./favicon.mjs"
 import { LIBRARY } from "./fixture-api.mjs"
-import { launch, serve, shoot } from "./shots.mjs"
+import { launch, pickStyle, serve, shoot } from "./shots.mjs"
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 const OUT = path.join(here, "..", "..", "docs", "assets", "readme")
@@ -95,6 +96,7 @@ async function main() {
     const showcase = option("--origin")
     const social = await browser.newContext({ viewport: { width: SOCIAL.width, height: SOCIAL.height }, colorScheme: "light",
       reducedMotion: "reduce", deviceScaleFactor: SOCIAL.pixelRatio })
+    await pickStyle(social, "cake")
     if (showcase) await onlyFrom(social, [showcase])
     const dashboard = `${showcase ?? libraryOrigin}index.html${SOCIAL.route}`
     await writeFile(path.join(OUT, SOCIAL.file), await drawPage(await social.newPage(), dashboard, SOCIAL.width, SOCIAL.height))

@@ -24,9 +24,19 @@ function standIn() {
   })
 }
 
-/** cake.js starting on a page, sessionStorage holding `storage`; the clock moves on 1 ms at each read. Returns whether
- * it threw, the session id stored, and the batches its first flush sends (their session id and record kinds). */
-function start(storage) {
+/** A Map behind C.store's or C.shared's interface. */
+function fakeStore(map) {
+  return {
+    get: (key) => (map.has(key) ? map.get(key) : null),
+    set: (key, value) => { map.set(key, value); return true },
+    remove: (key) => { map.delete(key); return true }
+  }
+}
+
+/** cake.js starting on a page, sessionStorage holding `storage` and localStorage `browser`; the clock moves on 1 ms at
+ * each read. Returns whether it threw, the session id stored, and the batches its first flush sends (their session
+ * ids and record kinds). */
+function start(storage, browser) {
   const store = new Map(Object.entries(storage))
   const pushed = []
   const sent = []
@@ -39,11 +49,8 @@ function start(storage) {
     randomId: () => `id${++ids}`,
     safe: (fn) => { try { return fn() } catch (e) { return String(e) } },
     fault: (where, error) => pushed.push(['fault', where, String((error && error.message) || error)]),
-    store: {
-      get: (key) => (store.has(key) ? store.get(key) : null),
-      set: (key, value) => { store.set(key, value); return true },
-      remove: (key) => { store.delete(key); return true }
-    },
+    store: fakeStore(store),
+    shared: fakeStore(new Map(Object.entries(browser))),
     source: { fields: () => ({ rd: '', utm: {}, ck: [], lang: 'en-US', tzo: 0 }) }
   }
   const C = new Proxy(base, { get: (target, key) => (key in target ? target[key] : (target[key] = standIn())) })
@@ -75,16 +82,28 @@ function start(storage) {
   } catch (e) {
     threw = String((e && e.message) || e)
   }
-  const batches = sent.map((batch) => ({ s: batch.s, x: batch.x.map((record) => [record.ty, record.t - T0]) }))
-  return { threw, stored: store.get(CFG.storage.session) || null, batches, faults: pushed }
+  const batches = sent.map((batch) => ({
+    s: batch.s, bs: batch.bs, w: batch.w, x: batch.x.map((record) => [record.ty, record.t - T0])
+  }))
+  const stored = (key) => store.get(CFG.storage[key]) || null
+  return { threw, stored: stored('session'), window: stored('window'), batches, faults: pushed }
 }
 
 const idle = CFG.session.idle_ms
+/** The tab's session 'old' and the browser's 'bs-old', both begun at `s` and last active at `l`, as an earlier page of
+ * the tab left them. */
+function earlier(s, l) {
+  const key = CFG.storage
+  return [
+    { [key.session]: 'old', [key.clock]: JSON.stringify({ s, l, b: 'bs-old' }), [key.window]: 'w-old' },
+    { [key.browser_session]: 'bs-old', [key.browser_clock]: JSON.stringify({ b: 'bs-old', s, l }) }
+  ]
+}
 const cases = {
   // the tab's session went quiet exactly idle_ms before the page began: still the same session at that moment
-  edge_of_idle: start({ [CFG.storage.session]: 'old', [CFG.storage.clock]: JSON.stringify({ s: T0 - 2 * idle, l: T0 - idle }) }),
+  edge_of_idle: start(...earlier(T0 - 2 * idle, T0 - idle)),
   // well inside the idle time, and long after it
-  recent: start({ [CFG.storage.session]: 'old', [CFG.storage.clock]: JSON.stringify({ s: T0 - idle, l: T0 - 60000 }) }),
-  expired: start({ [CFG.storage.session]: 'old', [CFG.storage.clock]: JSON.stringify({ s: T0 - 3 * idle, l: T0 - 2 * idle }) })
+  recent: start(...earlier(T0 - idle, T0 - 60000)),
+  expired: start(...earlier(T0 - 3 * idle, T0 - 2 * idle))
 }
 process.stdout.write(JSON.stringify(cases))

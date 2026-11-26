@@ -30,7 +30,7 @@ session id never appears, only its short hash.
 
 | Field | Meaning |
 |---|---|
-| `h` | `sha256("cake-goal|" + session id)[:12]` (cake.js's visit id in the CAKE_HOME's `sessions` table) |
+| `h` | `sha256("cake-goal|" + session id)[:12]` (cake.js's tab session id, `s`, in the CAKE_HOME's `sessions` table) |
 | `case` | `T3`, `T5`, `T6`, `T8` or `T22`: an AI agent in a real browser, a hand-off between a human and an agent, an automated browser, a listed bot, a crawler script |
 | `group` | what ran it, e.g. `claude-chrome`, `pw-humanlike-headed`, `googlebot-verified`, `googlebot-impersonated`, `uptimerobot`, `local-ai-tool`, `cloud-script` |
 | `class` | the class it should get: `human`, `agent`, `mixed`, `bot` or `too_little_data` |
@@ -74,15 +74,15 @@ when every threshold this command measures passes, 1 when one fails or has no da
 A5, the hand-off error, is measured where AgentCake shows hand-offs: in the mixed sessions it judged Human + agent.
 Each of their true hand-offs gets the seconds to the nearest hand-off the timeline marked in the same direction (a
 missed one counts as over the limit), and the gate judges the median. A data set with no session judged Human + agent
-has no samples, which is not a pass. A mixed session whose agent stretch is too short to tell is judged Human and
-shows no hand-off: AgentCake would rather miss an agent than call a human one. Two lines under A5 print, never judged,
+has no samples, which is not a pass. A mixed session whose agent stretch holds fewer than 3 clicks or inputs of its own
+is judged Human and shows no hand-off: AgentCake would rather miss an agent than call a human one. Two lines under A5 print, never judged,
 every true hand-off (found, missed, share within the limit, largest error found, extra ones marked) and how many mixed
 sessions were judged Human + agent.
 
 ## README's figures
 
-README's "How it decides" gives the size of the test data; its results are this section's, counted on 2026-11-20 with
-AgentCake 0.6.0's code: one run of `agentcake eval` over every data set it reads that has answers, the converted public
+README's "How it decides" gives the size of the test data; its results are this section's, counted on 2026-11-26 with
+AgentCake 0.6.2's code: one run of `agentcake eval` over every data set it reads that has answers, the converted public
 humans included, and six public sets of people that the scripts which converted them judged the same way, apart from
 `agentcake eval` (the percent a session shows is calibrated on what `agentcake eval` reads, so a set kept out of it
 stays held out). The sessions are real people's, so they are not in this repository and the counts can't be repeated
@@ -106,7 +106,7 @@ PSAI names 135 websites and SERENE keeps 220 domains; about 14 names are in both
 Shen's sessions come from Windows, not a website. SapiMouse (245 sessions of 120 people, none judged agent) publishes
 no licence, so it is in no total.
 
-- **1,025 of 1,118 agent sessions recognized, from 37 tools.** Recognized: the four layers together judged the
+- **1,020 of 1,118 agent sessions recognized, from 37 tools.** Recognized: the four layers together judged the
   session Agent, or Human + agent. Every session whose answer is an agent (for the recorder's 5 hand-offs, a human and
   an agent) counts once: the lab's 26 sessions are also among its signal recordings. A tool is what drove the browser:
   an AI agent (Claude in Chrome, 153 of its 170 sessions recognized; ChatGPT's Chrome extension, Codex's browser, Codex
@@ -119,9 +119,11 @@ no licence, so it is in no total.
   rebrowser-puppeteer, nodriver, zendriver, Pydoll, Botasaurus, SeleniumBase's UC Mode, undetected-chromedriver).
   Running with or without a window, in another Chrome, or driven by another coding agent, is the same tool. Where it
   falls short:
-  - **Made to look human:** 206 of 224 sessions recognized; the behaviour layer alone recognized 151 of them, the
-    other layers most of the rest. Camoufox passed as human in all 10 of its sessions, Patchright in 3 of 10 (Not
-    sure), and with a window and their human-like mode on, Botasaurus in 3 of 15 and Pydoll in 2 of 15.
+  - **Made to look human:** 201 of 224 sessions recognized; the behaviour layer alone recognized 136 of them, the
+    other layers most of the rest. Camoufox passed as human in all 10 of its sessions, Patchright in 6 of 10 (Not
+    sure), nodriver and zendriver in 1 of 15 each (Not sure: their only actions were clicks made by a script, as a
+    site's own scripts make them), and with a window and their human-like mode on, Botasaurus in 3 of 15 and Pydoll in
+    2 of 15.
   - **PostHog's replays** hold behaviour only: no keys, no wheel, nothing the other layers read. 17 of their 47 agent
     replays were recognized: Claude in Chrome 17 of 30, Playwright 0 of 13, Meta Muse 0 of 2, the other 2 none.
   - **Too few actions:** in 241 agent sessions the behaviour layer had too few actions to judge, and the lab's signal
@@ -139,13 +141,13 @@ no licence, so it is in no total.
   CaptchaSolve30k calibrate the percents, the recorder's 11 are threshold A1's, and PostHog's 95 are probably human, as
   an agent may have acted when no log shows it. 2,105 of the 7,122 had too few actions for any layer (Human with thin
   evidence); sessions with keys only, as in Ninawe and KeyRecs, never reach plain Human.
-- **106 of 159 sessions with a hand-off judged Human + agent, the hand-off a median of 0 seconds off.** Data: 154
+- **81 of 159 sessions with a hand-off judged Human + agent, the hand-off a median of 0 seconds off.** Data: 154
   sessions spliced from 11 recordings a person made and 4 of Claude in Chrome, by the four patterns of
   `agentcake/data/splice.json` (a splice is left out when one of its stretches holds no action, as 22 of 176 were), and
-  the recorder's 5 real hand-offs. Counted as A5 counts it (above), both sets together: in the 106 sessions judged
-  Human + agent, the median error of their 133 true hand-offs is 0 seconds; 129 were found, 93 within 3 seconds, the
-  farthest 34.8 seconds off. Over all 159 sessions, 129 of 258 true hand-offs were found: when the agent's stretch
-  holds only a few actions, the session is judged Human and shows no hand-off.
+  the recorder's 5 real hand-offs. Counted as A5 counts it (above), both sets together: in the 81 sessions judged
+  Human + agent, the median error of their 103 true hand-offs is 0 seconds; all 103 were found, 78 within 3 seconds,
+  the farthest 34.8 seconds off. Over all 159 sessions, 103 of 258 true hand-offs were found: when the agent's stretch
+  holds fewer than 3 clicks or inputs of its own, the session is judged Human and shows no hand-off.
 
 PostHog records no keys, no wheel and no `isTrusted`, so on its replays the behaviour model judges from less than
 cake.js records; `thresholds.json` gates none of them. The model fits no threshold to any data (the report's "Held-out

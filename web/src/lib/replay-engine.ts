@@ -2,8 +2,10 @@
 // (./chunk-feed.ts). It starts with the chunks the start moment needs plus the next one, reads each next chunk as
 // playback enters the one before it, reads every chunk before a moment it jumps to, and waits (then goes on) if
 // playback ever gets ahead of what has arrived. The cursor carries the name of who acted at that moment (data-who,
-// data-label on rrweb's cursor; index.css draws the label in token colours). use-replay.ts wraps it for React.
-import type { Actor, ReplayChunk, ReplayEvent, SessionDetail } from "@/data/types"
+// data-label on rrweb's cursor; index.css draws the label in token colours). use-replay.ts wraps it for React. In a
+// session of more than one tab it plays one tab's replay on the session's clock, and says when it played to its end, so
+// the next tab's can take over.
+import type { Actor, ReplayChunk, ReplayEvent, ReplayInfo, Segment } from "@/data/types"
 import { ChunkFeed } from "./chunk-feed"
 import { actorAt, addressAt, clampMs, firstPageIn, lastChunkFor, pagesIn, type PageAt } from "./replay-timing"
 import { loadPlayer, type Player, type Replayer } from "./rrweb-player"
@@ -23,13 +25,22 @@ export type EngineUpdates = {
   /** Whether the player has a page to show at the playhead (false: only the pointer and the clicks). */
   page(shown: boolean): void
   failed(error: unknown): void
+  /** Playback reached the replay's end (the moment of its last event). */
+  ended?(ms: number): void
 }
 type Options = {
   el: HTMLElement
-  detail: SessionDetail
+  /** The replay played: its chunks and start on the session's clock, and the clock's epoch. */
+  replay: Pick<ReplayInfo, "start_ms" | "start_url" | "epoch_ms" | "chunks">
+  /** The session's length, and who acted when in what is played (the cursor's name). */
+  durationMs: number
+  segments: Segment[]
   /** The cursor's label for each actor ("Claude in Chrome", "A human", "Unknown"). */
   labels: Record<Actor, string>
   fetchChunk(n: number): Promise<ReplayChunk>
+  /** Where it starts, and whether it plays on from there; by default the replay's start, paused. */
+  startMs?: number
+  autoplay?: boolean
   on: EngineUpdates
 }
 
@@ -56,16 +67,17 @@ export class ReplayEngine {
 
   constructor(options: Options) {
     this.o = options
-    this.feed = new ChunkFeed(options.detail.replay.chunks.length, options.fetchChunk, (events) => this.collect(events))
+    this.feed = new ChunkFeed(options.replay.chunks.length, options.fetchChunk, (events) => this.collect(events))
   }
 
-  private get replay() { return this.o.detail.replay }
-  private get durationMs() { return this.o.detail.timeline.duration_ms }
+  private get replay() { return this.o.replay }
+  private get durationMs() { return this.o.durationMs }
 
-  /** Loads the player and the first chunks, and shows the start moment, paused. */
+  /** Loads the player and the first chunks, and shows the start moment, paused (or playing, with autoplay). */
   async start() {
     const Player = await loadPlayer()
-    await this.ask(lastChunkFor(this.replay.chunks, this.replay.start_ms))
+    const startMs = this.o.startMs ?? this.replay.start_ms
+    await this.ask(lastChunkFor(this.replay.chunks, startMs))
     while (this.collected.length < MIN_EVENTS && !this.feed.complete) await this.ask(this.feed.handedOver)
     if (this.destroyed) return
     if (this.collected.length < MIN_EVENTS) throw new Error("This replay has too little content to play. Try opening another session.")
@@ -79,7 +91,7 @@ export class ReplayEngine {
     this.replayer.on("finish", () => this.finished())
     this.replayer.on("resize", () => this.unscale())
     this.unscale()
-    await this.seek(this.replay.start_ms, false)
+    await this.seek(startMs, this.o.autoplay ?? false)
   }
 
   play() {
@@ -169,7 +181,7 @@ export class ReplayEngine {
     this.o.on.address(addressAt(this.pages, ms, this.replay.start_url))
     const paged = ms >= this.firstPageMs
     if (paged !== this.pageShown) { this.pageShown = paged; this.o.on.page(paged) }
-    const who = actorAt(this.o.detail.timeline.segments, ms)
+    const who = actorAt(this.o.segments, ms)
     if (who === this.who || !this.replayer) return
     this.who = who
     const cursor = this.replayer.wrapper.querySelector<HTMLElement>(".replayer-mouse")
@@ -208,10 +220,12 @@ export class ReplayEngine {
   private finished() {
     const at = this.now()
     if (this.feed.complete || !this.wantPlaying) {
+      const ended = this.feed.complete && this.wantPlaying
       this.wantPlaying = false
       this.stopClock()
       this.o.on.playing(false)
       this.show(this.feed.complete ? this.endMs : at)
+      if (ended) this.o.on.ended?.(this.endMs)
       return
     }
     this.o.on.waiting(true)

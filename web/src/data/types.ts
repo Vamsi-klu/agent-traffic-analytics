@@ -15,7 +15,6 @@
 
 /** Who acted in a session, one verdict each (DESIGN.md §3.1): a session cake can't tell counts as human, with
  *  evidence "thin" (its reasons say why). */
-import type { Attribution } from "./place-types"
 import type { AddressCheck } from "./health-types"
 import type { WebDimension } from "./web-types"
 
@@ -68,7 +67,19 @@ export type SessionSummary = {
   segments?: Segment[]
   /** Set only on a session an earlier AgentCake's demo shop recorded (until 0.4.0), not the website: its row says so. */
   demo_shop?: true
+  /** Set only on a session with more than one tab (a visit's tabs share one session, as PostHog's do): each tab in the
+   *  order it opened, Tab 1 first, with who acted when in it on the session's clock; the row draws a line per tab. A
+   *  session with one tab has none, and is listed as it always was. */
+  tabs?: TabTrack[]
+  /** Set only when its tabs name more than one agent: every agent that acted, named ones first in the order of their
+   *  tabs, then Unnamed (agent and certainty are the first's). */
+  agents?: AgentName[]
 }
+
+/** One tab of a session on its list row: when its recording runs and who acted when, on the session's clock. */
+export type TabTrack = { start_ms: number; end_ms: number; segments: Segment[] }
+/** An agent's name and how sure it is; name null: an agent no name fits (Unnamed). */
+export type AgentName = { name: string | null; certainty: Certainty | null }
 
 /** Groups of sessions: the filters of the session list and their counts. all = human + agent + bot; agent splits into
  *  agent_only + human_agent (by agent_turns); thin counts the Human sessions on thin evidence. */
@@ -146,114 +157,9 @@ export type SessionsPage = {
   page_size: number
 }
 
-// ---------------------------------------------------------------- GET /api/session/<id>
+// ---------------------------------------------------------------- GET /api/session/<id> and its replay (./session-types.ts)
 
-export type LayerId = "name" | "verify" | "environment" | "behavior"
-/** What one layer concluded: a verdict, nothing found, or switched off here. */
-export type LayerState = Verdict | "human_agent" | "unknown" | "no_hit" | "off"
-/** The kind of evidence behind a reason; the page picks its icon. */
-export type ReasonKind = "user_agent" | "server" | "page" | "browser" | "clicks" | "keys" | "motion" | "model"
-/** A reason: what it means (text) and, under it, what was seen in technical words (detail), null when it has none. */
-export type Reason = { kind: ReasonKind; tone: "human" | "agent" | "none"; text: string; detail: string | null }
-/** One of the four layers of "Why this classification", in the order name, verify, environment, behavior. leans: the side its
- *  evidence points to, and percent how sure it is of that side (1–99); both null when it judged nothing (no hit, off,
- *  too little data). */
-export type LayerReasons = { layer: LayerId; state: LayerState; reasons: Reason[]; percent: number | null; leans: "agent" | "human" | "bot" | null }
-/** One action in "All actions": what, never what was typed (inputs are masked), and the page it was taken on. */
-export type Action = { at_ms: number; who: Actor; what: string; page: string }
-/** One page of a session, in the order the pages opened: the first is where the visit came in, the last where it left
- * . A single-page app's new address is a new page. */
-export type SessionPage = {
-  /** Path and query, as cake keeps them. */
-  path: string
-  /** When the page opened, and how long the visit stayed: until the next page opened, the last page until the end. */
-  at_ms: number
-  duration_ms: number
-  /** The visitor's actions on the page: "All actions" without its Open rows. */
-  actions: number
-  /** Who acted on the page, named as the session categories name it: a human only, an agent only, a human and an
-   *  agent (Human + agent), or unknown when all its actions are; a page without actions takes who acted when it
-   *  opened. */
-  /** Who acted on it; null when no one did (a page without actions). */
-  who: "human" | "agent" | "human_agent" | "unknown" | null
-}
-/** Why a replay is gone or cut short: deleted to free disk space ("When the budget is full, free space for me"; the
- *  verdict, timeline and server half stay), some events not stored while the disk budget was full, or nothing to
- *  replay (the visit sent no page events). */
-export type ReplayMissing = "freed" | "dropped" | "none"
-/** The replay's chunks (one per 10 seconds of activity), read one at a time from …/replay?chunk=<n>: the player
- *  reads the chunk it plays and the one after it, and the chunks before a moment it jumps to. */
-export type ReplayInfo = {
-  /** Where the player starts, and the address of the page at that moment. */
-  start_ms: number
-  start_url: string
-  /** The session's ms 0 on the events' clock (epoch milliseconds): an event stamped T is at T − epoch_ms. */
-  epoch_ms: number
-  /** "Jump to hand-off" starts the player this long before a hand-off (a cake setting). */
-  handoff_lead_ms: number
-  /** Chunk n covers chunks[n], in time order; empty when there is nothing to replay. */
-  chunks: { start_ms: number; end_ms: number }[]
-  /** Why the replay is gone or cut short; null when it is all there. */
-  missing: ReplayMissing | null
-}
-
-/** What the site's server saw of one page request: the server half's token (SERVER.md, agentcake/edge_token.py). */
-export type ServerPage = {
-  /** When the server saw the request. */
-  at_ms: number
-  path: string
-  /** Sec-Fetch-Site, -Mode, -Dest and -User as the browser sent them; null for one it did not send. */
-  fetch: { site: string | null; mode: string | null; dest: string | null; user: string | null }
-  /** A signed request: its Signature-Agent and whether the signature verified; null when it was not signed. */
-  signature: { agent: string | null; verified: boolean } | null
-  /** Whether the request came from the network cake.js's uploads came from; null when cake can't tell. */
-  same_network: boolean | null
-  /** Whether cake.js's uploads sent the page request's User-Agent, and its Accept-Language; null when either side
-   *  didn't say. */
-  same_user_agent: boolean | null
-  same_language: boolean | null
-  /** How many more page views of the visit brought this page's token again: the browser showed them a stored copy
-   *  (after a 304, or going back), so they have no server half of their own. */
-  reuses: number
-}
-/** The network cake.js's uploads came from (server mode): the country of its address (the city database's), its
- *  published range, and what the load balancer saw; never the address itself. attribution: DB-IP's credit, when the
- *  country is its. */
-export type Network = { country: string | null; range: string | null; ja4: string | null; protocol: string | null; attribution: Attribution | null }
-/** The session page's Server middleware table. */
-export type ServerHalf = {
-  /** One row per page request whose token arrived, in time order. */
-  pages: ServerPage[]
-  /** null on this computer, where every visit comes from 127.0.0.1. */
-  network: Network | null
-  /** Why pages are missing or there are none, in a sentence from cake; null when nothing needs saying. */
-  note: string | null
-}
-
-export type SessionDetail = {
-  session: SessionSummary
-  /** Who acted, in one line ("A human, then Claude in Chrome, then the human again"). */
-  title: string
-  /** The verdict in a sentence or two, shown after the verdict's name. */
-  summary: string
-  /** How sure cake is of the verdict, in whole percents (1–99, calibrated): Human that a human acted, Agent that an
-   *  agent did, Unknown that an agent did, Bot how far its name is verified; null when it doesn't say (judged before
-   *  the percent was kept, or a phone or tablet shown as Human: the behavior model isn't used there). */
-  percent: number | null
-  timeline: Timeline
-  /** The pages in the order they opened; never empty. */
-  pages: SessionPage[]
-  layers: LayerReasons[]
-  actions: Action[]
-  replay: ReplayInfo
-  server: ServerHalf
-}
-
-// ---------------------------------------------------------------- GET /api/session/<id>/replay?chunk=<n>
-
-/** An rrweb event as recorded (timestamp in epoch milliseconds); the player reads the rest. */
-export type ReplayEvent = { type: number; timestamp: number; data: Record<string, unknown> }
-export type ReplayChunk = { chunk: number; start_ms: number; end_ms: number; events: ReplayEvent[] }
+export type { Action, FollowStretch, LayerId, LayerReasons, LayerState, Network, Reason, ReasonKind, ReplayChunk, ReplayEvent, ReplayInfo, ReplayMissing, ServerHalf, ServerPage, SessionDetail, SessionPage, SessionTab, TabReplay } from "./session-types"
 
 // ---------------------------------------------------------------- GET and POST /api/settings
 

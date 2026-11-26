@@ -12,16 +12,16 @@ To install it, a coding agent follows INSTALL.md one command at a time and then 
 
 ## Docs
 
-- [README](https://raw.githubusercontent.com/tartini-ai/agent-traffic-analytics/v0.6.1/README.md): what AgentCake shows, how to install it and how it decides
-- [Install](https://raw.githubusercontent.com/tartini-ai/agent-traffic-analytics/v0.6.1/INSTALL.md): instructions for an AI coding assistant, one command per step
-- [Questions](https://raw.githubusercontent.com/tartini-ai/agent-traffic-analytics/v0.6.1/docs/FAQ.md): detecting AI agents, Claude in Chrome, accuracy, privacy and how it differs from other tools
-- [Server](https://raw.githubusercontent.com/tartini-ai/agent-traffic-analytics/v0.6.1/SERVER.md): running AgentCake for a public website's visitors, with Docker or systemd
-- [Privacy](https://raw.githubusercontent.com/tartini-ai/agent-traffic-analytics/v0.6.1/PRIVACY.md): what is recorded, where it is kept and how to delete it
+- [README](https://raw.githubusercontent.com/tartini-ai/agent-traffic-analytics/v0.6.2/README.md): what AgentCake shows, how to install it and how it decides
+- [Install](https://raw.githubusercontent.com/tartini-ai/agent-traffic-analytics/v0.6.2/INSTALL.md): instructions for an AI coding assistant, one command per step
+- [Questions](https://raw.githubusercontent.com/tartini-ai/agent-traffic-analytics/v0.6.2/docs/FAQ.md): detecting AI agents, Claude in Chrome, accuracy, privacy and how it differs from other tools
+- [Server](https://raw.githubusercontent.com/tartini-ai/agent-traffic-analytics/v0.6.2/SERVER.md): running AgentCake for a public website's visitors, with Docker or systemd
+- [Privacy](https://raw.githubusercontent.com/tartini-ai/agent-traffic-analytics/v0.6.2/PRIVACY.md): what is recorded, where it is kept and how to delete it
 
 ## Optional
 
-- [Upload format](https://raw.githubusercontent.com/tartini-ai/agent-traffic-analytics/v0.6.1/docs/collect-format.md): what the page script sends
-- [Evaluation](https://raw.githubusercontent.com/tartini-ai/agent-traffic-analytics/v0.6.1/eval/README.md): how accuracy is measured
-- [Changelog](https://raw.githubusercontent.com/tartini-ai/agent-traffic-analytics/v0.6.1/CHANGELOG.md): what each release changed
-- [Security](https://raw.githubusercontent.com/tartini-ai/agent-traffic-analytics/v0.6.1/SECURITY.md): how to report a vulnerability
-- [Contributing](https://raw.githubusercontent.com/tartini-ai/agent-traffic-analytics/v0.6.1/CONTRIBUTING.md): tests, checks and rules for a change
+- [Upload format](https://raw.githubusercontent.com/tartini-ai/agent-traffic-analytics/v0.6.2/docs/collect-format.md): what the page script sends
+- [Evaluation](https://raw.githubusercontent.com/tartini-ai/agent-traffic-analytics/v0.6.2/eval/README.md): how accuracy is measured
+- [Changelog](https://raw.githubusercontent.com/tartini-ai/agent-traffic-analytics/v0.6.2/CHANGELOG.md): what each release changed
+- [Security](https://raw.githubusercontent.com/tartini-ai/agent-traffic-analytics/v0.6.2/SECURITY.md): how to report a vulnerability
+- [Contributing](https://raw.githubusercontent.com/tartini-ai/agent-traffic-analytics/v0.6.2/CONTRIBUTING.md): tests, checks and rules for a change

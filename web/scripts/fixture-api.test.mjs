@@ -43,11 +43,25 @@ test("the samples' AgentCake has registered, so every page shows at once", async
 })
 
 test("the session list filters by verdict, split and agent like the real one", async () => {
-  assert.deepEqual(ids((await call("/api/sessions?verdict=agent")).body), ["7f3a-c1", "a91e-07", "19fc-90", "b06c-41", "f8a2-6d", "6e0f-13"])
-  assert.deepEqual(ids((await call("/api/sessions?turns=human_agent")).body), ["7f3a-c1", "f8a2-6d"])
+  assert.deepEqual(ids((await call("/api/sessions?verdict=agent")).body), ["7f3a-c1", "a91e-07", "19fc-90", "b06c-41", "f8a2-6d", "6e0f-13", "4c2d-71"])
+  assert.deepEqual(ids((await call("/api/sessions?turns=human_agent")).body), ["7f3a-c1", "f8a2-6d", "4c2d-71"])
   assert.deepEqual(ids((await call("/api/sessions?verdict=agent&turns=agent_only&agent=Grok%20Bot")).body), ["b06c-41"])
   assert.deepEqual(ids((await call("/api/sessions?verdict=bot")).body), ["c2d0-5b", "d3e1-8a"])
   assert.deepEqual(ids((await call("/api/sessions?agent=Muse")).body), ["a91e-07"])
+  // a session two agents acted in, one in each of its tabs, is either agent's
+  assert.deepEqual(ids((await call("/api/sessions?agent=Codex%20in-app%20browser")).body), ["6e0f-13", "4c2d-71"])
+})
+
+test("a session of two tabs answers each tab's replay chunks by ?tab=, and no tab of another session", async () => {
+  const { body: detail } = await call("/api/session/4c2d-71")
+  for (const tab of detail.tabs) {
+    for (const [n, span] of tab.replay.chunks.entries()) {
+      const { status, body } = await call(`/api/session/4c2d-71/replay?chunk=${n}&tab=${tab.id}`)
+      assert.equal(status, 200, `${tab.id} chunk ${n}`)
+      assert.deepEqual([body.start_ms, body.end_ms], [span.start_ms, span.end_ms], `${tab.id} chunk ${n}`)
+    }
+  }
+  assert.equal((await call("/api/session/4c2d-71/replay?chunk=0&tab=6e0f-13")).status, 404)
 })
 
 test("the next page of the sample list is empty and last", async () => {

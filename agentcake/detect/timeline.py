@@ -8,8 +8,9 @@ build(events): {"actions", "evidence", "runs", "shares", "handoffs", "marks", "c
   start is where the activity leading up to it began: the input events since the previous action, back to the last
   pause longer than approach_pause_ms (first when there is none). p is the smoothed chance that an agent did it;
   who is "agent", "human" or "unsure" by the labels' band.
-- runs: consecutive actions with the same who, [{"who", "start", "end", "n", "p"}]: start is when the run's actor
-  began, end its last action's t, p their mean p. A human (or unsure) run begins where its first action's activity
+- runs: consecutive actions with the same who, [{"who", "start", "end", "n", "acts", "p"}]: start is when the run's
+  actor began, end its last action's t, n its steps, acts those that are clicks or inputs (not the evidence below),
+  p their mean p. A human (or unsure) run begins where its first action's activity
   began; an agent run with its first action's own first event: the judge calls an action an agent's when nothing
   led up to it (no approach, a jump to the target), so the activity before it belongs to whoever acted before.
 - evidence: the scored stretches that are not actions (see build()), with their p and who.
@@ -289,13 +290,15 @@ def runs(acts, spans=()):
     step inside a turn span (spans: build()'s turns) notes when that span lit ("lit") or went off ("off")."""
     out = []
     for action in acts:
+        acted = int(action["kind"] in ACTION_KINDS)
         if out and out[-1]["who"] == action["who"]:
             run = out[-1]
             run["end"], run["n"], run["_p"], run["_last"] = action["t"], run["n"] + 1, run["_p"] + [action["p"]], action
+            run["acts"] += acted
         else:
             start = action["first"] if action["who"] == "agent" else action["start"]
-            out.append({"who": action["who"], "start": start, "end": action["t"], "n": 1, "_p": [action["p"]],
-                        "_first": action, "_last": action})
+            out.append({"who": action["who"], "start": start, "end": action["t"], "n": 1, "acts": acted,
+                        "_p": [action["p"]], "_first": action, "_last": action})
     for run in out:
         values = run.pop("_p")
         run["p"] = sum(values) / len(values)

@@ -28,7 +28,7 @@ body:
     attributes:
       label: AgentCake version
       description: What `agentcake --version` prints.
-      placeholder: agentcake 0.6.1
+      placeholder: agentcake 0.6.2
     validations:
       required: true
   - type: dropdown

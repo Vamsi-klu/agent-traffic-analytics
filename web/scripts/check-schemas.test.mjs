@@ -1,7 +1,7 @@
 // Tests for check:schemas and the small JSON Schema validator: the real contract passes, and each way it can
 // break is caught. Usage: node --test scripts/   (npm test)
 import assert from "node:assert/strict"
-import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
+import { cpSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import path from "node:path"
 import { after, test } from "node:test"
@@ -19,6 +19,9 @@ function checkChanged(change) {
   cpSync(CONTRACT.schemaDir, paths.schemaDir, { recursive: true })
   cpSync(CONTRACT.fixtureDir, paths.fixtureDir, { recursive: true })
   cpSync(CONTRACT.typesFile, paths.typesFile)
+  // and the modules types.ts re-exports from (./session-types and the like), so every type checks in the copy too
+  const types = path.dirname(CONTRACT.typesFile)
+  for (const file of readdirSync(types).filter((f) => f.endsWith("-types.ts"))) cpSync(path.join(types, file), path.join(dir, file))
   change(paths)
   return checkContract(paths).problems
 }
