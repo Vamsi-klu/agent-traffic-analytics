@@ -56,8 +56,9 @@ export const api = {
   web: (q: WebQuery, signal?: AbortSignal) => request<WebAnalytics>("web" + query(q), { signal }),
   sessions: (q: SessionsQuery, signal?: AbortSignal) => request<SessionsPage>("sessions" + query(q), { signal }),
   session: (id: string, signal?: AbortSignal) => request<SessionDetail>(`session/${encodeURIComponent(id)}`, { signal }),
-  replayChunk: (id: string, chunk: number, signal?: AbortSignal) =>
-    request<ReplayChunk>(`session/${encodeURIComponent(id)}/replay${query({ chunk: String(chunk) })}`, { signal }),
+  /** tab: one of the session's tabs (SessionTab.id) in a session of more than one; left out for a session of one. */
+  replayChunk: (id: string, chunk: number, signal?: AbortSignal, tab?: string) =>
+    request<ReplayChunk>(`session/${encodeURIComponent(id)}/replay${query({ chunk: String(chunk), tab })}`, { signal }),
   settings: (signal?: AbortSignal) => request<Settings>("settings", { signal }),
   saveSettings: (update: SettingsUpdate) =>
     request<Settings>("settings", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(update) }),

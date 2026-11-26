@@ -120,6 +120,10 @@ const CHECKOUT_LABELS = { email: "Email", fullname: "Full name", address: "Stree
 const ON_PRODUCT = "**/demo/product?id=classic-tee"
 
 /** Each sample session that has a replay: its id, how long it lasts, and what it does. */
+/** The replays not recorded but moved in time from a walk's (scripts/tab-sample.mjs): the second tab of the sample
+ *  session of two tabs (session) is the 6e0f-13 walk's replay (from), opening 20 s into the session. */
+export const MOVED = [{ id: "a1b8-20", from: "6e0f-13", session: "4c2d-71" }]
+
 export const WALKS = [
   {
     id: "19fc-90", duration_ms: 13000, seed: 19, // Automated browser: a script, quick and straight

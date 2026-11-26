@@ -4,7 +4,8 @@
     "session_id": 40, "url": 500, "user_agent": 400, "sec_fetch_value": 40,
     "country": 8, "subdivision": 80, "city": 80, "ja4": 64, "proto": 12, "signature_header": 300,
     "token_id": 40, "token_path": 200, "token_body": 8000,
-    "page_view": 40, "visitor_id": 40, "batch_why": 16, "drop_counts": 200, "header_value": 200, "header_names": 64
+    "page_view": 40, "visitor_id": 40, "browser_session": 40, "window_id": 40,
+    "batch_why": 16, "drop_counts": 200, "header_value": 200, "header_names": 64
   },
   "random_bytes": {"site_key": 6, "secret": 48, "selfcheck_id": 4, "ip_salt": 32},
   "ip_hash_hex": 16,

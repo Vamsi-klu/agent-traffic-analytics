@@ -6,12 +6,14 @@ over the sessions that count (visits.py) in the range (no range: every session):
     agent_earlier           Agent sessions of the range's previous period, PostHog's (periods.earlier): as long as
                             the range runs to the end of its current hour or day, right before it (25 hours, 8 days,
                             31 days); null for all time, which has no earlier range
-    agents_seen             sessions per agent name, Agent sessions only; name null: the agents no name fits (Unnamed)
+    agents_seen             sessions per agent name, Agent sessions only; name null: the agents no name fits (Unnamed);
+                            a session whose tabs had two agents counts for each, so the names can add up to more
     page_views              the range's page views as PostHog counts $pageview (web_time.py: each page load and each
-                            new path within it, not a new query string alone); all of them, and by the session's
-                            verdict; the sessions recorded before these were counted are filled in first (api/web.py)
-    pages_per_session       page views divided by sessions: of all sessions and of each verdict's; null for a group
-                            without sessions
+                            new path within it, not a new query string alone), in every tab of a session; all of them,
+                            and by the session's verdict; the sessions recorded before these were counted are filled
+                            in first (api/web.py)
+    pages_per_session       page views divided by sessions (a session spans its browser's tabs): of all sessions
+                            and of each verdict's; null for a group without sessions
     latest_agent            the newest Agent sessions (the top block)
     storage                 the disk budget and what cake's data uses of it, whatever the filters (settings.disk: the
                             settings page's numbers; the dashboard shows only the warning, from warn_at_pct, as 0.3.4's did),
@@ -61,8 +63,9 @@ def page_views(con, scope):
     views were counted by path are filled in first, as /api/web does (web.fill)."""
     web.fill(con, scope)
     counted = dict.fromkeys((ALL,) + visits.VERDICTS, 0)
-    for verdict, views in con.execute(f"SELECT {VERDICT}, SUM(p.views) FROM web_paths p JOIN sessions s "
-                                      f"ON s.id = p.session_id WHERE {scope.sql()} GROUP BY 1", scope.args):
+    for verdict, views in con.execute(f"SELECT {VERDICT}, SUM(p.views) FROM {visits.SESSIONS} {visits.TABS} JOIN "
+                                      f"web_paths p ON p.session_id = ps.id WHERE {scope.sql()} GROUP BY 1",
+                                      scope.args):
         counted[ALL] += views
         counted[verdict] += views
     return counted

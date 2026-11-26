@@ -39,11 +39,19 @@ with each release. AgentCake downloads newer lists once a month, or when you run
 
 ## How accurate is it?
 
-We tested it on 14 data sets from about 350 websites. It recognized 1,025 of 1,118 agent sessions from 37 tools, and
-mistook 2 of 7,122 sessions by at least 400 real people for an agent. Where a human and an agent took turns, it judged
-106 of 159 sessions Human + agent and put the hand-off a median of 0 seconds from the real one. An agent that moves and
+We tested it on 14 data sets from about 350 websites, each test session one tab, the part of a visit AgentCake
+classifies. It recognized 1,020 of 1,118 agent sessions from 37 tools, and mistook 2 of 7,122 sessions by at least 400
+real people for an agent. Where a human and an agent took turns, it judged 81 of 159 sessions Human + agent and put the
+hand-off a median of 0 seconds from the real one. An agent that moves and
 types like a human, with no name and no trace, can pass as a human. [`eval/README.md`](../eval/README.md) says how each
 number is counted and where it falls short.
+
+## What is a session?
+
+One browser's visit to your site, across all of its tabs. A new session starts once no tab has had activity for 30
+minutes, or after 24 hours. AgentCake classifies each tab on its own and gives the session one classification from its
+tabs: an agent in any tab makes it an Agent session, and a human with enough actions in another tab, Human + agent. The
+session's replay follows the visitor from tab to tab, and its timeline has a track for each tab.
 
 ## What do Human, Agent, and Script bot mean?
 
@@ -53,7 +61,8 @@ number is counted and where it falls short.
   Human and is marked limited evidence, with the reason. For such a session whose browser reports a phone or
   tablet that AgentCake can't confirm, the reasons say which checks failed, such as touch points or the screen size.
 - **Agent:** An AI agent or an automation tool. Agent only means it acted from start to finish; human + agent means a
-  human and an agent took turns, and the timeline marks each hand-off.
+  human and an agent took turns, in one tab or in different tabs of the same browser, and the timeline marks each
+  hand-off.
 - **Script bot:** A program on the bot list that ran the page script, such as a search engine, a monitor, or a link
   preview. Their sessions are recorded and counted but excluded from agent charts.
 

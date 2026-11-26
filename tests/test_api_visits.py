@@ -6,7 +6,7 @@ Sessions are written into a scratch database the way judging.py and collect leav
 uploads and prefetches never count. The session categories (the verdict with an Agent session's split, and the agent's name
 with how sure it is) come from the four layers' verdict, or from cake 0.3.4's columns for a session judged before 0.4.0;
 the kind of agent stays inside the verdict. The share adds up to 100 and
-counts the actions its page lists (Every action, by who took them), 0 everywhere without one. A row's length is its recording's, the player's: from its first
+counts the actions its page lists (All actions, by who took them), 0 everywhere without one. A row's length is its recording's, the player's: from its first
 recorded event to its last action, replay event or segment, whichever is later (the dashboard's average length is another
 measure); a Human + agent row's segments count from the same start. Its pages are the pages its
 page lists: each page view and each new address within one. Paging is stable while sessions arrive.
@@ -16,11 +16,14 @@ import os
 import sys
 import tempfile
 import unittest
+from unittest import mock
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, HERE)
-from agentcake import config, streams  # noqa: E402
-from agentcake.api import visits  # noqa: E402
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import visit_rows  # noqa: E402
+from agentcake import config, store, streams  # noqa: E402
+from agentcake.api import tabs, visits  # noqa: E402
 
 T0 = 1_794_500_000_000
 NOW = T0 + 3_600_000
@@ -44,6 +47,7 @@ class Visits(unittest.TestCase):
             row["layers"] = json.dumps(row["layers"])
         self.con.execute(f"INSERT INTO sessions({', '.join(row)}) VALUES({', '.join('?' * len(row))})",
                          tuple(row.values()))
+        visit_rows.alone(self.con)  # a session of one tab, as the collector and the upgrade make it
 
     def runs(self, sid, *runs):
         self.con.executemany("INSERT INTO segments(session_id, t_start, t_end, actor, n_actions) VALUES(?,?,?,?,?)",
@@ -168,7 +172,7 @@ class Lengths(Visits):
         self.put("kept", verdict_class="human", first_action_ms=T0 + 500, last_action_ms=T0 + 96_900)
         streams.append(self.con, "kept", "raw", [(T0 + 100, {"t": T0 + 100, "ty": "click"})], NOW)
         self.assertEqual(self.listed()["kept"]["duration_ms"], 96_800)
-        self.assertEqual(visits.recording(self.con, "kept"), (T0 + 100, 96_800))
+        self.assertEqual(tabs.clock(tabs.parts(self.con, ["kept"])["kept"]), (T0 + 100, 96_800))
 
     def test_a_replay_event_after_the_last_action_counts_as_the_player_shows_it(self):
         self.put("idle", verdict_class="human", first_action_ms=T0 + 500, last_action_ms=T0 + 20_000)
@@ -219,6 +223,29 @@ class PagesAndOrder(Visits):
         self.put("newer", start=T0 + 9000, verdict_class="human")  # arrives between the two pages
         second, _ = visits.page(self.con, visits.Scope().before(keys[-1]), 3, NOW, MACHINE)
         self.assertEqual([row["id"] for row in second], ["s2", "s1", "s0"])
+
+
+class ReadOnce(Visits):
+    """A list is read from the database as it was when the list began: the upgrade and late uploads place tab sessions
+    in visits meanwhile (a 500 answered the list once a session's tabs moved between two of its statements)."""
+
+    def test_a_session_merged_while_its_list_is_read_is_listed_as_it_was(self):
+        self.put("a" * 32, T0)
+        self.put("b" * 32, T0 + 60_000)
+        parts = tabs.parts
+
+        def merged_meanwhile(con, ids):  # a late upload joins visit a into visit b, from collect's own connection
+            other = store.db()
+            try:
+                other.execute("UPDATE session_web SET visit_id=? WHERE visit_id=?", ("b" * 32, "a" * 32))
+                other.execute("DELETE FROM visits WHERE id=?", ("a" * 32,))
+                other.commit()
+            finally:
+                other.close()
+            return parts(con, ids)
+
+        with mock.patch.object(tabs, "parts", merged_meanwhile):
+            self.assertEqual(sorted(self.listed()), ["a" * 32, "b" * 32])
 
 
 class WholePercents(unittest.TestCase):

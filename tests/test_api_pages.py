@@ -10,7 +10,7 @@ segments. A page view is a page; a single-page app's new address is a new page f
 a session with nothing to go by has one page, its own address. A page lasts until the next one opens, the last one
 until the session's end. Who acted on a page is named as the session categories name it: a human, an agent
 only, both (human_agent), unknown; a page without actions takes who acted when it opened. A cake 0.3.x recording's pages are its rrweb
-Meta events. The counts hold every action, not only the ones "Every action" lists. The fixed test library's recorded
+Meta events. The counts hold every action, not only the ones "All actions" lists. The fixed test library's recorded
 sessions answer the contract with pages that add up.
 """
 import os

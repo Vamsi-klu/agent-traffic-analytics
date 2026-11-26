@@ -61,8 +61,10 @@ them; when one does, it records the method, its first argument and the calls tha
 - **The visit**: when it began and when it was last seen, the page's address, the browser's User-Agent, whether the
   browser said it is automated (`navigator.webdriver`), the `Sec-Fetch-*` headers of the upload request, and whether
   the upload came from your site or from another one (another site's uploads are kept, but left out of the dashboard).
-  A visit is one session of one browser tab: after 30 minutes without activity, or after 24 hours, the tab's next
-  activity begins a new session, and AgentCake applies the same rules to an older page script that does not.
+  A visit is one session: every tab of your site in one browser, until no tab has seen activity for 30 minutes, and for
+  24 hours at most. Each tab's part of it is recorded and classified on its own. For an older page script that does
+  not share a session across tabs, AgentCake joins its tabs by the visitor id with the same rules; such a session can
+  run a little over 24 hours, as a tab's part is never cut in two.
 - **Each upload's header**: when it was made and when it arrived, the page's address at that moment, why it was sent,
   how many records of each kind it held, and what `cake.js` itself had to drop.
 - **Refused uploads**: only how many, per reason.
@@ -254,27 +256,38 @@ The site decides when a visit may be recorded. Either:
    nothing at all: no listener, no storage, no request.
 
 When the visitor says no, call `window.cake.stop()`: from then on nothing is recorded or sent from that page, what had
-not been sent yet is dropped, and the visit id, the visitor id and its identify hash are deleted from the browser. Consent code that may run before `cake.js` has loaded can
+not been sent yet is dropped, and the session ids, the visitor id and its identify hash are deleted from the browser. Consent code that may run before `cake.js` has loaded can
 queue the call: `window.cake = window.cake || []; window.cake.push('start')` (or `'stop'`).
 
 What was recorded before a refusal stays in AgentCake: the script sends nothing after `stop()`, so AgentCake is not
-told about the refusal. To delete that visit too, your consent code can read the visit id (`sessionStorage` key
-`cake_sid`) before it calls `window.cake.stop()` and hand it to your server, which runs
-`agentcake delete --visitor <that id>` (below). The id names the tab's current session; a session that ended more
-than 30 minutes earlier had an id of its own.
+told about the refusal. To delete that visit too, your consent code can read the session id (`localStorage` key
+`cake_bsid`, which the site's tabs share) or the tab's session id (`sessionStorage` key `cake_sid`) before it calls
+`window.cake.stop()` and hand it to your server, which runs `agentcake delete --visitor <that id>` (below). Either id
+deletes the whole session, every tab of it. A session that ended more than 30 minutes earlier had an id of its own.
 
 ## What the script keeps in the visitor's browser
 
-In `sessionStorage`, which ends with the browser tab: `cake_sid` (the visit id, random; a new one after 30 minutes
-without activity or 24 hours), `cake_clock` (when that session began and when it last saw activity), `cake_pn` (the
-number of pages seen in the visit), `cake_frames` (a once-per-visit check is done) and `cake_pending` (uploads waiting
-to be sent again).
+In `sessionStorage`, which ends with the browser tab: `cake_sid` (the tab session's id, random: the tab's part of the
+session; a new one after 30 minutes without activity in the tab, after 24 hours, when the browser's session below
+changes, and in a tab that is a copy of another),
+`cake_clock` (when that session began, when it last saw activity, and which browser session it belongs to), `cake_wid`
+(the tab's id, random, which tells the tabs of one session apart; a new one when the tab begins the browser's next
+session, or is a copy of another tab), `cake_wopen` (a random value the open page puts there and removes when it is
+left: a duplicated tab, which gets a copy of this storage, finds it and takes ids of its own), `cake_pn` (the number of
+pages seen in the tab session), `cake_frames` (a once-per-tab-session check is done) and `cake_pending` (uploads
+waiting to be sent again).
 
-In `localStorage`, one key: `cake_vid`, the visitor id (random), when it was last used and, after your site called
+In `localStorage`, three keys. `cake_vid`: the visitor id (random), when it was last used and, after your site called
 `window.cake.identify()`, the identify hash. It is replaced by a new one, without the hash, once a year has passed
-without a page view on your site, and when your site calls `window.cake.reset()`. AgentCake uses it only to count
-visitors (Visitors on the dashboard); it is not a cookie and is never sent to your site's server. Where the browser
-refuses `localStorage`, the id and the hash live only as long as the page.
+without a page view on your site, and when your site calls `window.cake.reset()`. AgentCake uses it to count visitors
+(Visitors on the dashboard), and to join into one session the tabs of a script that sends no browser session id.
+`cake_bsid`: the browser's session id (random), which every tab of your site in that browser shares, so that a visit
+that goes on in another tab counts as one session; a new one once no tab has seen activity for 30 minutes, after 24
+hours, and when your site calls `window.cake.reset()`; once removed (`window.cake.stop()` in one tab), no other tab
+writes it back. `cake_bclock`: when that session began and when a tab last saw activity in it. None of them is a cookie
+or is ever sent to your site's server. Where the browser takes no writes into `localStorage` but does into
+`sessionStorage` (a full quota), `cake_bsid` and `cake_bclock` are kept in `sessionStorage` instead, for that tab alone;
+where it refuses both, they live only as long as the page.
 
 No cookies. `window.cake.stop()` removes all of them.
 
@@ -319,7 +332,7 @@ server set up as [`SERVER.md`](SERVER.md) says).
 |---|---|
 | `cake.db` (with `cake.db-wal`, `cake.db-shm`) | visits, uploads' headers, classifications, the server middleware's tokens, the index of the replay chunks |
 | `replays/` | replays, raw input and browser signals as compressed chunks |
-| `backups/` | the copy of `cake.db` that `agentcake migrate` makes before it changes anything (only after a migration) |
+| `backups/` | copies of `cake.db`: the one `agentcake migrate` makes before it changes anything, and the one AgentCake makes after an upgrade from a version before 0.6.2, before it joins older sessions' tabs into sessions |
 | `srv_secret` | the secret shared with your site's server (only after `agentcake secret init`), readable by its owner only |
 | `cake.log`, `cake.pid` | only when started with `agentcake start`; a service logs to the system's journal instead |
 | `config.json` | Settings |
@@ -327,42 +340,46 @@ server set up as [`SERVER.md`](SERVER.md) says).
 | `geo/` | On a server, this folder holds the IP to City Lite database from DB-IP and its notice file. AgentCake downloads these files once a month or when you run `agentcake lists update`. The database contains only IP address ranges and their locations. |
 | `updates.json`, `updates.lock` | `updates.json` records when the lists and the city database were last updated, whether the update succeeded, and any error. `updates.lock` prevents two updates from running at the same time. |
 
-Everything is kept until you delete it. You can choose to delete visits older than 30 or 90 days (`retention_days`).
+Everything is kept until you delete it. You can choose to delete sessions older than 30 or 90 days (`retention_days`):
+a session goes whole, with all its tabs, once its last tab is that old. The copies in `backups/` are not deleted by
+age or by the disk budget: delete them once you no longer need them.
 When less than 10% of the disk budget (`budget_mb`) is left and `auto_free` is on (the default), AgentCake deletes
-visits' replays, oldest first, across all kinds of visit, until it is back under 90% of the budget; a replay still
-being recorded waits until the visit is quiet. When the disk itself has less than `disk_min_free_mb` free (10 GB by
-default), AgentCake deletes nothing and records new visits without their replays until there is room.
+sessions' replays, oldest first, across all kinds of session, until it is back under 90% of the budget; a replay still
+being recorded waits until its tab is quiet. When the disk itself has less than `disk_min_free_mb` free (10 GB by
+default), AgentCake deletes nothing and records new sessions without their replays until there is room.
 Classifications and timelines always stay (SERVER.md, "Disk budget").
 
 ## Deleting
 
-One visit, everywhere in the data folder:
+One session, everywhere in the data folder:
 
 ```sh
-agentcake delete --session <id>          # the id the dashboard shows for the visit
-agentcake delete --visitor <visit id>    # the same visit, by the id the visitor's browser keeps (cake_sid), with
-                                         # every session AgentCake cut from it after 30 minutes or 24 hours
+agentcake delete --session <id>          # the id the dashboard shows for the session
+agentcake delete --visitor <session id>  # the same session, by an id the visitor's browser keeps (cake_bsid, or a
+                                         # tab's cake_sid)
 agentcake delete --session <id> --dry-run   # first see what would go
 ```
 
-A visit is one session: both names reach the same rows. Give either several times to delete several visits. It works
-while AgentCake runs, with no need to stop it: the command asks the running AgentCake, on `127.0.0.1` only, to do
-the deleting. On a server, use the `agentcake` alias for your setup option, as described in `SERVER.md`. With Docker
+A session goes whole: the id of any of its tabs deletes every tab of it, with every part AgentCake cut from a tab
+after 30 minutes or 24 hours. Both names reach the same rows. Give either several times to delete several sessions.
+It works while AgentCake runs, with no need to stop it: the command asks the running AgentCake, on `127.0.0.1` only,
+to do the deleting. On a server, use the `agentcake` alias for your setup option, as described in `SERVER.md`. With Docker
 Compose, run `docker compose exec agentcake python3 -I -m agentcake delete --session <id>` in the release folder.
 
 What goes:
 
-- every row of the visit in every table of `cake.db`, and the database file is rewritten so that no copy of a deleted
-  row is left in its free space or its write-ahead log;
+- every row of the session, all its tabs, in every table of `cake.db`, and the database file is rewritten so that no
+  copy of a deleted row is left in its free space or its write-ahead log;
 - its replay, raw input and signal chunks: their bytes are overwritten with zeros at once, and the space comes back
   the way it does for any removed replay (a chunk file with nothing left in it is deleted, a mostly empty one rewritten);
-- its rows in the backups `agentcake migrate` made in `backups/`;
+- its rows in the backups that `agentcake migrate` and the upgrade to 0.6.2 made in `backups/`;
 - the lines of `cake.log` that name it.
 
-What it cannot reach: copies outside the data folder. Delete the visit from your own backups and snapshots too, or let
-them expire. The system's journal and `docker logs` keep what AgentCake printed; it prints no visit data, only, rarely,
-a session id in an error message. A visit still going on when you delete it (the visitor still in the same tab) is
-recorded again from its next upload: delete once the visitor has left, or after your site called `window.cake.stop()`.
+What it cannot reach: copies outside the data folder. Delete the session from your own backups and snapshots too, or
+let them expire. The system's journal and `docker logs` keep what AgentCake printed; it prints no visit data, only,
+rarely, a session id in an error message. A session still going on when you delete it (the visitor still on the
+site, in any tab) is recorded again from its next upload: delete once the visitor has left, or after your site called
+`window.cake.stop()`.
 
 Everything at once: stop AgentCake (`agentcake stop`, or stop the service) and delete its data folder.
 

@@ -8,7 +8,7 @@ import path from "node:path"
 import { test } from "node:test"
 import { CONTRACT } from "./check-schemas.mjs"
 import { DEFAULT_PORT, RRWEB, SITE_KEY_PLACEHOLDER, chunksOf, forbidden, serverPage } from "./replay-samples.mjs"
-import { TYPED, WALKS } from "./replay-walks.mjs"
+import { MOVED, TYPED, WALKS } from "./replay-walks.mjs"
 
 const fixtures = CONTRACT.fixtureDir
 const text = (rel) => readFileSync(path.join(fixtures, rel), "utf8")
@@ -17,9 +17,20 @@ const sampleOf = (id) => { const main = read("session.json"); return main.sessio
 const chunkNumbers = (id) => readdirSync(path.join(fixtures, "replay", id)).map((f) => Number(f.slice(0, -".json".length))).sort((a, b) => a - b)
 const withoutEvents = ({ events, ...head }) => head
 
-test("every walk has a recorded replay, and every recorded replay has a walk", () => {
-  assert.deepEqual(readdirSync(path.join(fixtures, "replay")).sort(), WALKS.map((w) => w.id).sort())
+test("every walk has a recorded replay, and every replay has a walk or is one moved in time", () => {
+  assert.deepEqual(readdirSync(path.join(fixtures, "replay")).sort(), [...WALKS, ...MOVED].map((w) => w.id).sort())
 })
+
+for (const moved of MOVED) {
+  test(`${moved.id}: the ${moved.from} walk's replay moved in time, chunk for chunk, as its tab's sample lists them`, () => {
+    const chunks = chunkNumbers(moved.id).map((n) => read(`replay/${moved.id}/${n}.json`))
+    const from = chunkNumbers(moved.from).map((n) => read(`replay/${moved.from}/${n}.json`))
+    const tab = read(`session/${moved.session}.json`).tabs.find((t) => t.id === moved.id)
+    assert.deepEqual(chunks.map(({ start_ms, end_ms }) => ({ start_ms, end_ms })), tab.replay.chunks)
+    const shift = chunks[0].events[0].timestamp - from[0].events[0].timestamp
+    assert.deepEqual(chunks.map((c) => c.events), from.map((c) => c.events.map((e) => ({ ...e, timestamp: e.timestamp + shift }))))
+  })
+}
 
 for (const walk of WALKS) {
   test(`${walk.id}: the chunks are cake's windows, in time order, as the session's sample lists them`, () => {

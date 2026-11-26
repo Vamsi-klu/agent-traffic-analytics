@@ -1,4 +1,4 @@
-// Visual regression: screenshot the component overview + 8 pages (light, 1280 wide) in both styles (Cake <page>.png,
+// Visual regression: screenshot the component overview + 9 pages (light, 1280 wide) in both styles (Cake <page>.png,
 // Minimal <page>-minimal.png: shots.mjs STYLES) and compare pixel by pixel with visual/baseline/. Any changed pixel
 // fails; the diff images go to visual/diff/. The dashboard and the session list show cake's own answers on the fixed
 // test library at a fixed moment (shots.mjs LIBRARY_PAGES);
@@ -20,7 +20,7 @@ const here = path.dirname(fileURLToPath(import.meta.url))
 const root = path.join(here, "..", "visual")
 const update = process.argv.includes("--update")
 const PAGES = { components: "#/components", home: "#/", dashboard: "#/dashboard", sessions: "#/sessions", "sessions-agent": "#/sessions?filter=agent&turns=human_agent",
-  session: "#/sessions/7f3a-c1", "session-freed": "#/sessions/2b9e-c4", settings: "#/settings", register: "#/" }
+  session: "#/sessions/7f3a-c1", "session-tabs": "#/sessions/4c2d-71", "session-freed": "#/sessions/2b9e-c4", settings: "#/settings", register: "#/" }
 
 for (const d of ["baseline", "actual", "diff"]) await mkdir(path.join(root, d), { recursive: true })
 const srv = await serve(), lib = await serve(undefined, { fixtures: LIBRARY })

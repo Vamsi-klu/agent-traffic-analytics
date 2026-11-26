@@ -226,6 +226,15 @@ class BuildTest(unittest.TestCase):
         self.assertEqual([(r["who"], r["n"]) for r in result["runs"]], [("human", 3), ("agent", 3)])
         self.assertEqual([(h["from"], h["to"], h["t"]) for h in result["handoffs"]], [("human", "agent", 20500)])
 
+    def test_each_run_counts_its_own_clicks_and_inputs_apart_from_its_evidence(self):
+        # a Human + agent session needs each side's own actions (verdict.py long_runs): the steps that are only
+        # scrolling or pointer movement carrying evidence are no click or input of the run's
+        events, _ = agent_then_human(agent_clicks=3, human_clicks=0)
+        glide = {"kind": "move", "t": 30000, "first": 30000, "start": 29000, "score": 0.02}
+        scroll = {"kind": "scroll", "t": 32000, "first": 32000, "start": 31500, "score": 0.02}
+        result = timeline.build(events, evidence=[glide, scroll])
+        self.assertEqual([(r["who"], r["n"], r["acts"]) for r in result["runs"]], [("agent", 3, 3), ("human", 2, 0)])
+
     def test_evidence_shapes_the_runs_but_not_the_shares_and_movement_alone_hands_nothing_over(self):
         events, _ = agent_then_human(agent_clicks=3, human_clicks=0)
         glide = {"kind": "move", "t": 30000, "first": 30000, "start": 29000, "score": 0.02}

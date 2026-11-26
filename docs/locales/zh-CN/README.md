@@ -9,7 +9,7 @@
 <div align="left">
 
 ```text
-请为此网站设置 AgentCake 0.6.1。请使用 curl 或 GitHub CLI 下载 https://raw.githubusercontent.com/tartini-ai/agent-traffic-analytics/v0.6.1/INSTALL.md 中的指南，然后按照指南逐步操作。如果下载失败，请申请网络访问权限。
+请为此网站设置 AgentCake 0.6.2。请使用 curl 或 GitHub CLI 下载 https://raw.githubusercontent.com/tartini-ai/agent-traffic-analytics/v0.6.2/INSTALL.md 中的指南，然后按照指南逐步操作。如果下载失败，请申请网络访问权限。
 ```
 
 </div>
@@ -115,7 +115,7 @@ HUMAN Security 发现，[来自 AI agent 和 agentic 浏览器的流量同比增
 
 </details>
 
-- **区分 Human、Agent 和 Script bot 会话。** AgentCake 会将每个会话归入 Human、Agent 或 Script bot 分类，并将 Agent 会话再分为 Agent only 和 Human + agent。Script bot 指机器人名单上运行了页面脚本的程序。
+- **区分 Human、Agent 和 Script bot 会话。** 一个会话是一个浏览器对你网站的一次访问，包括它的所有标签页。所有标签页 30 分钟都没有活动，或者满 24 小时，才会开始新的会话。AgentCake 会分别判断每个标签页，再给会话一个分类：Human、Agent 或 Script bot，并将 Agent 会话再分为 Agent only 和 Human + agent。Script bot 指机器人名单上运行了页面脚本的程序。
 - **识别 AI agent，并标明确定程度。** 对于能识别的 agent (例如 Claude in Chrome、ChatGPT 和 Muse)，AgentCake 会显示其名称，并标记为 Verified 或 Likely。其余 agent 列为 Unnamed。
 - **了解谁执行了操作，以及会话为何归入此分类。** 时间线会标记每个会话中的真人部分和 agent 部分，以及操作者切换的位置。每个分类的依据都显示在录制内容旁边。
 - **按访问者类型查看流量。** 查看真人和 AI agent 各自的会话数、访问者数、页面查看次数和活动时间。还可以按路径、来源、设备和地理位置查看流量。
@@ -128,7 +128,7 @@ HUMAN Security 发现，[来自 AI agent 和 agentic 浏览器的流量同比增
 如果网站在 Shopify 等平台上运行，请改为在新的空文件夹中执行相同的操作。
 
 ```text
-请为此网站设置 AgentCake 0.6.1。请使用 curl 或 GitHub CLI 下载 https://raw.githubusercontent.com/tartini-ai/agent-traffic-analytics/v0.6.1/INSTALL.md 中的指南，然后按照指南逐步操作。如果下载失败，请申请网络访问权限。
+请为此网站设置 AgentCake 0.6.2。请使用 curl 或 GitHub CLI 下载 https://raw.githubusercontent.com/tartini-ai/agent-traffic-analytics/v0.6.2/INSTALL.md 中的指南，然后按照指南逐步操作。如果下载失败，请申请网络访问权限。
 ```
 
 - 智能体将推荐部署方式，并列出[各项月费和总费用](../../hosting.md)。AgentCake 是免费的，但公开网站需要服务器来记录访问。
@@ -146,7 +146,7 @@ AgentCake 在你的电脑或服务器上根据四类线索判断谁在操作。
 - **环境（Environment）** 浏览器里有自动化痕迹、伪装身份的迹象或 agent 留下的标记吗？
 - **行为（Behavior）** 指针移动、按键时间和滚动方式更像真人还是 agent？
 
-测试使用了我们录制的 1,118 个 agent 会话，以及 7,122 个真人会话。有些访问仍会被误判。[查看评估结果](../../../eval/README.md)
+测试使用了我们录制的 1,118 个 agent 会话，以及 7,122 个真人会话，每个会话只有一个标签页，也就是 AgentCake 判断的单位。有些访问仍会被误判。[查看评估结果](../../../eval/README.md)
 
 ## 你的数据归你所有
 

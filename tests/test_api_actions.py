@@ -1,4 +1,4 @@
-"""The "Every action" list of GET /api/session/<id> and each actor's share of it (agentcake/api/actions.py), on the
+"""The "All actions" list of GET /api/session/<id> and each actor's share of it (agentcake/api/actions.py), on the
 actions agentcake/data/actions.json defines for the whole of AgentCake (detect/visitor_actions.py).
 
     python3 -I -m unittest discover -s tests -p test_api_actions.py -v      (from the AgentCake folder)

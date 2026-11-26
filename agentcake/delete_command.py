@@ -1,9 +1,9 @@
-"""`agentcake delete --session <id> | --visitor <visit id> [--dry-run]`.
+"""`agentcake delete --session <id> | --visitor <session id> [--dry-run]`.
 
-A session is one visit: cake keeps a visit under the id cake.js keeps in the visitor's browser (`cake_sid` in
-sessionStorage), which is the session id the dashboard shows. --session takes an id read off the dashboard, --visitor
-the visit id as a site read it in the visitor's browser (a consent banner can read `cake_sid` before it calls
-window.cake.stop() and hand it to the site's server); both name the same rows. Either can be given several times.
+A session is one visit, every tab of one browser, and goes whole. --session takes an id read off the dashboard,
+--visitor an id as a site read it in the visitor's browser (a consent banner can read `cake_sid`, the tab's session,
+or `cake_bsid`, the browser's, before it calls window.cake.stop() and hand it to the site's server); either deletes
+every tab session of the visit it names (delete.py). Either can be given several times.
 
 run(ids, dry_run) deletes them where it is safe (delete.py says what goes): in this process when no cake runs on this
 data folder, else by asking the running cake (POST /api/delete on the local page's own address, which only this

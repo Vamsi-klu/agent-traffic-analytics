@@ -101,8 +101,10 @@ def declared(claimed, code="key-missing", signer=None):
                                    claimed, {})
 
 
-def run(who, start_s, end_s, n, p):
-    return {"who": who, "start": T0 + start_s * S, "end": T0 + end_s * S, "n": n, "p": p}
+def run(who, start_s, end_s, n, p, acts=None):
+    """A timeline run of n steps, acts of them clicks or inputs (default: all of them)."""
+    return {"who": who, "start": T0 + start_s * S, "end": T0 + end_s * S, "n": n, "p": p,
+            "acts": n if acts is None else acts}
 
 
 AGENT_RUN = run("agent", 0, 60, 20, 0.97)

@@ -1,5 +1,6 @@
-"""POST /api/delete {"sessions": ["<id>", ...]}: deletes those visits in this process (delete.py) and answers
-what was deleted, as delete.delete_sessions() returns it; `agentcake delete` uses it while cake runs. {"all": true} is
+"""POST /api/delete {"sessions": ["<id>", ...]}: deletes those visits in this process (delete.py: each whole, every
+tab session of the visit an id names) and answers what was deleted, as delete.delete_sessions() returns it; `agentcake
+delete` uses it while cake runs. {"all": true} is
 the settings page's "Delete all data" (after its Dialog): every session in the database, each as thoroughly
 as one; with none left it answers {"sessions": []}. Only the local listener has it (routes.py), and only this
 computer's own pages, or a program on this computer such as `agentcake delete` (no Origin), may post its JSON

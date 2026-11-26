@@ -102,16 +102,18 @@ C.transport = {
     })
     timer = setTimeout(tick, interval)
   },
-  /** From now on batches carry this session id (a new session began on this page: session.js). */
-  session: function (id) {
-    header.s = id
+  /** From now on batches carry these session ids, { s, bs, w } (a new session began on this page: session.js). */
+  session: function (ids) {
+    Object.assign(header, ids)
   },
-  /** From now on batches carry this visitor id and no identify hash (window.cake.reset(): identify.js). */
+  /** From now on batches carry this visitor id and no identify hash (window.cake.reset(): identify.js; another tab's
+   * reset() followed: session.js). */
   visitor: function (id) {
     header.vid = id
     delete header.idh
   },
-  /** From now on batches carry this identify hash (window.cake.identify(): identify.js). */
+  /** From now on batches carry this identify hash (window.cake.identify(): identify.js; another tab's identify()
+   * followed: session.js). */
   identity: function (hash) {
     header.idh = hash
   },

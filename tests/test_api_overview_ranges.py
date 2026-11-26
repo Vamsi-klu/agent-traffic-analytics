@@ -13,6 +13,7 @@ import time
 import unittest
 from unittest import mock
 
+import visit_rows
 from api_client import Client, contract_problems
 from web_uploads import MINUTE_MS, WebCase, upload
 from agentcake.api import periods
@@ -44,10 +45,11 @@ class Ranges(WebCase):
         self.visit(next(tabs), "human", HUMAN_AGO)
 
     def visit(self, tab, verdict, ago):
-        self.post(upload(0, NOW - ago, tab=tab, pv=tab))
+        """A session of its own (its own browser session: one visitor's sessions minutes apart would join)."""
+        self.post(dict(upload(0, NOW - ago, tab=tab, pv=tab), bs=tab))
         self.con.execute("UPDATE sessions SET start_ms=?, verdict_class=?, judged_ms=end_ms + 1 WHERE id=?",
                          (NOW - ago, verdict, tab))
-        self.con.commit()
+        visit_rows.refreshed(self.con)
 
     def get(self, path, name, **query):
         with mock.patch.object(periods, "now_ms", return_value=NOW):

@@ -5,12 +5,12 @@ in the raw-event format of our lab's raw.js (rrweb_events.py rebuilds it from rr
 the 25 features in FEATURES order. A feature with nothing to measure is None ("no data"), never 0; the behaviour
 model reads None as "no evidence".
 
-Ported from our own code with the same definitions and the same arithmetic, so the numbers match exactly:
-the behaviour lab's labcore.py (feats, FEATURES; 2026-11-11), and the missing
-variant from the PostHog study's phcore.py (blank_unobservable,
-2026-11-12). One change in how, not what: the lab rescanned the whole session for every click and every scroll;
-here those lookups use time indexes built once per session (SessionIndex), so a long session costs O(n log n)
-instead of O(n^2). Parameters come from agentcake/data/features.json ("features", "unobservable").
+Ported from our own code with the same definitions and the same arithmetic, so the numbers matched exactly when ported
+(some definitions were narrowed since: below, and pointer_features.py): the behaviour lab's labcore.py (feats, FEATURES;
+2026-11-11), and the missing variant from the PostHog study's phcore.py (blank_unobservable, 2026-11-12). One change in
+how, not what: the lab rescanned the whole session for every click and every scroll; here those lookups use time indexes
+built once per session (SessionIndex), so a long session costs O(n log n) instead of O(n^2). Parameters come from
+agentcake/data/features.json ("features", "unobservable").
 
 Four definitions were narrowed after other projects' rules, all MIT, ideas and
 thresholds only, no code copied: moves_before_click reads only a mouse's clicks (bot-signal's isPointerClick,
@@ -27,23 +27,39 @@ The features, by group:
   the previous one in place, approached_clicks()), click_center_norm and click_center_px (distance from the centre of
   the clicked element: 0 in the middle, 1 on a corner; and in pixels), click_lt1px (share under a pixel),
   hover_before_click (a mouseover on the same element just before), down_up_ms (mousedown to click).
-- pointer hardware: zero_movement_frac (movementX/Y both 0), screen_eq_client (screenX/Y equal clientX/Y, counted
-  only when they are equal at screen_eq_min_positions different places in the session),
-  pressure_zero_click (pointerdowns with pressure 0), screen_offset_jump (screen-minus-client offset changed
-  between pointer events on a page, which a real mouse does not do while the window stays put).
+- pointer hardware (pointer_features.py): zero_movement_frac (movementX/Y both 0, not counting the moves a browser
+  sends where a pointer rests while the page scrolls), screen_eq_client (screenX/Y equal clientX/Y, counted only
+  when they are equal at screen_eq_min_positions different places in the session), pressure_zero_click
+  (pointerdowns with pressure 0), screen_offset_jump (screen-minus-client offset changed between pointer events on a
+  page, which a real mouse does not do while the window stays put).
 - scroll and keys: wheel_n, scroll_no_wheel (scrolls with no wheel or key just before, no finger on the screen or
   button held down, and no release just before), keys_n, input_no_keydown
   (typed text with no keydown just before; only typed text, not a paste, an autofill, a drop or an input method's
   composition, and not in a session where a finger or a pen gave input), key_iv_cv (spread of
   the gaps between keydowns), key_burst (share of gaps too short for a hand).
-- page state and timing: untrusted (events with isTrusted false), no_focus, hidden, pause_before_ms (wait since the
-  previous segment ended).
+- page state and timing: untrusted (device events a script dispatched, untrusted_events: a button, a key, the
+  pointer, the wheel or a finger), no_focus (of the clicks, keys and typed text, no_focus_events: a person moves the
+  pointer over and scrolls a window that is not active, but clicks and types only in one that is), hidden,
+  pause_before_ms (wait since the previous segment ended).
+
+no_focus, zero_movement_frac and screen_offset_jump were narrowed for 0.6.2 after a person who scrolled and hovered
+the browser beside their editor was taken for an agent (agentcake/data/features.json says why and what was measured);
+the lab's definitions read every event, and every move and press.
+
+Events a script dispatched (isTrusted false) are the visitor's input only when an agent's script dispatched them, and
+the page's own scripts dispatch them too: a carousel that turns its own page with element.click() while the visitor
+sits still, a widget that sets a field. So every feature that reads the visitor's input (visitor_input(): the pointer's
+path, approach and aim, the keys, the focus) leaves them out, and only those that imitate a device count, as untrusted:
+pages do not fake their visitors' buttons, keys and pointer (agent-detector's drive.untrusted_events, which counts
+untrusted pointer downs, keys and moves only, "page scripts and extensions can dispatch events during a human visit";
+MIT, github.com/doubleagent-so/agent-detector a523214c3b67, src/behavior/features.ts, the idea only). Narrowed for
+0.6.2; the lab counted every untrusted event and read them all.
 """
 import bisect
 import math
 import statistics
 
-from agentcake.detect import segment
+from agentcake.detect import pointer_features, segment
 from agentcake.detect.clicks import TOUCH_OR_PEN, mouse_click, repeats_in_place
 from agentcake.units import MS_PER_S
 
@@ -53,8 +69,8 @@ FEATURES =("n_move", "move_rate", "moves_before_click", "click_center_norm", "cl
             "down_up_ms", "pause_before_ms", "key_burst", "click_lt1px", "pressure_zero_click", "screen_offset_jump")
 
 CORNER = math.hypot(1, 1)  # distance from the centre of a box to a corner, in half-sides
+SCRIPTED = 0  # protocol: cake.js's "tr" of an event a script dispatched (Event.isTrusted false)
 TOUCH_EVENTS = frozenset({"touchstart", "touchend"})
-POINTER_POSITION_EVENTS = ("mousemove", "click", "mousedown", "pointerdown")
 PRESSES = frozenset({"mousedown", "pointerdown", "touchstart"})  # a button or a finger goes down
 RELEASES = frozenset({"mouseup", "pointerup", "touchend"})  # and comes up again
 
@@ -105,6 +121,13 @@ def approached_clicks(events, params=None):
     return [c for c in index.mouse_clicks if id(c) not in index.in_place]
 
 
+def visitor_input(events):
+    """The events of the visitor's own devices, in their order: the events without the ones a script dispatched
+    (isTrusted false: the page's own scripts' or an agent's), which show no hand, no aim and no focused window. An event
+    that does not say (a recording without isTrusted) stays."""
+    return [e for e in events if e.get("tr") != SCRIPTED]
+
+
 def blank_unobservable(features, names=None):
     """A copy of features with the named ones set to None (missing, not false).
 
@@ -118,10 +141,11 @@ def blank_unobservable(features, names=None):
 
 
 class SessionIndex:
-    """Time-sorted lookups into a whole session, built once and shared by all of its segments."""
+    """Time-sorted lookups into a whole session's input from the visitor's own devices (visitor_input()), built once and
+    shared by all of its segments."""
 
     def __init__(self, events, params):
-        events = sorted(events, key=lambda e: e["t"])
+        events = visitor_input(sorted(events, key=lambda e: e["t"]))
         self.events, self.params = events, params
         self.move_times = _times(events, {"mousemove"})
         presses = [e for e in events if e.get("ty") == "pointerdown"]
@@ -133,10 +157,7 @@ class SessionIndex:
                                          params["double_click_box_px"])
         # a finger or a pen gave input somewhere in the session (agent-detector's touchInput)
         self.touch_input = any(e.get("ty") in TOUCH_EVENTS or e.get("pt") in TOUCH_OR_PEN for e in events)
-        # the places where the screen and the page positions of a pointer event were the same (bot-signal's
-        # cdp-input-coordinate-leak, MIT, needs two: one is a window in the screen's corner)
-        self.screen_equal_places = len({(e["cx"], e["cy"]) for e in events
-                                        if e.get("ty") in POINTER_POSITION_EVENTS and _screen_equals_client(e)})
+        self.pointer = pointer_features.PointerIndex(events, params)
         self.down_times = _times(events, {"mousedown"})
         self.keydown_times = _times(events, {"keydown"})
         self.wheel_or_key_times = _times(events, {"wheel", "keydown"})
@@ -150,14 +171,9 @@ class SessionIndex:
         self.release_times = _times(events, RELEASES)
         self.release_ends = [t + params["wheel_after_ms"] for t in self.release_times]
         self.hover_times = {}  # target selector -> times of mouseovers on it
-        self.screen_events = {}  # page -> pointer events that report both client and screen positions
         for e in events:
             if e.get("ty") == "mouseover":
                 self.hover_times.setdefault(e.get("s"), []).append(e["t"])
-            if e.get("ty") in ("mousemove", "mousedown", "click") and e.get("cx") is not None \
-                    and e.get("sx") is not None:
-                self.screen_events.setdefault(e.get("pg"), []).append(e)
-        self.screen_times = {page: [e["t"] for e in evs] for page, evs in self.screen_events.items()}
 
     def count_moves(self, start, end):
         """Mousemoves with start <= t < end."""
@@ -200,19 +216,15 @@ class SessionIndex:
         i = bisect.bisect_right(self.keydown_times, t)
         return bool(i) and t - self.keydown_times[i - 1] <= self.params["keydown_before_ms"]
 
-    def pointer_before(self, page, t):
-        """The last pointer event with screen positions on `page` before t, or None."""
-        i = bisect.bisect_left(self.screen_times.get(page, []), t)
-        return self.screen_events[page][i - 1] if i else None
-
 
 def _features(ev, index, prev_end, p):
+    own = visitor_input(ev)
     values = {}
     values.update(_path_features(ev, p))
-    values.update(_click_features(ev, index, p))
-    values.update(_pointer_features(ev, index, p))
-    values.update(_scroll_and_key_features(ev, index, p))
-    values.update(_page_state_features(ev))
+    values.update(_click_features(own, index, p))
+    values.update(pointer_features.measure(own, index.pointer, p))
+    values.update(_scroll_and_key_features(own, index, p))
+    values.update(_page_state_features(ev, own, p))
     values["pause_before_ms"] = (ev[0]["t"] - prev_end) if (prev_end is not None and ev) else None
     return {name: values[name] for name in FEATURES}
 
@@ -272,46 +284,11 @@ def _half(length):
     return length / 2  # protocol: geometry, half of a side
 
 
-def _pointer_features(ev, index, p):
-    reporting_movement = [e for e in ev if e["ty"] in ("mousemove", "pointermove") and e.get("mx") is not None]
-    pointer = [e for e in ev if e.get("cx") is not None and e["ty"] in POINTER_POSITION_EVENTS]
-    leaks = index.screen_equal_places >= p["screen_eq_min_positions"]
-    pointer_downs = [e for e in ev if e["ty"] == "pointerdown"]
-    return {"zero_movement_frac": _share(reporting_movement, lambda e: e["mx"] == 0 and e["my"] == 0),
-            "screen_eq_client": _share(pointer, lambda e: leaks and _screen_equals_client(e)),
-            "pressure_zero_click": _share(pointer_downs, lambda e: (e.get("pr") or 0) == 0),
-            "screen_offset_jump": _screen_offset_jump(ev, index, p)}
-
-
-def _screen_offset_jump(ev, index, p):
-    """Share of the segment's mousedowns and clicks whose screen-minus-client offset differs from the pointer event
-    before them on the same page (the page of the segment's first event)."""
-    page = ev[0].get("pg") if ev else None
-    presses = [e for e in ev if e["ty"] in ("mousedown", "click") and e.get("cx") is not None
-               and e.get("sx") is not None]
-    if not presses or len(index.screen_events.get(page, [])) < p["offset_min_events"]:
-        return None
-    jumps = 0
-    for e in presses:
-        before = index.pointer_before(page, e["t"])
-        if before is not None and _screen_offset(before) != _screen_offset(e):
-            jumps += 1
-    return jumps / len(presses)
-
-
-def _screen_equals_client(e):
-    return e.get("cx") is not None and e.get("sx") == e.get("cx") and e.get("sy") == e.get("cy")
-
-
-def _screen_offset(e):
-    return e["sx"] - e["cx"], e["sy"] - e["cy"]
-
-
 def _scroll_and_key_features(ev, index, p):
     wheels = [e for e in ev if e["ty"] == "wheel"]
     scrolls = [e for e in ev if e["ty"] == "scroll"]
     keydowns = [e for e in ev if e["ty"] == "keydown"]
-    typed = [e for e in ev if e["ty"] == "input" and e.get("it") in p["typed_input_types"] and not e.get("ic")]
+    typed = [e for e in ev if e["ty"] == "input" and _typed(e, p)]
     gaps = [b["t"] - a["t"] for a, b in zip(keydowns, keydowns[1:])]
     key_iv_cv = key_burst = None
     if len(keydowns) >= p["metronome_min_keys"] and gaps and statistics.mean(gaps) > 0:
@@ -326,10 +303,18 @@ def _scroll_and_key_features(ev, index, p):
             "key_iv_cv": key_iv_cv, "key_burst": key_burst}
 
 
-def _page_state_features(ev):
-    return {"untrusted": sum(1 for e in ev if e.get("tr") == 0),
-            "no_focus": _share(ev, lambda e: e.get("hf") == 0),
+def _page_state_features(ev, own, p):
+    """untrusted from all of the segment's events (ev), no_focus from the visitor's own (own: visitor_input(ev))."""
+    acted = [e for e in own if e["ty"] in p["no_focus_events"] and (e["ty"] != "input" or _typed(e, p))]
+    device = p["untrusted_events"]
+    return {"untrusted": sum(1 for e in ev if e.get("tr") == SCRIPTED and e["ty"] in device),
+            "no_focus": _share(acted, lambda e: e.get("hf") == 0),
             "hidden": _share(ev, lambda e: e.get("vs") == 0)}
+
+
+def _typed(e, p):
+    """Typed text: an input of typed_input_types that is not an input method's composition."""
+    return e.get("it") in p["typed_input_types"] and not e.get("ic")
 
 
 def _held_presses(events):

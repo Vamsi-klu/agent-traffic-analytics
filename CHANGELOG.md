@@ -3,6 +3,95 @@
 Every release of AgentCake, newest first. Each release's files and their `SHA256SUMS` are on
 [GitHub Releases](https://github.com/tartini-ai/agent-traffic-analytics/releases).
 
+## 0.6.2
+
+A session is now one browser's visit across all of its tabs, and a human who scrolls or hovers beside their work, or
+whose page clicks by itself, is no longer shown as Human + agent.
+
+### Upgrading from 0.6.1
+
+- To upgrade a server, follow "Upgrading" in [`SERVER.md`](SERVER.md#upgrading). On a computer, give your coding agent
+  the instructions in [`README.md`](README.md) again. It asks you before it stops the running version. Your site key
+  and your data stay the same.
+- `deploy/cake.service`, `deploy/Caddyfile`, `docker-compose.yml` and `Dockerfile` are the same as in 0.6.1. AgentCake
+  adds a table and three columns to the database when it first opens it.
+- After it starts, AgentCake joins the tabs of the sessions it already has into sessions across tabs, in the
+  background. First it copies `cake.db` to `backups/`, which needs free disk of 1.1 times the database's size. New
+  uploads wait while it copies, and none is lost. Until the joining is done, the dashboard counts each older tab as a
+  session of its own. After it, there are fewer sessions, more pages per session and longer active time; visitors and
+  page views stay the same. The copy stays in `backups/` until you delete it.
+- AgentCake also classifies the sessions it already has again with the new rules. A session is classified again when
+  you open it, and the others in the background, newest first. A session whose replay was removed to free space
+  keeps its 0.6.1 classification.
+- A tab that is open while your site starts serving the new page script begins a new session at its next page.
+
+### Sessions across tabs
+
+- A session is one browser's visit to your site, across all of its tabs. A new one starts once no tab has had
+  activity for 30 minutes, or after 24 hours. Until now, each tab was a session of its own.
+- The page script keeps the session's id in `localStorage`, which every tab of your site shares, and an id for each
+  tab in `sessionStorage`. A duplicated tab, or a window your site opens with `window.open`, gets an id of its own.
+  Where `localStorage` takes no writes, each tab is a session of its own; where no storage can be used, each page.
+  When `window.cake.stop()` removes the ids in one tab, no other tab writes them back.
+- AgentCake joins the tabs of a script that sends no session id, such as an older page script, by its visitor id,
+  with the same rules.
+- Each tab is still classified on its own. A session is an Agent session when an agent acted in any tab, and Human +
+  agent when a human with enough actions acted in another tab too, or one tab was Human + agent. A tab with too few
+  actions doesn't count next to a tab with enough. A session is a Script bot only when every tab is one.
+- The session list has one row per session, with how many tabs it had and a line for each tab. On the session page,
+  the replay follows the visitor from tab to tab, or shows the tab you pick. The timeline has a track for each tab and
+  marks the hand-offs between tabs. Pages visited, Server middleware and All actions have a Tab column, and the
+  reasons are shown for each tab.
+- On the dashboard, Sessions counts sessions and Pages per session counts the pages of all their tabs. Active time is
+  the time any tab of the session was shown: a moment two tabs were shown counts once. The source and the entry page
+  are the first tab's.
+- The old address of a tab opens the session it is part of now.
+- `agentcake delete --session <id>` deletes the whole session, given the id of any of its tabs or the session's id. A
+  retention of 30 or 90 days deletes whole sessions.
+- New command: `agentcake session-counts [--db <file>]` counts a database's sessions both ways, one per tab and across
+  tabs. It opens the database read-only and prints only counts, so you can see how your numbers will change before
+  you upgrade a server.
+
+### Detection
+
+- A human is no longer shown as Human + agent for scrolling or hovering over a browser window that isn't active, for
+  moving that window, or for a page's own scripts that click, such as an autoplaying carousel:
+  - Acting while the page has no focus counts only clicks, key presses and typing. An agent that clicks or types into
+    a window without focus still counts.
+  - The movements a browser reports while a page scrolls under a pointer at rest don't count as movements without
+    motion. A change in where the page sits on the screen doesn't count when the window moved by as much, when the
+    next movement keeps it, or when it is 2 pixels or less. A click made with the keyboard is not a press.
+  - Events a script sends count as automation only when they imitate a device: a pointer, a key, a wheel or a touch.
+    A script's clicks and inputs, which sites send to drive their own widgets, don't, and behavior is read from the
+    visitor's own input only.
+  - Human + agent decided from behavior alone needs at least 3 clicks or inputs from the agent itself. Otherwise the
+    session is Human, and its reasons show the agent's part as too short.
+- When a name, a signature or a trace makes a session Human + agent but the agent took no action of its own, the
+  title says "A human, with <agent> in the browser", and the agent's share of the actions is 0%.
+- In our tests, AgentCake recognized 1,020 of 1,118 agent sessions (1,025 in 0.6.1) and judged 81 of 159 sessions with
+  a hand-off Human + agent (106 in 0.6.1). It still judged 2 of 7,122 human sessions agents. See
+  [`eval/README.md`](eval/README.md).
+
+### Local page
+
+- The pages open in the Minimal style unless this browser picked a style before. A browser that picked Cake keeps it.
+
+### Install guide
+
+- `INSTALL.md` asks the site owner about an install of a command-line tool as an item of its own, and doesn't ask
+  about defaults the guide doesn't ask about. The agent's proposal names a domain as the other choice to an sslip.io
+  name, with its risks. When the site owner approves only part of it, the agent does only that part and lists what is
+  left. Its last message says that, after registering, the local page shows how to connect the website.
+
+### Fixes
+
+- `agentcake migrate` removes a backup copy that fails its check, instead of leaving it in `backups/`.
+- A window geometry record whose values aren't numbers no longer keeps a session from being classified.
+
+### Page script
+
+- `cake.js` is 151 KiB minified, 49 KiB gzipped (148 KiB and 48 KiB in 0.6.1).
+
 ## 0.6.1
 
 A visit from a real phone or tablet, with nothing else found, now counts as Human without the Limited evidence

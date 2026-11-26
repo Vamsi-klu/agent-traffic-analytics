@@ -1,0 +1,961 @@
+{
+  "session": {
+    "id": "4c2d-71",
+    "verdict": "agent",
+    "evidence": null,
+    "agent_turns": "human_agent",
+    "agent": "Claude in Chrome",
+    "certainty": "likely",
+    "when": "Yesterday 14:40",
+    "duration_ms": 96400,
+    "pages": 8,
+    "share": {
+      "human": 26,
+      "agent": 74,
+      "unsure": 0
+    },
+    "tabs": [
+      {
+        "start_ms": 0,
+        "end_ms": 96400,
+        "segments": [
+          {
+            "who": "human",
+            "start_ms": 0,
+            "end_ms": 38560
+          },
+          {
+            "who": "agent",
+            "start_ms": 38560,
+            "end_ms": 80012
+          },
+          {
+            "who": "unsure",
+            "start_ms": 80012,
+            "end_ms": 83868
+          },
+          {
+            "who": "human",
+            "start_ms": 83868,
+            "end_ms": 96400
+          }
+        ]
+      },
+      {
+        "start_ms": 20000,
+        "end_ms": 68000,
+        "segments": [
+          {
+            "who": "unsure",
+            "start_ms": 20000,
+            "end_ms": 22880
+          },
+          {
+            "who": "agent",
+            "start_ms": 22880,
+            "end_ms": 68000
+          }
+        ]
+      }
+    ],
+    "agents": [
+      {
+        "name": "Claude in Chrome",
+        "certainty": "likely"
+      },
+      {
+        "name": "Codex in-app browser",
+        "certainty": "likely"
+      }
+    ]
+  },
+  "title": "A human, then Codex in-app browser, then Claude in Chrome, then the human again",
+  "summary": "A human acted from 0:00 to 0:38. Claude in Chrome took over at 0:38. The human took over again at 1:23. The Environment layer supports the verdict with 99% confidence, and the Behavior layer with 91%.",
+  "percent": 99,
+  "timeline": {
+    "duration_ms": 96400,
+    "segments": [
+      {
+        "who": "human",
+        "start_ms": 0,
+        "end_ms": 38560
+      },
+      {
+        "who": "unsure",
+        "start_ms": 20000,
+        "end_ms": 22880
+      },
+      {
+        "who": "agent",
+        "start_ms": 22880,
+        "end_ms": 68000
+      },
+      {
+        "who": "agent",
+        "start_ms": 38560,
+        "end_ms": 80012
+      },
+      {
+        "who": "unsure",
+        "start_ms": 80012,
+        "end_ms": 83868
+      },
+      {
+        "who": "human",
+        "start_ms": 83868,
+        "end_ms": 96400
+      }
+    ],
+    "handoffs": [
+      {
+        "at_ms": 22880,
+        "to": "agent"
+      },
+      {
+        "at_ms": 38560,
+        "to": "agent"
+      },
+      {
+        "at_ms": 83868,
+        "to": "human"
+      }
+    ]
+  },
+  "pages": [
+    {
+      "path": "/demo?cat=Tops",
+      "at_ms": 140,
+      "duration_ms": 21284,
+      "actions": 3,
+      "who": "human",
+      "tab": 1
+    },
+    {
+      "path": "/demo?q=t-shirt",
+      "at_ms": 20134,
+      "duration_ms": 5101,
+      "actions": 1,
+      "who": "agent",
+      "tab": 2
+    },
+    {
+      "path": "/demo/product?id=classic-tee",
+      "at_ms": 21424,
+      "duration_ms": 44685,
+      "actions": 7,
+      "who": "human_agent",
+      "tab": 1
+    },
+    {
+      "path": "/demo/product?id=classic-tee",
+      "at_ms": 25235,
+      "duration_ms": 24877,
+      "actions": 4,
+      "who": "agent",
+      "tab": 2
+    },
+    {
+      "path": "/demo/cart",
+      "at_ms": 50112,
+      "duration_ms": 7043,
+      "actions": 1,
+      "who": "agent",
+      "tab": 2
+    },
+    {
+      "path": "/demo/checkout",
+      "at_ms": 57155,
+      "duration_ms": 10845,
+      "actions": 1,
+      "who": "agent",
+      "tab": 2
+    },
+    {
+      "path": "/demo/cart",
+      "at_ms": 66109,
+      "duration_ms": 4039,
+      "actions": 1,
+      "who": "agent",
+      "tab": 1
+    },
+    {
+      "path": "/demo/checkout",
+      "at_ms": 70148,
+      "duration_ms": 26252,
+      "actions": 9,
+      "who": "human_agent",
+      "tab": 1
+    }
+  ],
+  "layers": [
+    {
+      "layer": "name",
+      "state": "no_hit",
+      "reasons": [
+        {
+          "kind": "user_agent",
+          "tone": "none",
+          "text": "User-Agent is plain Chrome 142 on macOS. No agent name in it.",
+          "detail": null
+        }
+      ],
+      "percent": null,
+      "leans": null
+    },
+    {
+      "layer": "verify",
+      "state": "off",
+      "reasons": [
+        {
+          "kind": "server",
+          "tone": "none",
+          "text": "Local mode: every visit comes from 127.0.0.1, so there's no verification layer and names are self-reported only.",
+          "detail": null
+        }
+      ],
+      "percent": null,
+      "leans": null
+    },
+    {
+      "layer": "environment",
+      "state": "agent",
+      "reasons": [
+        {
+          "kind": "page",
+          "tone": "agent",
+          "text": "From 0:38, a browser extension controlled the page.",
+          "detail": "A closed shadow root host, a <div> with no attributes, was added under <body> at 0:38."
+        },
+        {
+          "kind": "browser",
+          "tone": "none",
+          "text": "No webdriver, real GPU, normal screen. Looks like a human's own Chrome.",
+          "detail": null
+        }
+      ],
+      "percent": 99,
+      "leans": "agent"
+    },
+    {
+      "layer": "behavior",
+      "state": "human_agent",
+      "reasons": [
+        {
+          "kind": "clicks",
+          "tone": "agent",
+          "text": "0:38–1:19: 14 clicks land on the exact centre of buttons, with no mouse travel before them.",
+          "detail": null
+        },
+        {
+          "kind": "keys",
+          "tone": "agent",
+          "text": "Address typed in one go: 0 ms between keys.",
+          "detail": null
+        },
+        {
+          "kind": "motion",
+          "tone": "human",
+          "text": "0:00–0:38 and 1:23–1:36: curved mouse paths, uneven scrolling, a typo fixed.",
+          "detail": null
+        },
+        {
+          "kind": "model",
+          "tone": "none",
+          "text": "Between 0:38 and 1:19, the clicks and typing look like an agent's.",
+          "detail": "Behavior model: 23 of 31 action segments scored as agent (prototype weights)."
+        }
+      ],
+      "percent": 91,
+      "leans": "agent"
+    }
+  ],
+  "actions": [
+    {
+      "at_ms": 4001,
+      "who": "human",
+      "what": "Scroll",
+      "page": "/demo?cat=Tops",
+      "tab": 1
+    },
+    {
+      "at_ms": 12001,
+      "who": "human",
+      "what": "Scroll back up",
+      "page": "/demo?cat=Tops",
+      "tab": 1
+    },
+    {
+      "at_ms": 21265,
+      "who": "human",
+      "what": "Click “Classic T-shirt”",
+      "page": "/demo?cat=Tops",
+      "tab": 1
+    },
+    {
+      "at_ms": 25001,
+      "who": "human",
+      "what": "Scroll to the reviews",
+      "page": "/demo/product?id=classic-tee",
+      "tab": 1
+    },
+    {
+      "at_ms": 25091,
+      "who": "agent",
+      "what": "Click “Classic T-shirt” (centre hit)",
+      "page": "/demo?q=t-shirt",
+      "tab": 2
+    },
+    {
+      "at_ms": 32090,
+      "who": "agent",
+      "what": "Click “Blue” (centre hit)",
+      "page": "/demo/product?id=classic-tee",
+      "tab": 2
+    },
+    {
+      "at_ms": 33001,
+      "who": "human",
+      "what": "Scroll back up",
+      "page": "/demo/product?id=classic-tee",
+      "tab": 1
+    },
+    {
+      "at_ms": 38003,
+      "who": "agent",
+      "what": "Select size M",
+      "page": "/demo/product?id=classic-tee",
+      "tab": 2
+    },
+    {
+      "at_ms": 38640,
+      "who": "agent",
+      "what": "Click “Blue” (centre hit)",
+      "page": "/demo/product?id=classic-tee",
+      "tab": 1
+    },
+    {
+      "at_ms": 41001,
+      "who": "agent",
+      "what": "Select size M",
+      "page": "/demo/product?id=classic-tee",
+      "tab": 1
+    },
+    {
+      "at_ms": 44021,
+      "who": "agent",
+      "what": "Click “Add to cart” (centre hit)",
+      "page": "/demo/product?id=classic-tee",
+      "tab": 2
+    },
+    {
+      "at_ms": 50021,
+      "who": "agent",
+      "what": "Click “Go to cart” (centre hit)",
+      "page": "/demo/product?id=classic-tee",
+      "tab": 2
+    },
+    {
+      "at_ms": 52002,
+      "who": "agent",
+      "what": "Type in “Quantity” (0 ms between keys)",
+      "page": "/demo/product?id=classic-tee",
+      "tab": 1
+    },
+    {
+      "at_ms": 57053,
+      "who": "agent",
+      "what": "Click “Checkout” (centre hit)",
+      "page": "/demo/cart",
+      "tab": 2
+    },
+    {
+      "at_ms": 63002,
+      "who": "agent",
+      "what": "Type in “Email” (0 ms between keys)",
+      "page": "/demo/checkout",
+      "tab": 2
+    },
+    {
+      "at_ms": 64022,
+      "who": "agent",
+      "what": "Click “Add to cart” (centre hit)",
+      "page": "/demo/product?id=classic-tee",
+      "tab": 1
+    },
+    {
+      "at_ms": 66024,
+      "who": "agent",
+      "what": "Click “Go to cart” (centre hit)",
+      "page": "/demo/product?id=classic-tee",
+      "tab": 1
+    },
+    {
+      "at_ms": 70055,
+      "who": "agent",
+      "what": "Click “Checkout” (centre hit)",
+      "page": "/demo/cart",
+      "tab": 1
+    },
+    {
+      "at_ms": 73000,
+      "who": "agent",
+      "what": "Fill “Email” (0 ms between keys)",
+      "page": "/demo/checkout",
+      "tab": 1
+    },
+    {
+      "at_ms": 74001,
+      "who": "agent",
+      "what": "Fill “Full name” (0 ms between keys)",
+      "page": "/demo/checkout",
+      "tab": 1
+    },
+    {
+      "at_ms": 75001,
+      "who": "agent",
+      "what": "Fill “Street address” (0 ms between keys)",
+      "page": "/demo/checkout",
+      "tab": 1
+    },
+    {
+      "at_ms": 75999,
+      "who": "agent",
+      "what": "Fill “City” (0 ms between keys)",
+      "page": "/demo/checkout",
+      "tab": 1
+    },
+    {
+      "at_ms": 77000,
+      "who": "agent",
+      "what": "Fill “Postcode” (0 ms between keys)",
+      "page": "/demo/checkout",
+      "tab": 1
+    },
+    {
+      "at_ms": 78000,
+      "who": "agent",
+      "what": "Select country",
+      "page": "/demo/checkout",
+      "tab": 1
+    },
+    {
+      "at_ms": 78999,
+      "who": "agent",
+      "what": "Fill “Name on card” (0 ms between keys)",
+      "page": "/demo/checkout",
+      "tab": 1
+    },
+    {
+      "at_ms": 87000,
+      "who": "human",
+      "what": "Scroll back up",
+      "page": "/demo/checkout",
+      "tab": 1
+    },
+    {
+      "at_ms": 93164,
+      "who": "human",
+      "what": "Tick “I understand this is a demo”",
+      "page": "/demo/checkout",
+      "tab": 1
+    }
+  ],
+  "replay": {
+    "start_ms": 52056,
+    "start_url": "http://127.0.0.1:7878/demo/product?id=classic-tee",
+    "epoch_ms": 1794557057994,
+    "handoff_lead_ms": 3000,
+    "chunks": [
+      {
+        "start_ms": 140,
+        "end_ms": 1704
+      },
+      {
+        "start_ms": 2205,
+        "end_ms": 9504
+      },
+      {
+        "start_ms": 15002,
+        "end_ms": 21437
+      },
+      {
+        "start_ms": 23502,
+        "end_ms": 31506
+      },
+      {
+        "start_ms": 32007,
+        "end_ms": 41006
+      },
+      {
+        "start_ms": 52007,
+        "end_ms": 52007
+      },
+      {
+        "start_ms": 64052,
+        "end_ms": 70158
+      },
+      {
+        "start_ms": 73027,
+        "end_ms": 82002
+      },
+      {
+        "start_ms": 82504,
+        "end_ms": 91529
+      },
+      {
+        "start_ms": 92030,
+        "end_ms": 96006
+      }
+    ],
+    "missing": null
+  },
+  "server": {
+    "pages": [
+      {
+        "at_ms": 8,
+        "path": "/demo",
+        "fetch": {
+          "site": "none",
+          "mode": "navigate",
+          "dest": "document",
+          "user": "?1"
+        },
+        "signature": null,
+        "same_network": null,
+        "same_user_agent": true,
+        "same_language": true,
+        "reuses": 0,
+        "tab": 1
+      },
+      {
+        "at_ms": 20010,
+        "path": "/demo",
+        "fetch": {
+          "site": "none",
+          "mode": "navigate",
+          "dest": "document",
+          "user": "?1"
+        },
+        "signature": null,
+        "same_network": null,
+        "same_user_agent": true,
+        "same_language": true,
+        "reuses": 0,
+        "tab": 2
+      },
+      {
+        "at_ms": 21362,
+        "path": "/demo/product",
+        "fetch": {
+          "site": "same-origin",
+          "mode": "navigate",
+          "dest": "document",
+          "user": "?1"
+        },
+        "signature": null,
+        "same_network": null,
+        "same_user_agent": true,
+        "same_language": true,
+        "reuses": 0,
+        "tab": 1
+      },
+      {
+        "at_ms": 25156,
+        "path": "/demo/product",
+        "fetch": {
+          "site": "same-origin",
+          "mode": "navigate",
+          "dest": "document",
+          "user": "?1"
+        },
+        "signature": null,
+        "same_network": null,
+        "same_user_agent": true,
+        "same_language": true,
+        "reuses": 0,
+        "tab": 2
+      },
+      {
+        "at_ms": 50064,
+        "path": "/demo/cart",
+        "fetch": {
+          "site": "same-origin",
+          "mode": "navigate",
+          "dest": "document",
+          "user": "?1"
+        },
+        "signature": null,
+        "same_network": null,
+        "same_user_agent": true,
+        "same_language": true,
+        "reuses": 0,
+        "tab": 2
+      },
+      {
+        "at_ms": 57094,
+        "path": "/demo/checkout",
+        "fetch": {
+          "site": "same-origin",
+          "mode": "navigate",
+          "dest": "document",
+          "user": "?1"
+        },
+        "signature": null,
+        "same_network": null,
+        "same_user_agent": true,
+        "same_language": true,
+        "reuses": 0,
+        "tab": 2
+      },
+      {
+        "at_ms": 66064,
+        "path": "/demo/cart",
+        "fetch": {
+          "site": "same-origin",
+          "mode": "navigate",
+          "dest": "document",
+          "user": "?1"
+        },
+        "signature": null,
+        "same_network": null,
+        "same_user_agent": true,
+        "same_language": true,
+        "reuses": 0,
+        "tab": 1
+      },
+      {
+        "at_ms": 70094,
+        "path": "/demo/checkout",
+        "fetch": {
+          "site": "same-origin",
+          "mode": "navigate",
+          "dest": "document",
+          "user": "?1"
+        },
+        "signature": null,
+        "same_network": null,
+        "same_user_agent": true,
+        "same_language": true,
+        "reuses": 0,
+        "tab": 1
+      }
+    ],
+    "network": null,
+    "note": null
+  },
+  "tabs": [
+    {
+      "id": "7f3a-c1",
+      "tab": 1,
+      "start_ms": 0,
+      "end_ms": 96400,
+      "verdict": "agent",
+      "evidence": null,
+      "agent_turns": "human_agent",
+      "agent": "Claude in Chrome",
+      "certainty": "likely",
+      "percent": 99,
+      "summary": "A human acted from 0:00 to 0:38. Claude in Chrome took over at 0:38. The human took over again at 1:23. The Environment layer supports the verdict with 99% confidence, and the Behavior layer with 91%.",
+      "layers": [
+        {
+          "layer": "name",
+          "state": "no_hit",
+          "reasons": [
+            {
+              "kind": "user_agent",
+              "tone": "none",
+              "text": "User-Agent is plain Chrome 142 on macOS. No agent name in it.",
+              "detail": null
+            }
+          ],
+          "percent": null,
+          "leans": null
+        },
+        {
+          "layer": "verify",
+          "state": "off",
+          "reasons": [
+            {
+              "kind": "server",
+              "tone": "none",
+              "text": "Local mode: every visit comes from 127.0.0.1, so there's no verification layer and names are self-reported only.",
+              "detail": null
+            }
+          ],
+          "percent": null,
+          "leans": null
+        },
+        {
+          "layer": "environment",
+          "state": "agent",
+          "reasons": [
+            {
+              "kind": "page",
+              "tone": "agent",
+              "text": "From 0:38, a browser extension controlled the page.",
+              "detail": "A closed shadow root host, a <div> with no attributes, was added under <body> at 0:38."
+            },
+            {
+              "kind": "browser",
+              "tone": "none",
+              "text": "No webdriver, real GPU, normal screen. Looks like a human's own Chrome.",
+              "detail": null
+            }
+          ],
+          "percent": 99,
+          "leans": "agent"
+        },
+        {
+          "layer": "behavior",
+          "state": "human_agent",
+          "reasons": [
+            {
+              "kind": "clicks",
+              "tone": "agent",
+              "text": "0:38–1:19: 14 clicks land on the exact centre of buttons, with no mouse travel before them.",
+              "detail": null
+            },
+            {
+              "kind": "keys",
+              "tone": "agent",
+              "text": "Address typed in one go: 0 ms between keys.",
+              "detail": null
+            },
+            {
+              "kind": "motion",
+              "tone": "human",
+              "text": "0:00–0:38 and 1:23–1:36: curved mouse paths, uneven scrolling, a typo fixed.",
+              "detail": null
+            },
+            {
+              "kind": "model",
+              "tone": "none",
+              "text": "Between 0:38 and 1:19, the clicks and typing look like an agent's.",
+              "detail": "Behavior model: 23 of 31 action segments scored as agent (prototype weights)."
+            }
+          ],
+          "percent": 91,
+          "leans": "agent"
+        }
+      ],
+      "segments": [
+        {
+          "who": "human",
+          "start_ms": 0,
+          "end_ms": 38560
+        },
+        {
+          "who": "agent",
+          "start_ms": 38560,
+          "end_ms": 80012
+        },
+        {
+          "who": "unsure",
+          "start_ms": 80012,
+          "end_ms": 83868
+        },
+        {
+          "who": "human",
+          "start_ms": 83868,
+          "end_ms": 96400
+        }
+      ],
+      "handoffs": [
+        {
+          "at_ms": 38560,
+          "to": "agent"
+        },
+        {
+          "at_ms": 83868,
+          "to": "human"
+        }
+      ],
+      "replay": {
+        "start_ms": 52056,
+        "start_url": "http://127.0.0.1:7878/demo/product?id=classic-tee",
+        "chunks": [
+          {
+            "start_ms": 140,
+            "end_ms": 1704
+          },
+          {
+            "start_ms": 2205,
+            "end_ms": 9504
+          },
+          {
+            "start_ms": 15002,
+            "end_ms": 21437
+          },
+          {
+            "start_ms": 23502,
+            "end_ms": 31506
+          },
+          {
+            "start_ms": 32007,
+            "end_ms": 41006
+          },
+          {
+            "start_ms": 52007,
+            "end_ms": 52007
+          },
+          {
+            "start_ms": 64052,
+            "end_ms": 70158
+          },
+          {
+            "start_ms": 73027,
+            "end_ms": 82002
+          },
+          {
+            "start_ms": 82504,
+            "end_ms": 91529
+          },
+          {
+            "start_ms": 92030,
+            "end_ms": 96006
+          }
+        ],
+        "missing": null
+      }
+    },
+    {
+      "id": "a1b8-20",
+      "tab": 2,
+      "start_ms": 20000,
+      "end_ms": 68000,
+      "verdict": "agent",
+      "evidence": null,
+      "agent_turns": "agent_only",
+      "agent": "Codex in-app browser",
+      "certainty": "likely",
+      "percent": 98,
+      "summary": "Codex in-app browser acted from 0:02 to 0:48. The Environment layer supports the verdict with 99% confidence, and the Behavior layer with 88%.",
+      "layers": [
+        {
+          "layer": "name",
+          "state": "no_hit",
+          "reasons": [],
+          "percent": null,
+          "leans": null
+        },
+        {
+          "layer": "verify",
+          "state": "off",
+          "reasons": [
+            {
+              "kind": "server",
+              "tone": "none",
+              "text": "Local mode: every visit comes from 127.0.0.1, so there's no verification layer and names are self-reported only.",
+              "detail": null
+            }
+          ],
+          "percent": null,
+          "leans": null
+        },
+        {
+          "layer": "environment",
+          "state": "agent",
+          "reasons": [
+            {
+              "kind": "page",
+              "tone": "agent",
+              "text": "The page is open in the Codex in-app browser.",
+              "detail": "The Codex in-app browser has 3 known signs: its prompt shape, an empty keyboard layout, and an overlay. This page shows 2 of them."
+            }
+          ],
+          "percent": 99,
+          "leans": "agent"
+        },
+        {
+          "layer": "behavior",
+          "state": "agent",
+          "reasons": [
+            {
+              "kind": "clicks",
+              "tone": "agent",
+              "text": "Every click lands on the exact centre of what it clicks, with no mouse travel before it.",
+              "detail": null
+            },
+            {
+              "kind": "keys",
+              "tone": "agent",
+              "text": "Fields filled in one go: 0 ms between keys.",
+              "detail": null
+            },
+            {
+              "kind": "model",
+              "tone": "none",
+              "text": "The behavior model judged the session an agent's (94% of the actions).",
+              "detail": null
+            }
+          ],
+          "percent": 88,
+          "leans": "agent"
+        }
+      ],
+      "segments": [
+        {
+          "who": "unsure",
+          "start_ms": 20000,
+          "end_ms": 22880
+        },
+        {
+          "who": "agent",
+          "start_ms": 22880,
+          "end_ms": 68000
+        }
+      ],
+      "handoffs": [
+        {
+          "at_ms": 22880,
+          "to": "agent"
+        }
+      ],
+      "replay": {
+        "start_ms": 20242,
+        "start_url": "http://127.0.0.1:7878/demo?q=t-shirt",
+        "chunks": [
+          {
+            "start_ms": 20134,
+            "end_ms": 20605
+          },
+          {
+            "start_ms": 25120,
+            "end_ms": 32123
+          },
+          {
+            "start_ms": 38011,
+            "end_ms": 38011
+          },
+          {
+            "start_ms": 44051,
+            "end_ms": 50122
+          },
+          {
+            "start_ms": 57085,
+            "end_ms": 63027
+          }
+        ],
+        "missing": null
+      }
+    }
+  ],
+  "follow": [
+    {
+      "tab": "7f3a-c1",
+      "start_ms": 0,
+      "end_ms": 20000
+    },
+    {
+      "tab": "a1b8-20",
+      "start_ms": 20000,
+      "end_ms": 68000
+    },
+    {
+      "tab": "7f3a-c1",
+      "start_ms": 68000,
+      "end_ms": 96400
+    }
+  ],
+  "verdict_tab": "7f3a-c1"
+}

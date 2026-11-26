@@ -4,7 +4,7 @@
 The page view's session is chosen once, at the moment the page begins, and its page record is made at that moment: a
 tab's session that reaches its idle time while the page starts stays the page's session, and nothing is cut or thrown
 before the batches have a header to carry the session. A session that went quiet long before begins anew; one that
-went quiet a minute ago goes on.
+went quiet a minute ago goes on. The batches carry the browser's session and the tab's id with it.
 
 Skipped without node.
 """
@@ -39,8 +39,15 @@ class Startup(unittest.TestCase):
     def test_a_recent_session_goes_on_and_an_old_one_begins_anew(self):
         recent, expired = self.cases["recent"], self.cases["expired"]
         self.assertEqual((recent["stored"], recent["batches"][0]["s"]), ("old", "old"))
-        self.assertEqual((expired["stored"], expired["batches"][0]["s"]), ("id1", "id1"))
+        self.assertNotEqual(expired["stored"], "old")
+        self.assertEqual(expired["batches"][0]["s"], expired["stored"])
         self.assertEqual([kind for kind, _ in expired["batches"][0]["x"]], ["page"], "no session record: a new page")
+
+    def test_the_batches_carry_the_browsers_session_and_the_tabs_id(self):
+        recent, expired = self.cases["recent"], self.cases["expired"]
+        self.assertEqual((recent["batches"][0]["bs"], recent["batches"][0]["w"]), ("bs-old", "w-old"))
+        self.assertNotEqual(expired["batches"][0]["bs"], "bs-old", "the browser's session ended too: a new one")
+        self.assertEqual(expired["batches"][0]["w"], expired["window"], "with a new tab id, as posthog-js's window id")
 
 
 if __name__ == "__main__":

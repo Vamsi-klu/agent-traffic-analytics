@@ -6,7 +6,8 @@ in stats_table.py).
 First the sessions with data newer than their verdict are judged (judging.catch_up, as the dashboard does), and the
 range's sessions that no first page record has described yet are described from what was kept of them
 (web_props.fill, at most data/web_analytics.json fill_sessions per request). Then, over the sessions that count in
-the range (visits.py):
+the range (visits.py: a session spans its browser's tabs; web_sessions.py reads what each one's numbers are made
+of: its page views in all its tabs, its visitor, source, device and place from its first tab):
 
     visitors   {"all", "agent", "human", "bot", "without"}: all, the distinct visitors of the range's sessions;
                agent, human and bot, those of its sessions of that verdict (a visitor with a Human and an Agent
@@ -35,8 +36,9 @@ the range (visits.py):
     page_views {"all", "agent", "human", "bot"}: the page views of the range's sessions, of each verdict, PostHog's
                (web_time.py: each page load and each new path; all includes bots, as the dashboard's All cards do)
     active_time {"all" | "agent" | "human" | "bot": {"active_ms", "total_ms"} or null}: Microsoft Clarity's Active
-               time spent, the average of the sessions' time less the time their page was hidden (web_time.active),
-               and their average time; all of the range's sessions, and its Agent, Human and Bot ones; null without
+               time spent, the average of the sessions' time less the time their page was hidden (web_time.active;
+               over a session's tabs the union of the time each was shown, web_sessions.py), and their average time;
+               all of the range's sessions, and its Agent, Human and Bot ones; null without
     time_zone  what the Trends chart's note calls the timezone its days and hours are in, AgentCake's
                (timezone.short): "PST", "UTC", "UTC+05:45"
     trends     {"interval", "every", "points"}: the Trends chart, by hour for the last 24 hours and by day for the last 7
@@ -52,7 +54,8 @@ the range (visits.py):
                key is the hour or day ("2026-11-15 07", "2026-11-15") the page finds weekdays and months by; every
                is which points the time axis names (data/web_analytics.json trend_every: every Nth, or "month")
     agents     Top agents: the range's Agent sessions (Agent only and Human + agent; never a bot) by agent name (null:
-               the ones no name fits, Unnamed), most sessions first, then the name (as /api/overview's agents_seen):
+               the ones no name fits, Unnamed; a session two agents acted in, in two tabs, counts for each), most
+               sessions first, then the name (as /api/overview's agents_seen):
                {"name", "sessions", "visitors", "page_views", "active_ms", "pages_per_session"}, each counted as the
                cards and the Trends chart count it
     paths      the Path table, over the Human and Agent sessions: per path (a page view's location.pathname, PostHog's
@@ -71,9 +74,9 @@ the range (visits.py):
 """
 from collections import defaultdict
 
-from agentcake import config, geoip, judging, store, timezone, web_props, web_time
-from agentcake.api import answers, periods, places, visits, web_dimensions
-from agentcake.api.visits import AGENT, AGENT_VERDICT, VERDICT
+from agentcake import config, geoip, judging, store, timezone, web_props
+from agentcake.api import answers, periods, places, visits, web_dimensions, web_sessions
+from agentcake.api.visits import AGENT_VERDICT, VERDICT
 from agentcake.datafiles import load
 
 COUNTED = ("agent", "human")  # the verdicts the tables are made of (bots are counted on their own)
@@ -97,7 +100,8 @@ def view(request):
     con = visits.connect()
     try:
         fill(con, scope)
-        sessions = _sessions(con, scope)
+        sessions = web_sessions.load(con, scope)
+        _count_as(sessions, first_hashes(con))
         paths = _paths(con, scope)
     finally:
         con.close()
@@ -112,31 +116,16 @@ def view(request):
 
 
 def fill(con, scope):
-    """Describe the scope's sessions that no first page record has (web_props.fill), in a transaction of its own."""
+    """Describe the tab sessions of the scope's sessions that no first page record has (web_props.fill), in a
+    transaction of its own."""
     ids = [session_id for (session_id,) in con.execute(
-        f"SELECT s.id FROM sessions s LEFT JOIN session_web w ON w.session_id = s.id WHERE {scope.sql()} AND "
-        "w.entry_t IS NULL ORDER BY s.start_ms DESC LIMIT ?", scope.args + (settings()["fill_sessions"],))]
+        f"SELECT ps.id FROM {visits.SESSIONS} {visits.TABS} WHERE {scope.sql()} AND pw.entry_t IS NULL "
+        "ORDER BY ps.start_ms DESC LIMIT ?", scope.args + (settings()["fill_sessions"],))]
     if not ids:
         return
     with store.LOCK:
         web_props.fill(con, ids)
         con.commit()
-
-
-def _sessions(con, scope):
-    """[{"id", "verdict", "agent", "visitor", "person", "counted_as", <dimension>: key}] of the scope's sessions."""
-    keys = [f"{expression} AS {dimension}" for dimension, expression in web_dimensions.EXPRESSIONS.items()]
-    cursor = con.execute(f"SELECT s.id AS id, {VERDICT} AS verdict, {AGENT} AS agent, w.visitor AS visitor, "
-                         "w.person AS person, "
-                         "(SELECT COALESCE(SUM(p.views), 0) FROM web_paths p WHERE p.session_id = s.id) AS page_views, "
-                         "s.start_ms AS start_ms, w.first_t AS first_t, w.last_t AS last_t, "
-                         f"w.hidden_ms AS hidden_ms, w.hidden_since AS hidden_since, {', '.join(keys)} "
-                         f"FROM sessions s LEFT JOIN session_web w ON w.session_id = s.id WHERE {scope.sql()}",
-                         scope.args)
-    names = [column[0] for column in cursor.description]
-    sessions = [dict(zip(names, row)) for row in cursor]
-    _count_as(sessions, first_hashes(con))
-    return sessions
 
 
 def first_hashes(con):
@@ -180,8 +169,7 @@ def page_views(sessions):
 
 def _average_time(sessions):
     """{"active_ms", "total_ms"}: the sessions' average active time and time, whole ms; None without a time."""
-    times = [found for found in (web_time.active(s["first_t"], s["last_t"], s["hidden_ms"], s["hidden_since"])
-                                 for s in sessions) if found]
+    times = [s["time"] for s in sessions if s["time"]]
     if not times:
         return None
     return {"active_ms": round(sum(a for a, _ in times) / len(times)),
@@ -214,21 +202,24 @@ def _trend_numbers(sessions):
 
 
 def agents(sessions):
-    """Top agents (see the module docstring): the Agent sessions grouped by their agent's name."""
+    """Top agents (see the module docstring): the Agent sessions grouped by their agents' names, a session two agents
+    acted in (in two tabs) in each one's group."""
     by_name = defaultdict(list)
     for session in sessions:
         if session["verdict"] == AGENT_VERDICT:
-            by_name[session["agent"]].append(session)
+            for name in session["agents"]:
+                by_name[name].append(session)
     found = [{"name": name, **_trend_numbers(group)} for name, group in by_name.items()]
     return sorted(found, key=lambda agent: (-agent["sessions"], agent["name"] or ""))
 
 
 def _paths(con, scope):
-    """{path: {session id: page views}} of the scope's Human and Agent sessions."""
+    """{path: {session id: page views}} of the scope's Human and Agent sessions, in all their tabs."""
     found = defaultdict(dict)
     for session_id, path, views in con.execute(
-            f"SELECT p.session_id, p.path, p.views FROM web_paths p JOIN sessions s ON s.id = p.session_id "
-            f"WHERE {scope.sql()} AND {VERDICT} IN (?, ?)", scope.args + COUNTED):
+            f"SELECT v.id, p.path, SUM(p.views) FROM {visits.SESSIONS} {visits.TABS} JOIN web_paths p ON "
+            f"p.session_id = ps.id WHERE {scope.sql()} AND {VERDICT} IN (?, ?) GROUP BY v.id, p.path",
+            scope.args + COUNTED):
         found[path][session_id] = views
     return found
 

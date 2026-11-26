@@ -18,20 +18,19 @@ import { LIBRARY, fixtureApi } from "./fixture-api.mjs"
 const here = path.dirname(fileURLToPath(import.meta.url))
 const dist = path.join(here, "..", "dist")
 export const ROUTES = { home: "#/", components: "#/components", dashboard: "#/dashboard", sessions: "#/sessions", "sessions-agent": "#/sessions?filter=agent&turns=human_agent",
-  session: "#/sessions/7f3a-c1", "session-freed": "#/sessions/2b9e-c4", settings: "#/settings", register: "#/" }
+  session: "#/sessions/7f3a-c1", "session-tabs": "#/sessions/4c2d-71", "session-freed": "#/sessions/2b9e-c4", settings: "#/settings", register: "#/" }
 /** The pages shot on real data: the fixed test library's answers. */
 export const LIBRARY_PAGES = ["dashboard", "sessions"]
 /** Pages shot with some answers swapped for other samples, { page: { url glob: sample } }: the registration card is
  *  what an AgentCake opened for the first time shows. */
 export const PAGE_ANSWERS = { register: { "**/api/register": "register/first-run" } }
 const fixtures = path.join(here, "..", "src", "data", "fixtures")
-/** The pages' two styles (src/lib/style.ts), the default first; files of Minimal's shots end in -minimal / _minimal. */
+/** The pages' two styles (src/lib/style.ts): files of Cake's shots have no ending, Minimal's end in -minimal / _minimal. */
 export const STYLES = ["cake", "minimal"]
 
 /** Opens every page of the context in `style` as the top bar's Style menu leaves it: the choice this browser keeps
- *  (lib/style.ts STORAGE_KEY). Cake is what a browser that picked nothing shows, so it sets nothing. */
+ *  (lib/style.ts STORAGE_KEY). A browser that picked nothing shows Minimal, the default. */
 export async function pickStyle(ctx, style) {
-  if (style === "cake") return
   await ctx.addInitScript((picked) => {
     if (location.protocol.startsWith("http")) localStorage.setItem("agentcake-style", picked) // about:blank has no storage
   }, style)
@@ -91,6 +90,9 @@ export async function launch() {
 
 export async function shoot(page, url) {
   await page.goto(url, { waitUntil: "networkidle" })
+  // The page drawn: the app mounted and no page's data still on its way (components/cake/page-state.tsx). A quiet
+  // network alone is no sign: a busy machine pauses that long between a page's first answer and its own requests.
+  await page.waitForFunction(() => document.querySelector("#root > *") && !document.querySelector('[data-page="loading"]'))
   await page.waitForFunction(() => !document.querySelector('[data-replay="loading"]')) // a replay shows its first moment
   await page.evaluate(() => document.fonts.ready)
   await page.waitForTimeout(250)

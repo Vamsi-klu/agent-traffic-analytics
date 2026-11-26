@@ -7,10 +7,12 @@ anything else (focus, visibility, window geometry, elements added to the page, t
 neither end, so a tab left open after the last activity adds nothing to the length (as the owner worded the measure;
 later PostHog web analytics' "Session duration" is also first to last event).
 
-Activity is wider than an action as the Every action list, its shares and the hand-offs count one (data/actions.json,
+Activity is wider than an action as the All actions list, its shares and the hand-offs count one (data/actions.json,
 detect/visitor_actions.py): pointer movement and every scroll move a session's ends, though they are no action.
 
     span(raw, rrweb, page_starts) -> (first, last) in epoch ms on the events' clock, or (None, None)
+    times(raw, rrweb, page_starts) -> every moment of activity, oldest first (api/segmenter.py follows a
+                                     session's tabs by them)
     page_starts(con, session_id) -> when each page record of the session's signals stream was made, oldest first
 
 judging.py keeps the span in sessions.first_action_ms and last_action_ms with every verdict, so the dashboard's
@@ -30,15 +32,22 @@ PAGE_MARK = '"ty":"page"'  # how a page record's JSON text says so; other record
 def span(raw, rrweb, page_starts):
     """(first, last) recorded action: the page starts, and the visitor's input in raw (cake.js's raw records) or,
     for a recording without them, in rrweb."""
-    times = list(page_starts)
-    if raw:
-        times += [record["t"] for record in raw if record.get("ty") in INPUT_TYPES]
-    elif rrweb:
-        times += [event["timestamp"] for event in rrweb if event.get("type") == rrweb_events.META]
-        times += [event["t"] for event in rrweb_events.events_from_rrweb(rrweb) if event.get("ty") in INPUT_TYPES]
-    if not times:
+    found = times(raw, rrweb, page_starts)
+    if not found:
         return None, None
-    return round(min(times)), round(max(times))
+    return round(found[0]), round(found[-1])
+
+
+def times(raw, rrweb, page_starts):
+    """Every moment of recorded activity, oldest first: the page starts, and the visitor's input in raw (cake.js's raw
+    records) or, for a recording without them, in rrweb."""
+    found = list(page_starts)
+    if raw:
+        found += [record["t"] for record in raw if record.get("ty") in INPUT_TYPES]
+    elif rrweb:
+        found += [event["timestamp"] for event in rrweb if event.get("type") == rrweb_events.META]
+        found += [event["t"] for event in rrweb_events.events_from_rrweb(rrweb) if event.get("ty") in INPUT_TYPES]
+    return sorted(found)
 
 
 def page_starts(con, session_id):

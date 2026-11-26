@@ -5,7 +5,8 @@
 // an unknown session or chunk is a 404, and GET /api/register says registered (fixtures/register.json), so the pages
 // show at once (the registration card is shot with register/first-run, shots.mjs PAGE_ANSWERS). A session's sample is
 // fixtures/session.json or fixtures/session/<id>.json; its replay chunks are fixtures/replay/<id>/<n>.json
-// (recorded by scripts/replay-fixtures.mjs).
+// (recorded by scripts/replay-fixtures.mjs), and a tab's of a session of several tabs (…/replay?tab=<id>, one of the
+// sample's tabs) fixtures/replay/<tab id>/<n>.json (scripts/tab-sample.mjs).
 // fixtureApi({ set: "library" }) answers from fixtures/library/<endpoint>.json first: cake's own answers on the fixed
 // test library at a fixed moment (written from the maintainers' recordings), for the pages shot on real data; other endpoints
 // fall back to the samples above.
@@ -64,7 +65,9 @@ export function fixtureApi({ set } = {}) {
           return detail ? send(200, detail) : send(404, { error: "There's no session with this ID. It may have been deleted. Go back to the session list." })
         }
         case "GET session/:id/replay": {
-          const chunk = sessionSample(id) && replaySample(id, url.searchParams.get("chunk"))
+          const detail = sessionSample(id), tab = url.searchParams.get("tab")
+          const source = tab === null ? id : detail?.tabs?.some((t) => t.id === tab) ? tab : null
+          const chunk = detail && source && replaySample(source, url.searchParams.get("chunk"))
           return chunk ? send(200, chunk) : send(404, { error: "This part of the replay doesn't exist. Reload the page." })
         }
         case "GET settings": return send(200, settings ?? read("settings"))
@@ -97,7 +100,8 @@ function sessionsPage(page, params) {
     if (!(value in page.counts)) throw new Error(`${param} must be one of ${Object.keys(page.counts).join(", ")}`)
     return [[field, value]]
   })
-  const results = page.results.filter((s) => picked.every(([field, value]) => s[field] === value) && (!agent || s.agent === agent))
+  const names = (s) => (s.agents ?? [s]).map((a) => a.agent ?? a.name) // a session two agents acted in matches either
+  const results = page.results.filter((s) => picked.every(([field, value]) => s[field] === value) && (!agent || names(s).includes(agent)))
   // the sample holds one page of a longer list: its counts say how many one filter keeps, the rows how many two keep
   const total = agent || picked.length > 1 ? results.length : picked.length ? page.counts[picked[0][1]] : page.total
   return { ...page, results, total }

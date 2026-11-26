@@ -18,7 +18,8 @@ A judgement reads the session's evidence (evidence.py), runs verdict.judge() (a 
 reach the behaviour model) and writes the sessions row (class, Agent row, name, confidence, reasons and layers as
 JSON, the rest of the verdict, cake 0.3.4's columns space.py reads, and the first and last recorded action that a
 session's length is made of: activity.py; and the version of the judge), its segments (who by the verdict, who
-by the behaviour model) and its labels (every name a layer found). A session whose replay was removed to free space
+by the behaviour model) and its labels (every name a layer found); then the verdict of the visit the session is a tab
+of is merged again from its tabs' (visit_verdict.py). A session whose replay was removed to free space
 keeps the verdict made from it (0.3.4).
 
 The version of the judge is a fingerprint of its code (detect/, judging.py, evidence.py, and the two modules outside
@@ -39,7 +40,7 @@ import json
 import os
 import traceback
 
-from agentcake import activity, datafiles, evidence, paths, store
+from agentcake import activity, datafiles, evidence, paths, store, visit_verdict
 from agentcake.config import load_cfg
 from agentcake.detect import verdict, verdict_text
 from agentcake.detect.schedule import Schedule, State
@@ -96,17 +97,6 @@ def _plan(c, public, now_ms):
     return Schedule.from_settings(c, public, clock=lambda: now_ms / MS_PER_S)
 
 
-def _locked(work):
-    with store.LOCK:
-        con = store.db()
-        try:
-            out = work(con)
-            con.commit()
-            return out
-        finally:
-            con.close()
-
-
 def state(con, session_id):
     row = con.execute("SELECT end_ms, judged_ms FROM sessions WHERE id=?", (session_id,)).fetchone()
     return State(row[0] or 0, row[1] or 0) if row else State(0, 0)
@@ -118,7 +108,7 @@ def on_data(session_id, before, now_ms, public, c=None):
     c = c or load_cfg()
     decision, _ = _plan(c, public, now_ms).on_data(before)
     if decision.judge:
-        _locked(lambda con: _judge_logged(con, session_id, now_ms, c))
+        store.locked(lambda con: _judge_logged(con, session_id, now_ms, c))
     return decision
 
 
@@ -138,13 +128,13 @@ def tick(now_ms, c=None, limit=None):
         due = [session_id for session_id, end_ms, judged_ms in rows
                if plan.on_tick(State(end_ms or 0, judged_ms or 0))[0].judge]
         return len(due), sum(_judge_logged(con, session_id, now_ms, c) is not None for session_id in due)
-    tried, judged = _locked(finals)
+    tried, judged = store.locked(finals)
     if tried >= limit:
         return judged
-    older = _locked(lambda con: con.execute(OLDER_JUDGE, (model_version(), now_ms - plan.quiet_ms,
+    older = store.locked(lambda con: con.execute(OLDER_JUDGE, (model_version(), now_ms - plan.quiet_ms,
                                                           limit - tried)).fetchall())
     for (session_id,) in older:
-        judged += _locked(lambda con, session_id=session_id: _judge_logged(con, session_id, now_ms, c)) is not None
+        judged += store.locked(lambda con, session_id=session_id: _judge_logged(con, session_id, now_ms, c)) is not None
     return judged
 
 
@@ -163,7 +153,7 @@ def on_open(session_id, now_ms=None, c=None):
         if older_judge or plan.on_open(State(end_ms or 0, judged_ms or 0))[0].judge:
             return _judge_logged(con, session_id, now_ms, c) is not None
         return False
-    return _locked(work)
+    return store.locked(work)
 
 
 def catch_up(limit=None, now_ms=None, c=None):
@@ -175,7 +165,7 @@ def catch_up(limit=None, now_ms=None, c=None):
         stale = con.execute("SELECT id FROM sessions WHERE judged_ms < end_ms ORDER BY end_ms DESC LIMIT ?",
                             (limit or c["stale_judge_batch_sessions"],)).fetchall()
         return sum(_judge_logged(con, session_id, now_ms, c) is not None for (session_id,) in stale)
-    return _locked(work)
+    return store.locked(work)
 
 
 def on_log_lines(session_ids, now_ms, c=None):
@@ -184,7 +174,7 @@ def on_log_lines(session_ids, now_ms, c=None):
     end_ms: the schedule's interval and its quiet and stale rules, which all wait for newer data, would leave a final
     verdict without it. Returns how many were judged."""
     c = c or load_cfg()
-    return sum(_locked(lambda con, session_id=session_id: _judge_logged(con, session_id, now_ms, c)) is not None
+    return sum(store.locked(lambda con, session_id=session_id: _judge_logged(con, session_id, now_ms, c)) is not None
                for session_id in session_ids)
 
 
@@ -249,3 +239,4 @@ def _write(con, session_id, result, now_ms, actions):
     con.executemany("INSERT OR IGNORE INTO labels(session_id, name, layer, method, certainty, evidence, judged_ms) "
                     "VALUES(?,?,?,?,?,?,?)", [(session_id, row["name"], row["layer"], row["method"], row["certainty"],
                                                json.dumps(row["evidence"]), now_ms) for row in result["candidates"]])
+    visit_verdict.remerge_tab(con, session_id)

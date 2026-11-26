@@ -1,6 +1,6 @@
 # Set up AgentCake for a website
 
-Use this guide to set up **AgentCake 0.6.1** for a website. For each visit, AgentCake shows whether a human, an AI
+Use this guide to set up **AgentCake 0.6.2** for a website. For each visit, AgentCake shows whether a human, an AI
 agent, or a script bot was in control. It also shows when a human and an agent took turns.
 
 AgentCake is a single program that stores its data in one SQLite database. It runs on macOS and Linux. It can run on
@@ -15,7 +15,8 @@ Follow the seven steps in order.
 
 - **Answer in the user's language.** Everything you tell the user, from your first message to your last, is in the
   language they wrote to you in, even though these instructions are in English. This includes the updates that you
-  write between commands.
+  write between commands. If their first message is the English prompt from AgentCake's local page, answer in the
+  language of the words they write themselves, in your updates too.
 - **One command per step**, as written. Do not chain commands with `&&`, `;` or `|`, and do not set variables
   (`NAME=value`): approval rules match a command by how it starts, so plain commands need the fewest approvals. The
   only exception is the command for the secret, which uses a variable, `&&`, and a pipe. For details, see
@@ -39,7 +40,7 @@ This table shows who does each task.
 | Set the repository and platform variables | You | Command line, or the site owner | — |
 | Deploy the website | You | The branch and method in your plan | `agentcake doctor --url` |
 | Paste the script tag in a site builder | You | Browser or guidance | `agentcake doctor --url` |
-| Update the privacy notice | You | Your draft, after the site owner approves the wording | — |
+| Update the privacy notice | You | Your draft, after the site owner approves the wording. Leave the contact address for them to fill in. | — |
 | Sign in to accounts | The site owner | Terminal or browser | — |
 | Enter passwords, tokens, and two-factor codes | The site owner | Terminal or browser | — |
 | Open accounts and enter payment details | The site owner | — | — |
@@ -248,7 +249,9 @@ Your plan covers these topics:
 | Download folder | `~/agentcake/` |
 | Costs | Monthly cost table |
 
-The site owner confirms the account and the project.
+The site owner confirms the account and the project. If your plan installs a command-line tool on this computer, ask
+about each install in your plan as an item of its own, and wait for an explicit yes to it: approving your plan doesn't
+approve an install.
 
 Copy the rows of the tasks table that apply to this setup into your plan. Include the How and Check columns. In the
 How column, keep only the option that you chose.
@@ -302,7 +305,9 @@ it in your plan.
 #### Defaults for your plan
 
 List these defaults in your plan instead of asking about them. The site owner can change a default when they review
-your plan.
+your plan. Don't ask a separate question about a default, before your plan or in it, such as whether the region suits
+them, whether to keep the CloudFront invalidation, or whether to add the server middleware, unless this guide tells you
+to ask, as it does before you use `sudo` for Docker on an existing server.
 
 | Choice | Default |
 |---|---|
@@ -312,8 +317,8 @@ your plan.
 | Region on other providers | Nearest to the website's visitors |
 | DNS record | Added with the DNS provider's command-line tool |
 | Name for AgentCake | A subdomain of the site's own domain, at no cost |
-| Name without a domain | A free sslip.io name, or a new .com domain for about $11 a year |
-| sslip.io risks | Share its risks with the site owner first |
+| Name without a domain | A free sslip.io name. Your plan names the other choice too, a new .com domain for about $11 a year; don't ask the site owner to choose before your plan. |
+| sslip.io risks | Its risks go in your plan, before the site owner approves it |
 | Deployment | The website's current deployment |
 | Site builder | Add the script tag with your browser tool |
 | Server middleware | `agentcake setup --print --site` |
@@ -338,6 +343,11 @@ If the site owner asks for changes or leaves a choice to you, send the new versi
 **To change your approved plan, send the site owner the new plan. Wait for their explicit approval before you
 make any changes.**
 
+If the site owner asks for only part of your plan, such as the part on this computer, do only your plan's steps for
+that part; for anything else, such as starting AgentCake on this computer when your plan doesn't, send the new plan
+and wait for their approval first. If you stop before your plan is done, such as after that part, your last message
+lists each remaining step and who does it, as step 7 says, without pointing back to an earlier message.
+
 Write your updates in the site owner's language.
 
 If AgentCake is already installed on this computer, skip its installation.
@@ -356,7 +366,7 @@ By default, the tunnel to the server uses port 7878 on this computer.
 
 Use the site owner's language in your updates.
 
-AgentCake's release folder, `agentcake-0.6.1/`, and its source both include `bin/agentcake`. Run `bin/agentcake` by its
+AgentCake's release folder, `agentcake-0.6.2/`, and its source both include `bin/agentcake`. Run `bin/agentcake` by its
 full path. This command needs `python3` 3.11 or newer.
 
 Otherwise, look for uv:
@@ -384,30 +394,30 @@ Use the site owner's language in your updates.
 
 Run the download and check commands in the download folder.
 
-To download the release, use its page on GitHub: https://github.com/tartini-ai/agent-traffic-analytics/releases/tag/v0.6.1
+To download the release, use its page on GitHub: https://github.com/tartini-ai/agent-traffic-analytics/releases/tag/v0.6.2
 
 First the checksums:
 
 ```sh
-curl -fsSLO https://github.com/tartini-ai/agent-traffic-analytics/releases/download/v0.6.1/SHA256SUMS
+curl -fsSLO https://github.com/tartini-ai/agent-traffic-analytics/releases/download/v0.6.2/SHA256SUMS
 ```
 
 Route A, the wheel:
 
 ```sh
-curl -fsSLO https://github.com/tartini-ai/agent-traffic-analytics/releases/download/v0.6.1/agentcake-0.6.1-py3-none-any.whl
+curl -fsSLO https://github.com/tartini-ai/agent-traffic-analytics/releases/download/v0.6.2/agentcake-0.6.2-py3-none-any.whl
 ```
 
 Route B, the one-file version:
 
 ```sh
-curl -fsSLO https://github.com/tartini-ai/agent-traffic-analytics/releases/download/v0.6.1/agentcake.pyz
+curl -fsSLO https://github.com/tartini-ai/agent-traffic-analytics/releases/download/v0.6.2/agentcake.pyz
 ```
 
 For a server, also download the release archive:
 
 ```sh
-curl -fsSLO https://github.com/tartini-ai/agent-traffic-analytics/releases/download/v0.6.1/agentcake-0.6.1.tar.gz
+curl -fsSLO https://github.com/tartini-ai/agent-traffic-analytics/releases/download/v0.6.2/agentcake-0.6.2.tar.gz
 ```
 
 Then check what you downloaded:
@@ -433,7 +443,7 @@ Use the site owner's language in your updates.
 Route A:
 
 ```sh
-uv tool install --python 3.14 ./agentcake-0.6.1-py3-none-any.whl
+uv tool install --python 3.14 ./agentcake-0.6.2-py3-none-any.whl
 ```
 
 uv installs the `agentcake` command in its own folder for tools, and downloads Python 3.14 if this computer has none
@@ -454,7 +464,7 @@ example `python3 /Users/<name>/agentcake/agentcake.pyz`. Leave the file where it
 **From here on, `agentcake` in a command stands for that full command.** Write it out in full every time, also where
 AgentCake's own messages say just `agentcake`.
 
-To check the installation, run `agentcake --version`, which prints `agentcake 0.6.1`.
+To check the installation, run `agentcake --version`, which prints `agentcake 0.6.2`.
 
 ### Start AgentCake on this computer
 
@@ -467,7 +477,7 @@ agentcake start
 ```
 
 It runs AgentCake in the background on 127.0.0.1 (port 7878) and prints the local page's address. If it says that
-AgentCake is already running, run `agentcake status`. Make sure that its `"version"` is `0.6.1`. An older version is an
+AgentCake is already running, run `agentcake status`. Make sure that its `"version"` is `0.6.2`. An older version is an
 earlier install using the same data folder: **ASK** the user before you stop it with `agentcake stop`, then start
 again. Its visits stay, and this version reads them.
 
@@ -748,34 +758,34 @@ steps.
 Next, copy the release to the server. For details, see
 [SERVER.md, step 3](SERVER.md#3-copy-the-release-to-the-server).
 
-Before each copy, including a retry, run `ssh <server> ls -A`. If `agentcake-0.6.1.tar.gz` or `SHA256SUMS` is already
+Before each copy, including a retry, run `ssh <server> ls -A`. If `agentcake-0.6.2.tar.gz` or `SHA256SUMS` is already
 there, ask the site owner before copying. If the listing fails, report the error and wait.
 
 To copy the release files to a Google Cloud server that you created:
 
 ```sh
-gcloud compute scp agentcake-0.6.1.tar.gz SHA256SUMS agentcake: --account=ACCOUNT --project=PROJECT_ID --zone=ZONE --tunnel-through-iap
+gcloud compute scp agentcake-0.6.2.tar.gz SHA256SUMS agentcake: --account=ACCOUNT --project=PROJECT_ID --zone=ZONE --tunnel-through-iap
 ```
 
-- On other servers, use `scp agentcake-0.6.1.tar.gz SHA256SUMS <server>:` in the download folder.
+- On other servers, use `scp agentcake-0.6.2.tar.gz SHA256SUMS <server>:` in the download folder.
 - To check them on the server, run `ssh <server> sha256sum -c SHA256SUMS --ignore-missing`. Make sure that the
   archive's line shows `OK`.
-- To unpack the archive, run `ssh <server> tar -xzf agentcake-0.6.1.tar.gz`.
+- To unpack the archive, run `ssh <server> tar -xzf agentcake-0.6.2.tar.gz`.
 - To add the subdomain, run
-  `ssh <server> "sed -i 's/cake\.example\.com/HOSTNAME/' agentcake-0.6.1/deploy/Caddyfile"` with the approved hostname.
+  `ssh <server> "sed -i 's/cake\.example\.com/HOSTNAME/' agentcake-0.6.2/deploy/Caddyfile"` with the approved hostname.
 
 An SSH command starts in the user's home folder on the server. Instead of `cd`, use `-f` with the release folder's
 `docker-compose.yml`.
 
-- To build the image, run `ssh <server> docker compose -f agentcake-0.6.1/docker-compose.yml build`.
-- To start the services, run `ssh <server> docker compose -f agentcake-0.6.1/docker-compose.yml up -d`.
-- To check them, run `ssh <server> docker compose -f agentcake-0.6.1/docker-compose.yml ps`.
+- To build the image, run `ssh <server> docker compose -f agentcake-0.6.2/docker-compose.yml build`.
+- To start the services, run `ssh <server> docker compose -f agentcake-0.6.2/docker-compose.yml up -d`.
+- To check them, run `ssh <server> docker compose -f agentcake-0.6.2/docker-compose.yml ps`.
 
 The `agentcake` service can show `starting` for a few seconds. If it does, wait a few seconds and run `ps` again. When
 the service shows `healthy`, continue with the settings.
 
 On the server, run AgentCake's commands with
-`docker compose -f agentcake-0.6.1/docker-compose.yml exec agentcake python3 -I -m agentcake`. For the settings
+`docker compose -f agentcake-0.6.2/docker-compose.yml exec agentcake python3 -I -m agentcake`. For the settings
 commands, see [SERVER.md, step 5](SERVER.md#5-configure-agentcake). Run each of these commands through `ssh <server>`.
 
 - If the website's pages already use a site key, set the same key on the server. For the command, see SERVER.md,
@@ -908,7 +918,7 @@ The server middleware reads the secret from `CAKE_SERVER_TIMING_SECRET`. To set 
 server, run this command:
 
 ```sh
-secret="$(ssh SERVER docker compose -f agentcake-0.6.1/docker-compose.yml exec -T agentcake python3 -I -m agentcake secret print)" && printf %s "$secret" | vercel env add CAKE_SERVER_TIMING_SECRET --environment production --sensitive --project PROJECT --scope TEAM
+secret="$(ssh SERVER docker compose -f agentcake-0.6.2/docker-compose.yml exec -T agentcake python3 -I -m agentcake secret print)" && printf %s "$secret" | vercel env add CAKE_SERVER_TIMING_SECRET --environment production --sensitive --project PROJECT --scope TEAM
 ```
 
 | Value | Replace with |
@@ -1084,7 +1094,8 @@ Tell the user, in their language:
    address required, company optional, sent to Tartini AI only when they press "Register and continue"
    ([`PRIVACY.md`](PRIVACY.md)). Give them the page's address and nothing more: never fill in their e-mail address,
    never press "Register and continue" for them, and do not open the page in a browser yourself to do it. The page
-   script, collecting visits and the command line work without registering.
+   script, collecting visits and the command line work without registering. After they register, the local page shows
+   how to connect their website until the website sends its first visit.
 8. A list of the files that you changed
 9. The folder with the release files
 10. Remaining steps
@@ -1100,7 +1111,8 @@ Tell the user, in their language:
 
     To back up the server's data, see [Backups](SERVER.md#backups).
 
-Include each of these points in your last message.
+Include each of these points in your last message. If the site owner writes again after that message, your answer is
+then the last message: write each of these points in it again, though a point that didn't change may be shorter.
 
 Route B only: AgentCake runs from the folder that holds `agentcake.pyz`, so that folder has to stay.
 

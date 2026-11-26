@@ -10,8 +10,10 @@ recompress_quiet_ms (sessions.end_ms, open windows). Chunks dropped to free spac
 space back at the next round, by day as well (space.reclaim_if_due): on a server that is never quiet at night
 the bytes would otherwise never come back.
 
-Each round also gives the sessions that went quiet their final verdict (judging.tick: judge_quiet_s) and, with
-what is left of its limit, judges anew the sessions an older judge judged (after an upgrade, a few each round).
+Each round also places in visits, for visit_upgrade_round_ms at most, the tab sessions an AgentCake older than 0.6.2
+recorded (visit_upgrade.py: after a backup, until none is left), gives the sessions that went quiet their final
+verdict (judging.tick: judge_quiet_s) and, with what is left of its limit, judges anew the sessions an older judge
+judged (after an upgrade, a few each round).
 
 Upkeep.tick(now_ms) is one round; the tests call it with a clock and replaced probes, so nothing sleeps.
 """
@@ -19,10 +21,12 @@ import os
 import subprocess
 import sys
 import threading
+import time
 import traceback
 from datetime import timedelta
 
-from agentcake import judging, recompress, space, store, streams
+from agentcake import judging, recompress, space, store, streams, visit_upgrade
+from agentcake.config import load_cfg
 from agentcake.storage_config import SETTINGS, now_ms as clock_ms, when
 
 POWER_SUPPLIES = "/sys/class/power_supply"
@@ -93,6 +97,11 @@ class Upkeep:
                 space.reclaim_if_due(con, now_ms, self.cfg)
             finally:
                 con.close()
+        budget = timedelta(milliseconds=load_cfg()["visit_upgrade_round_ms"]) / timedelta(seconds=1)
+        try:
+            visit_upgrade.step(now_ms, deadline=time.monotonic() + budget)
+        except Exception:  # the upgrade tries again next round; judging and the night work must not wait for it
+            traceback.print_exc()
         judging.tick(now_ms)
         if not self.heavy_due(now_ms):
             return

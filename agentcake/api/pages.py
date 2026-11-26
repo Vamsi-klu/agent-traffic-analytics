@@ -10,7 +10,7 @@ fragment), so a new address is a new page from the first batch that carries it, 
 A session with nothing to go by (a cake 0.3.4 visit) has one page: its own address, from its start.
 
 A page lasts until the next one opens, the last one until the session's end (the timeline's length). Its actions are
-the visitor's input on it (Every action without the "Open" rows): an action belongs to the page of its own page view
+the visitor's input on it (All actions without the "Open" rows): an action belongs to the page of its own page view
 open at that moment (before the view's first page: that page); an action without a page view, to the page open at
 that moment. Who acted on a page is named as the session categories are: a human only, an agent only, both a
 human and an agent (Human + agent), or unknown when all its actions are; a page without actions names nobody (None:

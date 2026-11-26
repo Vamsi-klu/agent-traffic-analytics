@@ -63,6 +63,15 @@ class EachSignal(unittest.TestCase):
         found = weak.facts({"pages": []}, [], clicks)
         self.assertEqual(ids(dict(QUIET, steps=found["steps"])), set())
 
+    def test_a_geometry_record_whose_size_or_place_is_not_numbers_is_left_out(self):
+        """The server keeps what a browser uploaded: only cake.js's records, with numbers, measure the window."""
+        def geo(t, *g):
+            return {"t": t, "ty": "geo", "g": list(g)}
+        good = [geo(0, 1200, 700, 1200, 787, 40, 60), geo(500, 1200, 700, 1200, 787, 540, 60)]
+        broken = [geo(250, 1200, 700, 1200, 787, None, "60"), geo(300, 1200, 700, 1200, 787, True, 60)]
+        self.assertEqual(weak.facts({"pages": []}, [], good)["window_jump"], 500)
+        self.assertEqual(weak.facts({"pages": []}, [], good[:1] + broken + good[1:])["window_jump"], 500)
+
     def test_nothing_recorded_or_too_few_steps_says_nothing(self):
         self.assertEqual(weak.reasons(None), [])
         self.assertEqual(ids(dict(QUIET, steps={"n": 2, "still": 1.0})), set())

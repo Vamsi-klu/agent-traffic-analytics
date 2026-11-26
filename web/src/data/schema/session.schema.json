@@ -24,7 +24,8 @@
           "at_ms": { "$ref": "common.schema.json#/$defs/Ms" },
           "who": { "$ref": "common.schema.json#/$defs/Actor" },
           "what": { "$ref": "common.schema.json#/$defs/Text" },
-          "page": { "$ref": "common.schema.json#/$defs/Text" }
+          "page": { "$ref": "common.schema.json#/$defs/Text" },
+          "tab": { "$ref": "#/$defs/TabNumber" }
         }
       }
     },
@@ -37,24 +38,73 @@
         "start_url": { "$ref": "common.schema.json#/$defs/Text" },
         "epoch_ms": { "type": "integer", "minimum": 0 },
         "handoff_lead_ms": { "$ref": "common.schema.json#/$defs/Ms" },
-        "chunks": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "additionalProperties": false,
-            "required": ["start_ms", "end_ms"],
-            "properties": {
-              "start_ms": { "$ref": "common.schema.json#/$defs/Ms" },
-              "end_ms": { "$ref": "common.schema.json#/$defs/Ms" }
-            }
-          }
-        },
-        "missing": { "enum": ["freed", "dropped", "none", null] }
+        "chunks": { "$ref": "#/$defs/Chunks" },
+        "missing": { "$ref": "#/$defs/Missing" }
       }
     },
-    "server": { "$ref": "#/$defs/ServerHalf" }
+    "server": { "$ref": "#/$defs/ServerHalf" },
+    "tabs": { "description": "Set only on a session of more than one tab session, and so are follow and verdict_tab: each tab session in the order it opened.", "type": "array", "minItems": 2, "items": { "$ref": "#/$defs/SessionTab" } },
+    "follow": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/FollowStretch" } },
+    "verdict_tab": { "$ref": "common.schema.json#/$defs/Text" },
+    "named_tab": { "description": "Set only when the address named one of the session's tab sessions rather than the session.", "$ref": "common.schema.json#/$defs/Text" }
   },
   "$defs": {
+    "TabNumber": { "description": "Which tab: 1 for the first one opened. Set only in a session of more than one tab session.", "type": "integer", "minimum": 1 },
+    "Chunks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["start_ms", "end_ms"],
+        "properties": {
+          "start_ms": { "$ref": "common.schema.json#/$defs/Ms" },
+          "end_ms": { "$ref": "common.schema.json#/$defs/Ms" }
+        }
+      }
+    },
+    "Missing": { "enum": ["freed", "dropped", "none", null] },
+    "SessionTab": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "tab", "start_ms", "end_ms", "verdict", "evidence", "agent_turns", "agent", "certainty", "percent", "summary", "layers", "segments", "handoffs", "replay"],
+      "properties": {
+        "id": { "$ref": "common.schema.json#/$defs/Text" },
+        "tab": { "$ref": "#/$defs/TabNumber" },
+        "start_ms": { "$ref": "common.schema.json#/$defs/Ms" },
+        "end_ms": { "$ref": "common.schema.json#/$defs/Ms" },
+        "verdict": { "$ref": "common.schema.json#/$defs/Verdict" },
+        "evidence": { "enum": ["thin", null] },
+        "agent_turns": { "enum": ["agent_only", "human_agent", null] },
+        "agent": { "type": ["string", "null"], "minLength": 1 },
+        "certainty": { "enum": ["verified", "likely", null] },
+        "percent": { "$ref": "#/$defs/Sure" },
+        "summary": { "$ref": "common.schema.json#/$defs/Text" },
+        "layers": { "type": "array", "minItems": 4, "maxItems": 4, "items": { "$ref": "#/$defs/LayerReasons" } },
+        "segments": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/Segment" } },
+        "handoffs": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/Handoff" } },
+        "replay": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["start_ms", "start_url", "chunks", "missing"],
+          "properties": {
+            "start_ms": { "$ref": "common.schema.json#/$defs/Ms" },
+            "start_url": { "$ref": "common.schema.json#/$defs/Text" },
+            "chunks": { "$ref": "#/$defs/Chunks" },
+            "missing": { "$ref": "#/$defs/Missing" }
+          }
+        }
+      }
+    },
+    "FollowStretch": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tab", "start_ms", "end_ms"],
+      "properties": {
+        "tab": { "$ref": "common.schema.json#/$defs/Text" },
+        "start_ms": { "$ref": "common.schema.json#/$defs/Ms" },
+        "end_ms": { "$ref": "common.schema.json#/$defs/Ms" }
+      }
+    },
     "Sure": {
       "description": "How sure cake is, in whole percents, calibrated (1 to 99, never certain either way); null when it doesn't say.",
       "type": ["integer", "null"], "minimum": 1, "maximum": 99
@@ -68,7 +118,8 @@
         "at_ms": { "$ref": "common.schema.json#/$defs/Ms" },
         "duration_ms": { "$ref": "common.schema.json#/$defs/Ms" },
         "actions": { "$ref": "common.schema.json#/$defs/Count" },
-        "who": { "enum": ["human", "agent", "human_agent", "unknown", null] }
+        "who": { "enum": ["human", "agent", "human_agent", "unknown", null] },
+        "tab": { "$ref": "#/$defs/TabNumber" }
       }
     },
     "LayerReasons": {
@@ -133,7 +184,8 @@
         "same_network": { "type": ["boolean", "null"] },
         "same_user_agent": { "type": ["boolean", "null"] },
         "same_language": { "type": ["boolean", "null"] },
-        "reuses": { "$ref": "common.schema.json#/$defs/Count" }
+        "reuses": { "$ref": "common.schema.json#/$defs/Count" },
+        "tab": { "$ref": "#/$defs/TabNumber" }
       }
     }
   }

@@ -61,9 +61,10 @@
     "consent": {"required": "required", "commands": {"start": "start", "stop": "stop"}},
     "defaults": {"hook_dom": false, "hide_selectors": ""},
     "storage": {"session": "cake_sid", "clock": "cake_clock", "page_number": "cake_pn", "pending": "cake_pending",
-                "frames_done": "cake_frames", "visitor": "cake_vid"},
+                "frames_done": "cake_frames", "visitor": "cake_vid", "browser_session": "cake_bsid",
+                "browser_clock": "cake_bclock", "window": "cake_wid", "window_open": "cake_wopen"},
     "session": {
-      "$comment": "How a tab's session is cut (session.js; the collector applies the same rules, session_split.py): PostHog's time rules (posthog-js packages/browser/src/sessionid.ts: DEFAULT_SESSION_IDLE_TIMEOUT_SECONDS 30 minutes, SESSION_LENGTH_LIMIT_MILLISECONDS 24 hours). Activity is what PostHog counts: its recorder's ACTIVE_SOURCES (lazy-loaded-session-recorder.ts: MouseMove, MouseInteraction, Scroll, ViewportResize, Input, TouchMove, MediaInteraction, Drag), as the raw input records that stand for them (activity_raw; a geometry record whose why is in activity_geo), and a page view, a page load or a new path (activity_signals). The clock is written to sessionStorage at most every persist_every_ms, and when the page is left. record: the signal record that begins a new session on a page, with why it began.",
+      "$comment": "How sessions are cut (session.js; the collector applies the same rules to a tab's uploads from scripts that do not, session_split.py): PostHog's time rules (posthog-js packages/browser/src/sessionid.ts: DEFAULT_SESSION_IDLE_TIMEOUT_SECONDS 30 minutes, SESSION_LENGTH_LIMIT_MILLISECONDS 24 hours), for the browser's session, which every tab of the site shares through localStorage, and for each tab's own part of it. Activity is what PostHog counts: its recorder's ACTIVE_SOURCES (lazy-loaded-session-recorder.ts: MouseMove, MouseInteraction, Scroll, ViewportResize, Input, TouchMove, MediaInteraction, Drag), as the raw input records that stand for them (activity_raw; a geometry record whose why is in activity_geo), and a page view, a page load or a new path (activity_signals). The clocks are written at most every persist_every_ms, and when the page is left; a tab reads the browser's clock again at most every persist_every_ms of its own activity, and always before ending the browser's session for idleness. record: the signal record that begins a new session on a page, with why it began: idle and max by the rules, reset for window.cake.reset(), tab when another tab began the browser's next session.",
       "idle_ms": 1800000,
       "max_ms": 86400000,
       "persist_every_ms": 1000,
@@ -72,7 +73,7 @@
       "activity_geo": ["resize"],
       "activity_signals": ["page", "path"],
       "record": "session",
-      "why": {"idle": "idle", "max": "max", "reset": "reset"},
+      "why": {"idle": "idle", "max": "max", "reset": "reset", "tab": "tab"},
       "flush_why": "session"
     },
     "navigation": {

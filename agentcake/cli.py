@@ -23,8 +23,9 @@ HELP_FLAGS = ("-h", "--help")
 # without its value, stops the command before it starts, stops, migrates or pings anything. WITH_VALUE options take the
 # word after them.
 OPTIONS = {"serve": (), "_serve": (), "start": (), "stop": (), "status": (), "snippet": (), "sentence": (), "ping": (),
-           "migrate": ("--dry-run",), "setup": ("--print", "--site", "--dir"), "doctor": ("--dir", "--url")}
-WITH_VALUE = ("--dir", "--url")
+           "migrate": ("--dry-run",), "setup": ("--print", "--site", "--dir"), "doctor": ("--dir", "--url"),
+           "session-counts": ("--db",)}
+WITH_VALUE = ("--dir", "--url", "--db")
 # The commands that read their own words, each with its usage line in data/copy.en.json (eval has its own parser).
 USAGES = {"secret": "secret_usage", "config": "config_usage", "lists": "lists_usage", "logs": "logs_usage",
           "delete": "delete_usage"}
@@ -174,6 +175,9 @@ def main(argv=None):
     if cmd == "migrate":
         from agentcake.migrate import migrate
         return migrate(dry_run="--dry-run" in a)
+    if cmd == "session-counts":  # reads a database only: the sessions one per tab and across tabs (0.6.2)
+        from agentcake import visit_stats
+        return visit_stats.main(option_value(a, "--db"))
     if cmd == "delete":
         from agentcake import delete_command
         try:

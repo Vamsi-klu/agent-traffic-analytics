@@ -1,4 +1,5 @@
-"""A session's replay, read a chunk at a time (the session page's player): its ReplayInfo, and GET .../replay?chunk=<n>.
+"""A session's replay, read a chunk at a time (the session page's player): its ReplayInfo, and GET
+.../replay?chunk=<n>&tab=<id>.
 
 The replay is the session's rrweb stream (streams.py: sealed chunks and the windows still open). The player reads it
 in chunks of storage.json's chunk_ms of event time, aligned as the stream's own windows are, so each event belongs to
@@ -8,7 +9,12 @@ of that window (streams.read_events reads only the chunks that touch it), each a
 
     windows(con, session_id) -> [(window start, first event, last event)] in time order, epoch ms
     info(con, session_id, epoch, freed, dropped, c) -> ReplayInfo
-    chunk(request, session_id) -> the answer to GET /api/session/<id>/replay?chunk=<n>
+    chunk(request, address_id) -> the answer to GET /api/session/<id>/replay?chunk=<n>&tab=<id>
+
+A session spans its browser's tabs, and each tab session keeps its own stream: tab names the tab session
+whose replay is read, one of the session's (tabs.py); without it, the tab an address from before sessions spanned
+tabs named, else the session's first tab (a session of one tab: its only one). Every chunk's times are on the
+session's clock (tabs.clock), so the player can move from one tab's replay to another's at the same moment.
 
 missing says why the replay is gone or cut short: "freed" (freeing space removed it, space.py: the verdict, timeline
 and server half stay), "dropped" (a full disk budget kept some events out), "none" (the visit sent no page events);
@@ -17,7 +23,7 @@ null when it is all there.
 import json
 from http import HTTPStatus
 
-from agentcake.api import answers, visits
+from agentcake.api import answers, tabs, visits
 from agentcake.session_replay import STREAM
 from agentcake.storage_config import SETTINGS
 from agentcake import streams
@@ -55,23 +61,27 @@ def end(con, session_id):
     return last
 
 
-def chunk(request, session_id):
+def chunk(request, address_id):
     number = (request.query.get("chunk") or [""])[0]
     if not (number.isascii() and number.isdigit()):
         raise answers.Refused(answers.error(HTTPStatus.BAD_REQUEST, "bad_count", field="chunk"))
     con = visits.connect()
     try:
-        row = con.execute(f"SELECT s.start_ms FROM sessions s WHERE s.id = ? AND {visits.SHOWN}",
-                          (session_id,)).fetchone()
-        if row is None:
+        named = tabs.resolve(con, address_id)
+        listed = tabs.parts(con, [named[0]]).get(named[0]) if named else None
+        if not listed:
             return answers.error(HTTPStatus.NOT_FOUND, "no_session")
-        found = windows(con, session_id)
+        ids = {part.id for part in listed}
+        wanted = (request.query.get("tab") or [named[1] if named[1] in ids else listed[0].id])[0]
+        if wanted not in ids:
+            return answers.error(HTTPStatus.NOT_FOUND, "no_chunk")
+        found = windows(con, wanted)
         if int(number) >= len(found):
             return answers.error(HTTPStatus.NOT_FOUND, "no_chunk")
         window, low, high = found[int(number)]
-        epoch = visits.first_event(con, session_id) or row[0]
+        epoch, _ = tabs.clock(listed)
         events = [_event(text) for _, _, text in
-                  streams.read_events(con, session_id, [STREAM], window, window + SETTINGS["chunk_ms"] - 1)]
+                  streams.read_events(con, wanted, [STREAM], window, window + SETTINGS["chunk_ms"] - 1)]
     finally:
         con.close()
     return answers.ok({"chunk": int(number), "start_ms": max(0, low - epoch), "end_ms": max(0, high - epoch),

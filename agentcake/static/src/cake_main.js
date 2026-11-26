@@ -2,17 +2,17 @@
 //
 // As in cake 0.3.3, a site adds one line:
 // <script src="https://<cake>/cake.js" data-site="<key>" defer></script>.
-// cake.js sends to the address it was loaded from (…/cake.js → …/collect), keeps the session id in sessionStorage
-// (one per tab, cut after 30 minutes without activity or 24 hours: session.js) and the visitor id in localStorage
-// (visitor.js).
-// Consent, as PostHog 1.0 left it to the site: a site that asks first either adds the tag
-// only after the visitor agreed, or adds it with data-consent="required" and calls window.cake.start() once they
-// agree; until then cake.js does nothing at all (no listener, no storage, no request). window.cake.stop() (the
-// visitor said no) ends recording and sending on this page for good, drops what was not sent yet and forgets the
-// session id, the visitor id and its identify hash. window.cake.identify(id) and window.cake.reset() are the sign-in
-// and sign-out calls of identify.js. Code that may run before cake.js has loaded can queue the calls, as with
-// posthog-js's snippet: window.cake = window.cake || []; window.cake.push('start') (or 'stop', 'reset',
-// ['identify', id]); window.cake.push does the same once cake.js runs.
+// cake.js sends to the address it was loaded from (…/cake.js → …/collect), keeps the browser's session in localStorage
+// (shared by the site's tabs, ended after 30 minutes without activity in any of them or 24 hours), the tab's id and its
+// own session in sessionStorage (session.js), and the visitor id in localStorage (visitor.js).
+// Consent, as PostHog 1.0 left it to the site: a site that asks first either adds the tag only after the visitor
+// agreed, or adds it with data-consent="required" and calls window.cake.start() once they agree; until then cake.js
+// does nothing at all (no listener, no storage, no request). window.cake.stop() (the visitor said no) ends recording
+// and sending on this page for good, drops what was not sent yet and forgets the session ids and their clocks, the tab
+// id, the visitor id and its identify hash (no other tab writes them back). window.cake.identify(id) and
+// window.cake.reset() are the sign-in and sign-out calls of identify.js. Code that may run before cake.js has loaded
+// can queue the calls, as with posthog-js's snippet: window.cake = window.cake || []; window.cake.push('start') (or
+// 'stop', 'reset', ['identify', id]); window.cake.push does the same once cake.js runs.
 // A site must not get slower for having cake.js: when it starts, it only reads its settings and hooks its
 // listeners; the replay's first snapshot is the next task; every detector waits for the page's load event and runs
 // as one task per idle period (schedule.js).
@@ -92,7 +92,8 @@ function step(name, fn) {
   }
 }
 
-// The frame checks (automation.js) once per visit, on the first page view that finishes them; then the tasks record.
+// The frame checks (automation.js) once per tab session, on its first page view that finishes them; then the tasks
+// record.
 function framesThenReport() {
   var report = function () {
     C.push('x', C.schedule.report())
@@ -167,10 +168,13 @@ function begin() {
   var key = siteKey()
   if (!url || !key) return
   var now = C.now()
+  var ids = C.session.begin(now)
   var header = {
     v: CFG.format_version,
     k: key,
-    s: C.session.begin(now),
+    s: ids.s,
+    bs: ids.bs,
+    w: ids.w,
     vid: C.visitor.id(now),
     pv: C.randomId(),
     ua: navigator.userAgent,

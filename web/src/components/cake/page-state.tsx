@@ -9,10 +9,11 @@ import { WORDS } from "@/lib/words"
 import { Crumb } from "./crumb"
 
 /** Quiet on purpose: it fades in only when loading takes a moment, so a quick answer never flashes it (shown at once
- *  with reduced motion, where the fade is off). */
-export function PageLoading({ what }: { what: string }) {
+ *  with reduced motion, where the fade is off). waiting: a page's own data is on its way (Loaded), marked
+ *  data-page="loading" as a replay marks data-replay, so a screenshot waits until the page is drawn. */
+export function PageLoading({ what, waiting = false }: { what: string; waiting?: boolean }) {
   return (
-    <div role="status" className="flex animate-in items-center justify-center gap-3 py-10 text-sm text-muted-foreground fade-in fill-mode-both delay-300">
+    <div role="status" data-page={waiting ? "loading" : undefined} className="flex animate-in items-center justify-center gap-3 py-10 text-sm text-muted-foreground fade-in fill-mode-both delay-300">
       <Crumb pose="look" className="w-16" label={WORDS.crumb.loading} />Loading {what}…
     </div>
   )
@@ -41,7 +42,7 @@ export function PageError({ title, message, onRetry }: { title: string; message:
  *  session: trying again won't bring it back). `what` names the data: "the dashboard", "this session". */
 export function Loaded<T>({ state, what, children }: { state: ApiState<T>; what: string; children: (data: T) => ReactNode }) {
   if (state.status === "ready") return <>{children(state.data)}</>
-  if (state.status === "loading") return <PageLoading what={what} />
+  if (state.status === "loading") return <PageLoading what={what} waiting />
   const missing = state.error.status === 404
   return <PageError title={`Unable to load ${what}`} message={state.error.message} onRetry={missing ? undefined : state.retry} />
 }

@@ -80,10 +80,10 @@ erasure, objection, complaint to [supervisory authority]].]
 - **Consent**: AgentCake records nothing until the page script runs. To record only after consent, add the script
   after the visitor agreed, or add it with `data-consent="required"` and call `window.cake.start()` then; call
   `window.cake.stop()` when they refuse or withdraw (`PRIVACY.md`, "Consent").
-- **Deletion requests**: `agentcake delete --session <id>` or `--visitor <visit id>` deletes a visit everywhere in
-  AgentCake's data folder, while it runs. A visitor cannot read their visit identifier from your site unless your
-  consent settings show it (it is `sessionStorage.cake_sid`); otherwise find the visit on the dashboard by its time and
-  pages. Copies outside the data folder (your own backups and snapshots) are yours to handle.
+- **Deletion requests**: `agentcake delete --session <id>` or `--visitor <session id>` deletes a session, every tab
+  of it, everywhere in AgentCake's data folder, while it runs. A visitor cannot read their session's identifier from
+  your site unless your consent settings show it (`localStorage.cake_bsid`, or the tab's `sessionStorage.cake_sid`);
+  otherwise find the session on the dashboard by its time and pages. Copies outside the data folder (your own backups and snapshots) are yours to handle.
 - **Signed-in visitors**: the bracketed sentences about the account identifier apply only if your site calls
   `window.cake.identify(<your id for the visitor>)` after sign-in and `window.cake.reset()` at sign-out. The code is the
   SHA-256 hash of your site key and that id, made in the visitor's browser. Your site key is public (it is in your

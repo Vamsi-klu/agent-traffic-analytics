@@ -33,6 +33,7 @@ SIGNED_32_BITS = 2 ** 31  # PRAGMA user_version holds a signed 32-bit integer
 # the sessions columns the verdict added, and the srv columns that keep reuses and comparisons
 VERDICT_COLUMNS = ("verdict_class", "agent_row", "agent_name", "confidence", "reasons", "layers", "verdict_detail")
 SRV_COLUMNS = ("pv", "ua_match", "lang_match", "reuses")
+VISIT_COLUMNS = ("visit_id", "window_id", "browser_session")  # 0.6.2: session_web's visit, tab and bs
 THREADS = 8  # more than the requests a browser sends at once for the first page
 SET_UP = "set up"  # what OpenedAtOnce.set_ups() records for a set-up that finished
 LOCKED = "database is locked"  # SQLite's words for SQLITE_BUSY
@@ -179,16 +180,17 @@ class Upgrade(unittest.TestCase):
             finally:
                 con.close()
 
-    def older_database(self, columns, tables=(), version=None):
-        """Today's database without these columns ({table: names}) and tables, marked with `version`; by default
-        the version a cake without those columns wrote (asserted to be another one)."""
+    def older_database(self, columns, tables=(), version=None, indexes=()):
+        """Today's database without these indexes, columns ({table: names}) and tables, marked with `version`; by
+        default the version a cake without those columns wrote (asserted to be another one)."""
         if version is None:
             before = {table: tuple(column for column in added if column[0] not in columns.get(table, ()))
                       for table, added in store.ADDED_COLUMNS.items()}
             version = store.schema_version(store.SCHEMA, before)
             self.assertNotEqual(version, store.SCHEMA_VERSION)
         store.db().close()
-        change_file(*[f"ALTER TABLE {table} DROP COLUMN {name}" for table, names in columns.items() for name in names],
+        change_file(*[f"DROP INDEX {name}" for name in indexes],
+                    *[f"ALTER TABLE {table} DROP COLUMN {name}" for table, names in columns.items() for name in names],
                     *[f"DROP TABLE {table}" for table in tables], f"PRAGMA user_version = {version}")
 
     def upgraded(self):
@@ -220,6 +222,15 @@ class Upgrade(unittest.TestCase):
         upgraded = self.upgraded()
         self.assertEqual(upgraded, self.new_layout())
         self.assertLessEqual(set(SRV_COLUMNS), set(upgraded[0]["srv"]))
+
+    def test_a_database_from_before_the_visits(self):
+        # 0.6.1: no visits table, and session_web without the columns that place a tab session in its visit; the
+        # index on one of them is made once the column is there
+        self.older_database({"session_web": VISIT_COLUMNS}, tables=("visits",), indexes=("session_web_visit",))
+        upgraded = self.upgraded()
+        self.assertEqual(upgraded, self.new_layout())
+        self.assertLessEqual(set(VISIT_COLUMNS), set(upgraded[0]["session_web"]))
+        self.assertIn(("index", "session_web_visit"), upgraded[1])
 
     def later_cake(self, schema=None, added_columns=None):
         """This cake as a later one with another schema.sql or ADDED_COLUMNS: its version is worked out from them,

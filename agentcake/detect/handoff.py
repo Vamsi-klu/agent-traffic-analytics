@@ -5,7 +5,7 @@
 Input: the runs timeline.build() made (consecutive steps with the same who), and from build() the steps themselves,
 the times of the session's actions and the bound of a score's log-odds. A hand-off is where a decided run follows a
 decided run of the other actor, at the new actor's first action: a click, a key or typed input, a wheel, a scroll
-the visitor's own input caused; moving the pointer is none (visitor_actions.py: the actions Every action lists and the
+the visitor's own input caused; moving the pointer is none (visitor_actions.py: the actions All actions lists and the
 splices' truth counts). Between the two runs, the steps the smoothing left unsure go to the side their own scores make
 likeliest: one change point's maximum-likelihood position (D. V. Hinkley, "Inference about the change-point in a
 sequence of random variables", Biometrika 57(1), 1970). On the spliced take-overs of `agentcake eval` it found the

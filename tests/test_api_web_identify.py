@@ -16,6 +16,7 @@ import json
 import unittest
 from unittest import mock
 
+import visit_rows
 from api_client import Client
 from web_uploads import KEY, MINUTE_MS, T0, WebCase, upload
 from agentcake.api import periods
@@ -39,14 +40,15 @@ class IdentifiedVisitors(WebCase):
     def visit(self, verdict, browser, signed_in=None, agent=None, ago_ms=0):
         """One session of a browser (a visitor id), signed in as signed_in (a hash) or not, ago_ms before now."""
         tab = next(self.tabs)
-        self.post(upload(0, T0, tab=tab, pv=tab, visitor=browser, person=signed_in, page={"rd": "www.google.com"},
-                         url="https://shop.example.com/"))
+        # each a session of its own: its own browser session (one browser's sessions at one time would join)
+        self.post(dict(upload(0, T0, tab=tab, pv=tab, visitor=browser, person=signed_in, page={"rd": "www.google.com"},
+                              url="https://shop.example.com/"), bs=tab))
         self.con.execute("UPDATE sessions SET verdict_class=?, judged_ms=end_ms + 1, start_ms=start_ms - ? WHERE id=?",
                          (verdict, ago_ms, tab))
         if agent:
             self.con.execute("UPDATE sessions SET verdict_detail=? WHERE id=?",
                              (json.dumps({"display_name": agent}), tab))
-        self.con.commit()
+        visit_rows.refreshed(self.con)
         return tab
 
     def get(self, range_key=None):

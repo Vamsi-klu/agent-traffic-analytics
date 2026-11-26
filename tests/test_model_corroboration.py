@@ -45,9 +45,17 @@ class CorroborationTest(unittest.TestCase):
         self.assertNotIn("one_kind", result["evidence"])
 
     def test_hard_evidence_needs_no_second_kind(self):
-        result = model.judge_session([bare_click(1000, tr=0)] + scrolls_with_a_wheel(3, 5000))
+        # a press a script dispatched: pages do not fake their visitors' buttons (features.json untrusted_events)
+        pressed = [ev(995, "mousedown", tr=0, cx=400, cy=300, d=1), bare_click(1000)]
+        result = model.judge_session(pressed + scrolls_with_a_wheel(3, 5000))
         self.assertEqual(result["verdict"], "agent")
         self.assertIn("untrusted", result["evidence"]["rule_hits"])
+
+    def test_a_click_a_script_dispatched_is_no_hard_evidence(self):
+        # the page's own scripts click its buttons too (element.click()): no hand, no approach, no evidence
+        result = model.judge_session([bare_click(1000, tr=0)] + scrolls_with_a_wheel(3, 5000))
+        self.assertEqual(result["verdict"], "unsure")
+        self.assertEqual(result["evidence"]["rule_hits"], {})
 
     def test_without_raw_input_evidence_on_two_actions_stands_in_for_the_second_kind(self):
         one = model.judge_session([bare_click(1000)] + scrolls_with_a_wheel(3, 5000), raw_input=False)

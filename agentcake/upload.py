@@ -6,7 +6,9 @@ would unzip to more than `limit` bytes is refused: a small gzip body can hold a 
 
 read_batch(data, caps, max_records) -> Batch. The header is checked and cut to the field caps of data/sizes.json: the
 session id `s`, and for a version 1 batch the page view `pv` and the batch number `seq`, the key a batch sent twice is
-known by; the visitor id `vid` is kept when it is there, cut to its cap like the other ids; the identify hash `idh`
+known by; the visitor id `vid`, the browser session id `bs` and the tab id `w` (since 0.6.2: the session all of a
+browser's tabs share, and the tab, visit_join.py) are kept when they are there, cut to their caps like the other ids;
+the identify hash `idh`
 (static/src/identify.js) only when it is a SHA-256 in lowercase hexadecimal, as cake.js writes it: any other value is
 dropped, so that an id or an e-mail address sent in its place is never stored. A batch without `v`
 comes from cake 0.3.4's script (k, s, u, ua, wd, e, st): it has neither, and is kept
@@ -68,6 +70,8 @@ class Batch:
     bad_records: int = 0
     visitor: Optional[str] = None     # `vid`, the visitor id cake.js keeps in the browser (static/src/visitor.js)
     person: Optional[str] = None      # `idh`, the identify hash kept with it (static/src/identify.js)
+    browser_session: Optional[str] = None  # `bs`, the session all the site's tabs in the browser share
+    window: Optional[str] = None      # `w`, the tab (static/src/session.js)
 
 
 def decode_body(body, limit):
@@ -119,7 +123,9 @@ def read_batch(data, caps, max_records):
                   webdriver=bool(data.get("wd")), why=_text(data.get("why"), caps["batch_why"]),
                   token=data.get("st") if isinstance(data.get("st"), str) else None,
                   dropped=_drop_counts(data.get("dr"), caps["drop_counts"]), test=bool(data.get("test")),
-                  visitor=_id(data.get("vid"), caps["visitor_id"]) or None, person=_identify_hash(data.get("idh")))
+                  visitor=_id(data.get("vid"), caps["visitor_id"]) or None, person=_identify_hash(data.get("idh")),
+                  browser_session=_id(data.get("bs"), caps["browser_session"]) or None,
+                  window=_id(data.get("w"), caps["window_id"]) or None)
     for _, name, time_field in RECORD_FIELDS:
         kept = [Record(int(record[time_field]), record_text(record), page_view)
                 for record in arrays[name] or [] if isinstance(record, dict) and _is_time(record.get(time_field))]

@@ -37,6 +37,8 @@
   "judge_interval_ms": {"default": 15000, "min": 0, "about": "On this computer: a session that keeps sending is judged at most this often (opening a page of it judges it at once); 0 judges every batch."},
   "judge_quiet_s": {"default": 60, "min": 0, "about": "A session that sends nothing for this long is judged once more and its classification is final; new data opens it again."},
   "stale_judge_batch_sessions": {"default": 50, "min": 1, "about": "Sessions judged before a page is drawn, latest first."},
+  "visit_upgrade_batch_visitors": {"default": 200, "min": 1, "about": "After an upgrade from a version before 0.6.2, AgentCake joins the tabs of the sessions it already has into sessions across tabs, in the background: the tabs of this many visitors at a time, so that new visits are recorded in between."},
+  "visit_upgrade_round_ms": {"default": 5000, "min": 0, "about": "How long that joining may run in each background round (every 30 seconds) before it waits for the next one."},
   "handoff_lead_ms": {"default": 3000, "min": 0, "about": "The replay's \"Jump to hand-off\" starts this long before the hand-off, so the human's last moves show first."},
   "token_max_age_ms": {"default": 900000, "min": 0, "about": "A server middleware token older than this is stale."},
   "token_max_future_ms": {"default": 60000, "min": 0, "about": "How far ahead of this computer's clock a token's time may be (a site's clock may run ahead)."},

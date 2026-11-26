@@ -61,6 +61,33 @@ def make_034_database(sessions=4, events=120):
     con.close()
 
 
+class MissingRow:
+    """A connection whose backup() copies the database and then loses a row of the copy, as a bad copy would."""
+    real_connect = sqlite3.connect
+
+    def __init__(self, con):
+        self.con = con
+
+    @classmethod
+    def connect(cls, path, *args, **kwargs):
+        return cls(cls.real_connect(path, *args, **kwargs))
+
+    def backup(self, target):
+        self.con.backup(target.con)
+        target.con.execute("DELETE FROM sessions WHERE rowid = (SELECT MIN(rowid) FROM sessions)")
+        target.con.commit()
+
+    def __getattr__(self, name):
+        return getattr(self.con, name)
+
+
+class NothingCopied(MissingRow):
+    """A connection whose backup() writes nothing, as one cut short does: reading the copy fails."""
+
+    def backup(self, target):
+        pass
+
+
 def rows(db, sql):
     con = sqlite3.connect(db)
     try:
@@ -184,6 +211,15 @@ class Migrate(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertIn("free", out)
         self.assertEqual(self.backups(), [])
+
+    def test_a_backup_that_fails_its_check_is_removed_and_said_so(self):
+        """backup() changes nothing when it fails: the upgrade to visits tries again every round, and each copy left
+        behind would have been the whole database again."""
+        for broken in (MissingRow, NothingCopied):
+            with self.subTest(broken.__name__), mock.patch("agentcake.migrate.sqlite3.connect", broken.connect):
+                with self.assertRaises(migrate.BackupFailed):
+                    migrate.backup(paths.db_file(), NOW)
+                self.assertEqual(self.backups(), [])
 
     def test_no_database_means_nothing_to_migrate(self):
         os.environ["CAKE_HOME"] = tempfile.mkdtemp(prefix="cake-test-")

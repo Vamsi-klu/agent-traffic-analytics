@@ -1,5 +1,5 @@
 {
-  "sentence": "Connect this website to AgentCake. To get started, download the guide at https://raw.githubusercontent.com/tartini-ai/agent-traffic-analytics/v0.6.1/INSTALL.md with curl or the GitHub CLI. Then follow its steps in order. If the download fails, ask for network access. AgentCake is already installed, and its command is `agentcake`. Use this command in place of `agentcake` in the guide.",
+  "sentence": "Connect this website to AgentCake. To get started, download the guide at https://raw.githubusercontent.com/tartini-ai/agent-traffic-analytics/v0.6.2/INSTALL.md with curl or the GitHub CLI. Then follow its steps in order. If the download fails, ask for network access. AgentCake is already installed, and its command is `agentcake`. Use this command in place of `agentcake` in the guide.",
   "terminal": "cd <your-site-folder>\nagentcake setup --print --site\nagentcake doctor",
   "server": {
     "install": "sed -i 's/cake\\.example\\.com/cake.<your-domain>/' deploy/Caddyfile\ndocker compose build\ndocker compose up -d",

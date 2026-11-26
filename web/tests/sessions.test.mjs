@@ -21,8 +21,8 @@ const list = sample("sessions")
 const ids = (page) => page.$$eval('a[href^="#/sessions/"]', (rows) => rows.map((row) => row.getAttribute("href").split("/").pop()))
 const sessionsAsked = (requests) => requests.map((u) => new URL(u)).filter((u) => u.pathname === "/api/sessions").map((u) => Object.fromEntries(u.searchParams))
 
-async function open(query = "") {
-  const tab = await openTab(app)
+async function open(query = "", style) {
+  const tab = await openTab(app, { style })
   await tab.page.goto(app.url(`#/sessions${query}`))
   await tab.page.waitForSelector('[aria-label="Session type"]', { timeout: WAIT_MS })
   return tab
@@ -63,8 +63,8 @@ test("the title has no description under it: the Bot chip and the rows themselve
   } finally { await tab.close() }
 })
 
-test("each verdict chip has its badge's colours, by one rule picked or not; All is neutral", async () => {
-  const tab = await open()
+test("in Cake, each verdict chip has its badge's colours, by one rule picked or not; All is neutral", async () => {
+  const tab = await open("", "cake")
   try {
     const looks = async () => {
       // found and read in one evaluation: the list mounts again when the picked filter's sessions arrive, and a chip
@@ -104,8 +104,8 @@ test("each verdict chip has its badge's colours, by one rule picked or not; All 
   } finally { await tab.close() }
 })
 
-test("the filter bar is one height: its dropdowns are pills as tall as the verdict chips, and the small chips under them are pills", async () => {
-  const tab = await open("?filter=agent")
+test("in Cake, the filter bar is one height: its dropdowns are pills as tall as the verdict chips, and the small chips under them are pills", async () => {
+  const tab = await open("?filter=agent", "cake")
   try {
     const shapes = (selector) => tab.page.locator(selector).evaluateAll((els) => els.map((el) => {
       const box = el.getBoundingClientRect()

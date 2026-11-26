@@ -2,8 +2,9 @@
 
     python3 -I -m unittest discover -s tests -v
 
-The small cases document each feature. The cases on the lab's 26 sessions and on PostHog replays are kept with that
-data, outside the published repository.
+The small cases document each feature (the pointer-hardware ones, which pointer_features.py measures, are in
+test_pointer_features.py). The cases on the lab's 26 sessions and on PostHog replays are kept with that data, outside
+the published repository.
 """
 import math
 import os
@@ -150,35 +151,6 @@ class PathFeaturesTest(unittest.TestCase):
         self.assertEqual(feats([move(0), move(1000), move(2000)])["move_rate"], 1.5)
 
 
-class PointerFeaturesTest(unittest.TestCase):
-    def test_zero_movement_share_counts_moves_that_report_movement(self):
-        self.assertEqual(feats([move(0, mx=0, my=0), move(10, mx=3, my=1), move(20)])["zero_movement_frac"], 0.5)
-
-    def test_screen_equal_client_share(self):
-        events = [move(0, 5, 5, sx=5, sy=5), move(5, 6, 6, sx=6, sy=6), click(10, 7, 7, sx=100, sy=200),
-                  click(20, 9, 9, sx=100, sy=200)]
-        self.assertEqual(feats(events, events)["screen_eq_client"], 0.5)
-
-    def test_screen_equal_client_needs_two_places_in_the_session(self):
-        # after bot-signal's cdp-input-coordinate-leak, MIT: one spot where the screen and the page
-        # positions coincide is a window in the screen's corner, not input a debugger dispatched
-        once = [move(0, 10, 10, sx=10, sy=10), move(50, 30, 10, sx=130, sy=110)]
-        twice = once + [move(90, 40, 40, sx=40, sy=40)]
-        self.assertEqual(feats(once, once)["screen_eq_client"], 0.0)
-        self.assertEqual(feats(twice, twice)["screen_eq_client"], 2 / 3)
-
-    def test_pressure_zero_share_of_pointerdowns(self):
-        self.assertEqual(feats([ev(0, "pointerdown", pr=0), ev(10, "pointerdown", pr=0.5)])["pressure_zero_click"], 0.5)
-
-    def test_screen_offset_jump_compares_with_the_last_pointer_event_on_the_page(self):
-        session = [move(0, 10, 10, sx=110, sy=210, pg="/"), ev(100, "mousedown", cx=20, cy=20, sx=120, sy=220, pg="/"),
-                   click(150, 30, 30, sx=30, sy=30, pg="/")]
-        self.assertEqual(feats(session, session)["screen_offset_jump"], 0.5)
-
-    def test_screen_offset_jump_needs_two_pointer_events_on_the_page(self):
-        self.assertIsNone(feats([click(0, 1, 1, sx=1, sy=1, pg="/")])["screen_offset_jump"])
-
-
 class ScrollAndKeyFeaturesTest(unittest.TestCase):
     def test_a_scroll_within_400_ms_after_a_wheel_or_key_is_not_scroll_without_wheel(self):
         session = [ev(800, "wheel"), ev(1000, "scroll"), ev(3000, "scroll"), ev(4300, "keydown"), ev(4600, "scroll")]
@@ -237,8 +209,49 @@ class ScrollAndKeyFeaturesTest(unittest.TestCase):
 
 class PageStateAndTimingTest(unittest.TestCase):
     def test_untrusted_count_and_no_focus_and_hidden_shares(self):
+        # no_focus reads the clicks, keys and typing (features.json no_focus_events): here the click of two
         f = feats([ev(0, "mousemove", tr=0), ev(10, "click", hf=0), ev(20, "scroll", vs=0), ev(30, "keydown")])
-        self.assertEqual((f["untrusted"], f["no_focus"], f["hidden"]), (1, 0.25, 0.25))
+        self.assertEqual((f["untrusted"], f["no_focus"], f["hidden"]), (1, 0.5, 0.25))
+
+    def test_no_focus_leaves_out_moving_and_scrolling(self):
+        # on a Mac a person scrolls and hovers a window that is not active (writing code in an editor beside it)
+        unfocused = [move(0, 10, 10, hf=0), ev(100, "wheel", hf=0), ev(100, "scroll", hf=0), move(300, 20, 20, hf=0)]
+        self.assertIsNone(feats(unfocused)["no_focus"])
+        self.assertEqual(feats(unfocused + [click(900, 20, 20, d=1)])["no_focus"], 0.0)
+
+    def test_no_focus_keeps_clicks_keys_and_typing_without_focus(self):
+        # an agent drives the browser through its debugging protocol while its user works in a terminal
+        # (Claude Code driving Claude in Chrome): its clicks and typing reach a window without focus
+        driven = [click(0, 50, 50, d=1, hf=0), ev(500, "keydown", hf=0), ev(500, "input", it="insertText", hf=0)]
+        self.assertEqual(feats(driven)["no_focus"], 1.0)
+
+    def test_no_focus_reads_only_typed_text_among_the_inputs(self):
+        # a person drops text from another app into a field, or pastes from its menu, without activating the window
+        for change in ({"it": "insertFromDrop"}, {"it": "insertFromPaste"}, {"it": "insertText", "ic": 1}):
+            self.assertIsNone(feats([ev(0, "input", hf=0, **change)])["no_focus"], change)
+
+    def test_untrusted_counts_only_the_device_events_a_script_dispatched(self):
+        # a page's own scripts click its buttons and set its fields (element.click(), a widget's input and change)
+        scripted = [click(0, d=0, tr=0, pt="", pid=-1), ev(10, "input", tr=0), ev(20, "change", tr=0)]
+        self.assertEqual(feats(scripted)["untrusted"], 0)
+        for kind in ("pointerdown", "pointerup", "pointermove", "mousedown", "mouseup", "mousemove", "keydown",
+                     "keyup", "wheel", "touchstart", "touchend"):
+            self.assertEqual(feats([ev(0, kind, tr=0)])["untrusted"], 1, kind)
+
+    def test_no_focus_leaves_out_what_a_script_dispatched(self):
+        # a carousel goes on turning itself while the person reads in another window
+        self.assertIsNone(feats([click(0, d=0, tr=0, hf=0), click(5000, d=0, tr=0, hf=0)])["no_focus"])
+        self.assertEqual(feats([click(0, 20, 20, d=1, hf=0), click(5000, d=0, tr=0, hf=0)])["no_focus"], 1.0)
+
+    def test_a_scripted_click_shows_no_approach_aim_or_screen_position(self):
+        # dispatchEvent(new MouseEvent("click", {detail: 1, clientX, clientY})) on its button's centre, a hand's
+        # moves before it (screen positions 40 and 147 px from the page's)
+        session = [move(t, 30 + t // 100, 90, sx=70 + t // 100, sy=237) for t in range(0, 1000, 100)]
+        session.append(click(1000, 50, 25, sx=0, sy=0, d=1, tr=0, r=ClickFeaturesTest.BOX))
+        f = feats(session[-1:], session)
+        self.assertEqual((f["moves_before_click"], f["click_center_norm"], f["click_center_px"]), (None, None, None))
+        self.assertEqual((f["screen_offset_jump"], f["screen_eq_client"]), (None, None))
+        self.assertEqual(features.mouse_clicks(session), [])
 
     def test_pause_before_is_the_wait_since_the_previous_segment(self):
         self.assertEqual(feats([click(500)], prev_end=200.0)["pause_before_ms"], 300.0)

@@ -1,11 +1,13 @@
 // The replay window (DESIGN.md §6): an address bar and the stage rrweb-player draws into (lib/use-replay.ts),
 // with what the stage shows while the replay loads, when it can't load and when there is no replay; and the controls
 // under it (play, time, speed, Jump to hand-off). The player's frame and cursor take the theme's tokens (index.css,
-// "Replay player"); the cursor carries the name of who acts.
+// "Replay player"); the cursor carries the name of who acts. A session of more than one tab names the tab on the stage
+// in the address bar, and its controls pick what the replay shows: the tab the visitor is active in, or one tab.
 import type { ReactNode } from "react"
 import { Pause, Play, SkipForward } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import type { ReplayMissing } from "@/data/types"
 import { clock, withoutScheme } from "@/lib/format"
@@ -19,7 +21,9 @@ import { RetryButton } from "./page-state"
 const MISSING: Record<ReplayMissing, string> = { freed: WORDS.replayFreed, dropped: WORDS.replayDropped, none: WORDS.replayNone }
 export const missingText = (missing: ReplayMissing | null) => MISSING[missing ?? "none"]
 
-type StageProps = Pick<ReplayState, "status" | "missing" | "error" | "waiting" | "address" | "mount" | "retry">
+type StageProps = Pick<ReplayState, "status" | "missing" | "error" | "waiting" | "address" | "mount" | "retry" | "tabs">
+/** The tab menu's value for following the visitor (a Select's values are text; the tabs are numbers). */
+const FOLLOW = "follow"
 
 /** What the stage shows instead of the replay: centred on the stage's own background. */
 function StageNote({ children }: { children: ReactNode }) {
@@ -31,6 +35,7 @@ export function ReplayStage({ replay }: { replay: StageProps }) {
     <div className="flex flex-col" data-replay={replay.status}>
       <div className="flex items-center gap-2 border-b-2 border-line px-3 py-2 minimal:border-b">
         <span className="flex gap-1.5" aria-hidden>{[0, 1, 2].map((i) => <i key={i} className="size-2.5 rounded-full border-2 border-line bg-muted minimal:border-0 minimal:bg-input" />)}</span>
+        {replay.tabs && <Badge variant="tag" data-stage-tab="">{WORDS.tab(replay.tabs.shown)}</Badge>}
         <span data-address="" className="min-w-0 flex-1 truncate rounded-full border-2 border-border bg-muted px-3 text-sm text-muted-foreground minimal:border">{withoutScheme(replay.address)}</span>
       </div>
       <div className="relative aspect-video overflow-hidden bg-muted">
@@ -64,9 +69,24 @@ export function ReplayControls({ replay, durationMs }: { replay: ReplayState; du
         onValueChange={(value) => value && replay.setSpeed(Number(value))}>
         {SPEEDS.map((speed) => <ToggleGroupItem key={speed} value={String(speed)}>{speed}×</ToggleGroupItem>)}
       </ToggleGroup>
+      {replay.tabs && <TabMenu tabs={replay.tabs} />}
       {replay.nextHandoff !== null && (
         <Button variant="ghost" size="sm" disabled={!ready} onClick={replay.jumpToHandoff}><SkipForward aria-hidden />{WORDS.jumpToHandoff}</Button>
       )}
     </div>
+  )
+}
+
+/** What the replay of a session with more than one tab shows: Follow the visitor (the tab the visitor is active in,
+ *  the default), or one tab throughout. */
+function TabMenu({ tabs }: { tabs: NonNullable<ReplayState["tabs"]> }) {
+  return (
+    <Select value={tabs.view === "follow" ? FOLLOW : String(tabs.view)} onValueChange={(value) => tabs.setView(value === FOLLOW ? "follow" : Number(value))}>
+      <SelectTrigger aria-label={WORDS.replayTab}><SelectValue /></SelectTrigger>
+      <SelectContent>
+        <SelectItem value={FOLLOW}>{WORDS.followVisitor}</SelectItem>
+        {tabs.numbers.map((n) => <SelectItem key={n} value={String(n)}>{WORDS.tab(n)}</SelectItem>)}
+      </SelectContent>
+    </Select>
   )
 }

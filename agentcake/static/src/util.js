@@ -9,7 +9,7 @@
 //   BUILD    a short hash of the sources, sent with every page so data can be traced to the script that made it
 //   STARTED  performance.now() when cake.js began to run
 //
-// The helpers here read clocks and sessionStorage and keep the list of everything stop() must undo.
+// The helpers here read clocks, sessionStorage and localStorage and keep the list of everything stop() must undo.
 
 var HEX_RADIX = 16 // protocol: hexadecimal digits of an id
 var HEX_DIGITS_PER_BYTE = 2 // protocol: one byte is two hexadecimal digits
@@ -57,33 +57,47 @@ C.randomId = function () {
   return C.hex(crypto.getRandomValues(new Uint8Array(CFG.id_bytes)))
 }
 
-// sessionStorage can be missing or throw (private windows, storage turned off). Then cake.js keeps working without
-// it: a page simply starts a new visit id and nothing is parked for the next page.
-C.store = {
-  get: function (key) {
-    try {
-      return sessionStorage.getItem(key)
-    } catch (e) {
-      return null
-    }
-  },
-  set: function (key, value) {
-    try {
-      sessionStorage.setItem(key, value)
+// sessionStorage and localStorage can be missing or throw (private windows, storage turned off, a full quota; even
+// reading the property can throw, so `open` is called inside the try). Then cake.js keeps working without them: a
+// page simply starts new ids of its own and nothing is parked for the next page.
+function storage(open) {
+  return {
+    get: function (key) {
+      try {
+        return open().getItem(key)
+      } catch (e) {
+        return null
+      }
+    },
+    /** Returns whether the value was stored. */
+    set: function (key, value) {
+      try {
+        open().setItem(key, value)
+        return true
+      } catch (e) {
+        return false
+      }
+    },
+    remove: function (key) {
+      try {
+        open().removeItem(key)
+      } catch (e) {
+        return false
+      }
       return true
-    } catch (e) {
-      return false
     }
-  },
-  remove: function (key) {
-    try {
-      sessionStorage.removeItem(key)
-    } catch (e) {
-      return false
-    }
-    return true
   }
 }
+
+/** This tab's storage (sessionStorage): the tab's id, its session, its page count, parked uploads. */
+C.store = storage(function () {
+  return sessionStorage
+})
+
+/** The storage every tab of the site shares (localStorage): the browser's session (session.js). */
+C.shared = storage(function () {
+  return localStorage
+})
 
 /** Records one of cake.js's own failures (where, and the message only) so a broken probe shows up in cake. */
 C.fault = function (where, error) {
