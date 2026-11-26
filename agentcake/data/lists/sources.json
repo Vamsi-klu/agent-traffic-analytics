@@ -92,13 +92,13 @@
         "note": "The built-in browser of Google's Antigravity app, which people also browse by hand (antigravity.google/docs/browser, 'Use the built-in browser manually', read 2026-11-16). Measured on 20 of 20 sessions, Antigravity 2.32.0 (2026-11-13) and 2.32.1 (2026-11-16): the User-Agent ends with Antigravity/<version> after Chrome/152 and Safari/537.36, and the brand list has only Chromium, as an Electron app's browser has, so env.auto.chromium-only-brand says nothing about automation in it. Google's crawler pages do not list it; the Google-Jetski-Antigravity User-Agent PostHog lists stays a name of its own."
       },
       {
-        "id": "grokagent",
-        "name": "GrokAgent",
-        "operator": "xAI",
+        "id": "grok-bot",
+        "name": "Grok Bot",
+        "operator": "Anysphere",
         "kind": "cloud-agent",
         "evidence": "unverified",
         "patterns": [{"match": "versioned", "text": "GrokAgent"}],
-        "note": "xAI's Grok cloud computer. 'GrokAgent/1.0 (u:...)' at the end of the User-Agent comes from one second-hand source; neither botscent nor PostHog lists it."
+        "note": "xAI's Grok Bot uses Cursor-hosted computers operated by Anysphere (https://docs.x.ai/grok-bot/security). Cloudflare Radar lists GrokAgent under Grok Bot, and RuntimeWire observed the versioned token in the cloud browser in August 2026. The User-Agent is self-reported and may be absent."
       }
     ],
     "aliases": {
@@ -263,7 +263,7 @@
     },
     "signing": {
       "$comment": "Signers reported to have stopped signing requests, which their key directory cannot show. The note is copied onto the signer in signers.json; its keys stay bundled, so its signatures verify again if it signs again. Each note says when, where it comes from and how sure that is.",
-      "cursorusercontent.com": {"state": "stopped", "since": "2026-10", "checked": "2026-11-13", "evidence": "unverified", "note": "Grok Bot's requests arrive unsigned since October 2026: botscent's own benchmark (commit 8ad85181, 2026-10-01: unsigned since 1 October), Fingerprint (around 2026-10-09) and Verisoul (mid-October, updated 2026-11-03). xAI's Grok Bot page (x.ai/bot) says nothing about signing either way. The directory still publishes the same key (valid until 2027-08), checked 2026-11-13."}
+      "cursorusercontent.com": {"state": "stopped", "since": "2026-10", "checked": "2026-11-13", "evidence": "unverified", "note": "Grok Bot uses Cursor-hosted computers operated by Anysphere (https://docs.x.ai/grok-bot/security). Cloudflare Radar lists this directory for Grok Bot. Unsigned requests were reported in October 2026 by botscent (commit 8ad85181, 2026-10-01, desktop relay), Fingerprint and Verisoul. The key was still published on 2026-11-13; current signing coverage has not been measured by AgentCake."}
     }
   }
 }

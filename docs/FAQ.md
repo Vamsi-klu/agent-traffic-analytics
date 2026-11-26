@@ -23,8 +23,9 @@ sessions; the 17 it missed are PostHog replays, which hold only its behavior, an
 
 ## Which agents and automation tools does it recognize?
 
-- **Agents that name themselves or sign their requests:** ChatGPT, Manus, Grok.
-- **Agents that mark the pages they drive:** Claude in Chrome.
+- **Agents that name themselves or sign their requests:** ChatGPT, Manus.
+- **Agents that leave traces in the pages they drive:** Claude in Chrome and Grok Bot. When Grok Bot sends the
+  GrokAgent User-Agent token, AgentCake uses the same name. [Grok Bot's listed identity](https://radar.cloudflare.com/bots/directory/grok-bot)
 - **Automation tools:** Playwright, Puppeteer, Selenium.
 
 Each is named with how sure AgentCake is: Verified (a signature or a published IP range) or Likely (the name it gives,

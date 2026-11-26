@@ -48,6 +48,7 @@ BOTSCENT = {
         "chatgpt-user": {"display": "ChatGPT-User", "vendor": "OpenAI", "kind": "fetcher"},
         "curl": {"display": "curl", "vendor": "curl project", "kind": "client"},
         "chatgpt": {"display": "ChatGPT", "vendor": "OpenAI", "kind": "computer-use-agent"},
+        "grok-bot": {"display": "Grok Bot", "vendor": "Anysphere", "kind": "computer-use-agent"},
         "claude-chrome": {"display": "Claude for Chrome", "vendor": "Anthropic", "kind": "extension"},
         "cloudflare-browser-run": {"display": "Cloudflare Browser Run", "vendor": "Cloudflare", "kind": "automation"}}},
     "page": {"user_agent_prefixes": {"Kitesurf/": "cloudflare-browser-run"}, "user_agent_tokens": {},
@@ -181,8 +182,11 @@ class BuildTest(unittest.TestCase):
                          ("Claude in Chrome", "ai-browser-extension", ["botscent"]))
 
     def test_cake_additions_keep_their_evidence(self):
-        self.assertEqual((self.names["grokagent"]["evidence"], self.names["grokagent"]["sources"][0]),
-                         ("unverified", "cake"))
+        grok = self.names["grok-bot"]
+        self.assertEqual((grok["name"], grok["operator"], grok["evidence"], grok["sources"]),
+                         ("Grok Bot", "Anysphere", "unverified", ["cake", "botscent"]))
+        self.assertEqual(grok["patterns"], [{"match": "versioned", "text": "GrokAgent", "source": "cake"}])
+        self.assertNotIn("grokagent", self.names)
         self.assertNotIn("evidence", self.names["claude-agent"])  # its operator documents it now
         self.assertEqual(self.names["claude-agent"]["sources"][0], "cake")
 
