@@ -87,10 +87,9 @@ def recordings(items, truth):
 
 
 def recorded(items, source=RECORDED):
-    """The recorder's agent and hand-off recordings: grouped by who operated them (the label), each answer its own
-    line's (agent, or mixed for a hand-off), and the same layers as a clean recording; held out by product (the
-    label), as the calibration's folds are. source names the data set: the recordings people made (recorded) or the
-    ones we ran ourselves (selfcollect), never mixed."""
+    """The recorder's labelled recordings, grouped by who operated them. Each uses the same layers as a clean
+    recording and holds its label as the calibration fold. Source distinguishes the recordings people made
+    (recorded) from the ones we ran ourselves (selfcollect)."""
     out = []
     for item in items:
         truth = {"class": item["truth"], "label": item["label"], "mode": item["mode"]}

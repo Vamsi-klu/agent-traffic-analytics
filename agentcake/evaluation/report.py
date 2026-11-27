@@ -6,7 +6,7 @@
 Rows name sessions by lab run names and 12-hex short hashes only (never a path, an address or a PostHog id); data
 sets that were not given are named with what to give. The JSON next to it (agentcake/eval.py) holds every row.
 """
-from agentcake.evaluation import sessions, takeovers
+from agentcake.evaluation import recorded_cohorts, sessions, takeovers
 from agentcake.units import PERCENT
 
 DASH = "—"
@@ -24,6 +24,7 @@ def markdown(results, verdicts, where, notes, limit_s):
     lines = ["# agentcake eval", ""]
     lines += markdown_gate(verdicts) + _sources(where, notes, results) + _scoreboard(results["scoreboard"], limit_s)
     lines += _heldout(results["heldout"]) + _calibration(results["calibration"]) + _sessions(results["rows"])
+    lines += recorded_cohorts.markdown(results.get("recorded_cohorts", []), limit_s)
     lines += _humans(results["humans"]) + _takeovers(results["takeovers"], limit_s)
     lines += _segments(results["segments"]) + _baselines(results["baselines"]) + _layers(results["layers"])
     lines += _bots(results["bots"])
@@ -47,7 +48,10 @@ def _measurement(m, unit):
     if not m["n"]:
         return f"{m['source']}: no samples" + (f" ({left_out})" if left_out else "")
     if "count" in m:
-        tail = f"; {left_out}" if left_out else ""
+        notes = [f"{details['mixed']} mixed"] if details.get("mixed") else []
+        if left_out:
+            notes.append(left_out)
+        tail = "".join(f"; {note}" for note in notes)
         return f"{m['source']}: {_number(m['value'], unit)} ({m['count']}/{m['n']}{tail})"
     value, extra = _number(m["value"]), ""
     if "every_handoff" in details:

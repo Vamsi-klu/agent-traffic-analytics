@@ -2,7 +2,8 @@
 
     build(data, settings, limit_s, with_logistic) -> results
 
-results: "rows" (each data set's sessions with their four-layer verdict, sessions.py; a website's own labelled
+results: "recorded_cohorts" (recorder reference counts by mode), "rows" (each data set's sessions with their four-layer
+verdict, sessions.py; a website's own labelled
 sessions, "site", are held out: only the sessions table and the scoreboard's held-out cells read them), "scoreboard"
 (the behaviour layer reported the industry's way, scoreboard.py), "heldout" (thresholds set from data, tested on the
 sites they were not set from, heldout.py), "calibration" (the percents against the answers, calibration.py),
@@ -19,7 +20,8 @@ pair the lab's Claude in Chrome recordings with the dev set's humans.
 """
 from agentcake.detect import rrweb_events
 from agentcake.evaluation import (baselines, behaviour, bots, calibration, evidence as evidence_builder, heldout,
-                                  humans, layers, scoreboard, segments, sessions, splice, takeovers)
+                                  humans, layers, recorded_cohorts, scoreboard, segments, sessions, splice,
+                                  takeovers)
 
 HUMAN = {"class": "human", "row": None, "group": "clean-human"}
 AUTOMATED = {"class": "agent", "row": "automated", "group": "automated-browser"}
@@ -42,15 +44,21 @@ def build(data, settings, limit_s, with_logistic=True):
         rows["posthog"] = sessions.posthog(posthog["units"], lambda u: behaviour.posthog_group(u, settings["posthog"]),
                                            lambda unit, group: posthog_truth(unit, group, settings))
     lab_segments = {run: {"segment_group": s["segment_group"], "events": s["raw"]} for run, s in lab.items()}
+    cohorts = settings["recorded"].get("mode_cohorts", {})
+    references = [r for r in rows["recorded"] if r["group"] in cohorts]
+    reference_ids = {r["id"] for r in references}
+    benchmark_rows = dict(rows, recorded=[r for r in rows["recorded"] if r["id"] not in reference_ids])
+    handoffs = _recorded_handoffs(data["recorded"], rows["recorded"], limit_s)
     takeover_rows = {**_takeovers(lab, data, posthog, settings, limit_s),
-                     "recorded_handoffs": _recorded_handoffs(data["recorded"], rows["recorded"], limit_s)}
+                     "recorded_handoffs": [r for h, r in handoffs.items() if h not in reference_ids]}
     return {"rows": rows,
+            "recorded_cohorts": recorded_cohorts.build(references, handoffs, cohorts, limit_s),
             "segments": {"single_source": segments.single_source(lab_segments, settings) if lab else [],
                          "lab_splices": segments.splices(lab_segments, settings, with_logistic) if lab else []},
             "takeovers": takeover_rows,
-            "scoreboard": scoreboard.build(rows, takeover_rows, settings, limit_s),
-            "heldout": heldout.build(_heldout_sessions(data, rows, settings), settings),
-            "calibration": calibration.build(rows, settings),
+            "scoreboard": scoreboard.build(benchmark_rows, takeover_rows, settings, limit_s),
+            "heldout": heldout.build(_heldout_sessions(data, benchmark_rows, settings), settings),
+            "calibration": calibration.build(benchmark_rows, settings),
             "baselines": _baselines(lab, data, rows, settings, with_logistic),
             "layers": {"by_half": layers.by_half(_layered(rows), settings),
                        "by_layer": layers.by_layer(_layered(rows), settings)},
@@ -98,11 +106,12 @@ def _takeovers(lab, data, posthog, settings, limit_s):
 
 def _recorded_handoffs(items, rows, limit_s):
     """The recorder's hand-offs: each action's answer is the stretch it lies in, the true hand-offs the first action
-    of each stretch that follows the other side's (splice.boundaries, as for a T5 session of a CAKE_HOME)."""
+    of each stretch that follows the other side's (splice.boundaries, as for a T5 session of a CAKE_HOME).
+    Keyed by the recorder hash so reference hand-offs can be counted separately."""
     evidence = {r["id"]: r["evidence"] for r in rows}
-    return [takeovers.session_row(evidence[item["h"]], _who_at(item["stretches"]), splice.boundaries(item["stretches"]),
-                                  limit_s)
-            for item in items if item["stretches"]]
+    return {item["h"]: takeovers.session_row(evidence[item["h"]], _who_at(item["stretches"]),
+                                           splice.boundaries(item["stretches"]), limit_s)
+            for item in items if item["stretches"] and item["truth"] != "human"}
 
 
 def _posthog_takeovers(lab, posthog, settings, limit_s):

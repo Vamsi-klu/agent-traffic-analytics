@@ -41,8 +41,14 @@
     "min_input_events": 20
   },
   "recorded": {
-    "_about": "The recorder's agent and hand-off recordings (the recordings' list), by the label of who operated them, as decided on 2026-11-13 (thresholds A2 to A5 as written, no threshold value changed). a2_labels: threshold A2's Claude in Chrome, from its side panel or driven by Claude Code: the data set `recorded`, which the gate judges. Every other agent label is a data set of its own, `recorded/<label>`, printed and never judged (the local AI browsers have their own expectations). Hand-offs are `recorded_handoffs`, judged for A3 to A5 beside the splices.",
-    "a2_labels": ["cic-panel", "cic-mcp"]
+    "_about": "The recorder's agent and hand-off recordings (the recordings' list), by the label of who operated them, as decided on 2026-11-13 (thresholds A2 to A5 as written, no threshold value changed). reference_human_labels: human recordings reported by label for A1 and A8. a2_labels: threshold A2's Claude in Chrome, from its side panel or driven by Claude Code: the data set `recorded`, which the gate judges. Every other agent label is a data set of its own, `recorded/<label>`, printed and never judged (the local AI browsers have their own expectations). Hand-offs are `recorded_handoffs`, judged for A3 to A5 beside the splices. mode_cohorts: reference rows by label, truth and documented surface, with an expected list name when known.",
+    "a2_labels": ["cic-panel", "cic-mcp"],
+    "reference_human_labels": ["agy-human"],
+    "mode_cohorts": {
+      "agy-human": {"truth": ["human"], "modes": ["in-app"]},
+      "agy-browser": {"truth": ["agent", "mixed"], "modes": ["in-app"], "name": "antigravity-browser"},
+      "agy-cu": {"truth": ["agent", "mixed"], "modes": ["in-app", "own-chrome"]}
+    }
   },
   "scoreboard": {
     "_about": "The behaviour layer reported the industry's way (agentcake/evaluation/scoreboard.py; after Akamai's research prototype and AgentShield): the evaluable share, recall per agent product, human false positives with their exact interval at `confidence`, precision when agents are each of `prevalences` of all sessions, and every count per site. agent_sources and human_sources: the data sets whose agent or human answers it counts (posthog's answers are reference only, eval/README.md; selfcollect is the recordings we ran ourselves, kept apart from people's recorded ones). recording: how each data set recorded input (raw: cake.js's raw events; rrweb: PostHog's recording, without keys, wheel or screen positions): precision pairs a product with the humans recorded the same way. products: the agent product a group or label belongs to (others are their own). sites: the site of a data set whose rows do not name one. held_out_sources: the data sets counted on their own and nowhere else (a website's own sessions, labelled afterwards, site: --site-home and --truth-site): never in agent_sources or human_sources, so no pooled rate, precision or site count reads them; nor are they in calibration's sources or heldout's fits, nor gated by eval/thresholds.json.",
@@ -54,7 +60,7 @@
     "products": {"claude-chrome-bg": "claude-chrome", "cic-panel": "claude-chrome", "cic-mcp": "claude-chrome",
                  "pw-direct-headed": "playwright-direct", "pw-direct-headless": "playwright-direct",
                  "pw-humanlike-headed": "playwright-humanlike", "pw-humanlike-headless": "playwright-humanlike",
-                 "fake-pw-humanlike": "playwright-humanlike"},
+                 "fake-pw-humanlike": "playwright-humanlike", "agy-browser": "antigravity-browser"},
     "sites": {"lab": "lab", "posthog": "tartini.ai", "store": "cake-home"},
     "held_out_sources": ["site"]
   },
@@ -65,7 +71,8 @@
   "calibration": {
     "_about": "The calibration table (agentcake/evaluation/calibration.py): the behaviour map of agentcake/data/calibration.json refitted without each data set of sources and checked on it, the packaged map on all of them, and the session percent on every session with an answer; per bin of predicted chance of an agent (bins, [from, to)), how many sessions, the predicted and the actual share, both classes weighted alike; and the Brier score. prior_count: sessions of each class a fitted block is shrunk towards even with (the calibration script uses the same). Real agent products with certain answers are in, each held out by product (sessions.recorded); left_out: the labels of a source that are not, the automation we made to look human: how many of them we record is our choice, not a measurement, and in the fit they would lower every Human's percent by an amount we chose (11/13, agreed with the coordinator).",
     "sources": ["lab", "recordings", "recorded", "selfcollect", "public_humans", "posthog", "store"],
-    "left_out": {"selfcollect": ["fake-patchright-ghost", "fake-pw-humanlike", "fake-camoufox", "fake-pw-builtin",
+    "left_out": {"recorded": ["agy-human", "agy-browser", "agy-cu"],
+                 "selfcollect": ["fake-patchright-ghost", "fake-pw-humanlike", "fake-camoufox", "fake-pw-builtin",
                                  "fake-pptr-ghost-humanize", "fake-pw-humancursor", "fake-selenium-humancursor",
                                  "fake-pw-fingerprint", "fake-pptr-setua"]},
     "bins": [[0.0, 0.1], [0.1, 0.3], [0.3, 0.5], [0.5, 0.7], [0.7, 0.9], [0.9, 1.0]],

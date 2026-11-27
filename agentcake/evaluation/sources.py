@@ -58,10 +58,11 @@ def load(where, settings):
         data["recordings"] = datasets.recordings(where["recordings"], where["truth_manual"], settings)
         if not data["recordings"]:
             notes["recordings"] = "no clean recording yet: the clean recordings' list (--truth-manual) names none that the folder has"
-        data["recorded"] = datasets.recorded(where["recordings"], where["truth_recordings"], settings)
+        human_labels = settings["recorded"].get("reference_human_labels", ())
+        data["recorded"] = datasets.recorded(where["recordings"], where["truth_recordings"], settings,
+                                             human_labels=human_labels)
         if not data["recorded"]:
-            notes["recorded"] = ("no agent or hand-off recording yet: the recordings' list (--truth-recordings) names none that "
-                                 "the folder has")
+            notes["recorded"] = "no matching recording yet: the list (--truth-recordings) names none that the folder has"
     else:
         notes["recordings"] = "not given (--recordings: the recorder's data folder)"
         notes["recorded"] = notes["recordings"]
