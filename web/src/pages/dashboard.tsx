@@ -114,7 +114,7 @@ function DashboardBody({ o, web, range, agentEver, demoOnly }: {
         <PageHeader as="h2" title={WORDS.deepDive} />
         <TopAgentsChart agents={web.agents} />
         <TrendsChart trends={web.trends} timeZone={web.time_zone} />
-        <PathsTable paths={web.paths} shown={web.shown} />
+        <PathsTable paths={web.paths} shown={web.shown} range={range} />
         <WebStatsTable title={WORDS.web.titles.sources} icon={TABLE_ICONS.sources} help={WORDS.about.sources} table={web.tables.sources} shown={web.shown} place={web.place} range={range} initial="channel" />
         <WebStatsTable title={WORDS.web.titles.devices} icon={TABLE_ICONS.devices} help={WORDS.about.devices} table={web.tables.devices} shown={web.shown} place={web.place} range={range} initial="device_type" />
         <WebStatsTable title={WORDS.web.titles.geography} icon={TABLE_ICONS.geography} help={WORDS.about.geography} table={web.tables.geography} shown={web.shown} place={web.place} range={range} initial="country" />

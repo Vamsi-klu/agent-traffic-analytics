@@ -157,7 +157,7 @@ Headings **Fredoka** (`font-heading`, used automatically for h1–h3), body text
 | soft secondary action | `Button` · `secondary` | as above, `--secondary` background | rarely; grouped secondary actions |
 | toolbar, navigation | `Button` · `ghost` | no frame | top-bar navigation (the current page uses `outline`), Copy, Jump to hand-off |
 | delete | `Button` · `destructive` | red text on white + frame | Delete all data; **always paired with a `Dialog` confirmation** |
-| inline link | `Button` · `link` | 2px underline | View registration data, Remove filter, Show as table |
+| inline link | `Button` · `link` | 2px underline | View registration data, Remove filter, Show as table, paths that open matching session replays |
 | sizes | `size` `lg` / `default` / `sm` / `xs` / `icon*` | height 36/44px | `lg` only for the big button on the first screen; `sm` in cards and rows; **an icon-only button must be wrapped in a `Tooltip` and have an `aria-label`** |
 | framed content | `Card` · `default` | 2px frame + `shadow-hard`; a title's icon goes before it through `CardTitle`'s `icon` (`<CardTitle icon={Globe}>`), never as a child of the title | charts, reasons, settings groups |
 | regular numbers | `Card` · `flat` (`StatCard`) | frame, no shadow | the numbers below the spotlight block (§6.1); each named by what it counts, with its verdict's icon in its badge's text colour; "—" for a number without data |
@@ -206,6 +206,8 @@ The dashboard (the top bar's Dashboard; the page's h1 says so to screen readers 
 - **Highlighted rows**: for Agent sessions, `SessionRow` automatically adds an 8px `--agent` bar on the left and Crumb's head before the name (hover: "An AI agent acted for a human"). A row names who acted: the agent's `AgentTag` with how sure its name is inside it, or `UnnamedTag` with the one grey avatar, as the session page shows them, or "A human" (with `ThinEvidenceTag` when cake couldn't tell); on the session list its second line starts with the Agent session's split (`TurnsBadge`). A session of more than one tab (a visit's tabs are one session) says how many before its pages ("2 tabs · 8 pages · 1m 36s") and draws a line per tab (`TabLines`); one that more than one agent acted in names each agent with its tag.
 - **Muted rows**: Script bot rows at 60% opacity, no shadow, no segmented bar, with the text "Script bot sessions are counted but don't show a timeline."
 - **Verdict filter** on Session replay (the session list): All (picked by default), Agent, Human and Script bot, each chip in its verdict's colours (`ToggleGroupItem` `outline` / `agent` / `human` / `bot`, §6), the count above the list in sessions ("1 session"). While Agent is on, a second row (`ToggleGroup outline`, `sm`) picks All agent sessions, Agent only or Human + agent, each with its count (judging.en.json's words; `/api/sessions` takes it as `turns`), which combines with the Agent name filter; the top block's name links open the list with that name picked. While Human is on, a second row picks All human sessions or Limited evidence (`/api/sessions` takes it as `evidence`).
+
+- **Visited path filter** on Session replay: a Paths row opens the visits that viewed its pathname and keeps the dashboard's date range and the table's selected session type. Matching uses all counted tabs and lists each visit once. A `Badge tag` shows the pathname. Its `Button link` removes the path while keeping the other filters in the URL.
 
 ### 6.2 The project in the top bar
 

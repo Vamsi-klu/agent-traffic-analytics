@@ -303,10 +303,10 @@ function Overview({ overview: o, registration, sessions, web, zones }: {
           "The Paths, Sources, Devices, and Geography cards all use this table. Each card shows its title at the top. Each table starts with a different breakdown: Channel, Device type, or Country.",
           "All, Agent, and Human use the session list's classification colors. Each row shows the sessions in bold, then visitors and page views, for the selected type. When All is selected, the Agent share also appears in bold.",
           "Hover over a row to split each number into Agent and Human. Rows are sorted by sessions, and the first ten appear until you select Show all. Script bots aren't counted.",
-          "Select a value to open its sessions. On a narrow screen, the table scrolls instead of the page.",
+          "Select a path or a breakdown value to open its matching sessions with the date range and session type selected. The session list shows a removable filter. On a narrow screen, the table scrolls inside its card.",
           "A region or city appears with its country. Each country also has its own Not set row.",
           "Below Geography, SourceCredit links to the source of the city database.",
-        ]} code="Select · SourceCredit · /api/web">
+        ]} code="Select · SourceCredit · /api/web · /api/sessions">
         <div className="w-full"><PathsTable paths={web.paths} shown={web.shown} /></div>
         <div className="w-full"><WebStatsTable title={WORDS.web.titles.sources} icon={TABLE_ICONS.sources} help={WORDS.about.sources} table={web.tables.sources} shown={web.shown} place={web.place} /></div>
         <div className="w-full"><WebStatsTable title={WORDS.web.titles.geography} icon={TABLE_ICONS.geography} help={WORDS.about.geography} table={web.tables.geography} shown={web.shown} place={web.place} initial="region" /></div>
