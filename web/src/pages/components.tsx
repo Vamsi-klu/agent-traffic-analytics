@@ -20,6 +20,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { BudgetWarning, CopyBlock, DiskStoppedWarning, DocumentLink, Hint, InfoTip, PageHeader, StatCard, StorageMeter, StorageUse } from "@/components/cake/bits"
 import { Crumb, CrumbHead } from "@/components/cake/crumb"
+import { DeleteSession } from "@/components/cake/delete-session"
 import { OnboardingStep, OrSeparator } from "@/components/cake/onboarding"
 import { ProjectLink } from "@/components/cake/project-link"
 import { Loaded, PageError, PageLoading } from "@/components/cake/page-state"
@@ -250,6 +251,11 @@ function Overview({ overview: o, registration, sessions, web, zones }: {
         </DropdownMenu>
         <Hint text="More"><Button variant="ghost" size="icon" aria-label="More"><MoreHorizontal /></Button></Hint>
         <span className="flex items-center gap-2 text-sm font-bold text-muted-foreground">Active time spent<InfoTip label="Active time spent" lines={CLARITY.activeTime} /></span>
+      </Block>
+      <Block name="DeleteSession" use="The replay page asks you to confirm the session, its replay and every tab in the visit. The session title, time and ID identify the visit before you delete it."
+        code="Dialog · Button destructive · Alert · POST /api/delete">
+        <DeleteSession sessionTitle="An example session" session={{ id: "1234abcd", when: "Today 09:28" }}
+          onDelete={async () => ({ sessions: [{ found: true }], database: { error: null, log_cleared: true }, backups: [], log_lines: 0 })} onDone={nothing} />
       </Block>
       <Block name="TopAgentsChart · MetricPicker" use={[
           "Top agents shows a bar for each agent, based on the metric that you select. The metric menu works the same way as on Trends. The agent with the highest value appears first.",

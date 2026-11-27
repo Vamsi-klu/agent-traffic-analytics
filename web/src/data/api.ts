@@ -3,6 +3,7 @@
 // frontend/src/Api.js (MIT): one small fetch wrapper that turns the server's error body into an error. No code copied.
 import { useEffect, useState, type DependencyList } from "react"
 import { PRODUCT_NAME } from "@/lib/product"
+import type { SessionDeletion } from "./session-types"
 import type { Overview, OverviewQuery, Registration, ReplayChunk, SessionDetail, SessionsPage, SessionsQuery, Settings, SettingsUpdate, Setup, Timezones, WebAnalytics, WebQuery } from "./types"
 
 /** Relative to the page, like the built assets (vite base "./"), so the pages work under any path. */
@@ -67,6 +68,9 @@ export const api = {
   /** "Delete all data" on the settings page, after its Dialog: every session and its replay (POST /api/delete). */
   deleteEverything: () =>
     request<unknown>("delete", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ all: true }) }),
+  /** Deletes the visit named by the displayed session ID, including every tab and its replay. */
+  deleteSession: (id: string) =>
+    request<SessionDeletion>("delete", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sessions: [id] }) }),
   registration: (signal?: AbortSignal) => request<Registration>("register", { signal }),
   /** The press of "Register and continue": body is the very text "View registration data" showed (src/lib/registration.ts). */
   register: (body: string) =>

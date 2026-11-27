@@ -7,6 +7,7 @@ Deleting the id of one tab session deletes every tab session of its visit and th
 the backups and in the log; so does the visit's own id (a browser session id names no tab session); another visit
 stays as it was. Retention deletes a visit once its last tab session is older than the retention, never part of one.
 """
+import json
 import os
 import shutil
 import sqlite3
@@ -14,8 +15,10 @@ import sys
 import unittest
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from api_client import Client  # noqa: E402
+from test_api_tabs import replay_events  # noqa: E402
 from test_visit_join import BS, MINUTE_MS, OTHER_VISITOR, T0, JoinCase, tab  # noqa: E402
-from agentcake import delete, paths, store  # noqa: E402
+from agentcake import delete, paths, store, streams  # noqa: E402
 from agentcake.storage_config import SETTINGS, ms_from_days  # noqa: E402
 from agentcake.units import MS_PER_DAY  # noqa: E402
 
@@ -54,6 +57,35 @@ class Delete(JoinCase):
         self.deleted([BS])
         self.assertEqual(self.left(), [tab(1), tab(2), tab(5)])
         self.assertNotIn(BS, self.visits())
+
+    def test_the_replay_pages_delete_request_removes_one_whole_visit_from_reports(self):
+        for sid, start in ((tab(3), T0), (tab(4), T0 + MINUTE_MS)):
+            events = [(event["timestamp"], json.dumps(event)) for event in replay_events(start)]
+            streams.append(self.con, sid, "rrweb", events, start)
+            streams.seal(self.con, start, force=True, session_id=sid)
+        self.con.commit()
+        api = Client()
+        canonical = f"/api/session/{BS}"
+        older_url = f"/api/session/{tab(4)}"
+        detail = api.get(older_url).body
+        self.assertEqual((detail["session"]["id"], detail["named_tab"]), (BS, tab(4)))
+        self.assertEqual(api.get(canonical + "/replay", chunk="0", tab=tab(3)).status, 200)
+        self.assertEqual(api.get(older_url + "/replay", chunk="0").status, 200)
+        self.assertEqual(api.get("/api/sessions", range="all").body["total"], 3)
+        before = api.get("/api/overview", range="all").body
+
+        removed = api.post("/api/delete", {"sessions": [detail["session"]["id"]]})
+        self.assertEqual(removed.status, 200, removed.body)
+        self.assertEqual({item["id"] for item in removed.body["sessions"] if item["found"]}, {tab(3), tab(4)})
+        for url in (canonical, older_url, f"/api/session/{tab(3)}"):
+            self.assertEqual(api.get(url).status, 404)
+            self.assertEqual(api.get(url + "/replay", chunk="0").status, 404)
+        for sid in (tab(1), tab(5)):
+            self.assertEqual(api.get(f"/api/session/{sid}").status, 200)
+        self.assertEqual(api.get("/api/sessions", range="all").body["total"], 2)
+        after = api.get("/api/overview", range="all").body
+        self.assertEqual((before["counts"]["all"], after["counts"]["all"]), (3, 2))
+        self.assertEqual(before["page_views"]["all"] - after["page_views"]["all"], 2)
 
     def test_a_visits_own_id_lists_its_tab_sessions_not_itself_as_nothing_recorded(self):
         """A browser session id names a visit and no tab session: `agentcake delete` and its --dry-run printed

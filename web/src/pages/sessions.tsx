@@ -6,7 +6,7 @@
 // the list of its sessions (dimension and key in the URL, as PostHog's "View recordings"): a tag in the filter bar says
 // which. A Paths row adds the exact visited pathname to the list's URL. Its own filter tag clears just that path.
 import { useState } from "react"
-import { useSearchParams } from "react-router"
+import { useLocation, useSearchParams } from "react-router"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -93,6 +93,7 @@ function SessionList({ query, page, filters, set, clear, row, clearRow }: {
   const [next, setNext] = useState(page.next)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const { search } = useLocation()
   const rows = [...page.results, ...more]
   const total = page.total // the rows on screen, even while a new filter loads
   const left = total - rows.length
@@ -154,7 +155,7 @@ function SessionList({ query, page, filters, set, clear, row, clearRow }: {
       </Card>
       <div className="flex flex-wrap items-center justify-between gap-2"><span className="text-sm text-muted-foreground">{`${sessionCount(total)}, sorted from newest to oldest`}</span><Legend /></div>
       {rows.length ? (
-        <div className="flex flex-col gap-3">{rows.map((s) => <SessionRow key={s.id} s={s} />)}</div>
+        <div className="flex flex-col gap-3">{rows.map((s) => <SessionRow key={s.id} s={s} listSearch={search} />)}</div>
       ) : (
         <Card variant="sunk"><CardContent className="flex flex-col items-center gap-3 py-6 text-center">
           <Crumb pose="sleep" className="w-32" label={WORDS.crumb.empty} />
