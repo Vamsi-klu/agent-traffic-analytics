@@ -21,6 +21,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { BudgetWarning, CopyBlock, DiskStoppedWarning, DocumentLink, Hint, InfoTip, PageHeader, StatCard, StorageMeter, StorageUse } from "@/components/cake/bits"
 import { Crumb, CrumbHead } from "@/components/cake/crumb"
 import { DeleteSession } from "@/components/cake/delete-session"
+import { FunnelResults, PathFunnel } from "@/components/cake/path-funnel"
 import { OnboardingStep, OrSeparator } from "@/components/cake/onboarding"
 import { ProjectLink } from "@/components/cake/project-link"
 import { Loaded, PageError, PageLoading } from "@/components/cake/page-state"
@@ -43,8 +44,7 @@ import { StyleMenu } from "@/components/cake/style-menu"
 import { UNREACHABLE, api, useApi } from "@/data/api"
 import type { Overview, Registration, SessionSummary, Timezones, WebAnalytics } from "@/data/types"
 import { NO_VALUE, integer, mbToBytes } from "@/lib/format"
-import { EXAMPLE_SITE, LAYER_LOOKS, PAGE_LOOKS, SERVER_LOOKS, TAB_HANDOFFS, nothing, stillReplay, stillTabs } from "@/pages/component-samples"
-import { DashboardFunnel } from "@/pages/dashboard-funnel"
+import { EXAMPLE_SITE, FUNNEL_LOOK, LAYER_LOOKS, PAGE_LOOKS, SERVER_LOOKS, TAB_HANDOFFS, nothing, stillReplay, stillTabs } from "@/pages/component-samples"
 import { PRODUCT_NAME } from "@/lib/product"
 import { UNNAMED } from "@/lib/taxonomy"
 import { CLARITY, WORDS } from "@/lib/words"
@@ -322,7 +322,11 @@ function Overview({ overview: o, registration, sessions, web, zones }: {
         "Enter two or more page paths in the order a session should reach them. The dashboard's date range determines which sessions count.",
         "The table shows how many sessions reached each step or dropped off before it, in all and for Agent and Human. Percentages use the sessions of that kind that reached the first step.",
       ]} code="Card · Input · Label · Button outline · Table · /api/funnel">
-        <div className="w-full"><DashboardFunnel range="all" example={["/pricing", "/signup"]} /></div>
+        <div className="w-full">
+          <PathFunnel steps={FUNNEL_LOOK.steps.map((step) => step.path)} onRun={nothing}>
+            <FunnelResults report={FUNNEL_LOOK} />
+          </PathFunnel>
+        </div>
       </Block>
       <Block name="PageLoading · PageError" use="Before a page's data is ready, a loading message fades in after a moment. If the data can't load, the page shows the error and a Try again button." code="Loaded">
         <div className="grid w-full items-center gap-4 md:grid-cols-2">

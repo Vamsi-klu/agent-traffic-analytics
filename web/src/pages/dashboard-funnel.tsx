@@ -6,12 +6,10 @@ import { api, useApi } from "@/data/api"
 import type { DateRange } from "@/data/types"
 import { WORDS } from "@/lib/words"
 
-const EMPTY_STEPS: string[] = []
-
 /** Only applied steps go in the dashboard's URL. Running the same steps again refreshes the report. */
-export function DashboardFunnel({ range, example = EMPTY_STEPS }: { range: DateRange; example?: string[] }) {
+export function DashboardFunnel({ range }: { range: DateRange }) {
   const [params, setParams] = useSearchParams()
-  const steps = params.has("step") ? params.getAll("step") : example
+  const steps = params.getAll("step")
   const [run, setRun] = useState(0)
 
   function runFunnel(chosen: string[]) {
