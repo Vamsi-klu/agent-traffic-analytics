@@ -3,6 +3,29 @@
 Every release of AgentCake, newest first. Each release's files and their `SHA256SUMS` are on
 [GitHub Releases](https://github.com/tartini-ai/agent-traffic-analytics/releases).
 
+## 0.6.3 (unreleased)
+
+A Muse or Grok Bot session is now shown as Human + agent only when its timeline shows the agent acting and a
+hand-off.
+
+### Upgrading from 0.6.2
+
+- To upgrade a server, follow "Upgrading" in [`SERVER.md`](SERVER.md#upgrading). On a computer, give your coding agent
+  the instructions in [`README.md`](README.md) again. It asks you before it stops the running version. Your site key
+  and your data stay the same.
+- `deploy/cake.service`, `deploy/Caddyfile`, `docker-compose.yml`, `Dockerfile` and the database's format are the
+  same as in 0.6.2.
+- After the upgrade, AgentCake classifies the sessions it already has again with the new rules. A session is
+  classified again when you open it, and the others in the background, newest first. A session whose replay was
+  removed to free space keeps its 0.6.2 classification.
+
+### Detection
+
+- A session of Muse or Grok Bot, which drive their own cloud browser, is no longer shown as Human + agent unless its
+  timeline shows the agent acting and a hand-off: human-looking actions there count as the agent's. A takeover the
+  timeline shows, where the agent acts and then a human takes over its live view, is still Human + agent. The
+  session's reasons say why.
+
 ## 0.6.2
 
 A session is now one browser's visit across all of its tabs, and a human who scrolls or hovers beside their work, or

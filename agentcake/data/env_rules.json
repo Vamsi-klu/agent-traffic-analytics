@@ -634,7 +634,7 @@
       "evidence": "tartini.ai 2026-11-11: botscent's page half named muse in 4 of 4 Muse visits (confirmed by the user). botscent 2026-10-03: Muse 21 of 21 documents, 0 of 82 human documents, 0 of 4 with 1Password.",
       "sources": ["botscent:muse.cloud-browser.password-manager", "audit:sig-102", "audit:sig-032"],
       "botscent": ["muse.cloud-browser.password-manager"],
-      "collisions": "A person matches only with 1Password, Linux and Chrome launched with --enable-unsafe-swiftshader (untested; rare). Another automation host running 1Password would be named muse."
+      "collisions": "A person matches only with 1Password, Linux and Chrome launched with --enable-unsafe-swiftshader (untested; rare): unless the timeline shows the agent acting and a hand-off, that session is Muse's (Agent). Another automation host running 1Password would be named muse."
     },
     {
       "id": "env.product.grok-bot", "layer": "env", "kind": "product", "half": "page", "scope": "page", "strength": "hard", "enabled": true,
@@ -646,7 +646,7 @@
       "evidence": "botscent: Grok Bot 67 of 67 documents with all six signs (28 September to 3 October), 0 of 90 human documents, 0 of 210 other agents' documents. Not measured by us yet.",
       "sources": ["botscent:grok.cloud-computer.environment", "audit:sig-103", "audit:sig-030", "audit:sig-031", "audit:sig-104"],
       "botscent": ["grok.cloud-computer.environment"],
-      "collisions": "A person working inside Grok Bot's own computer is named grok-bot by design. A stock Ubuntu cloud desktop holds 3 of the 6 signs and no SwiftShader. Another product on the same machine image would be named grok-bot."
+      "collisions": "A person working inside Grok Bot's own computer is named grok-bot by design; unless the timeline shows Grok Bot acting and a hand-off, the session is Grok Bot's (Agent). A stock Ubuntu cloud desktop holds 3 of the 6 signs and no SwiftShader. Another product on the same machine image would be named grok-bot."
     },
     {
       "id": "env.product.instinct", "layer": "env", "kind": "product", "half": "page", "scope": "page", "strength": "hard", "enabled": true,

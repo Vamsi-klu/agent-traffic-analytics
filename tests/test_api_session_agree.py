@@ -7,7 +7,9 @@ An agent that acted takes a turn on the timeline and in the title beside the hum
 that took no part (its name, signature or trace says whose browser it is) is in the browser, as the title says, at 0%.
 A person scrolling and hovering the browser beside their editor without activating it is a Human, and so is a session
 whose agent part, as the model left it, holds no click or input of its own: the page once said Human + agent at 86%
-with the title "A human" and the agent at 0% of the actions.
+with the title "A human" and the agent at 0% of the actions. In the cloud browser Muse drives itself, where a human acts
+only by taking over, human-looking clicks with no hand-off are Muse's: Agent only, every action Muse's, and the behavior
+layer, which reads human, says why.
 """
 import os
 import sys
@@ -18,12 +20,16 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import beside_editor  # noqa: E402  (made up by rule: no recording)
 import synthetic_sessions  # noqa: E402  (made up by rule: no recording)
 import verdict_cases  # noqa: E402
+from api_client import Client, contract_problems  # noqa: E402
 from test_api_session import OpenedCase  # noqa: E402
-from test_judging import T0, clicks  # noqa: E402
+from test_judging import SID, T0, clicks, visit_batch  # noqa: E402
 from agentcake.api import answers, session as session_api  # noqa: E402
-from agentcake.detect import model  # noqa: E402
+from agentcake.detect import model, verdict_text  # noqa: E402
 
 AGENT_ONLY, HUMAN_AGENT = "agent_only", "human_agent"  # data/api.json's agent_turns
+# cake.js's botscent record in Muse's own cloud browser: what env.product.muse matches
+IN_MUSE = {"ty": "botscent", "why": "start", "type": "agent", "agent": None,
+           "reasons": ["muse.cloud-browser.password-manager"], "ver": "1.2.0"}
 
 
 def disagreements(body):
@@ -101,6 +107,24 @@ class HumanAndAgentAgree(OpenedCase):
                          ("human", None, answers.words()["title"]["human"]))
         self.assertEqual(body["session"]["share"]["agent"], 0)
         self.assertEqual(disagreements(body), [])
+
+    def test_human_looking_clicks_in_muses_own_cloud_browser_are_muses_and_the_behavior_layer_says_why(self):
+        """Muse's page rule and a human's eight clicks: the page once said Human + agent with no agent turn and no
+        hand-off on its timeline."""
+        batch = visit_batch(0, T0, clicks(8, T0), ua=verdict_cases.CHROME_LINUX)
+        batch["x"].append(dict(IN_MUSE, t=T0 + 5))
+        self.post(batch, T0)
+        body = Client().get(f"/api/session/{SID}").body
+        self.assertEqual(contract_problems(body, "session"), [])
+        session = body["session"]
+        self.assertEqual((session["verdict"], session["agent_turns"], session["agent"], session["share"]["agent"]),
+                         ("agent", AGENT_ONLY, "Muse", 100))
+        self.assertEqual(({segment["who"] for segment in body["timeline"]["segments"]}, body["timeline"]["handoffs"]),
+                         ({"agent"}, []))
+        behavior = next(layer for layer in body["layers"] if layer["layer"] == "behavior")
+        why = verdict_text.reason("behavior.humanlike-cloud-agent", name="Muse")["text"]
+        self.assertEqual(behavior["state"], "human")
+        self.assertIn(why, [reason["text"] for reason in behavior["reasons"]])
 
 
 if __name__ == "__main__":

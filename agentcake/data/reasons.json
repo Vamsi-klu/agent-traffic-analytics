@@ -137,6 +137,8 @@
       "text": "This run of actions by the {who} is too short to count. The {who} isn't treated as taking part in this session.", "detail": "The {who}'s run lasted {span} seconds and included {n} actions."},
     "behavior.overruled": {"layer": "behavior", "grade": "inferred", "tone": "none",
       "text": "The behavior model classified this session as human. For this session, the classification is based on the signs of automation instead of the behavior model."},
+    "behavior.humanlike-cloud-agent": {"layer": "behavior", "grade": "inferred", "tone": "none",
+      "text": "Some actions look like a human's, but {name} runs its own cloud browser, so they count as the agent's.", "detail": "A human can act there only by taking over from the agent, and the timeline doesn't show both the agent acting and a hand-off."},
     "behavior.assistive": {"layer": "behavior", "grade": "inferred", "tone": "none",
       "text": "Assistive tools often navigate with the keyboard only, so this navigation isn't treated as agent behavior.", "detail": "The visitor uses only the keyboard to navigate and doesn't use a pointer."},
     "behavior.local-agent": {"layer": "behavior", "grade": "inferred", "tone": "agent",

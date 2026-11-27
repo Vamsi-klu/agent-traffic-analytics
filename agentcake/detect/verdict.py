@@ -19,13 +19,13 @@ the specification and tests/test_verdict.py pins it rule by rule (the browser na
     behaviour gives Human and anything else Not sure. Weak traces only go in reasons.
  5  Behaviour (the behaviour model through behavior.py): with agent evidence (a name, a signature, a trace), a long
     enough human run (verdict.json "mixed") makes the session Mixed, whatever the agent did there (a page whose agent
-    took no action of its own says the agent was in the browser: api/session.py); without any, Mixed needs both a
+    took no action of its own says the agent was in the browser: api/session.py); a name in "mixed" "handoff_only" (its
+    own cloud browser) also needs an agent's part and a hand-off, else Agent; without agent evidence, Mixed needs both a
     long enough human run and an agent's part with enough clicks or inputs of its own, and the session is a Human when
     the agent's part has not (its scrolling and pointer movement alone never make one); a hand-off lies between them,
-    and the timeline marks it. Behaviour alone judging an agent is
-    "possibly an agent on the visitor's own computer": AI in a real browser, no name. Assistive-tool signs keep the
-    behaviour's agent judgement from counting (Not sure). Only weak signals: Human. A phone or tablet, which the
-    model does not run on: verdict_touch.py.
+    and the timeline marks it. Behaviour alone judging an agent is "possibly an agent on the visitor's own computer": AI
+    in a real browser, no name. Assistive-tool signs keep the behaviour's agent judgement from counting (Not sure). Only
+    weak signals: Human. A phone or tablet, which the model does not run on: verdict_touch.py.
  6  Confidence (verdict.json "confidence"): certain, likely, possible or unsure.
  7  Crawler-like patterns (crawler.py) and the other weak signals (weak.py) only add reasons.
  8  Each of the interface's four layers gets a state; a layer that did not run says why. The name layer's is the
@@ -245,7 +245,8 @@ class _Case:
         if named or identity.infrastructure or traces:
             kinds = attribute.class_evidence(identity) + [self._trace_kind(h) for h in traces] + ["behavior"] * says_agent
             row = attribute.row_of(named, identity, self.browsers, self.lists) or _env_row(traces, self.settings) or AI_ROW
-            return (MIXED if self.long_runs(HUMAN) else AGENT), row, kinds
+            return verdict_runs.with_agent(self.runs, self.handoffs, says_agent, named, self.settings["mixed"],
+                                           self.reasons), row, kinds
         if self.soft:
             self.reasons.append(reason("env.soft-alone"))
             return (HUMAN, None, ["behavior"]) if self.verdict == HUMAN else (NOT_SURE, None, [])
@@ -370,7 +371,7 @@ def _layers(case):
         behavior_layer = {"state": UNSURE, "why": result["evidence"].get("reason")}
     else:
         # Human + agent only in a session that is one (hand-offs) and where behaviour itself saw both sides
-        both = case.long_runs(HUMAN) and (result["verdict"] == AGENT or case.long_runs(AGENT))
+        both = verdict_runs.both_sides(case.runs, result["verdict"] == AGENT, case.settings["mixed"])
         behavior_layer = {"state": MIXED if case.cls == MIXED and both else result["verdict"]}
     return {"name": {"state": name_state}, "verify": identity.verify_layer, "environment": environment,
             "behavior": behavior_layer}
