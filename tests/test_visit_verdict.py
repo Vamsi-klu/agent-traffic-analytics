@@ -8,6 +8,10 @@ Human when its tabs are human (a tab on thin evidence counts for nothing next to
 evidence when every tab is, and Script bot only when every tab is one. A prefetch, a self-check and an upload from
 another site count for nothing. The class is the one a tab session holds, so a visit of one tab reads exactly as that
 tab did; the order of the tabs does not matter. Judging a tab merges its visit again.
+
+A tab in Muse's own cloud browser with only human-looking actions is judged Agent (its runs the agent's), so tabs of
+it are an Agent visit; beside a tab with a human's own evidence the visit is Human + agent, and its page marks the
+hand-off from one tab to the other (api/session_tabs.py), which it could not while that tab's runs read human.
 """
 import itertools
 import os
@@ -16,9 +20,13 @@ import tempfile
 import unittest
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from test_judging import KEY, SID, T0, JudgingCase, clicks, visit_batch  # noqa: E402
+import test_api_tabs as two_tabs  # noqa: E402  (a session of two tabs, its verdicts as a judge left them)
+import visit_rows  # noqa: E402
+from test_judging import KEY, SID, T0, S, JudgingCase, clicks, visit_batch  # noqa: E402
+from verdict_cases import CHROME_LINUX, HUMAN_RUN, behavior, evidence, hit, run  # noqa: E402
 from agentcake import config, judging, store, visit_verdict  # noqa: E402
 from agentcake.api import visits  # noqa: E402
+from agentcake.detect import verdict  # noqa: E402
 from agentcake.visit_verdict import merge, tab_class  # noqa: E402
 
 HUMAN, AGENT, MIXED, BOT = "human", "agent", "mixed", "bot"
@@ -32,6 +40,12 @@ def read(verdict_class, old_verdict=None):
     """How the pages read a class: the verdict, an Agent's split, thin evidence (api/visits.py)."""
     return (visits.verdict_of(verdict_class, old_verdict), visits.turns_of(verdict_class, old_verdict),
             visits.evidence_of(verdict_class, old_verdict))
+
+
+def muse_tab(human_run=HUMAN_RUN):
+    """A tab session in Muse's own cloud browser with only human-looking actions, judged (verdict.py)."""
+    return verdict.decide(evidence(uas=CHROME_LINUX, platform="Linux x86_64", hits=[hit("env.product.muse")],
+                                   behavior_result=behavior("human", human_run)))
 
 
 class Merge(unittest.TestCase):
@@ -94,6 +108,31 @@ class Merge(unittest.TestCase):
         self.assertEqual({merge(order) for order in itertools.permutations(tabs)}, {AGENT})
         tabs = (TOO_LITTLE, NOT_SURE, BOT, NEVER)
         self.assertEqual({merge(order) for order in itertools.permutations(tabs)}, {NOT_SURE})
+
+
+class CloudBrowserTabs(unittest.TestCase):
+    def test_tabs_of_muse_with_human_looking_actions_only_are_an_agent_visit(self):
+        muse = muse_tab()["class"]
+        self.assertEqual(muse, AGENT, "each tab on its own")
+        self.assertEqual((merge([muse, muse]), merge([muse, NOT_SURE])), (AGENT, AGENT))
+        self.assertEqual(read(merge([muse, muse])), ("agent", "agent_only", None))
+
+    def test_a_muse_tab_beside_a_human_tab_is_human_plus_agent(self):
+        self.assertEqual(merge([muse_tab()["class"], HUMAN]), MIXED)
+
+
+class CloudBrowserTabOnThePage(two_tabs.TabsCase):
+    def test_the_hand_off_from_a_human_tab_to_a_muse_tab_is_marked_between_them(self):
+        self.two_tabs()  # a human's tab, then a second tab from 5 s to 65 s
+        tab = muse_tab(run("human", 5, 65, 15, 0.08))
+        self.con.execute("DELETE FROM segments WHERE session_id=?", (two_tabs.SECOND,))
+        self.judged(two_tabs.SECOND, tab["class"], {key: tab[key] for key in judging.DETAIL},
+                    runs=[(segment["start"], segment["end"], segment["who"]) for segment in tab["segments"]])
+        visit_rows.joined(self.con, two_tabs.VISIT, [(two_tabs.FIRST, "w1"), (two_tabs.SECOND, "w2")])
+        detail = self.get(f"/api/session/{two_tabs.VISIT}", "session")
+        self.assertEqual((detail["session"]["verdict"], detail["session"]["agent_turns"]), ("agent", "human_agent"))
+        self.assertEqual(detail["timeline"]["handoffs"], [{"at_ms": 5 * S, "to": "agent"}])
+        self.assertEqual(detail["title"], "A human, then Muse")
 
 
 class Remerge(unittest.TestCase):
