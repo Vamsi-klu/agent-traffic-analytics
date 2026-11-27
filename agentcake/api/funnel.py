@@ -35,7 +35,8 @@ def view(request):
 def report(con, scope, steps):
     """Counts by step and verdict; a view can advance the visit by at most one step."""
     counts = [{"path": path, **dict.fromkeys(web.COUNTED, 0)} for path in steps]
-    for (_, verdict), tabs in groupby(_tabs(con, scope, steps[0]), key=itemgetter(0, 1)):
+    candidates = web.visiting(scope, steps[0])
+    for (_, verdict), tabs in groupby(_tabs(con, candidates), key=itemgetter(0, 1)):
         histories = [web_time.page_history(con, tab, url, start) for _, _, tab, url, start in tabs]
         step = 0
         for _, path in merge(*histories, key=itemgetter(0)):
@@ -47,15 +48,14 @@ def report(con, scope, steps):
     return counts
 
 
-def _tabs(con, scope, first_path):
+def _tabs(con, candidates):
     """Only read history for visits with a view of the first step, and tabs that have any counted page views.
 
     Page views at the same time follow the tabs' start times and IDs.
     """
     return con.execute(
-        f"WITH candidates AS (SELECT DISTINCT v.id, v.alone, {visits.VERDICT} AS verdict "
-        f"FROM {visits.SESSIONS} {visits.TABS} JOIN web_paths p ON p.session_id = ps.id AND p.path = ? "
-        f"WHERE {scope.sql()} AND {visits.VERDICT} IN (?, ?)) "
+        f"WITH candidates AS (SELECT v.id, v.alone, {visits.VERDICT} AS verdict "
+        f"FROM {visits.SESSIONS} WHERE {candidates.sql()}) "
         f"SELECT v.id, v.verdict, ps.id, ps.url, ps.start_ms FROM candidates v {visits.TABS} "
         "WHERE EXISTS (SELECT 1 FROM web_paths p WHERE p.session_id = ps.id) ORDER BY v.id, ps.start_ms, ps.id",
-        (first_path, *scope.args, *web.COUNTED))
+        candidates.args)
