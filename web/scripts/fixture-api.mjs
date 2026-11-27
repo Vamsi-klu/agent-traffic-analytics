@@ -59,6 +59,7 @@ export function fixtureApi({ set } = {}) {
       switch (route) {
         case "GET overview": return send(200, answer("overview"))
         case "GET web": return send(200, answer("web"))
+        case "GET funnel": return send(200, funnelReport(answer("funnel"), url.searchParams.getAll("step")))
         case "GET sessions": return send(200, sessionsPage(answer("sessions"), url.searchParams))
         case "GET session/:id": {
           const detail = sessionSample(id)
@@ -87,6 +88,13 @@ export function fixtureApi({ set } = {}) {
       return send(400, { error: error instanceof Error ? error.message : String(error) })
     }
   }
+}
+
+function funnelReport(example, paths) {
+  if (paths.length < 2 || paths.some((path) => !path.startsWith("/") || /[?#]/.test(path)))
+    throw new Error("Enter two or more page paths that start with / and leave out any query string or fragment.")
+  if (paths.length === example.steps.length && paths.every((path, i) => path === example.steps[i].path)) return example
+  return { steps: paths.map((path) => ({ path, agent: 0, human: 0 })) }
 }
 
 /** The sample list, filtered by verdict, turns, agent and any visited paths available in the sample details. A

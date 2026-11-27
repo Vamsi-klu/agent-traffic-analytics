@@ -4,7 +4,7 @@
 import { useEffect, useState, type DependencyList } from "react"
 import { PRODUCT_NAME } from "@/lib/product"
 import type { SessionDeletion } from "./session-types"
-import type { Overview, OverviewQuery, Registration, ReplayChunk, SessionDetail, SessionsPage, SessionsQuery, Settings, SettingsUpdate, Setup, Timezones, WebAnalytics, WebQuery } from "./types"
+import type { DateRange, FunnelReport, Overview, OverviewQuery, Registration, ReplayChunk, SessionDetail, SessionsPage, SessionsQuery, Settings, SettingsUpdate, Setup, Timezones, WebAnalytics, WebQuery } from "./types"
 
 /** Relative to the page, like the built assets (vite base "./"), so the pages work under any path. */
 const BASE = "api/"
@@ -55,6 +55,11 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
 export const api = {
   overview: (q: OverviewQuery, signal?: AbortSignal) => request<Overview>("overview" + query(q), { signal }),
   web: (q: WebQuery, signal?: AbortSignal) => request<WebAnalytics>("web" + query(q), { signal }),
+  funnel: (range: DateRange, steps: string[], signal?: AbortSignal) => {
+    const params = new URLSearchParams({ range })
+    for (const path of steps) params.append("step", path)
+    return request<FunnelReport>("funnel?" + params.toString(), { signal })
+  },
   sessions: (q: SessionsQuery, signal?: AbortSignal) => request<SessionsPage>("sessions" + query(q), { signal }),
   session: (id: string, signal?: AbortSignal) => request<SessionDetail>(`session/${encodeURIComponent(id)}`, { signal }),
   /** tab: one of the session's tabs (SessionTab.id) in a session of more than one; left out for a session of one. */

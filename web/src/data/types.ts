@@ -293,6 +293,12 @@ export type { AddressCheck, Health } from "./health-types"
 
 export type { ActiveTime, AgentNumbers, PathRow, TrendEvery, TrendInterval, TrendNumbers, WebAnalytics, WebDimension, WebQuery, WebRow, WebTable } from "./web-types"
 
+// ---------------------------------------------------------------- GET /api/funnel?range=&step=&step=
+
+/** Each step counts visits that reached every preceding step in order. Agent includes Human + agent. */
+export type FunnelStep = { path: string; agent: number; human: number }
+export type FunnelReport = { steps: FunnelStep[] }
+
 // ---------------------------------------------------------------- errors
 
 /** The body of every answer that is not 2xx: what happened, in a sentence the page can show. */

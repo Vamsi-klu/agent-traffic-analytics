@@ -44,6 +44,7 @@ import { UNREACHABLE, api, useApi } from "@/data/api"
 import type { Overview, Registration, SessionSummary, Timezones, WebAnalytics } from "@/data/types"
 import { NO_VALUE, integer, mbToBytes } from "@/lib/format"
 import { EXAMPLE_SITE, LAYER_LOOKS, PAGE_LOOKS, SERVER_LOOKS, TAB_HANDOFFS, nothing, stillReplay, stillTabs } from "@/pages/component-samples"
+import { DashboardFunnel } from "@/pages/dashboard-funnel"
 import { PRODUCT_NAME } from "@/lib/product"
 import { UNNAMED } from "@/lib/taxonomy"
 import { CLARITY, WORDS } from "@/lib/words"
@@ -316,6 +317,12 @@ function Overview({ overview: o, registration, sessions, web, zones }: {
         <div className="w-full"><PathsTable paths={web.paths} shown={web.shown} /></div>
         <div className="w-full"><WebStatsTable title={WORDS.web.titles.sources} icon={TABLE_ICONS.sources} help={WORDS.about.sources} table={web.tables.sources} shown={web.shown} place={web.place} /></div>
         <div className="w-full"><WebStatsTable title={WORDS.web.titles.geography} icon={TABLE_ICONS.geography} help={WORDS.about.geography} table={web.tables.geography} shown={web.shown} place={web.place} initial="region" /></div>
+      </Block>
+      <Block name="PathFunnel · FunnelResults" use={[
+        "Enter two or more page paths in the order a session should reach them. The dashboard's date range determines which sessions count.",
+        "The table shows how many sessions reached each step or dropped off before it, in all and for Agent and Human. Percentages use the sessions of that kind that reached the first step.",
+      ]} code="Card · Input · Label · Button outline · Table · /api/funnel">
+        <div className="w-full"><DashboardFunnel range="all" example={["/pricing", "/signup"]} /></div>
       </Block>
       <Block name="PageLoading · PageError" use="Before a page's data is ready, a loading message fades in after a moment. If the data can't load, the page shows the error and a Try again button." code="Loaded">
         <div className="grid w-full items-center gap-4 md:grid-cols-2">
