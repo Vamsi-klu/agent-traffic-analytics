@@ -13,6 +13,7 @@ import shutil
 import sqlite3
 import sys
 import unittest
+from contextlib import closing
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from api_client import Client  # noqa: E402
@@ -106,12 +107,23 @@ class Delete(JoinCase):
         self.assertEqual(sorted(item["id"] for item in found["sessions"]), [tab(3), tab(4)])
         self.assertEqual(self.left(), [tab(1), tab(2), tab(3), tab(4), tab(5)])
 
-    def test_the_backups_lose_the_visits_rows_too(self):
+    def backup_path(self):
         folder = os.path.join(paths.home(), SETTINGS["backup_dir"])
-        os.makedirs(folder)
-        backup = os.path.join(folder, "cake-backup.db")
+        os.makedirs(folder, exist_ok=True)
+        return os.path.join(folder, "cake-backup.db")
+
+    def backup_copy(self):
+        backup = self.backup_path()
         self.con.execute("PRAGMA wal_checkpoint(TRUNCATE)")
         shutil.copyfile(paths.db_file(), backup)
+        return backup
+
+    def test_the_backups_lose_the_visits_rows_too(self):
+        backup = self.backup_copy()
+        # The backup has a tab the live collector has since moved to another visit.
+        with closing(sqlite3.connect(backup)) as old:
+            old.execute("UPDATE session_web SET visit_id=? WHERE session_id=?", (BS, tab(5)))
+            old.commit()
         result = self.deleted([BS])
         self.assertGreater(result["backups"][0]["rows"], 0)
         copy = sqlite3.connect(backup)
@@ -119,9 +131,63 @@ class Delete(JoinCase):
             self.assertEqual(copy.execute("SELECT COUNT(*) FROM visits WHERE id=?", (BS,)).fetchone()[0], 0)
             self.assertEqual(copy.execute("SELECT COUNT(*) FROM sessions WHERE id IN (?, ?)", (tab(3), tab(4)))
                              .fetchone()[0], 0)
+            self.assertEqual(copy.execute("SELECT id FROM sessions WHERE id=?", (tab(5),)).fetchone(), (tab(5),))
             self.assertEqual(copy.execute("SELECT COUNT(*) FROM visits").fetchone()[0], 2, "the others stay")
         finally:
             copy.close()
+
+    def test_retry_cleans_the_backed_up_visit_and_its_tab_log_lines_after_an_interrupted_delete(self):
+        backup = self.backup_copy()
+        original_log = f"visit {BS}\nfirst tab {tab(3)}\nsecond tab {tab(4)}\nother tab {tab(5)}\n"
+        with open(paths.log_file(), "w") as log:
+            log.write(original_log)
+        with closing(sqlite3.connect(backup)) as copy:
+            copy.execute("CREATE TRIGGER refuse_delete BEFORE DELETE ON sessions "
+                         "BEGIN SELECT RAISE(ABORT, 'backup deletion failed'); END")
+        api = Client()
+        payload = {"sessions": [BS]}
+        first = api.post("/api/delete", payload)
+        self.assertEqual(first.status, 500, first.body)
+        self.assertIn("backup deletion failed", first.body["error"])
+        self.assertEqual(api.get(f"/api/session/{BS}").status, 404)
+        self.assertEqual(self.left(), [tab(1), tab(2), tab(5)])
+        with closing(sqlite3.connect(backup)) as copy:
+            self.assertEqual(copy.execute("SELECT session_id FROM session_web WHERE visit_id=? ORDER BY session_id",
+                                          (BS,)).fetchall(), [(tab(3),), (tab(4),)])
+            copy.execute("DROP TRIGGER refuse_delete")
+        preview = delete.preview([BS])
+        self.assertGreater(preview["backups"][0]["rows"], 1, "the backup still contains the tab sessions")
+        self.assertEqual(preview["log_lines"], 3)
+        with open(paths.log_file()) as log:
+            self.assertEqual(log.read(), original_log)
+        second = api.post("/api/delete", payload)
+        self.assertEqual(second.status, 200, second.body)
+        self.assertEqual(second.body["backups"][0]["rows"], preview["backups"][0]["rows"])
+        self.assertEqual(second.body["log_lines"], preview["log_lines"])
+        with closing(sqlite3.connect(backup)) as copy:
+            for (table,) in copy.execute(store.SESSION_TABLES).fetchall():
+                self.assertEqual(copy.execute(f"SELECT session_id FROM {table} WHERE session_id IN (?, ?)",
+                                              (tab(3), tab(4))).fetchall(), [], table)
+            self.assertEqual(copy.execute("SELECT id FROM sessions ORDER BY id").fetchall(),
+                             [(tab(1),), (tab(2),), (tab(5),)])
+            self.assertEqual(copy.execute("SELECT id FROM visits ORDER BY id").fetchall(), [(tab(1),), (tab(5),)])
+        with open(paths.log_file()) as log:
+            self.assertEqual(log.read(), f"other tab {tab(5)}\n")
+
+    def test_an_older_backup_without_visit_columns_still_deletes_a_matching_id(self):
+        self.deleted([BS])
+        backup = self.backup_path()
+        with closing(sqlite3.connect(backup)) as copy:
+            copy.execute("CREATE TABLE sessions (id TEXT PRIMARY KEY)")
+            copy.execute("CREATE TABLE session_web (session_id TEXT PRIMARY KEY)")
+            copy.executemany("INSERT INTO sessions VALUES (?)", [(BS,), (tab(5),)])
+            copy.executemany("INSERT INTO session_web VALUES (?)", [(BS,), (tab(5),)])
+            copy.commit()
+        self.assertEqual(delete.preview([BS])["backups"][0]["rows"], 2)
+        self.assertEqual(self.deleted([BS])["backups"][0]["rows"], 2)
+        with closing(sqlite3.connect(backup)) as copy:
+            self.assertEqual(copy.execute("SELECT id FROM sessions").fetchall(), [(tab(5),)])
+            self.assertEqual(copy.execute("SELECT session_id FROM session_web").fetchall(), [(tab(5),)])
 
     def test_the_log_loses_the_lines_naming_the_visit(self):
         with open(paths.log_file(), "w") as log:
