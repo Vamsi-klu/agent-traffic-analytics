@@ -36,6 +36,7 @@ import re
 import socket
 
 from agentcake import paths
+from agentcake.detect import lists_compat
 
 BUNDLED_DIR = os.path.join(paths.PACKAGE_DIR, "data", "lists")
 SOURCES_FILE = os.path.join(BUNDLED_DIR, "sources.json")
@@ -170,9 +171,9 @@ class Lists:
         names, ranges = files["names.json"], files["ip_ranges.json"]
         self.built, self.schema, self.location, self.skipped = names["built"], names["schema"], location, []
         self._kinds = kinds["kinds"]
-        self._names = {entry["id"]: entry for entry in names["names"]}
+        self._names = lists_compat.canonical_names(names["names"], kinds.get("retired_ids", {}))
         self._matchers = [(entry, [_Pattern(p, names["matching"]) for p in entry["patterns"]])
-                          for entry in names["names"] if entry["patterns"]]
+                          for entry in self._names.values() if entry["patterns"]]
         self._hints = [(hint, re.compile(hint["pattern"])) for hint in names["hints"]]
         self._platforms, self._sources = names["platforms"], names["sources"]
         self._raw_ranges = ranges["ranges"]

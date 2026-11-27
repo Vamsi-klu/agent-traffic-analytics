@@ -28,7 +28,7 @@
     "since": "2026-10",
     "checked": "2026-11-13",
     "evidence": "unverified",
-    "note": "Grok Bot's requests arrive unsigned since October 2026: botscent's own benchmark (commit 8ad85181, 2026-10-01: unsigned since 1 October), Fingerprint (around 2026-10-09) and Verisoul (mid-October, updated 2026-11-03). xAI's Grok Bot page (x.ai/bot) says nothing about signing either way. The directory still publishes the same key (valid until 2027-08), checked 2026-11-13."
+    "note": "Grok Bot uses Cursor-hosted computers operated by Anysphere (https://docs.x.ai/grok-bot/security). Cloudflare Radar lists this directory for Grok Bot. Unsigned requests were reported in October 2026 by botscent (commit 8ad85181, 2026-10-01, desktop relay), Fingerprint and Verisoul. The key was still published on 2026-11-13; current signing coverage has not been measured by AgentCake."
    }
   },
   "muse.ai": {

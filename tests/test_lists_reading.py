@@ -65,6 +65,30 @@ class ParsedOnceTest(unittest.TestCase):
             self.assertEqual(lists.Lists.load(release).built, newer)
             from_dir.assert_called_once()
 
+    def test_newer_downloaded_list_still_resolves_a_retired_product_id(self):
+        newer = datetime.date.fromisoformat(lists.Lists.load(BUNDLED).built) + datetime.timedelta(days=1)
+        user_root = os.path.join(self.root, "home")
+        cached = self.copy_bundled(os.path.join("home", str(newer)), built=str(newer))
+        path = os.path.join(cached, "names.json")
+        with open(path, encoding="utf-8") as f:
+            snapshot = json.load(f)
+        canonical = next(entry for entry in snapshot["names"] if entry["id"] == "grok-bot")
+        token = next(pattern for pattern in canonical["patterns"] if pattern["text"] == "GrokAgent")
+        canonical["patterns"].remove(token)
+        evidence = canonical.pop("evidence")
+        snapshot["names"].append({"id": "grokagent", "name": "GrokAgent", "operator": "xAI", "kind": "cloud-agent",
+                                  "evidence": evidence, "sources": ["cake"], "patterns": [token]})
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(snapshot, f)
+
+        loaded = lists.Lists.load(BUNDLED, user_root=user_root)
+        self.assertEqual(loaded.location, cached)
+        for ua in ("GrokAgent/1.0", "Grok Bot GrokAgent/1.0"):
+            with self.subTest(ua=ua):
+                found = loaded.match_ua(ua)
+                self.assertEqual((found["id"], found["name"], found["operator"], found["evidence"]),
+                                 ("grok-bot", "Grok Bot", "Anysphere", "unverified"))
+
     def test_each_load_says_what_it_skipped(self):
         newer = datetime.date.fromisoformat(lists.Lists.load(BUNDLED).built) + datetime.timedelta(days=5)
         broken = self.copy_bundled(os.path.join("home", str(newer)))

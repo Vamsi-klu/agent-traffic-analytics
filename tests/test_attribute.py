@@ -56,6 +56,22 @@ class Priority(unittest.TestCase):
         self.assertEqual(naming(result), ("muse", "likely", None))
         self.assertIn("name.outranked", ids(result))
 
+    def test_grok_bot_signals_name_the_same_product(self):
+        ua = CHROME_LINUX + " GrokAgent/1.0"
+        grok = hit("env.product.grok-bot")
+        for hits, signatures, method in (
+            ([], {}, "declared"),
+            ([grok], {}, "product-rule"),
+            ([grok], {"collector": verified("cursorusercontent.com")}, "signature"),
+        ):
+            with self.subTest(method=method):
+                result = verdict.decide(evidence(uas=ua, hits=hits, signatures=signatures,
+                                                 behavior_result=too_little()))
+                self.assertEqual((result["class"], result["name"], result["name_method"]),
+                                 ("agent", "grok-bot", method))
+                self.assertNotIn("name.outranked", ids(result))
+                self.assertNotIn("name.disagree", ids(result))
+
     def test_product_rule_sets_the_row_of_its_product(self):
         # Cloudflare Browser Run is an automated browser in the lists (kinds.json), though product rules point to AI
         # in a real browser otherwise (verdict.json env_rows); here only the page rule knows it (no name declared)

@@ -91,8 +91,7 @@ class SignersTest(unittest.TestCase):
                     self.assertTrue(ed25519.verify(public_key, base, values[label].value), label)
 
     def test_a_signer_that_stopped_signing_keeps_its_keys_and_says_so(self):
-        # Grok Bot's signer: requests arrive unsigned since October 2026 (botscent, Fingerprint, Verisoul; xAI has
-        # said nothing). Its keys stay bundled, so a signature verifies again if it ever signs again.
+        # Published keys are still usable to verify signed requests. Reports of unsigned traffic do not revoke them.
         with open(os.path.join(BUNDLED, "signers.json"), encoding="utf-8") as f:
             signer = json.load(f)["signers"]["cursorusercontent.com"]
         self.assertEqual((signer["name"], signer["signing"]["state"]), ("grok-bot", "stopped"))

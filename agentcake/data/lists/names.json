@@ -4595,33 +4595,23 @@
    "kind": "cloud-agent",
    "patterns": [
     {
+     "match": "versioned",
+     "text": "GrokAgent",
+     "source": "cake"
+    },
+    {
      "match": "token",
      "text": "Grok Bot",
      "source": "ai-robots-txt"
     }
    ],
    "sources": [
+    "cake",
     "botscent",
     "ai-robots-txt"
-   ]
-  },
-  {
-   "id": "grokagent",
-   "name": "GrokAgent",
-   "operator": "xAI",
-   "kind": "cloud-agent",
-   "patterns": [
-    {
-     "match": "versioned",
-     "text": "GrokAgent",
-     "source": "cake"
-    }
-   ],
-   "sources": [
-    "cake"
    ],
    "evidence": "unverified",
-   "note": "xAI's Grok cloud computer. 'GrokAgent/1.0 (u:...)' at the end of the User-Agent comes from one second-hand source; neither botscent nor PostHog lists it."
+   "note": "xAI's Grok Bot uses Cursor-hosted computers operated by Anysphere (https://docs.x.ai/grok-bot/security). Cloudflare Radar lists GrokAgent under Grok Bot, and RuntimeWire observed the versioned token in the cloud browser in August 2026. The User-Agent is self-reported and may be absent."
   },
   {
    "id": "grokappandroid",

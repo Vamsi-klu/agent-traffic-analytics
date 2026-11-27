@@ -20,7 +20,7 @@ sys.path.insert(0, ROOT)
 sys.path.insert(0, os.path.join(ROOT, "tests"))
 
 import synthetic_sessions  # noqa: E402  (made up by rule: no recording)
-from verdict_cases import IPHONE  # noqa: E402
+from verdict_cases import CHROME_LINUX, IPHONE  # noqa: E402
 from test_collect_replay import GZIP_FROM  # noqa: E402
 from agentcake import collect, config, judging, store  # noqa: E402
 from agentcake.detect import model, verdict  # noqa: E402
@@ -155,6 +155,26 @@ class TheModelIsSpared(JudgingCase):
         self.assertEqual(self.judged_calls(visit_batch(0, T0, clicks(1, T0), sid="d" * 32)), (0, "too_little_data"))
         enough = visit_batch(0, T0, synthetic_sessions.agent_raw(T0), sid="e" * 32)
         self.assertEqual(self.judged_calls(enough)[0], 1)
+
+
+class ProductAttribution(JudgingCase):
+    def test_one_action_grok_bot_upload_agrees_across_the_name_and_environment_layers(self):
+        ua = CHROME_LINUX + " GrokAgent/1.0"
+        body = visit_batch(0, T0, clicks(1, T0), ua=ua)
+        body["x"].append({"t": T0 + 5, "ty": "botscent", "why": "start", "type": "agent", "agent": "grok-bot",
+                          "reasons": ["grok.cloud-computer.environment"], "ver": "1.2.0"})
+        self.post(body, T0)
+
+        verdict_class, name, detail, reasons = self.row("verdict_class", "agent_name", "verdict_detail", "reasons")
+        self.assertEqual((verdict_class, name), ("agent", "grok-bot"))
+        detail = json.loads(detail)
+        self.assertEqual((detail["display_name"], detail["operator"], detail["name_method"], detail["name_certainty"]),
+                         ("Grok Bot", "Anysphere", "product-rule", "likely"))
+        candidates = set(self.con.execute("SELECT name, method FROM labels WHERE session_id=?", (SID,)))
+        self.assertEqual(candidates, {("grok-bot", "ua"), ("grok-bot", "product-rule")})
+        ids = {reason["id"] for reason in json.loads(reasons)}
+        self.assertTrue({"behavior.too-little-data", "env.product.grok-bot"}.issubset(ids))
+        self.assertFalse({"name.disagree", "name.outranked"} & ids)
 
 
 class OldSessions(JudgingCase):

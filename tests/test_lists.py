@@ -111,7 +111,12 @@ class NamesTest(unittest.TestCase):
         grok = self.snapshot.match_ua("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) "
                                       "Chrome/139.0.0.0 Safari/537.36 GrokAgent/1.0 (u:0123456789abcdef)")
         self.assertEqual((claude["id"], claude["evidence"]), ("claude-agent", "listed"))
-        self.assertEqual((grok["id"], grok["category"], grok["evidence"]), ("grokagent", "agent", "unverified"))
+        self.assertEqual((grok["id"], grok["category"], grok["evidence"]), ("grok-bot", "agent", "unverified"))
+
+    def test_grok_bot_is_distinct_from_other_grok_user_agents(self):
+        for ua, name in (("GrokAgent/1.0", "grok-bot"), ("grok-agent/1.0", "grok-agent"), ("GrokBot/1.0", "grokbot")):
+            with self.subTest(ua=ua):
+                self.assertEqual(self.snapshot.match_ua(ua)["id"], name)
 
     def test_antigravitys_browser_is_named_by_its_versioned_token(self):
         for version in ("2.32.0", "2.32.1"):
