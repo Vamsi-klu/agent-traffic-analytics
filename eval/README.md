@@ -77,14 +77,61 @@ truth list (pass it with `--truth-recordings`), supply a short recording hash `h
 | `agy-browser` | `agent` | `in-app` | Antigravity's browser agent operating the side-panel browser |
 | `agy-cu` | `agent` | `in-app` or `own-chrome` | Confirmed computer use through native pointer and keyboard input |
 
-Check the browser actuation setting before recording. Antigravity can also use an external Chrome or fetch a page
-as text. Save the app version, task and observed tool mode with the recording.
-[Antigravity browser documentation](https://antigravity.google/docs/browser)
+### Confirm the browser surface
 
-The historic `agy` label has its own line. Its mode is unverified. A1 and A8 show the new human cohort as a
-reference, and A2 shows the two new agent cohorts. Use the session rows in `eval.json` to count all recordings,
-including thin sessions, and to check the selected name. Group computer-use rows by `truth.mode`. Count both
-`agent` and `mixed` as false positives in the human cohort. The new cohorts are excluded from calibration.
+The Antigravity App documents manual side-panel browsing from v2.26.0 and the built-in browser agent rollout
+from v2.30.0 for personal accounts in local desktop workspaces. Check **Settings → Browser → Browser Actuation
+Rules** and observe the browser subagent act in its App tab before using `agy-browser`. **Requires Google
+Chrome** uses Chrome DevTools MCP. Static page reads can skip opening a tab. Log the observed mechanism for
+each run and use `agy-cu` only after confirming native pointer or keyboard control on the surface. [Antigravity browser documentation](https://antigravity.google/docs/browser)
+
+### Match the tasks
+
+Use the maintainer's recorder kit on the test shop and lab page. Start each run in a fresh recording with the
+same site fixture and task goal for each operator. Do one manual run and one browser-agent run for each task,
+then repeat the matrix if collecting twenty per cohort. Repeat it for each confirmed native Computer Use surface
+when available. Keep the short flows to measure limited evidence. Save the short hash, task code, app version, OS,
+account type, model, observed tools and surface with the recording.
+
+| Task | Site | Actions |
+|---|---|---|
+| S1 | Shop | Open a category, scroll and inspect two products |
+| S2 | Shop | Search for a known item, open a result and return to the results |
+| S3 | Shop | Open a product and change a variant or quantity |
+| S4 | Shop | Add an item and update its quantity in the test cart |
+| S5 | Shop | Open a single item from the catalog and finish |
+| L1 | Lab | Complete a form with synthetic text, a selection and a submit action |
+| L2 | Lab | Move between fields, correct one value and verify the result |
+| L3 | Lab | Scroll to a lower section, use a control and return to the top |
+| L4 | Lab | Follow links across two pages and verify a detail on the final page |
+| L5 | Lab | Toggle a single test control and finish |
+
+Record five additional same-tab handoffs. For an agent-to-human recording, stop the built-in subagent and
+continue in its tab. For a human-to-agent recording the built-in subagent supports resuming its tab after a
+sign-in pause. Use a test account and synthetic data if exercising that path. Keep the agent's last action and
+the human's first action, or the corresponding times for the reverse direction. Use the agent's actuation
+label, `truth: mixed`, and `stretches: [[from_ms, to_ms, who], ...]` in action order, with the start of each
+stretch at the first action on that side. [Antigravity handoff documentation](https://antigravity.google/docs/browser#pause-take-over-and-sign-in)
+
+### Score the recordings
+
+Pass `--recordings`, `--truth-recordings` and `--out` to the checkout's `bin/agentcake eval`. Compare the
+same recordings before and after changes. Keep historical `agy` runs on their own line until the original truth
+list confirms the operator mode. A1 and A8 show `agy-human` and A2 shows `agy-browser` and `agy-cu` as
+references. The **Antigravity recording cohorts** table and `recorded_cohorts` in `eval.json` include every
+loaded run, split by recorded surface. Unknown or missing surfaces are shown as unverified.
+
+For manual sessions, require zero Agent or Mixed verdicts. In a ten-run browser-agent cohort, require at least
+eight Agent or Mixed verdicts named `antigravity-browser` and at most two Too little data verdicts. Use the
+per-surface Computer Use results to establish a baseline. For the handoff runs, check the Mixed count over all
+sessions and the number of direction-matched handoffs found, including the count within the A5 time limit.
+Keep these hashes in the recordings truth list. The cohorts are reference data outside the pooled handoff
+gate, scoreboard totals, calibration and fitted thresholds.
+
+Reconcile the exported row IDs against the truth list before scoring. Use `n_actions` and the raw input in the
+private recorder to distinguish short sessions from missing uploads and segmentation gaps. Compare any proposed
+page-visible trace against matched manual runs, ordinary Chrome and other Chromium apps. Require fresh agent
+runs and held-out human controls before changing a detection rule.
 
 ## What the report says
 

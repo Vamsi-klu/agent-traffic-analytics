@@ -11,12 +11,13 @@ from pathlib import Path
 import sys
 import tempfile
 import unittest
+from unittest import mock
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if REPO not in sys.path:
     sys.path.insert(0, REPO)
 
-from agentcake import datafiles  # noqa: E402
+from agentcake import datafiles, eval as cake_eval  # noqa: E402
 from agentcake.evaluation import bots, calibration, datasets, gate, measures, report, sources, tables  # noqa: E402
 
 SETTINGS = datafiles.load("data/eval.json")
@@ -108,7 +109,9 @@ class AntigravityRecordings(unittest.TestCase):
             where = sources.locate({"recordings": directory, "truth_recordings": str(truth_path),
                                     "selfcollect": directory, "truth_selfcollect": str(truth_path)}, SETTINGS)
             data = sources.load(where, SETTINGS)
-            results = tables.build(data, SETTINGS, LIMIT_S, with_logistic=False)
+            with mock.patch.object(tables, "_heldout_sessions", wraps=tables._heldout_sessions) as heldout_input:
+                results = tables.build(data, SETTINGS, LIMIT_S, with_logistic=False)
+        self.assertEqual([r["group"] for r in heldout_input.call_args.args[1]["recorded"]], ["agy"])
         self.assertEqual(results["takeovers"]["recorded_handoffs"], [])
         recorded = results["rows"]["recorded"]
         self.assertEqual({r["group"]: (r["truth"]["class"], r["truth"]["mode"]) for r in recorded},
@@ -117,11 +120,34 @@ class AntigravityRecordings(unittest.TestCase):
         self.assertEqual({r["group"] for r in results["rows"]["selfcollect"]}, {"agy", "agy-browser", "agy-cu"})
         self.assertEqual([r["group"] for r in calibration.answered({"recorded": recorded}, SETTINGS["calibration"])],
                          ["agy"])
+        self.assertEqual([c["product"] for c in results["scoreboard"]["agents"] if c["source"] == "recorded"], ["agy"])
         measured = {(m["threshold"], m["source"]) for m in measures.collect(results, SETTINGS, LIMIT_S)}
         self.assertIn(("A1", "recorded/agy-human"), measured)
         self.assertIn(("A8", "recorded/agy-human"), measured)
         for label in ("agy", "agy-browser", "agy-cu"):
             self.assertIn(("A2", f"recorded/{label}"), measured)
+
+    def test_reports_antigravity_handoffs_apart_from_the_existing_gate_pool(self):
+        with tempfile.TemporaryDirectory() as directory:
+            folder = Path(directory)
+            (folder / "sessions").mkdir()
+            truth_path = folder / "truth.jsonl"
+            entries = []
+            for label, mode in (("cic-panel", None), ("agy-browser", "in-app"), ("agy-cu", "own-chrome")):
+                (folder / "sessions" / f"{label}.jsonl").write_text("", encoding="utf-8")
+                h = datasets.short_hash(SETTINGS["short_hash"]["recording"], label, SETTINGS)
+                entries.append({"h": h, "label": label, "truth": "mixed", "mode": mode,
+                                "stretches": [[1000, 2000, "agent"], [3000, 4000, "human"]]})
+            truth_path.write_text("".join(json.dumps(entry) + "\n" for entry in entries), encoding="utf-8")
+            results, verdicts, where, notes, limit_s = cake_eval.run(
+                {"recordings": directory, "truth_recordings": str(truth_path), "no_logistic": True}, SETTINGS)
+        exported = cake_eval.as_json(results, verdicts, notes, limit_s)
+        self.assertEqual(len(exported["takeovers"]["recorded_handoffs"]), 1)
+        self.assertEqual([(c["label"], c["mode"], c["handoffs"]) for c in exported["recorded_cohorts"]],
+                         [("agy-browser", "in-app", {"true": 1, "found": 0, "within_limit": 0}),
+                          ("agy-cu", "own-chrome", {"true": 1, "found": 0, "within_limit": 0})])
+        self.assertIn("| agy-cu | own-chrome | mixed | 1 | 0 | 0 | 1 | — | 0/1 (0) |",
+                      report.markdown(results, verdicts, where, notes, limit_s))
 
     def test_human_reference_reports_mixed_and_thin_sessions(self):
         humans = [dict(row("agy-human", verdict), truth={"class": "human"}, layers={"name": "no_hit",
